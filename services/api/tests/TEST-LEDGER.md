@@ -769,6 +769,7 @@ reviewer can find every place the suite was touched.
 - added: tests/test_contract_spec_paths_exist.py::test_operation_ids_are_unique
 - added: tests/test_web_app_serving.py::test_the_document_is_never_reused_unasked_and_allows_no_inline_code
 - added: tests/test_web_app_serving.py::test_a_hashed_asset_is_cached_for_good_and_other_files_are_revalidated
+- added: tests/test_web_app_serving.py::test_the_document_reached_through_assets_is_not_cached_for_good
 - added: tests/test_web_app_serving.py::test_a_path_outside_the_build_or_missing_from_it_is_a_404
 - added: tests/test_web_app_serving.py::test_app_without_a_slash_redirects_relatively_so_ingress_keeps_its_prefix
 - added: tests/test_web_app_serving.py::test_without_a_build_the_app_says_how_to_build_it

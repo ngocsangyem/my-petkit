@@ -18,10 +18,12 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const info = useServerInfo();
   const signedIn = info.isSuccess;
 
+  // A 401 from any other route: forget what we knew and probe again. The probe
+  // starts with no data, so its own 401 lands in the error state the gate reads.
   useEffect(
     () =>
       onSignedOut(() => {
-        void queryClient.invalidateQueries({ queryKey: SERVER_INFO_KEY });
+        void queryClient.resetQueries({ queryKey: SERVER_INFO_KEY, exact: true });
       }),
     [queryClient],
   );
@@ -42,7 +44,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
     );
   }
   if (info.error instanceof ApiError && info.error.status === 401) return <SignInScreen />;
-  if (info.isError) {
+  // Only with nothing to show: a failed background poll (an add-on restart, a
+  // Wi-Fi blip) must not unmount the app and lose unsaved edits. The frame
+  // shows that the server is unreachable instead.
+  if (info.isError && info.data === undefined) {
     return (
       <main className="auth-page">
         <ErrorBlock

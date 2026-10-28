@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { useMatches } from 'react-router';
-import { SERVER_INFO_KEY, useServerInfo } from '@/auth/use-server-info';
+import { useServerInfo } from '@/auth/use-server-info';
 import { api } from '@/shared/api/client';
 import { Button } from '@/shared/ui';
 import { useStreamStatus } from '@/shared/ws/use-event-stream';
@@ -45,9 +45,9 @@ function SignOut() {
       variant="text"
       size="small"
       onClick={() => {
-        void api
-          .POST('/api/auth/logout')
-          .then(() => queryClient.invalidateQueries({ queryKey: SERVER_INFO_KEY }));
+        // Drop every cached answer (they belong to the old session); the gate's
+        // probe then starts empty and its 401 shows the sign-in screen.
+        void api.POST('/api/auth/logout').then(() => queryClient.resetQueries());
       }}
     >
       Sign out
@@ -73,6 +73,11 @@ export function AppFrame({ children }: { children: ReactNode }) {
       badge={tls ? 'TLS' : 'Not encrypted'}
       pageTitle={title}
     >
+      {info.isError && (
+        <p className="server-unreachable" role="status">
+          The server is not answering. Retrying; nothing on this page is lost.
+        </p>
+      )}
       <StaleBuildBanner />
       {children}
     </AppShell>

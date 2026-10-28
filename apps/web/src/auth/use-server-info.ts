@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api, unwrap } from '@/shared/api/client';
+import { ApiError } from '@/shared/api/errors';
 
 export const SERVER_INFO_KEY = ['info'] as const;
 
@@ -11,7 +12,8 @@ export function useServerInfo() {
   return useQuery({
     queryKey: SERVER_INFO_KEY,
     queryFn: () => unwrap(api.GET('/api/info')),
-    retry: false,
+    // A 401 is an answer; anything else may be a restart in progress.
+    retry: (count, error) => !(error instanceof ApiError && error.status === 401) && count < 2,
     refetchInterval: 60_000,
   });
 }

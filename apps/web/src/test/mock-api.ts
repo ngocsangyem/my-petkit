@@ -18,7 +18,10 @@ export function mockApi(routes: Record<string, MockReply>): Request[] {
     vi.fn(async (input: Request | string, init?: RequestInit) => {
       const request =
         input instanceof Request ? input : new Request(new URL(input, 'http://localhost'), init);
-      calls.push(request.clone());
+      // Kept as sent and never read here, so a test can read its body; a reply
+      // function gets its own clone. (Cloning every request a second time hangs
+      // undici on some Node versions with a FormData body.)
+      calls.push(request);
       const path = new URL(request.url).pathname.replace(/^.*?(\/api\/)/, '/api/');
       const reply = routes[`${request.method} ${path}`];
       if (!reply) {
@@ -31,7 +34,7 @@ export function mockApi(routes: Record<string, MockReply>): Request[] {
         );
       }
       const { status = 200, body = {} } =
-        typeof reply === 'function' ? await reply(request) : reply;
+        typeof reply === 'function' ? await reply(request.clone()) : reply;
       return new Response(JSON.stringify(body), {
         status,
         headers: { 'Content-Type': 'application/json' },

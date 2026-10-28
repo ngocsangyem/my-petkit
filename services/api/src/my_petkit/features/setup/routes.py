@@ -11,6 +11,8 @@ control that reads and writes `RetentionConfig` and never touches a path.
 """
 from __future__ import annotations
 
+import asyncio
+
 import logging
 import os
 from typing import Any
@@ -235,7 +237,7 @@ async def api_info(request: web.Request) -> web.Response:
         # The entry script of the web app build this server would serve now
         # (`assets/index-<hash>.js`), or null with no build. The web app
         # compares it with its own to tell it was loaded from an older build.
-        "web_entry": web_entry(),
+        "web_entry": await asyncio.to_thread(web_entry),
         "api_url": cfg.get("api_url"),
         "mqtt_tls": cfg.get("mqtt_tls"),
         "mqtt_tls_port": cfg.get("mqtt_tls_port"),

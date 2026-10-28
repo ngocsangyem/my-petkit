@@ -10,9 +10,11 @@ import { ApiError, toApiError } from './errors';
 // route means the session ended (the auth gate shows the sign-in screen), and a
 // 403 `step_up_required` asks for the admin password once and replays the
 // request. The auth routes themselves are left alone: a wrong password there is
-// an answer for the form, not a reason to prompt.
+// an answer for the form, not a reason to prompt. `/api/info` is left alone too:
+// it is the gate's own probe, so its 401 already reaches the gate, and signalling
+// it again would make the gate refetch the very request that just failed.
 
-const AUTH_ROUTES = /\/api\/auth\/(setup|login|step-up|pairing\/redeem)$/;
+const AUTH_ROUTES = /\/api\/(auth\/(setup|login|step-up|pairing\/redeem)|info)$/;
 const pending = new WeakMap<Request, Request>();
 
 const refusals: Middleware = {

@@ -40,8 +40,9 @@ export class EventStream {
     this.stopped = true;
     if (this.retryTimer) clearTimeout(this.retryTimer);
     if (this.silenceTimer) clearTimeout(this.silenceTimer);
-    this.socket?.close();
-    this.socket = null;
+    const socket = this.socket;
+    this.socket = null; // its late `close` is now ignored (see `connect`)
+    socket?.close();
     this.setStatus('offline');
   }
 
@@ -76,16 +77,22 @@ export class EventStream {
       return;
     }
     this.socket = socket;
+    // Every handler checks it still belongs to the current socket: a socket that
+    // was stopped (or replaced) may still deliver `close` or a last message.
+    const current = () => this.socket === socket;
     socket.onopen = () => {
+      if (!current()) return;
       this.retry = RETRY_MIN_MS;
       this.setStatus('live');
       this.armSilence();
     };
     socket.onclose = () => {
-      if (this.socket === socket) this.socket = null;
+      if (!current()) return;
+      this.socket = null;
       this.scheduleRetry();
     };
     socket.onmessage = message => {
+      if (!current()) return;
       this.armSilence();
       const frame = parseFrame(message.data);
       if (!frame) return;

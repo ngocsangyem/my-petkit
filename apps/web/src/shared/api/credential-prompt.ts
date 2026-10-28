@@ -5,6 +5,7 @@ export type CredentialKind = 'step-up';
 type Handler = (kind: CredentialKind) => Promise<boolean>;
 
 let handler: Handler | null = null;
+let pending: Promise<boolean> | null = null;
 const signedOutListeners = new Set<() => void>();
 
 /** Installed once by the auth layer; resolves true when the user confirmed. */
@@ -12,8 +13,16 @@ export function setCredentialHandler(next: Handler | null): void {
   handler = next;
 }
 
+/**
+ * Ask once, however many requests are waiting: two refusals that arrive while
+ * the dialog is open both replay after the one password.
+ */
 export function promptForCredential(kind: CredentialKind): Promise<boolean> {
-  return handler ? handler(kind) : Promise.resolve(false);
+  if (!handler) return Promise.resolve(false);
+  pending ??= handler(kind).finally(() => {
+    pending = null;
+  });
+  return pending;
 }
 
 /** Called when the server answers 401 to an authenticated request. */

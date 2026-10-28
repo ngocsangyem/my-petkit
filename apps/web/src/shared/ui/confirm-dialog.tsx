@@ -19,6 +19,8 @@ export interface ConfirmDialogProps {
   onCancel: () => void;
   /** While true both buttons are disabled and Escape is ignored. */
   busy?: boolean;
+  /** Disables only the confirm button, e.g. until a required field is filled. */
+  confirmDisabled?: boolean;
 }
 
 /**
@@ -34,6 +36,7 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
   busy = false,
+  confirmDisabled = false,
 }: ConfirmDialogProps) {
   const titleId = useId();
   const bodyId = useId();
@@ -77,7 +80,12 @@ export function ConfirmDialog({
           >
             {cancelLabel}
           </Button>
-          <Button variant="primary" size="large" onClick={onConfirm} disabled={busy}>
+          <Button
+            variant="primary"
+            size="large"
+            onClick={onConfirm}
+            disabled={busy || confirmDisabled}
+          >
             {confirmLabel}
           </Button>
         </div>

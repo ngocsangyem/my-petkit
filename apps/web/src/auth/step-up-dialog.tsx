@@ -42,6 +42,7 @@ export function StepUpDialog() {
 
   async function confirm(event?: SyntheticEvent) {
     event?.preventDefault();
+    if (!password) return; // an empty attempt would only spend a rate-limit slot
     setBusy(true);
     setError(null);
     try {
@@ -63,6 +64,7 @@ export function StepUpDialog() {
       title="Confirm it's you to continue?"
       confirmLabel="Continue"
       busy={busy}
+      confirmDisabled={!password}
       onConfirm={() => void confirm()}
       onCancel={() => {
         finish(false);

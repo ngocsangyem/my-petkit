@@ -199,12 +199,19 @@ describe('SetupPage', () => {
     });
   });
 
-  it('shows the connection facts and keeps an info failure inside its block', async () => {
-    mockApi({ 'GET /api/info': { status: 500, body: { error: 'boom' } } });
-    renderWithProviders(<SetupPage />);
-    expect(await screen.findByRole('alert')).toHaveTextContent(/settings could not be loaded/);
-    expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
-  });
+  it(
+    'shows the connection facts and keeps an info failure inside its block',
+    { timeout: 10_000 },
+    async () => {
+      mockApi({ 'GET /api/info': { status: 500, body: { error: 'boom' } } });
+      renderWithProviders(<SetupPage />);
+      // The info probe retries twice (a restart may be in progress) before failing.
+      expect(await screen.findByRole('alert', {}, { timeout: 6000 })).toHaveTextContent(
+        /settings could not be loaded/,
+      );
+      expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
+    },
+  );
 });
 
 describe('setup model', () => {

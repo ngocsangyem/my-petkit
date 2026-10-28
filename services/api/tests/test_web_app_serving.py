@@ -52,6 +52,17 @@ async def test_a_hashed_asset_is_cached_for_good_and_other_files_are_revalidated
         await client.close()
 
 
+async def test_the_document_reached_through_assets_is_not_cached_for_good(tmp_path, built):
+    client = anonymous_client(bare_panel(tmp_path))
+    await client.start_server()
+    try:
+        r = await client.get(URL("/app/assets/..%2Findex.html", encoded=True))
+        assert r.status == 200
+        assert r.headers["Cache-Control"] == "no-cache"
+    finally:
+        await client.close()
+
+
 async def test_a_path_outside_the_build_or_missing_from_it_is_a_404(tmp_path, built):
     (tmp_path / "secret.txt").write_text("nope")
     client = anonymous_client(bare_panel(tmp_path))

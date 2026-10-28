@@ -10,3 +10,12 @@
   border-radius: var(--radius-card);
   font-size: var(--text-small);
 }
+
+.server-unreachable {
+  margin: 0 0 var(--gap);
+  padding: 10px 14px;
+  background: var(--raised);
+  border-radius: var(--radius-card);
+  color: var(--muted);
+  font-size: var(--text-small);
+}

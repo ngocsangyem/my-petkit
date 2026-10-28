@@ -1,5 +1,6 @@
 import { Navigate, Outlet, createHashRouter } from 'react-router';
 import { AppFrame } from './app-frame';
+import { RouteError } from './route-error';
 import { SCREENS } from './routes-meta';
 
 // Hash routing: the server only ever serves the document at `app/`, whatever
@@ -14,6 +15,11 @@ export const router = createHashRouter([
     element: (
       <AppFrame>
         <Outlet />
+      </AppFrame>
+    ),
+    errorElement: (
+      <AppFrame>
+        <RouteError />
       </AppFrame>
     ),
     children: [

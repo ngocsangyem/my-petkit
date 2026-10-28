@@ -23,10 +23,16 @@ export function useRetention() {
   });
 }
 
-/** Newest-first blocked attempts; `reveal` shows payloads unmasked and needs a step-up. */
+/**
+ * Newest-first blocked attempts; `reveal` shows payloads unmasked and needs a
+ * step-up. A revealed list is fetched once, when asked for, and never again in
+ * the background: a refetch after the grant lapsed would pop the password
+ * dialog up unprompted, and users must only ever type it into one they opened.
+ */
 export function useBlocked(reveal: boolean) {
   return useQuery({
     queryKey: setupKeys.blocked(reveal),
+    ...(reveal ? { staleTime: Infinity, refetchOnWindowFocus: false, refetchInterval: false } : {}),
     queryFn: () =>
       unwrap(
         api.GET('/api/blocked', {

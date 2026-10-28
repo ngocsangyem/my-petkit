@@ -37,7 +37,8 @@ from my_petkit.utils.paths import UnsafePathError, safe_join
 #: through Media Source Extensions from a blob worker).
 SPA_CSP = (
     "default-src 'self'; img-src 'self' blob: data:; media-src 'self' blob:; "
-    "worker-src 'self' blob:; frame-ancestors 'self'"
+    "worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'; "
+    "frame-ancestors 'self'"
 )
 IMMUTABLE = "public, max-age=31536000, immutable"
 
@@ -55,7 +56,7 @@ async def handle_spa_redirect(request: web.Request) -> web.StreamResponse:
 
 
 def _build_file(name: str) -> Path | None:
-    """The file `name` of the build, or None when it is missing or outside it.
+    """The resolved file `name` of the build, or None when missing or outside it.
 
     Synchronous on purpose: the handlers run it in a thread, since `stat` on a
     slow disk must not stall the loop that also answers the devices.
@@ -66,6 +67,12 @@ def _build_file(name: str) -> Path | None:
     except UnsafePathError:
         return None
     return path if path.is_file() else None
+
+
+def _is_hashed_asset(path: Path) -> bool:
+    """Whether a resolved build file sits in `assets/`, decided on where it is,
+    not on how the URL spelled it (`assets/..%2Findex.html` is the document)."""
+    return path.parent == (dist_dir() / "assets").resolve()
 
 
 @tier(GET=Tier.PUBLIC_STATIC)
@@ -89,8 +96,9 @@ async def handle_spa_file(request: web.Request) -> web.StreamResponse:
     path = await asyncio.to_thread(_build_file, name)
     if path is None:
         return error_response(404, "not_found", "Not found.")
+    hashed = await asyncio.to_thread(_is_hashed_asset, path)
     response = web.FileResponse(path)
-    response.headers["Cache-Control"] = IMMUTABLE if name.startswith("assets/") else "no-cache"
+    response.headers["Cache-Control"] = IMMUTABLE if hashed else "no-cache"
     response.headers["Content-Security-Policy"] = SPA_CSP
     return response
 

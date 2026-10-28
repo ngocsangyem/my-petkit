@@ -41,7 +41,9 @@ export function TokensSection() {
     pairing && tokens.data ? tokens.data.find(t => !pairing.knownIds.has(t.id)) : undefined;
 
   function newCode() {
-    const knownIds = new Set((tokens.data ?? []).map(t => t.id));
+    // Without the current list every existing token would look newly paired.
+    if (!tokens.data) return;
+    const knownIds = new Set(tokens.data.map(t => t.id));
     create.mutate(undefined, {
       onSuccess: code => {
         setPairing({ code, knownIds });
@@ -80,7 +82,7 @@ export function TokensSection() {
         />
       ) : (
         <div className="tokens-actions">
-          <Button variant="primary" onClick={newCode} disabled={create.isPending}>
+          <Button variant="primary" onClick={newCode} disabled={create.isPending || !tokens.data}>
             {create.isPending ? 'Creating…' : 'Pair a phone'}
           </Button>
         </div>
