@@ -449,7 +449,27 @@ def apply_state_snapshot(device: Device, state: Any) -> bool:
     return True
 
 
-def apply_derived_state(device: Device, event_type: str, content: dict) -> None:
+#: The event-only values `apply_derived_state` maintains, one slot per kind of
+#: event that sets them. `events/derived_state_replay.py` uses the same slots
+#: to pick which stored events to replay at start-up.
+DERIVED_CLEAN = "clean"
+DERIVED_VISIT = "visit"
+DERIVED_FEED = "feed"
+
+
+def derived_state_slot(code: codes.EventCode) -> str | None:
+    """Which event-only value a code sets (`DERIVED_*`), or None."""
+    if code.kind == codes.KIND_CLEANING and code.role == codes.ROLE_DONE:
+        return DERIVED_CLEAN if code.done_word in _CLEAN_DONE_WORDS else None
+    if code.kind == codes.KIND_TOILET and code.role == codes.ROLE_VISIT_SUMMARY:
+        return DERIVED_VISIT
+    if code.kind == codes.KIND_FEEDING and code.role == codes.ROLE_DONE:
+        return DERIVED_FEED
+    return None
+
+
+def apply_derived_state(device: Device, event_type: str, content: dict,
+                        ts: float | None = None) -> None:
     """Fold into `device.state` the values that only an EVENT ever carries.
 
     Four entities -- Last Clean, Last Visit, Last Feed and Pet Weight -- have no
@@ -461,24 +481,31 @@ def apply_derived_state(device: Device, event_type: str, content: dict) -> None:
 
     Dispatch goes through `codes.lookup`, which resolves either namespace, so
     the two transports cannot drift apart.
+
+    `ts` is when the event happened (epoch seconds); a live report omits it and
+    is stamped now. The start-up replay passes the stored row's own `ts`, so a
+    restart does not move Last Clean/Visit/Feed to the moment of the restart.
     """
     code = codes.lookup(event_type, device.device_type)
     if code is None:
         return
+    slot = derived_state_slot(code)
+    if slot is None:
+        return
+    when = _now_iso() if ts is None else _iso_utc(ts)
 
-    if code.kind == codes.KIND_CLEANING and code.role == codes.ROLE_DONE:
-        if code.done_word in _CLEAN_DONE_WORDS:
-            device.state["lastClean"] = _now_iso()
+    if slot == DERIVED_CLEAN:
+        device.state["lastClean"] = when
 
-    elif code.kind == codes.KIND_TOILET and code.role == codes.ROLE_VISIT_SUMMARY:
-        device.state["lastVisit"] = _now_iso()
+    elif slot == DERIVED_VISIT:
+        device.state["lastVisit"] = when
         # Weight rides in the content, never in params or the state block.
         weight = to_float(content.get("pet_weight", content.get("petWeight")), None)
         if weight is not None:
             device.state["petWeight"] = weight
 
-    elif code.kind == codes.KIND_FEEDING and code.role == codes.ROLE_DONE:
-        device.state["lastFeed"] = _now_iso()
+    elif slot == DERIVED_FEED:
+        device.state["lastFeed"] = when
         _accumulate_feed_totals(device, content)
 
 
@@ -502,8 +529,8 @@ def _accumulate_feed_totals(device: Device, content: dict) -> None:
     so it neither counts nor adds.
 
     NOT persisted: `Device.to_dict` deliberately excludes `state`, and this
-    stays inside it. The totals are lost on restart and rebuilt from the day's
-    remaining feeds, which is the same trade every other `state` key makes.
+    stays inside it. At start-up `events/derived_state_replay.py` rebuilds the
+    totals by replaying the stored feed events through this same function.
     """
     grams = sum(
         to_float(content.get(key), 0) or 0
@@ -526,6 +553,11 @@ def _accumulate_feed_totals(device: Device, content: dict) -> None:
 def _now_iso() -> str:
     """Current time as an ISO-8601 UTC string, for HA timestamp sensors."""
     return datetime.now(timezone.utc).isoformat()
+
+
+def _iso_utc(ts: float) -> str:
+    """An epoch timestamp in `_now_iso`'s format."""
+    return datetime.fromtimestamp(ts, timezone.utc).isoformat()
 
 
 # --- MQTT thing/event/* ------------------------------------------------

@@ -262,6 +262,9 @@ reviewer can find every place the suite was touched.
 - added: tests/test_repro_event_identity_across_devices.py::test_connect_collapses_duplicate_keys_before_adding_the_unique_index
 - added: tests/test_repro_bare_token_repair_inside_strings.py::test_repair_honours_escaped_quotes_inside_a_string
 - added: tests/test_repro_device_registry_string_petkit_id.py::test_registry_load_skips_only_an_entry_whose_petkit_id_is_not_a_number
+- added: tests/test_repro_derived_state_across_restart.py::test_replay_leaves_a_device_with_no_stored_events_unknown
+- added: tests/test_repro_derived_state_across_restart.py::test_start_up_replays_derived_state_after_the_backfill
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[events/derived_state_replay.py]
 
 ## Removed
 
@@ -280,3 +283,4 @@ None.
 | `test_repro_device_registry_string_petkit_id.py` | strict-xfail marker removed; the assertion now requires the string id to be restored as the int, not merely tolerated | fix landed | – |
 | `test_repro_backfill_beyond_first_page.py` | strict-xfail marker removed: the backfill pages through every row by id | fix landed | – |
 | `test_repro_device_scoped_commands_and_zones.py` | strict-xfail marker removed from `test_a_code_reported_by_a_model_outside_its_families_is_logged` only; it now resets the once-per-pair warning set and asserts the second lookup does not warn again | fix landed | – |
+| `test_repro_derived_state_across_restart.py` | strict-xfail markers removed from both tests and both retargeted from a bare registry reload to the start-up replay of stored events: they store events with fixed timestamps, reload the registry, run `replay_derived_state`, and assert each value carries its event's own time (feeder totals cover only the newest device day) | fix landed | – |

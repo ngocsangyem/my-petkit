@@ -17,6 +17,7 @@ from urllib.parse import urlparse
 
 from aiohttp import web
 
+from my_petkit.events.derived_state_replay import replay_derived_state
 from my_petkit.events.ingest import _MODULE_TYPE_TO_CATEGORY, backfill_event_rows
 from my_petkit.http.bucket import create_bucket_app
 from my_petkit.http.handlers.upload_file_info import wait_for_pending as wait_for_media_tasks
@@ -130,6 +131,10 @@ async def start_background(services: Services, app_instance: web.Application) ->
     # Same idea for events: re-derive event_kind/parent_event on rows stored
     # before those were understood, so old sessions group correctly.
     await backfill_event_rows(event_store)
+    # Last Clean/Visit/Feed, Pet Weight and the feed totals live only in
+    # `device.state`, which devices.json does not persist; rebuild them from
+    # the (now repaired) stored events before any HA publish or panel read.
+    await replay_derived_state(event_store, registry.all())
 
     # Both registries are constructed before the loop exists (nothing is
     # started in their constructors); this hands them the running loop so
