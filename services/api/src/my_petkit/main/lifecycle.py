@@ -273,7 +273,7 @@ async def start_background(services: Services, app_instance: web.Application) ->
     if not services.no_mqtt:
         broker = await start_broker(
             config.mqtt_port, registry,
-            plain_bind=config.mqtt_plain_bind, tls_bind=config.device_bind_host,
+            plain_bind=config.mqtt_plain_listen_host, tls_bind=config.device_bind_host,
             tls=config.mqtt_tls, tls_port=config.mqtt_tls_port,
             certfile=cert_path,
             keyfile=config.mqtt_key or f"{config.data_dir}/certs/broker.key",

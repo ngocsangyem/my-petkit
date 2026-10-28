@@ -365,8 +365,12 @@ class Config:
     #: Device plane: device HTTP API, media bucket and the MQTT TLS listener.
     device_bind_host: str = "0.0.0.0"  # noqa: S104 - the device plane serves the LAN
     #: The plain MQTT listener. The internal bridge dials `localhost` on it, so
-    #: whatever this is must include loopback (`0.0.0.0` or `127.0.0.1`).
-    mqtt_plain_bind: str = "0.0.0.0"  # noqa: S104
+    #: whatever this is must include loopback. Loopback only by default: devices
+    #: speak MQTT over TLS, and a plaintext listener on the LAN is one more door.
+    mqtt_plain_bind: str = "127.0.0.1"
+    #: Serve the plain MQTT listener on every interface, as upstream did, for a
+    #: device that speaks plaintext MQTT. Overrides `mqtt_plain_bind`.
+    mqtt_plain_expose: bool = False
     #: The user plane (web panel / API).
     user_bind_host: str = "0.0.0.0"  # noqa: S104
     #: go2rtc's RTSP listener, `host:port` or `:port` for every interface. Home
@@ -374,6 +378,15 @@ class Config:
     rtsp_bind: str = ":8554"
     #: IANA zone the server reads local time in. Empty means the process zone.
     timezone: str = ""
+
+    @property
+    def mqtt_plain_listen_host(self) -> str:
+        """The address the plain MQTT listener actually binds.
+
+        Every interface when `mqtt_plain_expose` is set (which still includes
+        the loopback address the internal bridge dials), else `mqtt_plain_bind`.
+        """
+        return "0.0.0.0" if self.mqtt_plain_expose else self.mqtt_plain_bind  # noqa: S104
 
     def validate_bind_addresses(self) -> None:
         """Refuse a bind address that is not an IP literal, before anything binds.
@@ -586,6 +599,7 @@ class Config:
         c.mqtt_tls = _opt_bool(opts, "mqtt_tls", c.mqtt_tls)
         c.mqtt_tls_port = _opt_int(opts, "mqtt_tls_port", c.mqtt_tls_port)
         c.mqtt_strict_auth = _opt_bool(opts, "mqtt_strict_auth", c.mqtt_strict_auth)
+        c.mqtt_plain_expose = _opt_bool(opts, "mqtt_plain_expose", c.mqtt_plain_expose)
         for key in ("device_bind_host", "mqtt_plain_bind", "user_bind_host", "rtsp_bind",
                     "timezone"):
             value = str(opts.get(key) or "").strip()

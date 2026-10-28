@@ -166,14 +166,15 @@ Two rules about placement that the map does not make obvious:
 - **Every listener binds its own setting** (`device_bind_host`, `mqtt_plain_bind`,
   `user_bind_host`, `rtsp_bind`), validated as an IP literal before anything binds. No literal
   `0.0.0.0` in `main/`. The plain MQTT listener must include loopback: the internal bridge dials
-  `localhost`.
+  `localhost`. It binds only loopback unless `mqtt_plain_expose` restores every interface for a
+  device that speaks plaintext, as upstream allowed.
 
   | Listener | Setting | Default |
   |---|---|---|
   | Device HTTP API (80) | `device_bind_host` | `0.0.0.0` |
   | Media bucket (9000) | `device_bind_host` | `0.0.0.0` |
   | MQTT TLS (443) | `device_bind_host` | `0.0.0.0` |
-  | MQTT plain (1883) | `mqtt_plain_bind` | `0.0.0.0` |
+  | MQTT plain (1883) | `mqtt_plain_bind` | `127.0.0.1`; `0.0.0.0` with `mqtt_plain_expose` |
   | Web panel / user plane (8099) | `user_bind_host` | `0.0.0.0` |
   | go2rtc RTSP (8554) | `rtsp_bind` | `:8554` |
   | go2rtc API (1984) | fixed | `127.0.0.1` |

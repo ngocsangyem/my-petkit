@@ -46,6 +46,7 @@ PetKit device ──HTTP───► my-petkit ──MQTT discovery──► Hom
 | `mqtt_tls` | `true` | Add a TLS listener to the device-facing broker (self-signed, generated on first start). |
 | `mqtt_tls_port` | `443` | Port for that listener. Change this and the matching port mapping together if your device dials a different one. |
 | `mqtt_strict_auth` | `false` | Enforce the Aliyun HMAC signature. Off by default so a signature nuance cannot lock a device out. |
+| `mqtt_plain_expose` | `false` | Serve the plain MQTT listener (1883) on every interface instead of loopback only. Turn it on, and map the port, only for a device that connects in plaintext. |
 
 Payload capture and proxy mode are **not** options here. Both are things you turn on
 while watching a device, so they live in the panel's **Setup → Settings**, take
@@ -57,7 +58,7 @@ effect immediately, and persist to `/data/settings_overrides.json`.
 |------|------|---------|
 | `80` | `80` | Device HTTP API. ESP32 models want it here: a T4 provisioned with `:8080` reaches Wi-Fi and then fails to connect to the server, and one redirected by DNS dials 80 with nowhere to tell it otherwise. |
 | `443` | `443` | Device MQTT over TLS. |
-| `1883` | *(unmapped)* | Plain MQTT listener, internal to this app. Map it only if a device connects in plaintext. |
+| `1883` | *(unmapped)* | Plain MQTT listener, internal to this app and bound to loopback. For a device that connects in plaintext, set `mqtt_plain_expose` and map it. |
 | `9000` | `9000` | Media upload bucket the device PUTs photos and videos to. |
 | `8099` | *(unmapped)* | The web panel over plain HTTP, **no authentication**. Ingress proxies this internally. |
 | `8554` | *(unmapped)* | Camera RTSP from the bundled go2rtc. Home Assistant reaches it over the internal network, so map it only to watch the stream from elsewhere on the LAN — and note 8554 clashes with the go2rtc app. |

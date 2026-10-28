@@ -16,7 +16,12 @@ reviewer can find every place the suite was touched.
 
 ### Listener bind addresses (each listener binds its own configured address)
 
-- added: tests/test_listener_bind_addresses.py::test_defaults_bind_what_upstream_bound
+- added: tests/test_listener_bind_addresses.py::test_defaults_bind_what_upstream_bound_except_plain_mqtt_on_loopback
+  — renamed from `test_defaults_bind_what_upstream_bound` when plain MQTT moved to loopback.
+- added: tests/test_listener_bind_addresses.py::test_mqtt_plain_expose_restores_every_interface
+- added: tests/test_listener_bind_addresses.py::test_mqtt_plain_expose_flag_and_addon_option
+- added: tests/test_listener_bind_addresses.py::test_the_addon_schema_offers_mqtt_plain_expose
+- added: tests/test_listener_bind_addresses.py::test_the_broker_binds_plain_mqtt_to_loopback_by_default
 - added: tests/test_listener_bind_addresses.py::test_a_bind_host_that_is_not_an_ip_literal_is_refused[localhost-device_bind_host]
 - added: tests/test_listener_bind_addresses.py::test_a_bind_host_that_is_not_an_ip_literal_is_refused[localhost-mqtt_plain_bind]
 - added: tests/test_listener_bind_addresses.py::test_a_bind_host_that_is_not_an_ip_literal_is_refused[localhost-user_bind_host]
@@ -413,6 +418,7 @@ None.
 | `test_feed_get.py::test_recurring_meal_appears_with_live_countdown` | computes "now" on the device's calendar via `clock.local_datetime` instead of `time.localtime` | same | 04 |
 | `test_repro_device_scoped_commands_and_zones.py::test_the_daily_feed_record_id_uses_the_device_zone_not_the_host_zone` | strict xfail removed: the feeder record id uses the device's zone | fix landed | 04 |
 | `test_panel.py::test_action_and_entity_forms_have_the_same_side_effects` | pins `time.time` so the two requests' feed record ids (seconds since midnight) cannot straddle a second boundary; it failed about once in ten runs | flaky test fixed, assertion unchanged | 04 |
+| `test_listener_bind_addresses.py` | module docstring: plain MQTT is the one listener whose default moved off upstream's (loopback); the defaults test was renamed (see Added) | behaviour change: plain MQTT on loopback | 05 |
 | `test_repro_media_file_info_resend.py` | strict xfail removed: a replayed file_info no longer moves a ready row with its file on disk out of `ready`, so the reproduction is a regular test | repro promoted to regular test | bugfix |
 | `test_repro_panel_app_key_reads.py` | strict xfail markers removed now the sound and device-delete handlers read `hub`/`ha_publisher` through `web/appkeys.py`; docstring now describes the wired behaviour; unused `pytest` import dropped | xfail removed | fix |
 | `test_repro_mqtt_auth_signature_log.py` | strict xfail marker removed now a sign mismatch logs pk/dn/signmethod and no signature; docstring in the past tense | xfail removed | fix |
