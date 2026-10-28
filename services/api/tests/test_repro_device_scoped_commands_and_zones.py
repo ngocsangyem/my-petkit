@@ -36,7 +36,6 @@ async def _send_action(device_type: str, action: str) -> tuple[int, dict]:
         await client.close()
 
 
-@pytest.mark.xfail(strict=True, reason="any action is accepted for any model today")
 @pytest.mark.parametrize(("device_type", "action"), [
     ("t4", "pack_waste"),      # code 8: a T4 reads it as an N50 deodorizer reset
     ("d4", "dump_litter"),     # a litter command sent to a feeder

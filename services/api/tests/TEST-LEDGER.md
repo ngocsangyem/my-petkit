@@ -290,6 +290,15 @@ reviewer can find every place the suite was touched.
 - added: tests/test_repro_api_url_local_substring.py::test_other_spellings_of_an_mdns_host_are_still_replaced[homeassistant.local/6/]
 - added: tests/test_repro_api_url_local_substring.py::test_an_api_url_that_does_not_parse_is_kept_rather_than_raising
 
+### Panel command actions are scoped to the model's buttons
+
+- added: tests/test_panel_command_action_validation.py::test_a_non_string_action_is_refused_not_a_server_error[action0]
+- added: tests/test_panel_command_action_validation.py::test_a_non_string_action_is_refused_not_a_server_error[action1]
+- added: tests/test_panel_command_action_validation.py::test_a_non_string_action_is_refused_not_a_server_error[7]
+- added: tests/test_panel_command_action_validation.py::test_an_unknown_action_is_refused_with_the_existing_message
+- added: tests/test_panel_command_action_validation.py::test_an_out_of_model_action_queues_nothing
+- added: tests/test_panel_command_action_validation.py::test_the_raw_suffix_payload_form_is_not_scoped_by_model
+
 ## Removed
 
 None.
@@ -308,3 +317,4 @@ None.
 | `test_repro_ha_mqtt_host_default.py` | strict xfail markers removed now the standalone `Config` and `HAPublisher` default `ha_mqtt_host` to empty; docstring in the past tense | xfail removed | fix |
 | `test_repro_ha_addon_cli_flags.py` | strict xfail marker removed now `build_config` applies the flags after either config source; docstring in the past tense; unused `pytest` import dropped | xfail removed | fix |
 | `test_repro_api_url_local_substring.py` | strict xfail marker removed now `.local` is matched on the parsed host; docstring in the past tense | xfail removed | fix |
+| `test_repro_device_scoped_commands_and_zones.py` | strict xfail marker removed from `test_an_action_the_model_has_no_button_for_is_refused` now a named action needs a button on the model; the file's other tests unchanged | xfail removed | fix |

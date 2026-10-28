@@ -293,8 +293,7 @@ async def api_send_command(request: web.Request) -> web.Response:
     entity_key = body.get("entity")
 
     if action:
-        fn = ALL_ACTIONS.get(action)
-        if not fn:
+        if not isinstance(action, str) or action not in ALL_ACTIONS:
             return web.json_response({"error": f"unknown action {action}"}, status=400)
         # A named action and a `button` entity of the same key are the SAME
         # press and must have the same side effects. `handle_ha_command` is
@@ -303,22 +302,28 @@ async def api_send_command(request: web.Request) -> web.Response:
         # device command (a no-op for the N50 — see `ha/commands.py`) and never
         # wrote the date, which is that countdown's ONLY possible source. The
         # same button in Home Assistant worked, because HA routes through the
-        # handler. `ALL_ACTIONS` stays the fallback for an action with no
-        # entity behind it.
+        # handler.
+        #
+        # An action this model has no button for is refused rather than sent:
+        # the action names are shared across families, and the same command
+        # means something else elsewhere -- `pack_waste` reaches a T4 as code 8,
+        # which that model reads as an N50 deodorizer reset. The panel
+        # only offers this model's buttons, so this stops a hand-made request.
+        # The raw `{suffix, payload}` form stays the deliberate escape hatch.
         ent = next((e for e in get_entities_for_device(d)
                     if e.key == action and e.component == "button"), None)
         if ent is None:
-            suffix, envelope = fn(d)
-        else:
-            try:
-                result = handle_ha_command(d, ent, "")
-            except Refused as exc:
-                return web.json_response({"error": str(exc)}, status=400)
-            reg.save()
-            if result is None:
-                hub.record_command(d.petkit_id, "local", action)
-                return web.json_response({"ok": True, "delivered": "local", "action": action})
-            suffix, envelope = result
+            return web.json_response(
+                {"error": f"action {action} is not available on this device"}, status=400)
+        try:
+            result = handle_ha_command(d, ent, "")
+        except Refused as exc:
+            return web.json_response({"error": str(exc)}, status=400)
+        reg.save()
+        if result is None:
+            hub.record_command(d.petkit_id, "local", action)
+            return web.json_response({"ok": True, "delivered": "local", "action": action})
+        suffix, envelope = result
     elif entity_key is not None:
         # Route through the same handler as HA so coercion (switch/number/select
         # option_values) and optimistic settings update stay identical.
