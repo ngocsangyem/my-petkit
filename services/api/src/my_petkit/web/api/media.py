@@ -32,6 +32,13 @@ def _safe_media_path(request: web.Request, rel_path: str) -> str | None:
     serves nothing (`safe_join` would happily resolve against the process CWD),
     the result must be an existing regular file, and a rejection is a 404 rather
     than an exception.
+
+    Containment alone is not enough: the device bucket stages undecrypted
+    uploads, and the stitcher its work files, in `{media_root}/.raw`, and
+    thumbnails are written through `.thumb.*` temp files. Nothing the user
+    plane serves is dot-prefixed, so any hidden component of the RESOLVED path
+    is refused — checked after `safe_join`, so no URL spelling (`%2E`, an
+    encoded slash, a `..` hop, a symlink) can route around it.
     """
     media_root = request.app["cfg"].get("media_root", "")
     if not media_root or not rel_path:
@@ -39,6 +46,9 @@ def _safe_media_path(request: web.Request, rel_path: str) -> str | None:
     try:
         candidate = safe_join(media_root, rel_path)
     except UnsafePathError:
+        return None
+    inside = os.path.relpath(candidate, os.path.realpath(media_root))
+    if any(part.startswith(".") for part in inside.split(os.sep) if part != os.curdir):
         return None
     return candidate if os.path.isfile(candidate) else None
 
