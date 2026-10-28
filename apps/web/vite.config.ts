@@ -9,7 +9,14 @@ export default defineConfig({
   base: './',
   plugins: [react()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
-  build: { outDir: 'dist', assetsDir: 'assets', sourcemap: false },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+    // hls.js (~570 kB) is its own chunk, fetched only when a browser without
+    // native HLS plays a recording; every screen is split out by the router.
+    chunkSizeWarningLimit: 600,
+  },
   server: {
     // `pnpm dev` talks to a locally running API (`my-petkit` on 8099).
     proxy: { '/api': { target: 'http://127.0.0.1:8099', ws: true, changeOrigin: false } },

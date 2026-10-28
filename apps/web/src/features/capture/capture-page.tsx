@@ -14,8 +14,8 @@ import {
 import { fetchCaptureFile, useCaptureListing, useDeleteCapture } from './api';
 import { CaptureFiles, totalBytes } from './components/capture-files';
 import { CaptureTail } from './components/capture-tail';
-import { useNotice } from './hooks/use-notice';
-import { saveBlob } from './save-file';
+import { useNotice } from '@/shared/feedback/use-notice';
+import { saveBlob } from '@/shared/feedback/save-file';
 import './capture.css';
 
 export function CapturePage() {

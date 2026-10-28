@@ -14,7 +14,7 @@ import {
 } from '@/shared/ui';
 import { useHubEvents } from '@/shared/ws/use-event-stream';
 import { fetchDeviceLogFile, logKeys, useDeviceLogList } from '../api';
-import { saveBlob } from '../save-file';
+import { saveBlob } from '@/shared/feedback/save-file';
 import { DeviceLogViewer } from './device-log-viewer';
 
 type DeviceLogFile = components['schemas']['DeviceLogFile'];

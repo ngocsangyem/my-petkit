@@ -7,9 +7,9 @@ import { LiveLogTable } from './components/live-log-table';
 import { LiveLogToolbar } from './components/live-log-toolbar';
 import { useLiveLog } from './hooks/use-live-log';
 import { useLiveLogFilters } from './hooks/use-live-log-filters';
-import { useNotice } from './hooks/use-notice';
+import { useNotice } from '@/shared/feedback/use-notice';
 import { entriesText } from './log-format';
-import { fileStamp, saveBlob } from './save-file';
+import { fileStamp, saveBlob } from '@/shared/feedback/save-file';
 import './log.css';
 
 /** The count beside the cap: the view silently drops its oldest row past it, so it says so. */
