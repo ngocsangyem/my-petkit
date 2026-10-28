@@ -16,8 +16,10 @@ from aiohttp import web
 
 from my_petkit.patchers.common import TALK_TCP_PORT
 from my_petkit.shared.appkeys import REGISTRY
+from my_petkit.shared.tiers import Tier, tier
 
 
+@tier(GET=Tier.R2)
 async def api_talk(request: web.Request) -> web.WebSocketResponse:
     """Two-way talk: stream the browser microphone to the device speaker.
 

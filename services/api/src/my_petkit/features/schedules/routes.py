@@ -21,6 +21,7 @@ from my_petkit.http.handlers.feed import _build_latest, _compute_next_tick
 from my_petkit.utils.coerce import to_int
 from my_petkit.shared.panel_request import _deliver, _device_or_404, _json_body
 from my_petkit.shared.appkeys import BRIDGE, HUB, REGISTRY
+from my_petkit.shared.tiers import Tier, tier
 
 
 #: Minutes in a day. A schedule range runs 0..1440 inclusive — 1440 is the end
@@ -197,6 +198,7 @@ def _clean_feed_schedule(value: Any) -> dict[str, Any] | None:
     return cleaned
 
 
+@tier(POST=Tier.R2)
 async def api_save_schedule(request: web.Request) -> web.Response:
     """Store one schedule and push it to the device.
 
@@ -271,6 +273,7 @@ async def api_save_schedule(request: web.Request) -> web.Response:
                           make_mqtt_property_set(params))
 
 
+@tier(GET=Tier.R0, POST=Tier.R2, DELETE=Tier.R2)
 async def api_deferred_feed(request: web.Request) -> web.Response:
     """Add or list deferred (one-off) feeds for a feeder.
 

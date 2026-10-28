@@ -52,3 +52,8 @@ async def event_store(tmp_path: Path) -> AsyncIterator[EventStore]:
 def pet_registry(event_store: EventStore, tmp_path: Path) -> PetRegistry:
     """A PetRegistry backed by `event_store`, hosting faces under `tmp_path`."""
     return PetRegistry(event_store, str(tmp_path / "faces"))
+
+
+# The signed-in panel client lives in its own module; re-exported here so
+# pytest registers the fixture for every test.
+from tests.conftest_auth import authed_client  # noqa: E402, F401

@@ -13,6 +13,7 @@ from functools import partial
 from aiohttp import web
 
 from my_petkit.config import show_in_sidebar_once
+from my_petkit.features.auth.bootstrap import admin_main
 from my_petkit.http.proxy import close_proxy_session
 from my_petkit.main.cli import build_config, parse_args
 from my_petkit.main.lifecycle import ListenerBindError, cleanup_background, start_background
@@ -33,6 +34,11 @@ def main() -> None:
     add-on is run outside Home Assistant. Flags always win over the add-on
     options, so a bad option file can be overridden without editing it.
     """
+    # `my-petkit admin set-password` manages the user plane's admin account
+    # and exits; it never starts the server.
+    if sys.argv[1:2] == ["admin"]:
+        sys.exit(admin_main(sys.argv[2:]))
+
     args = parse_args()
     try:
         config = build_config(args)

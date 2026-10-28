@@ -26,6 +26,7 @@ from my_petkit.ha.commands import make_mqtt_property_set, _envelope
 from my_petkit.devices import sound_store
 from my_petkit.shared.panel_request import _device_or_404, _deliver, _refuse
 from my_petkit.shared.appkeys import BRIDGE, CFG, HUB
+from my_petkit.shared.tiers import Tier, tier
 
 log = logging.getLogger(__name__)
 
@@ -55,12 +56,14 @@ def sound_list_for_device(request: web.Request, device_id: int,
     return sound_store.sound_list_for_device(_data_dir(request), device_id, bucket_endpoint)
 
 
+@tier(GET=Tier.R0)
 async def api_sounds_list(request: web.Request) -> web.Response:
     d = _device_or_404(request)
     sounds = _load_sounds(request, d.petkit_id)
     return web.json_response({"sounds": sounds})
 
 
+@tier(POST=Tier.R1)
 async def api_sounds_upload(request: web.Request) -> web.Response:
     d = _device_or_404(request)
     sounds = _load_sounds(request, d.petkit_id)
@@ -116,6 +119,7 @@ async def api_sounds_upload(request: web.Request) -> web.Response:
     return web.json_response({"ok": True, "sound": entry})
 
 
+@tier(DELETE=Tier.R1)
 async def api_sounds_delete(request: web.Request) -> web.Response:
     d = _device_or_404(request)
     try:
@@ -139,6 +143,7 @@ async def api_sounds_delete(request: web.Request) -> web.Response:
     return web.json_response({"ok": True})
 
 
+@tier(POST=Tier.R2)
 async def api_sounds_play(request: web.Request) -> web.Response:
     d = _device_or_404(request)
     try:
@@ -155,6 +160,7 @@ async def api_sounds_play(request: web.Request) -> web.Response:
     return await _deliver(hub, bridge, d, "play_sound", envelope)
 
 
+@tier(POST=Tier.R2)
 async def api_sounds_select(request: web.Request) -> web.Response:
     d = _device_or_404(request)
     try:

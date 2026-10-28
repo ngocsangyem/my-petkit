@@ -59,7 +59,8 @@ effect immediately, and persist to `/data/settings_overrides.json`.
 | `443` | `443` | Device MQTT over TLS. |
 | `1883` | *(unmapped)* | Plain MQTT listener, internal to this app. Map it only if a device connects in plaintext. |
 | `9000` | `9000` | Media upload bucket the device PUTs photos and videos to. |
-| `8099` | *(unmapped)* | The web panel over plain HTTP, **no authentication**. Ingress proxies this internally. |
+| `8099` | *(unmapped)* | The web panel over plain HTTP, for Ingress. Only the Supervisor's own address is trusted here; anything else needs a client token. |
+| `8443` | `8443` | The user plane over TLS (self-signed certificate). Every request needs the admin password or a paired client token. This is where the iOS app connects. |
 | `8554` | *(unmapped)* | Camera RTSP from the bundled go2rtc. Home Assistant reaches it over the internal network, so map it only to watch the stream from elsewhere on the LAN — and note 8554 clashes with the go2rtc app. |
 
 Remapping a port is honoured where it can be: the host port `80/tcp` is
@@ -73,16 +74,32 @@ your devices is provisioned with what.
 Home Assistant's. Its plain listener is unmapped by default, so it cannot clash
 with the Mosquitto app.
 
-**The panel is unauthenticated on port 8099.** The sidebar entry goes through
-Ingress and is authenticated by Home Assistant; port 8099 is the same
-application without that check, which is why it is unmapped by default. Map it
-only if you want to `curl` the JSON API while debugging.
+**Signing in.** The sidebar entry goes through Ingress and is authenticated by
+Home Assistant: the app trusts a request on port 8099 only when it comes from
+the Supervisor's own address (`172.30.32.2`, as Home Assistant's developer docs
+require), never because of a header. Everywhere else — port 8443, or 8099 if you
+map it — needs the admin password (browser) or a client token (iOS app).
 
-Web Bluetooth provisioning needs a secure context. This app deliberately does
-not manufacture one for you with a second, self-signed HTTPS port — that would
-publish the whole API to the LAN again. Provisioning needs Home Assistant served
-over HTTPS with a certificate your browser trusts; the Provision tab explains
-this and links a hosted alternative when it is not.
+- **First run:** while no admin password exists, the add-on log prints a
+  one-time **setup token** valid for 30 minutes. Open the panel on port 8443
+  and enter it with a new password, or run
+  `my-petkit admin set-password --data-dir /data` inside the container. The
+  same command resets a forgotten password and signs every browser out.
+- **Risky actions** — patchers, raw device commands, proxy and capture
+  settings, capture and device-log downloads, revealing blocked payloads, and
+  pairing a new client — ask for the password again; it counts for 5 minutes.
+- **The certificate** on 8443 is self-signed and generated on first start.
+  `/api/info` and the add-on log show its SHA-256 fingerprint; compare it before
+  accepting the browser warning. The iOS app pins it through the pairing QR
+  code, so it is never rotated automatically: delete `/data/certs/user.*` to
+  rotate it deliberately, then pair again.
+- `user_hosts` lists host NAMES the panel may be reached by (a reverse proxy,
+  a DNS name); IP addresses and `localhost` are always allowed.
+
+Web Bluetooth provisioning needs a secure context. Whether a browser counts a
+self-signed certificate you accepted as one is not verified yet; if it does
+not, provisioning needs a certificate your browser trusts (a reverse proxy) —
+the Provision tab explains this and links a hosted alternative.
 
 Port 9000 likewise accepts uploads without authentication — it stands in for
 Aliyun OSS, whose credentials this app issues to the device itself.

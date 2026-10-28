@@ -15,7 +15,6 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from aiohttp.test_utils import TestClient, TestServer
 
 from my_petkit.devices import payloads
 from my_petkit.devices.ble import BLERegistry, normalize_mac
@@ -24,6 +23,7 @@ from my_petkit.http.server import create_app
 from my_petkit.mqtt.bridge import MQTTBridge
 from my_petkit.web.hub import EventHub
 from my_petkit.web.panel import create_panel_app
+from tests.conftest_auth import authed_test_client
 
 HDR = {"X-Device": "id=10&sn=SN10"}
 DEVICE_CONFIG = {"api_url": "http://x/6/", "mqtt_port": 1883, "proxy_mode": False,
@@ -38,7 +38,7 @@ def _panel(reg=None, ble=None):
 
 
 async def _client(app):
-    c = TestClient(TestServer(app))
+    c = authed_test_client(app)
     await c.start_server()
     return c
 
@@ -47,7 +47,7 @@ async def _pair(c, **over):
     body = {"ble_type": "w5", "petkit_id": 700, "mac": "AA:BB:CC:DD:EE:FF",
             "secret": "s3cret", "interval": 240, "link_with": 10}
     body.update(over)
-    return await c.post("/api/ble", data=json.dumps(body))
+    return await c.post("/api/ble", json=body)
 
 
 # --- MAC handling -----------------------------------------------------------

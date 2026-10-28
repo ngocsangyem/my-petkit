@@ -4,15 +4,14 @@ A named action is only sent when this model has a button for it; the raw
 `{suffix, payload}` escape hatch is untouched by that rule.
 """
 
-import json
 
 import pytest
-from aiohttp.test_utils import TestClient, TestServer
 
 from my_petkit.devices.ble import BLERegistry
 from my_petkit.devices.registry import DeviceRegistry
 from my_petkit.web.hub import EventHub
 from my_petkit.web.panel import create_panel_app
+from tests.conftest_auth import authed_test_client
 
 PANEL_CFG = {"api_url": "http://x/6/", "capture": False, "capture_dir": "/nope"}
 
@@ -21,10 +20,10 @@ async def _post(device_type: str, body: dict) -> tuple[int, dict, DeviceRegistry
     reg = DeviceRegistry()
     reg.get_or_create(petkit_id=1, device_type=device_type, serial_number="SN")
     app = create_panel_app(reg, BLERegistry(), EventHub(), dict(PANEL_CFG), None)
-    client = TestClient(TestServer(app))
+    client = authed_test_client(app)
     await client.start_server()
     try:
-        r = await client.post("/api/devices/1/command", data=json.dumps(body))
+        r = await client.post("/api/devices/1/command", json=body)
         return r.status, await r.json(), reg
     finally:
         await client.close()
@@ -40,7 +39,7 @@ async def test_a_non_string_action_is_refused_not_a_server_error(action):
 async def test_an_unknown_action_is_refused_with_the_existing_message():
     status, body, _reg = await _post("t5", {"action": "self_destruct"})
     assert status == 400
-    assert body == {"error": "unknown action self_destruct"}
+    assert body == {"error": {"code": "bad_request", "message": "unknown action self_destruct"}}
 
 
 async def test_an_out_of_model_action_queues_nothing():

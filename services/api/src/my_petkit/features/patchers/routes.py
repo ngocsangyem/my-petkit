@@ -42,6 +42,7 @@ from my_petkit.patchers.verify import assert_download_plausible, elf_arch
 from my_petkit.shared.panel_request import _device_or_404, _json_body
 from my_petkit.shared.background_tasks import _spawn_background
 from my_petkit.shared.appkeys import BRIDGE, CFG, HUB, REGISTRY
+from my_petkit.shared.tiers import Tier, tier
 
 if TYPE_CHECKING:
     from my_petkit.devices.base import Device
@@ -61,6 +62,7 @@ ALL_PATCHERS: dict[str, dict[str, Any]] = {
 }
 
 
+@tier(GET=Tier.R0_SENSITIVE)
 async def api_patcher_status(request: web.Request) -> web.Response:
     """Per-patcher status for a device: `{"patchers", "device_ip", "supported"}`.
 
@@ -101,6 +103,7 @@ async def api_patcher_status(request: web.Request) -> web.Response:
     return web.json_response({"patchers": result, "device_ip": d.state.get("ip", ""), "supported": True})
 
 
+@tier(POST=Tier.R3)
 async def api_patcher_apply(request: web.Request) -> web.Response:
     """Start applying or removing a patcher; answers `{ok, patcher, action}`.
 

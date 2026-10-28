@@ -8,7 +8,7 @@ from datetime import datetime
 import time
 from pathlib import Path
 
-from aiohttp.test_utils import TestClient, TestServer, make_mocked_request
+from aiohttp.test_utils import make_mocked_request
 
 from my_petkit.ai.pets import PetRegistry
 from my_petkit.devices.registry import DeviceRegistry
@@ -18,6 +18,7 @@ from my_petkit.web.hub import EventHub
 from my_petkit.features.media.routes import _generate_video_thumb, _safe_media_path
 from my_petkit.shared.media_slots import _session_media_urls
 from my_petkit.web.panel import create_panel_app
+from tests.conftest_auth import authed_test_client
 
 JPEG_BYTES = b"\xff\xd8\xff\xe0" + b"A" * 60
 
@@ -66,7 +67,7 @@ def _panel(tmp, device_type="t5"):
 
 
 async def _client(app):
-    c = TestClient(TestServer(app))
+    c = authed_test_client(app)
     await c.start_server()
     return c
 
@@ -496,7 +497,7 @@ async def test_pet_face_upload_stops_at_the_cap():
                 assert (await c.post(f"/api/pets/{pet['id']}/faces", data=JPEG_BYTES)).status == 200
             r = await c.post(f"/api/pets/{pet['id']}/faces", data=JPEG_BYTES)
             assert r.status == 400
-            assert str(MAX_FACES_PER_PET) in (await r.json())["error"]
+            assert str(MAX_FACES_PER_PET) in (await r.json())["error"]["message"]
         finally:
             await c.close()
 

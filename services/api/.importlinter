@@ -28,6 +28,7 @@ forbidden_modules =
 name = User-plane features do not import one another
 type = independence
 modules =
+    my_petkit.features.auth
     my_petkit.features.ble
     my_petkit.features.devices
     my_petkit.features.logs

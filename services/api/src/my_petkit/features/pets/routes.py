@@ -29,10 +29,12 @@ from my_petkit.shared.panel_request import (
     _cloud_upstream, _face_summaries, _json_body, _path_id, _pets_by_id,
 )
 from my_petkit.shared.appkeys import CFG, EVENT_STORE, HA_PUBLISHER, PET_REGISTRY, REGISTRY
+from my_petkit.shared.tiers import Tier, tier
 
 log = logging.getLogger(__name__)
 
 
+@tier(GET=Tier.R0_SENSITIVE, POST=Tier.R1)
 async def api_pets_list_create(request: web.Request) -> web.Response:
     """List the pets, or create one.
 
@@ -65,6 +67,7 @@ async def api_pets_list_create(request: web.Request) -> web.Response:
     return web.json_response({"pet": pet})
 
 
+@tier(GET=Tier.R0_SENSITIVE, POST=Tier.R1, DELETE=Tier.R1)
 async def api_pet_detail(request: web.Request) -> web.Response:
     """Read, update or delete one pet.
 
@@ -162,6 +165,7 @@ async def api_pet_detail(request: web.Request) -> web.Response:
     return web.json_response({"pet": pet, "bound_events": bound})
 
 
+@tier(GET=Tier.R0_SENSITIVE, POST=Tier.R1)
 async def api_pet_faces(request: web.Request) -> web.Response:
     """List a pet's reference photos, or add one.
 
@@ -220,6 +224,7 @@ async def _owned_face(request: web.Request) -> dict[str, Any] | None:
     return face if face and face.get("pet_id") == pid else None
 
 
+@tier(DELETE=Tier.R1)
 async def api_pet_face_detail(request: web.Request) -> web.Response:
     """DELETE one reference photo; answers `{"ok": bool}`."""
     pet_registry = request.app.get(PET_REGISTRY)
@@ -231,6 +236,7 @@ async def api_pet_face_detail(request: web.Request) -> web.Response:
     return web.json_response({"ok": await pet_registry.delete_face(face["id"])})
 
 
+@tier(GET=Tier.R0_SENSITIVE)
 async def api_pet_face_photo(request: web.Request) -> web.Response:
     """Serve one reference photo to the PANEL.
 
@@ -257,6 +263,7 @@ async def api_pet_face_photo(request: web.Request) -> web.Response:
     return web.FileResponse(path)
 
 
+@tier(GET=Tier.R0)
 async def api_pets_unbound(request: web.Request) -> web.Response:
     """Identities the device reported that match no pet row.
 
@@ -315,6 +322,7 @@ async def _fetch_cloud_face(session: aiohttp.ClientSession, url: str) -> bytes |
         return None
 
 
+@tier(POST=Tier.R1)
 async def api_pets_import(request: web.Request) -> web.Response:
     """Ask PetKit which pets this device recognises, and bring them across.
 

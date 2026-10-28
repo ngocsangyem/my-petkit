@@ -175,6 +175,7 @@ Two rules about placement that the map does not make obvious:
   | MQTT TLS (443) | `device_bind_host` | `0.0.0.0` |
   | MQTT plain (1883) | `mqtt_plain_bind` | `0.0.0.0` |
   | Web panel / user plane (8099) | `user_bind_host` | `0.0.0.0` |
+  | User plane over TLS (`user_port`, 8443) | `user_bind_host` | `0.0.0.0` |
   | go2rtc RTSP (8554) | `rtsp_bind` | `:8554` |
   | go2rtc API (1984) | fixed | `127.0.0.1` |
 - **Device-facing output is pinned by the golden check.** `scripts/golden_device_responses.py

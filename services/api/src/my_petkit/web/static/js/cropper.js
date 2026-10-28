@@ -181,6 +181,7 @@ async function cropSave() {
   try {
     const res = await fetch(BASE + 'api/pets/' + encodeURIComponent(petId) + '/faces', {
       method: 'POST',
+      headers: { 'Content-Type': 'image/jpeg' },
       body: blob,
     });
     // A 413 answers text/plain, so .json() rejects — surface it rather than
@@ -192,7 +193,8 @@ async function cropSave() {
   } catch (e) {
     r = { error: String((e && e.message) || e) };
   }
-  toast(r.face ? 'Photo added' : 'Error: ' + (r.error || 'failed'));
+  const err = r.error && (r.error.message || r.error);
+  toast(r.face ? 'Photo added' : 'Error: ' + (err || 'failed'));
   loadPets();
 }
 

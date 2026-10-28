@@ -49,6 +49,11 @@ def _build_parser() -> argparse.ArgumentParser:
                         help="IP the plain MQTT listener binds; must include loopback (default 0.0.0.0)")
     parser.add_argument("--user-bind-host", default=None,
                         help="IP the web panel binds (default 0.0.0.0)")
+    parser.add_argument("--user-port", type=int, default=None,
+                        help="User plane TLS port (default 8443)")
+    parser.add_argument("--user-hosts", default=None,
+                        help="Comma-separated host names browsers may use to reach the "
+                             "user plane (IP literals and localhost are always allowed)")
     parser.add_argument("--rtsp-bind", default=None,
                         help="go2rtc RTSP listen address, host:port or :port (default :8554)")
     parser.add_argument("--timezone", default=None, help="IANA timezone for local time")
@@ -102,8 +107,10 @@ def _apply_flags(config: Config, args: argparse.Namespace) -> None:
         config.bucket_port = args.bucket_port
     if args.bucket_endpoint is not None:
         config.bucket_endpoint = args.bucket_endpoint
+    if args.user_port is not None:
+        config.user_port = args.user_port
     for key in ("device_bind_host", "mqtt_plain_bind", "user_bind_host", "rtsp_bind",
-                "timezone"):
+                "timezone", "user_hosts"):
         if getattr(args, key) is not None:
             setattr(config, key, getattr(args, key))
     if args.debug:

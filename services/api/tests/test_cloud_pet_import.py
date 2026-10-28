@@ -14,7 +14,6 @@ may be fetched without being asked for: a device polls this endpoint by itself,
 and reaching out to PetKit for somebody's photographs is not a side effect a
 poll gets to have.
 """
-import json
 
 import pytest
 from aiohttp import web
@@ -24,6 +23,7 @@ from my_petkit.ai.pets import MAX_CLOUD_FACES, PetRegistry, cloud_pets
 from my_petkit.devices.registry import DeviceRegistry
 from my_petkit.web.hub import EventHub
 from my_petkit.web.panel import create_panel_app
+from tests.conftest_auth import authed_test_client
 
 JPEG_BYTES = b"\xff\xd8\xff\xe0" + b"A" * 60
 
@@ -104,7 +104,7 @@ async def _panel(pet_registry, store, upstream=""):
                            live_config={"proxy_upstream": upstream})
     app["pet_registry"] = pet_registry
     app["event_store"] = store
-    client = TestClient(TestServer(app))
+    client = authed_test_client(app)
     await client.start_server()
     return client
 
@@ -137,7 +137,7 @@ async def test_the_button_imports_the_pets_photos_and_binds_the_identity(
     c = await _panel(pet_registry, event_store, base)
     try:
         body = await (await c.post("/api/pets/import",
-                                   data=json.dumps({"device_id": 10}))).json()
+                                   json={"device_id": 10})).json()
         assert body["imported"] == 1
         row = body["results"][0]
         assert row["faces_imported"] == 2
@@ -162,7 +162,7 @@ async def test_it_names_the_history_already_recorded(
     c = await _panel(pet_registry, event_store, base)
     try:
         body = await (await c.post("/api/pets/import",
-                                   data=json.dumps({"device_id": 10}))).json()
+                                   json={"device_id": 10})).json()
         assert body["results"][0]["bound_events"] == 3
     finally:
         await c.close()
@@ -176,7 +176,7 @@ async def test_an_imported_pet_is_named_after_its_id_not_invented(
     c = await _panel(pet_registry, event_store, base)
     try:
         body = await (await c.post("/api/pets/import",
-                                   data=json.dumps({"device_id": 10}))).json()
+                                   json={"device_id": 10})).json()
         assert body["results"][0]["name"] == "PetKit pet 500"
     finally:
         await c.close()
@@ -191,9 +191,9 @@ async def test_pressing_it_twice_does_not_make_a_second_pet(
     up, base = await _serve(handler)
     c = await _panel(pet_registry, event_store, base)
     try:
-        await c.post("/api/pets/import", data=json.dumps({"device_id": 10}))
+        await c.post("/api/pets/import", json={"device_id": 10})
         body = await (await c.post("/api/pets/import",
-                                   data=json.dumps({"device_id": 10}))).json()
+                                   json={"device_id": 10})).json()
         assert body["imported"] == 0
         assert body["results"][0]["outcome"] == "already yours"
         assert len(await pet_registry.all()) == 1
@@ -210,7 +210,7 @@ async def test_a_photo_that_cannot_be_fetched_is_counted_not_fatal(
     c = await _panel(pet_registry, event_store, base)
     try:
         body = await (await c.post("/api/pets/import",
-                                   data=json.dumps({"device_id": 10}))).json()
+                                   json={"device_id": 10})).json()
         row = body["results"][0]
         assert row["faces_offered"] == 1 and row["faces_imported"] == 0
         assert await pet_registry.resolve_pet_ref(500) == row["pet_id"]
@@ -228,7 +228,7 @@ async def test_something_that_is_not_a_jpeg_is_refused_after_download(
     c = await _panel(pet_registry, event_store, base)
     try:
         body = await (await c.post("/api/pets/import",
-                                   data=json.dumps({"device_id": 10}))).json()
+                                   json={"device_id": 10})).json()
         assert body["results"][0]["faces_imported"] == 0
     finally:
         await c.close()
@@ -245,7 +245,7 @@ async def test_an_oversized_photo_is_refused_without_being_kept(
     c = await _panel(pet_registry, event_store, base)
     try:
         body = await (await c.post("/api/pets/import",
-                                   data=json.dumps({"device_id": 10}))).json()
+                                   json={"device_id": 10})).json()
         row = body["results"][0]
         assert row["faces_imported"] == 0
         assert await pet_registry.faces(row["pet_id"]) == []
@@ -262,10 +262,10 @@ async def test_a_refusal_from_petkit_is_reported_not_swallowed(
     up, base = await _serve(handler)
     c = await _panel(pet_registry, event_store, base)
     try:
-        r = await c.post("/api/pets/import", data=json.dumps({"device_id": 10}))
+        r = await c.post("/api/pets/import", json={"device_id": 10})
         assert r.status == 502
         # 704 gets its own words: it means the credential is ours, not PetKit's.
-        assert "704" in (await r.json())["error"]
+        assert "704" in (await r.json())["error"]["message"]
         assert await pet_registry.all() == []
     finally:
         await c.close()
@@ -276,7 +276,7 @@ async def test_an_unreachable_cloud_creates_nothing(
         pet_registry: PetRegistry, event_store):
     c = await _panel(pet_registry, event_store, "http://127.0.0.1:1")
     try:
-        r = await c.post("/api/pets/import", data=json.dumps({"device_id": 10}))
+        r = await c.post("/api/pets/import", json={"device_id": 10})
         assert r.status == 502
         assert await pet_registry.all() == []
     finally:
@@ -287,7 +287,7 @@ async def test_importing_for_a_device_we_do_not_have_is_a_404(
         pet_registry: PetRegistry, event_store):
     c = await _panel(pet_registry, event_store)
     try:
-        r = await c.post("/api/pets/import", data=json.dumps({"device_id": 999}))
+        r = await c.post("/api/pets/import", json={"device_id": 999})
         assert r.status == 404
         assert await pet_registry.all() == []
     finally:
@@ -299,7 +299,8 @@ async def test_a_malformed_request_is_refused(
         pet_registry: PetRegistry, event_store, body):
     c = await _panel(pet_registry, event_store)
     try:
-        assert (await c.post("/api/pets/import", data=body)).status == 400
+        assert (await c.post("/api/pets/import", data=body,
+                              headers={"Content-Type": "application/json"})).status == 400
     finally:
         await c.close()
 
@@ -313,11 +314,11 @@ async def test_an_imported_pet_can_be_renamed(pet_registry: PetRegistry, event_s
     c = await _panel(pet_registry, event_store, base)
     try:
         body = await (await c.post("/api/pets/import",
-                                   data=json.dumps({"device_id": 10}))).json()
+                                   json={"device_id": 10})).json()
         pet_id = body["results"][0]["pet_id"]
 
         renamed = await (await c.post(f"/api/pets/{pet_id}",
-                                      data=json.dumps({"name": "Mruczek"}))).json()
+                                      json={"name": "Mruczek"})).json()
         assert renamed["pet"]["name"] == "Mruczek"
         # The binding to PetKit's id survives the rename — losing it would
         # un-attribute every event the box reports under its cached identity.

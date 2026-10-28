@@ -29,6 +29,9 @@ from my_petkit.shared.panel_request import MAX_EVENT_LIMIT, _json_body, _limit_p
 from my_petkit.shared.appkeys import (
     CFG, PANEL_ASSET_VERSION, EVENT_STORE, HA_PUBLISHER, HUB, LIVE_CONFIG, REGISTRY, RETENTION_CONFIG,
 )
+from my_petkit.shared.redact_client import redact_for_client
+from my_petkit.shared.request_auth import require_step_up
+from my_petkit.shared.tiers import Tier, tier
 
 log = logging.getLogger(__name__)
 
@@ -72,6 +75,18 @@ def _valid_dns(value: str) -> bool:
 LIVE_SETTING_VALIDATORS = {"proxy_upstream": _valid_upstream, "proxy_dns": _valid_dns}
 
 
+def setting_key_tier(key: str) -> Tier:
+    """The tier a write of `key` needs: R3 for proxy mode and capture.
+
+    Every `proxy_*` key can hand the device to the real cloud — switching off
+    `proxy_block_run_cmd` or `proxy_block_ota` lets PetKit push a shell command
+    or a firmware image through us — and `capture` records signing secrets and
+    account credentials to disk. Anything else is an ordinary R1 setting.
+    """
+    return Tier.R3 if key.startswith("proxy_") or key == "capture" else Tier.R1
+
+
+@tier(GET=Tier.R0, POST=Tier.R1)
 async def api_settings(request: web.Request) -> web.Response:
     """GET returns the live-editable runtime settings; POST updates them in the
     shared config (immediate effect) and persists to the overrides file.
@@ -92,6 +107,12 @@ async def api_settings(request: web.Request) -> web.Response:
 
     body = await _json_body(request)
 
+    # The tier follows the KEYS named, before any value is looked at, so a
+    # caller without a step-up learns nothing about which values would pass.
+    risky = sorted(k for k in body if k in LIVE_SETTINGS and setting_key_tier(k) is Tier.R3)
+    if risky:
+        require_step_up(request, "settings_write:" + ",".join(risky))
+
     changed: dict[str, Any] = {}
     for key, val in body.items():
         typ = LIVE_SETTINGS.get(key)
@@ -105,6 +126,7 @@ async def api_settings(request: web.Request) -> web.Response:
 
     if not changed:
         return web.json_response({"error": "no valid settings in request"}, status=400)
+
 
     # Applied only once the whole batch validated.
     live.update(changed)
@@ -147,6 +169,7 @@ def _mask(value: str | None) -> str | None:
     return f"{value[:MASK_PREFIX]}… ({len(value)} chars)"
 
 
+@tier(GET=Tier.R0_SENSITIVE)
 async def api_blocked(request: web.Request) -> web.Response:
     """What the real cloud tried to do to a device, and did not get to do.
 
@@ -171,13 +194,18 @@ async def api_blocked(request: web.Request) -> web.Response:
         device_id=to_int(device, None) if device else None,
         kind=request.query.get("kind") or None,
     )
-    if request.query.get("reveal") != "1":
-        rows = [{**r, "payload_json": _mask(r.get("payload_json"))} for r in rows]
+    if request.query.get("reveal") == "1":
+        # The whole recorded payload: a real `deviceSecret` or media AES key.
+        require_step_up(request, "blocked_reveal")
+    else:
+        rows = redact_for_client(
+            [{**r, "payload_json": _mask(r.get("payload_json"))} for r in rows])
 
     return web.json_response({"records": rows,
                               "counts": request.app[HUB].redaction_counts()})
 
 
+@tier(GET=Tier.R0_SENSITIVE)
 async def api_info(request: web.Request) -> web.Response:
     """Server-wide facts for the Setup tab.
 
@@ -208,6 +236,11 @@ async def api_info(request: web.Request) -> web.Response:
         "mqtt_port": cfg.get("mqtt_port"),
         "strict_auth": cfg.get("strict_auth"),
         "cert_exists": bool(cert) and os.path.exists(cert),
+        # The user plane's TLS port and the SHA-256 of its self-signed
+        # certificate: what a browser user compares before accepting it, and
+        # what the pairing QR code pins for the iOS app.
+        "user_tls": {"port": cfg.get("user_port"),
+                     "cert_sha256": cfg.get("user_cert_sha256", "")},
         # The HA publisher, NOT the device-facing bridge. This used to read
         # `app["bridge"]._client`, which is the connection to our own embedded
         # broker -- up whenever the broker is, regardless of whether anything
@@ -252,6 +285,7 @@ def _upstream_choices() -> list[dict[str, str | bool]]:
             for k, v in UPSTREAM_PRESETS.items()]
 
 
+@tier(GET=Tier.R0, POST=Tier.R1)
 async def api_retention(request: web.Request) -> web.Response:
     """GET/POST the per-capability media retention caps (media/retention.py).
 

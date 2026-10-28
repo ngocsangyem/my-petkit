@@ -33,6 +33,9 @@ key                  what it holds                               set by
 `ha_publisher`       `HAPublisher`, or None (`--no-ha`)          create_panel_app
 `background_tasks`   the strong references to in-flight          create_panel_app
                      background tasks (see `_spawn_background`)
+`auth`               `AuthService` — sessions, tokens, step-up,  create_panel_app
+                     signed media; None means every non-static
+                     route is refused (`features/auth/`)
 `mqtt_broker`        the embedded amqtt broker, for the          main/lifecycle.py
                      delivery view. Injected because the
                      broker starts after the panel is built
@@ -70,6 +73,8 @@ HA_PUBLISHER = "ha_publisher"
 # aiohttp app key holding the strong references to in-flight background tasks
 # (see _spawn_background).
 BACKGROUND_TASKS = "background_tasks"
+#: The user plane's `AuthService` (features/auth/service.py), or None.
+AUTH = "auth"
 #: The panel assets' content hash, set by `web/panel.py`, which owns the assets.
 PANEL_ASSET_VERSION = "panel_asset_version"
 

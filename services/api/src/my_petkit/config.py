@@ -369,6 +369,14 @@ class Config:
     mqtt_plain_bind: str = "0.0.0.0"  # noqa: S104
     #: The user plane (web panel / API).
     user_bind_host: str = "0.0.0.0"  # noqa: S104
+    #: The user plane over TLS (self-signed, `utils/user_tls.py`), bound on
+    #: `user_bind_host`. Every request on it needs a token or a session.
+    user_port: int = 8443
+    #: Host NAMES a browser may use to reach the user plane, comma-separated
+    #: (`petkit.example.com`). IP literals and `localhost` are always allowed;
+    #: any other name in `Host` is refused on writes and WebSocket upgrades,
+    #: which is what stops a DNS-rebinding page from posting here.
+    user_hosts: str = ""
     #: go2rtc's RTSP listener, `host:port` or `:port` for every interface. Home
     #: Assistant's camera reaches it as `rtsp://local-<slug>:8554`.
     rtsp_bind: str = ":8554"
@@ -382,6 +390,8 @@ class Config:
         then, which is not a property you want for the address a listener is
         exposed on. Raises ValueError naming the setting.
         """
+        if not 0 < self.user_port < 65536:
+            raise ValueError(f"user_port={self.user_port!r} is not a TCP port")
         for name in ("device_bind_host", "mqtt_plain_bind", "user_bind_host"):
             value = getattr(self, name)
             try:
@@ -586,6 +596,8 @@ class Config:
         c.mqtt_tls = _opt_bool(opts, "mqtt_tls", c.mqtt_tls)
         c.mqtt_tls_port = _opt_int(opts, "mqtt_tls_port", c.mqtt_tls_port)
         c.mqtt_strict_auth = _opt_bool(opts, "mqtt_strict_auth", c.mqtt_strict_auth)
+        c.user_port = _opt_int(opts, "user_port", c.user_port)
+        c.user_hosts = str(opts.get("user_hosts") or "").strip()
         for key in ("device_bind_host", "mqtt_plain_bind", "user_bind_host", "rtsp_bind",
                     "timezone"):
             value = str(opts.get(key) or "").strip()

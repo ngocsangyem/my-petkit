@@ -35,6 +35,9 @@ from my_petkit.shared.panel_request import (
 from my_petkit.shared.appkeys import (
     BLE_REGISTRY, BRIDGE, GO2RTC, HA_PUBLISHER, HUB, MQTT_BROKER, REGISTRY,
 )
+from my_petkit.shared.redact_client import redact_for_client
+from my_petkit.shared.request_auth import require_step_up
+from my_petkit.shared.tiers import Tier, tier
 
 log = logging.getLogger(__name__)
 
@@ -131,12 +134,14 @@ def _device_summary(d: Device, ble_registry: BLERegistry | None, hub: EventHub,
     }
 
 
+@tier(GET=Tier.R0_SENSITIVE)
 async def api_devices(request: web.Request) -> web.Response:
     """A bare JSON array of `_device_summary` objects — no envelope object."""
     reg = request.app[REGISTRY]
     ble = request.app[BLE_REGISTRY]
     hub = request.app[HUB]
-    return web.json_response([_device_summary(d, ble, hub, request.app.get(MQTT_BROKER)) for d in reg.all()])
+    return web.json_response(redact_for_client(
+        [_device_summary(d, ble, hub, request.app.get(MQTT_BROKER)) for d in reg.all()]))
 
 
 # --- device detail: the four sidecar views ---------------------------------
@@ -194,6 +199,7 @@ def _log_settings_view(d: Device, request: web.Request) -> dict[str, Any]:
     }
 
 
+@tier(GET=Tier.R0_SENSITIVE)
 async def api_device_detail(request: web.Request) -> web.Response:
     """Everything the device detail view needs, in one object.
 
@@ -261,9 +267,12 @@ async def api_device_detail(request: web.Request) -> web.Response:
         "logInfo": _log_settings_view(d, request),
         "aiInfo": _ai_view(d) if d.supports_ai else None,
     })
-    return web.json_response(detail)
+    # `state`, `config` and `diag` are the device's own words, verbatim, and
+    # the client redactor is what keeps a credential among them off the wire.
+    return web.json_response(redact_for_client(detail))
 
 
+@tier(POST=Tier.R2)
 async def api_send_command(request: web.Request) -> web.Response:
     """Send one command to a device.
 
@@ -346,6 +355,9 @@ async def api_send_command(request: web.Request) -> web.Response:
         envelope = body.get("payload")
         if not suffix or envelope is None:
             return web.json_response({"error": "need action, entity+value, or suffix+payload"}, status=400)
+        # The raw form publishes verbatim, which is enough to carry a
+        # `run_cmd` to the device: root on the box, so it takes a step-up.
+        require_step_up(request, "raw_command", device_id=d.petkit_id)
 
     return await _deliver(hub, bridge, d, suffix, envelope, transport)
 
@@ -353,6 +365,7 @@ async def api_send_command(request: web.Request) -> web.Response:
 _TZ_MIN, _TZ_MAX = -12.0, 14.0
 
 
+@tier(GET=Tier.R0, POST=Tier.R2)
 async def api_timezone(request: web.Request) -> web.Response:
     """GET/POST this device's fixed UTC offset override.
 
@@ -426,6 +439,7 @@ async def api_timezone(request: web.Request) -> web.Response:
     return web.json_response({"ok": True, "delivered": delivered, **_timezone_view(d)})
 
 
+@tier(GET=Tier.R0, POST=Tier.R1)
 async def api_capabilities(request: web.Request) -> web.Response:
     """GET/POST the STS media capability toggles (see devices/base.py::
     Device.CAPABILITY_TYPES) — the control point is the next
@@ -458,6 +472,7 @@ async def api_capabilities(request: web.Request) -> web.Response:
     return web.json_response({"ok": True, "capabilities": {ct: (ct in enabled) for ct in Device.CAPABILITY_TYPES}})
 
 
+@tier(GET=Tier.R0, POST=Tier.R1)
 async def api_ai_settings(request: web.Request) -> web.Response:
     """GET/POST the on-device facial recognition on/off toggle — separate
     from the STS media capabilities (see dev_discern_config).
@@ -480,6 +495,7 @@ async def api_ai_settings(request: web.Request) -> web.Response:
     return web.json_response({"ok": True, "ai_enabled": bool(d.config.get("ai_enabled", True))})
 
 
+@tier(GET=Tier.R0, POST=Tier.R1)
 async def api_device_log_settings(request: web.Request) -> web.Response:
     """GET/POST whether this device may upload its own debug log to us.
 
@@ -501,6 +517,7 @@ async def api_device_log_settings(request: web.Request) -> web.Response:
     return web.json_response(_log_settings_view(d, request))
 
 
+@tier(DELETE=Tier.R1)
 async def api_device_delete(request: web.Request) -> web.Response:
     """Remove a device from the registry and clean up its HA entities."""
     reg = request.app[REGISTRY]
