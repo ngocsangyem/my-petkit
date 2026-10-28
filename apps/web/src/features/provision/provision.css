@@ -1,0 +1,224 @@
+.provision-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  min-width: 0;
+}
+
+.provision-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 760px;
+}
+
+.provision-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.provision-progress__finding {
+  margin: 0;
+}
+
+.provision-progress__track {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--rule);
+}
+
+.provision-progress__fill {
+  display: block;
+  height: 6px;
+  background: var(--accent);
+}
+
+.provision-progress__steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: var(--text-small);
+}
+
+.provision-progress__steps [aria-current='step'] {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.provision-strong {
+  font-weight: 500;
+}
+
+.provision-muted {
+  color: var(--muted);
+  font-size: var(--text-small);
+}
+
+.provision-muted-body {
+  color: var(--muted);
+}
+
+.provision-mono {
+  font-family: var(--font-mono);
+}
+
+.provision-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 32px;
+  align-items: start;
+}
+
+.provision-form,
+.provision-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  min-width: 0;
+}
+
+.provision-fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.provision-legend {
+  margin: 0 0 12px;
+  padding: 0;
+  font-size: var(--text-section);
+  font-weight: 600;
+}
+
+.provision-send .provision-legend {
+  margin: 0;
+}
+
+.provision-select {
+  width: 100%;
+}
+
+.provision-advisories {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--warning);
+  font-size: var(--text-caption);
+}
+
+.provision-send {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.provision-send__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.provision-status {
+  min-height: 1.45em;
+  margin: 0;
+  font-size: var(--text-small);
+}
+
+.provision-footnote {
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+
+.provision-found {
+  display: flex;
+  flex-direction: column;
+}
+
+.provision-found__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--row-height);
+  padding: 6px 0;
+  border-top: 1px solid var(--rule);
+  cursor: pointer;
+}
+
+.provision-found__row input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.provision-found__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.provision-found__id {
+  color: var(--muted);
+  font-size: var(--text-caption);
+  overflow-wrap: anywhere;
+}
+
+.provision-log {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.provision-log__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.provision-log__head h2 {
+  margin: 0;
+  font-size: var(--text-section);
+  font-weight: 600;
+}
+
+.provision-log__box {
+  max-height: 480px;
+  overflow: auto;
+  padding: 12px 16px;
+  border-radius: var(--radius-card);
+  background: var(--text);
+  color: var(--control);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: 1.7;
+}
+
+.provision-log__line {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.provision-log__time {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 900px) {
+  .provision-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
