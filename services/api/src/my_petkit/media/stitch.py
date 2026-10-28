@@ -188,6 +188,13 @@ async def concat_videos(paths: list[str], dst: str, work_dir: str) -> bool:
     if not transcode.have_ffmpeg():
         log.warning("ffmpeg not installed - cannot stitch %d chunks", len(paths))
         return False
+    # `run_ffmpeg` can only see the list file, so the chunks it names are
+    # measured here against the same cap.
+    size = await asyncio.to_thread(transcode.total_input_bytes, paths)
+    if size > transcode.MAX_INPUT_BYTES:
+        log.warning("Refusing to stitch %d chunks: %d bytes exceeds the %d-byte cap",
+                    len(paths), size, transcode.MAX_INPUT_BYTES)
+        return False
 
     # The list file must live somewhere the ffmpeg process can read. Its name
     # is derived from `dst` rather than from the clock so that a run killed

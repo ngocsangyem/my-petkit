@@ -508,6 +508,21 @@ reviewer can find every place the suite was touched.
 - added: tests/test_proxy_upstream_allowlist.py::test_the_proxy_dns_resolver_resolves_only_allowlisted_names
 - added: tests/test_proxy_upstream_allowlist.py::test_forward_does_not_follow_redirects
 
+### ffmpeg runs with -nostdin, a file/pipe protocol whitelist and input size and duration caps; output unchanged
+
+- added: tests/test_ffmpeg_hardening.py::test_every_ffmpeg_input_gets_the_whitelist_and_the_duration_cap
+- added: tests/test_ffmpeg_hardening.py::test_ffprobe_gets_the_whitelist_and_other_binaries_are_untouched
+- added: tests/test_ffmpeg_hardening.py::test_run_ffmpeg_always_runs_the_hardened_argv
+- added: tests/test_ffmpeg_hardening.py::test_an_input_over_the_size_cap_is_never_handed_to_ffmpeg
+- added: tests/test_ffmpeg_hardening.py::test_a_stitch_over_the_size_cap_is_refused
+- added: tests/test_ffmpeg_hardening.py::test_a_remux_is_byte_identical_to_the_unhardened_command
+- added: tests/test_ffmpeg_hardening.py::test_a_stitch_is_byte_identical_to_the_unhardened_command
+- added: tests/test_ffmpeg_hardening.py::test_the_probe_and_face_resize_still_work
+- added: tests/test_ffmpeg_hardening.py::test_a_device_file_cannot_make_ffmpeg_open_the_network
+- added: tests/test_ffmpeg_hardening.py::test_the_duration_cap_bounds_what_ffmpeg_reads
+- added: tests/test_ffmpeg_hardening.py::test_talk_runs_ffmpeg_with_stdin_off_and_per_file_whitelists
+- added: tests/test_ffmpeg_hardening.py::test_the_cap_constants_are_sane
+
 ## Removed
 
 None.

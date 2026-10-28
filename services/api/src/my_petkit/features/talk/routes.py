@@ -74,13 +74,17 @@ async def api_talk(request: web.Request) -> web.WebSocketResponse:
             return
         # Low-latency decode: the input is a live webm/opus stream, so keep
         # ffmpeg from buffering ahead before it starts emitting. Output goes
-        # straight to the device sink over TCP.
+        # straight to the device sink over TCP. The whitelists are per file:
+        # the input may only be our pipe, the output only the TCP sink, so a
+        # crafted stream cannot make ffmpeg open anything else. No size or
+        # duration cap: this is a live session that ends with the WebSocket.
         ffmpeg = await asyncio.create_subprocess_exec(
-            "ffmpeg", "-hide_banner", "-loglevel", "error",
+            "ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error",
             "-fflags", "nobuffer", "-flags", "low_delay",
             "-probesize", "32", "-analyzeduration", "0",
-            "-i", "pipe:0",
+            "-protocol_whitelist", "pipe", "-i", "pipe:0",
             "-ar", "16000", "-ac", "1", "-c:a", "aac", "-b:a", "48k",
+            "-protocol_whitelist", "tcp",
             "-f", "adts", f"tcp://{talk_host}:{TALK_TCP_PORT}",
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.DEVNULL,
