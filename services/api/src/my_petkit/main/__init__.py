@@ -15,7 +15,7 @@ from aiohttp import web
 from my_petkit.config import show_in_sidebar_once
 from my_petkit.http.proxy import close_proxy_session
 from my_petkit.main.cli import build_config, parse_args
-from my_petkit.main.lifecycle import cleanup_background, start_background
+from my_petkit.main.lifecycle import ListenerBindError, cleanup_background, start_background
 from my_petkit.main.wiring import build_services
 
 # Every other module logs under `__name__`; this one is also an entry point, and
@@ -34,7 +34,11 @@ def main() -> None:
     options, so a bad option file can be overridden without editing it.
     """
     args = parse_args()
-    config = build_config(args)
+    try:
+        config = build_config(args)
+    except ValueError as e:
+        log.error("invalid configuration: %s", e)
+        sys.exit(2)
 
     logging.basicConfig(
         level=getattr(logging, config.log_level),
@@ -64,4 +68,14 @@ def main() -> None:
              "(disabled)" if args.no_ha else "")
     log.info("Registered devices: %d", len(services.registry.all()))
 
-    web.run_app(app, host="0.0.0.0", port=config.http_port, print=None)
+    try:
+        web.run_app(app, host=config.device_bind_host, port=config.http_port, print=None)
+    except ListenerBindError as e:
+        log.error("%s", e)
+        sys.exit(2)
+    except OSError as e:
+        # The device API itself is bound by run_app, outside start_background.
+        log.error("device API could not bind %s:%d (%s). Check `device_bind_host` and "
+                  "that nothing else holds the port.", config.device_bind_host,
+                  config.http_port, e.strerror or e)
+        sys.exit(2)

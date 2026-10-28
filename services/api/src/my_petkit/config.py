@@ -10,6 +10,7 @@ feature. The one exception is an explicit `--config` file, which raises.
 """
 from __future__ import annotations
 
+import ipaddress
 import json
 import logging
 import os
@@ -338,6 +339,43 @@ class Config:
     # certificate in front of this port instead.
     web_port: int = 8099
 
+    # Interface each listener binds. Empty is never valid: a listener always
+    # names the address it serves, so a typo cannot silently fall back to "all".
+    #: Device plane: device HTTP API, media bucket and the MQTT TLS listener.
+    device_bind_host: str = "0.0.0.0"  # noqa: S104 - the device plane serves the LAN
+    #: The plain MQTT listener. The internal bridge dials `localhost` on it, so
+    #: whatever this is must include loopback (`0.0.0.0` or `127.0.0.1`).
+    mqtt_plain_bind: str = "0.0.0.0"  # noqa: S104
+    #: The user plane (web panel / API).
+    user_bind_host: str = "0.0.0.0"  # noqa: S104
+    #: go2rtc's RTSP listener, `host:port` or `:port` for every interface. Home
+    #: Assistant's camera reaches it as `rtsp://local-<slug>:8554`.
+    rtsp_bind: str = ":8554"
+    #: IANA zone the server reads local time in. Empty means the process zone.
+    timezone: str = ""
+
+    def validate_bind_addresses(self) -> None:
+        """Refuse a bind address that is not an IP literal, before anything binds.
+
+        A hostname would be resolved at bind time to whatever the resolver says
+        then, which is not a property you want for the address a listener is
+        exposed on. Raises ValueError naming the setting.
+        """
+        for name in ("device_bind_host", "mqtt_plain_bind", "user_bind_host"):
+            value = getattr(self, name)
+            try:
+                ipaddress.ip_address(value)
+            except ValueError:
+                raise ValueError(f"{name}={value!r} is not an IP address") from None
+        host, sep, port = self.rtsp_bind.rpartition(":")
+        if not sep or not port.isdigit() or not 0 < int(port) < 65536:
+            raise ValueError(f"rtsp_bind={self.rtsp_bind!r} is not host:port or :port")
+        if host:
+            try:
+                ipaddress.ip_address(host.strip("[]"))
+            except ValueError:
+                raise ValueError(f"rtsp_bind={self.rtsp_bind!r} host is not an IP address") from None
+
     @property
     def capture_dir(self) -> str:
         """Where `utils/capture.py` appends its JSONL files."""
@@ -525,6 +563,11 @@ class Config:
         c.mqtt_tls = _opt_bool(opts, "mqtt_tls", c.mqtt_tls)
         c.mqtt_tls_port = _opt_int(opts, "mqtt_tls_port", c.mqtt_tls_port)
         c.mqtt_strict_auth = _opt_bool(opts, "mqtt_strict_auth", c.mqtt_strict_auth)
+        for key in ("device_bind_host", "mqtt_plain_bind", "user_bind_host", "rtsp_bind",
+                    "timezone"):
+            value = str(opts.get(key) or "").strip()
+            if value:
+                setattr(c, key, value)
 
         # `capture` and every `proxy_*` key are deliberately NOT read from the
         # options file: they are debugging switches you flip while watching a

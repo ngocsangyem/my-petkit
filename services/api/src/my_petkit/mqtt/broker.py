@@ -177,12 +177,19 @@ def ensure_self_signed(cert_path: str, key_path: str,
         return False
 
 
+def _bind(host: str, port: int) -> str:
+    """amqtt's `host:port`, bracketing an IPv6 literal."""
+    return f"[{host}]:{port}" if ":" in host else f"{host}:{port}"
+
+
 async def start_broker(
     port: int = 1883,
     registry: DeviceRegistry | None = None,
     *,
     tls: bool = False,
     tls_port: int = 443,
+    plain_bind: str = "0.0.0.0",  # noqa: S104 - default kept from upstream
+    tls_bind: str = "0.0.0.0",  # noqa: S104
     certfile: str = "",
     keyfile: str = "",
     strict_auth: bool = False,
@@ -197,6 +204,8 @@ async def start_broker(
 
     Args:
         port: Plain-TCP listener, used by the internal bridge.
+        plain_bind/tls_bind: Address each listener binds. The bridge dials
+            `localhost` on the plain one, so `plain_bind` must cover loopback.
         tls_port/certfile/keyfile: Only consulted when `tls` is set; a missing
             cert is generated. If it cannot be, the broker still starts without
             the TLS listener — a plain-HTTP device keeps working.
@@ -208,7 +217,7 @@ async def start_broker(
     """
     listeners = {
         # Plain listener — used by the internal bridge (and plain devices).
-        "default": ListenerConfig(type="tcp", bind=f"0.0.0.0:{port}", max_connections=50),
+        "default": ListenerConfig(type="tcp", bind=_bind(plain_bind, port), max_connections=50),
     }
 
     if tls:
@@ -216,7 +225,7 @@ async def start_broker(
         key = keyfile or "/data/certs/broker.key"
         if ensure_self_signed(cert, key):
             listeners["tls"] = ListenerConfig(
-                type="tcp", bind=f"0.0.0.0:{tls_port}", max_connections=50,
+                type="tcp", bind=_bind(tls_bind, tls_port), max_connections=50,
                 ssl=True, certfile=cert, keyfile=key,
             )
             log.info("MQTT TLS listener enabled on port %d", tls_port)

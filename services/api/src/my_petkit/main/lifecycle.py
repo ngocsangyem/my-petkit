@@ -73,6 +73,27 @@ async def _stop_tasks(tasks: list[asyncio.Task[Any]]) -> None:
             log.exception("Background task %s failed during shutdown", task.get_name())
 
 
+class ListenerBindError(RuntimeError):
+    """A listener could not bind its configured address.
+
+    Raised instead of the bare OSError so `main()` can stop the process with a
+    message that names the listener and the setting to change, rather than a
+    traceback that leaves the operator guessing which of five ports it was.
+    """
+
+
+async def start_site(runner: web.AppRunner, host: str, port: int, *, listener: str,
+                     setting: str, ssl_context: ssl.SSLContext | None = None) -> None:
+    """Bind one aiohttp site, turning a bind failure into ListenerBindError."""
+    try:
+        await web.TCPSite(runner, host, port, ssl_context=ssl_context).start()
+    except OSError as e:
+        raise ListenerBindError(
+            f"{listener} could not bind {host}:{port} ({e.strerror or e}). "
+            f"Check `{setting}` and that nothing else holds the port."
+        ) from e
+
+
 async def start_background(services: Services, app_instance: web.Application) -> None:
     """aiohttp on_startup hook: open the store, then spawn every service.
 
@@ -152,7 +173,8 @@ async def start_background(services: Services, app_instance: web.Application) ->
     panel["go2rtc"] = go2rtc
     runner = web.AppRunner(panel)
     await runner.setup()
-    await web.TCPSite(runner, "0.0.0.0", config.web_port).start()
+    await start_site(runner, config.user_bind_host, config.web_port,
+                     listener="web panel", setting="user_bind_host")
     app_instance["panel_runner"] = runner
     # "(HA Ingress)" only when there IS a Supervisor to proxy it. Home
     # Assistant Container and Core have no add-on system, so this also runs
@@ -208,8 +230,8 @@ async def start_background(services: Services, app_instance: web.Application) ->
     except Exception as e:
         log.warning("Local bucket TLS failed (%s), falling back to plain HTTP", e)
 
-    await web.TCPSite(bucket_runner, "0.0.0.0", config.bucket_port,
-                      ssl_context=bkt_ctx).start()
+    await start_site(bucket_runner, config.device_bind_host, config.bucket_port,
+                     listener="media bucket", setting="device_bind_host", ssl_context=bkt_ctx)
     if bkt_ctx is not None:
         log.info("Local bucket (HTTPS) on port %d -> %s", config.bucket_port, media_root)
     else:
@@ -246,6 +268,7 @@ async def start_background(services: Services, app_instance: web.Application) ->
     if not services.no_mqtt:
         broker = await start_broker(
             config.mqtt_port, registry,
+            plain_bind=config.mqtt_plain_bind, tls_bind=config.device_bind_host,
             tls=config.mqtt_tls, tls_port=config.mqtt_tls_port,
             certfile=cert_path,
             keyfile=config.mqtt_key or f"{config.data_dir}/certs/broker.key",

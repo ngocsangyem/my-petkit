@@ -191,7 +191,7 @@ def build_services(config: Config, args: argparse.Namespace) -> Services:
     # The camera sidecar. Constructed here so the panel and the HA publisher can
     # ask it for an RTSP URL; it starts nothing until `start_background` and
     # nothing at all unless a device is actually serving a stream.
-    go2rtc = Go2rtc(registry, data_dir=config.data_dir,
+    go2rtc = Go2rtc(registry, data_dir=config.data_dir, rtsp_bind=config.rtsp_bind,
                     on_change=partial(_republish_camera_state, ha_publisher, registry))
     # `--no-ha` leaves the publisher as None, and that is a supported way to run
     # this — the local cloud and the panel work with no Home Assistant at all.

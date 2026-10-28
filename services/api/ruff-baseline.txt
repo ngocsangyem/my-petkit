@@ -7,8 +7,8 @@
 #   cloud_fetch.py signs X-Device the way PetKit firmware does (MD5);
 #   patchers/common.py and sounds.py hand the device the MD5 it verifies a
 #   download with; media.py uses sha1 only to name a thumbnail cache file.
-# S104 bind 0.0.0.0: device-plane listeners. Interface binding becomes
-#   configurable when the listener table is introduced; until then unchanged.
+# S104 bind 0.0.0.0: the remaining defaults are config fields and broker
+#   parameters, each overridable per listener (see Config.*_bind*).
 # S310 urlopen: config.py talks to the Supervisor API at a fixed http:// URL.
 # S105 RULE_SECRET = "secret": the name of a redaction rule, not a credential.
 # S108 /tmp: paths ON THE DEVICE (the patcher stages files in the device's /tmp).
@@ -54,8 +54,6 @@ ASYNC240 tests/test_panel.py 2
 ASYNC240 tests/test_panel_devicelogs.py 1
 ASYNC240 tests/test_panel_media.py 1
 S101 src/my_petkit/patchers/cacert.py 1
-S104 src/my_petkit/main/__init__.py 1
-S104 src/my_petkit/main/lifecycle.py 2
 S105 src/my_petkit/http/redact/rules.py 1
 S107 tests/test_sidebar.py 1
 S108 src/my_petkit/patchers/common.py 2

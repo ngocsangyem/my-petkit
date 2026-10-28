@@ -42,6 +42,15 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--bucket-endpoint", default=None,
                         help="Media bucket base URL the device is told to use "
                              "(default: https://<api-url host>:<bucket-port>)")
+    parser.add_argument("--device-bind-host", default=None,
+                        help="IP the device API, bucket and MQTT TLS listeners bind (default 0.0.0.0)")
+    parser.add_argument("--mqtt-plain-bind", default=None,
+                        help="IP the plain MQTT listener binds; must include loopback (default 0.0.0.0)")
+    parser.add_argument("--user-bind-host", default=None,
+                        help="IP the web panel binds (default 0.0.0.0)")
+    parser.add_argument("--rtsp-bind", default=None,
+                        help="go2rtc RTSP listen address, host:port or :port (default :8554)")
+    parser.add_argument("--timezone", default=None, help="IANA timezone for local time")
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
     parser.add_argument("--ha-addon", action="store_true", help="Self-configure from /data/options.json + Supervisor (HA add-on mode)")
     return parser
@@ -98,6 +107,10 @@ def build_config(args: argparse.Namespace) -> Config:
             config.bucket_port = args.bucket_port
         if args.bucket_endpoint is not None:
             config.bucket_endpoint = args.bucket_endpoint
+        for key in ("device_bind_host", "mqtt_plain_bind", "user_bind_host", "rtsp_bind",
+                    "timezone"):
+            if getattr(args, key) is not None:
+                setattr(config, key, getattr(args, key))
         if args.debug:
             config.log_level = "DEBUG"
 
@@ -112,4 +125,7 @@ def build_config(args: argparse.Namespace) -> Config:
     # add-on path already has an endpoint from the Supervisor, so this is a
     # no-op there.
     config.resolve_bucket_endpoint()
+    # Last, after every source has had its say: a bad bind address stops the
+    # process here with the setting's name, before anything has bound.
+    config.validate_bind_addresses()
     return config

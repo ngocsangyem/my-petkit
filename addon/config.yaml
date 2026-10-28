@@ -100,5 +100,16 @@ schema:
   mqtt_tls: bool
   mqtt_tls_port: port
   mqtt_strict_auth: bool
+  # Optional, unset by default (shown under "unused optional options"). Each
+  # is the IP literal one listener binds: the device plane (API, bucket, MQTT
+  # TLS), the plain MQTT listener (must include loopback for the internal
+  # bridge), the web panel, and go2rtc's RTSP `host:port` / `:port`. The
+  # default for all of them is every interface, as before.
+  device_bind_host: str?
+  mqtt_plain_bind: str?
+  user_bind_host: str?
+  rtsp_bind: str?
+  # IANA zone for local time (e.g. Europe/Amsterdam). Empty uses the container's.
+  timezone: str?
 startup: application
 boot: auto

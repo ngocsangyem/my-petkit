@@ -163,7 +163,8 @@ async def probe_stream(ip: str, timeout: float = PROBE_TIMEOUT) -> bool:
     return head == FLV_SIGNATURE
 
 
-def render_config(streams: dict[str, str], log_path: str) -> str:
+def render_config(streams: dict[str, str], log_path: str,
+                  rtsp_bind: str = f":{RTSP_PORT}") -> str:
     """The go2rtc YAML for `streams`, as `{name: source url}`.
 
     Hand-rendered rather than via PyYAML: it is a fixed six-line document with
@@ -175,7 +176,7 @@ def render_config(streams: dict[str, str], log_path: str) -> str:
         "api:",
         f"  listen: {API_ADDR!r}",
         "rtsp:",
-        f"  listen: ':{RTSP_PORT}'",
+        f"  listen: {rtsp_bind!r}",
         "webrtc:",
         "  listen: ''",
         "log:",
@@ -207,9 +208,10 @@ class Go2rtc:
     """
 
     def __init__(self, registry: DeviceRegistry, *, data_dir: str,
-                 on_change: Any | None = None) -> None:
+                 on_change: Any | None = None, rtsp_bind: str = f":{RTSP_PORT}") -> None:
         """
         Args:
+            rtsp_bind: go2rtc's RTSP `listen` value, `host:port` or `:port`.
             on_change: Awaited after the child starts or stops, so whatever
                 publishes `streamUrl` can re-publish it. Without this the sensor
                 in Home Assistant stays empty until the device happens to report
@@ -218,6 +220,7 @@ class Go2rtc:
         """
         self._registry = registry
         self._on_change = on_change
+        self._rtsp_bind = rtsp_bind
         self._config_path = os.path.join(data_dir, "go2rtc.yaml")
         self._log_path = os.path.join(data_dir, "go2rtc.log")
         self._proc: asyncio.subprocess.Process | None = None
@@ -333,7 +336,7 @@ class Go2rtc:
             await self.stop()
             return
 
-        config = render_config(self.desired_streams(), self._log_path)
+        config = render_config(self.desired_streams(), self._log_path, self._rtsp_bind)
         if self.running and config == self._rendered:
             return
 
