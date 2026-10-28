@@ -279,3 +279,4 @@ None.
 | `test_repro_bare_token_repair_inside_strings.py` | strict-xfail markers removed from both tests: the bare-token repair skips string literals | fix landed | – |
 | `test_repro_device_registry_string_petkit_id.py` | strict-xfail marker removed; the assertion now requires the string id to be restored as the int, not merely tolerated | fix landed | – |
 | `test_repro_backfill_beyond_first_page.py` | strict-xfail marker removed: the backfill pages through every row by id | fix landed | – |
+| `test_repro_device_scoped_commands_and_zones.py` | strict-xfail marker removed from `test_a_code_reported_by_a_model_outside_its_families_is_logged` only; it now resets the once-per-pair warning set and asserts the second lookup does not warn again | fix landed | – |

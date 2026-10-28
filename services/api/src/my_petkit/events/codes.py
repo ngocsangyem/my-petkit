@@ -61,12 +61,15 @@ it is "Deodorizing" and not "Cleaning started".
 """
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 
 from my_petkit.utils.const import (
     DEVICE_TYPES_ALL, DEVICE_TYPES_FEEDER, DEVICE_TYPES_LITTER,
     DEVICE_TYPES_PURIFIER, DEVICE_TYPES_WATER_FOUNTAIN,
 )
+
+log = logging.getLogger(__name__)
 
 # --- device families -------------------------------------------------------
 # Codenames come from utils/const.py so this table and ha/categories.py
@@ -1298,11 +1301,33 @@ def lookup(event_type: str | None,
 
     category = category_of(device_type) or DEFAULT_HTTP_CATEGORY
     code = HTTP_CODES_BY_CATEGORY.get(category, {}).get(key)
-    if code is not None:
-        return code
-    # A category with a sparse table (the feeder's, mostly unrecovered) still
-    # gets MQTT names, which ARE global.
-    return MQTT_EVENT_TOPICS.get(key.lower())
+    if code is None:
+        # A category with a sparse table (the feeder's, mostly unrecovered) still
+        # gets MQTT names, which ARE global.
+        code = MQTT_EVENT_TOPICS.get(key.lower())
+    if code is not None and device_type and category_of(device_type) is not None:
+        _warn_if_outside_families(code, key, device_type.lower())
+    return code
+
+
+# (codename, event_type) pairs already warned about. Bounded: only known
+# codenames and known codes ever reach it.
+_WARNED_OUTSIDE_FAMILIES: set[tuple[str, str]] = set()
+
+
+def _warn_if_outside_families(code: EventCode, key: str, codename: str) -> None:
+    """Log, once per (model, code), a code reported by a model outside its families.
+
+    The label is still returned: a wrong family guess must never cost a user
+    their event. But `families` is a claim about which firmware emits a code,
+    and a model contradicting it is evidence the table is wrong -- worth
+    seeing in the log, not worth repeating on every report.
+    """
+    if codename in code.families or (codename, key) in _WARNED_OUTSIDE_FAMILIES:
+        return
+    _WARNED_OUTSIDE_FAMILIES.add((codename, key))
+    log.warning("Event code %s (%s) reported by %s, which is outside its families %s",
+                key, code.label, codename, sorted(code.families))
 
 
 def codes_for(device_type: str | None) -> dict[str, EventCode]:
