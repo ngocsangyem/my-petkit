@@ -222,6 +222,39 @@ async def test_stitch_episode_end_to_end_replaces_chunks_and_keeps_one_playable_
         assert await stitch.verify_video(out, expected_duration_sec=3.0) is True
 
 
+async def test_late_chunks_extend_the_stitched_clip_with_real_ffmpeg():
+    """The extension feeds an already-stitched (faststart) mp4 back into the
+    concat demuxer; it must come out as one verified clip of the full length."""
+    if not HAVE_FFMPEG:
+        return
+    with tempfile.TemporaryDirectory() as tmp:
+        store = await _store(tmp)
+        media_root = os.path.join(tmp, "media")
+        day_dir = os.path.join(media_root, "Dev", "Playback", "2026-07-22")
+        os.makedirs(day_dir, exist_ok=True)
+        work = os.path.join(tmp, "work")
+
+        async def _stitch_two(prefix, start):
+            for i in range(2):
+                p = os.path.join(day_dir, f"{prefix}{i}.mp4")
+                if not _make_clip(p, seconds=1):
+                    return None
+                await _add_chunk(store, p, "epX", "fullVideo", start + i, duration_ms=1000)
+            episode = (await store.stitch_candidates(("fullVideo",),
+                                                     quiet_before_ts=start + 1000))[0]
+            return await stitch.stitch_episode(store, episode, media_root, work, "t5")
+
+        if not await _stitch_two("early", 1000.0):
+            return
+        out = await _stitch_two("late", 1500.0)
+
+        assert out is not None
+        rows = await store.media_for_retention("fullVideo")
+        assert [(r["file_id"], r["media_path"]) for r in rows] == [("stitched:epX:fullVideo", out)]
+        assert rows[0]["duration_ms"] == 4000
+        assert await stitch.verify_video(out, expected_duration_sec=4.0) is True
+
+
 async def test_stitch_episode_keeps_chunks_when_output_is_unusable():
     """If verification fails the sources must survive — that's the whole
     reason verification runs before deletion."""

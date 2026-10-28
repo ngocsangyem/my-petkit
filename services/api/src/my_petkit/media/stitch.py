@@ -336,7 +336,28 @@ def _episode_slug(episode: dict) -> str:
     return hashlib.sha256(key.encode("utf-8", "replace")).hexdigest()[:16]
 
 
-async def _merged_path(store: EventStore, episode: dict, media_root: str,
+def _merged_file_id(episode: dict) -> str:
+    """The `file_id` of an episode's stitched row: one per visit and stream."""
+    return f"stitched:{episode['related_event']}:{episode['category']}"
+
+
+async def _previous_clip(store: EventStore, episode: dict) -> dict | None:
+    """The clip an earlier pass already stitched for this episode, if any.
+
+    The device keeps uploading through the cleaning cycle and retries late, so
+    chunks can arrive after their episode was joined. They extend that clip
+    rather than start a second one: the panel plays one recording per visit,
+    and the stitched row's `file_id` is unique per episode. A row of another
+    device that merely shares the `related_event` is not ours to extend.
+    """
+    row = await store.get_media_by_file_id(_merged_file_id(episode))
+    if (row is None or row.get("stitch_state") != "stitched"
+            or row.get("device_id") != episode["device_id"]):
+        return None
+    return row
+
+
+async def _merged_path(store: EventStore, episode: dict, first: dict, media_root: str,
                        device_type: str) -> str:
     """Where the joined clip belongs in the friendly tree.
 
@@ -346,8 +367,6 @@ async def _merged_path(store: EventStore, episode: dict, media_root: str,
     otherwise read a file it is writing) and `_move_into_place` takes the next
     free variant of it rather than overwriting a source.
     """
-    chunks = episode["chunks"]
-    first = chunks[0]
     event = await store.event_by_related(episode["related_event"])
     label = layout.media_filename_label(None, event.get("event_kind") if event else None)
     return layout.build_media_path(
@@ -366,17 +385,27 @@ async def stitch_episode(store: EventStore, episode: dict, media_root: str, work
 
         {device_id, related_event, category, chunks: [<media row>, ...]}
 
-    with `chunks` already in play order. Returns the joined file's path, or
-    None if nothing was written — every failure path is non-destructive, so
-    None always means "the chunks are still there".
+    with `chunks` already in play order. If an earlier pass already stitched
+    this episode, its clip is joined in front of the new chunks and its row is
+    replaced in the same transaction. Returns the joined file's path, or None
+    if nothing was written — every failure path is non-destructive, so None
+    always means "the chunks are still there".
     """
-    chunks = episode["chunks"]
+    previous = await _previous_clip(store, episode)
+    prev_id = previous["id"] if previous is not None else None
+    chunks = ([previous] if previous is not None else []) + episode["chunks"]
+
+    def _own(rows: list[dict]) -> list[int]:
+        """Ids to flag on failure: the previous clip keeps its `stitched` mark."""
+        return [c["id"] for c in rows if c["id"] != prev_id]
+
     # One thread hop for the whole chunk list: a real visit produces 25+.
     paths = await asyncio.to_thread(_existing_chunk_paths, chunks)
+    on_disk = set(paths)
     if len(paths) < 2:
         log.info("Stitch: episode %s/%s has <2 readable chunks on disk, skipping",
                  episode["related_event"], episode["category"])
-        await store.mark_stitch_failed([c["id"] for c in chunks], "missing-files")
+        await store.mark_stitch_failed(_own(chunks), "missing-files")
         return None
 
     paths, outliers = await split_by_stream(paths)
@@ -388,7 +417,7 @@ async def stitch_episode(store: EventStore, episode: dict, media_root: str, work
     if len(paths) < 2:
         log.info("Stitch: episode %s/%s has <2 consistent chunks, skipping",
                  episode["related_event"], episode["category"])
-        await store.mark_stitch_failed([c["id"] for c in chunks], "inconsistent-streams")
+        await store.mark_stitch_failed(_own(chunks), "inconsistent-streams")
         return None
 
     # Only the chunks actually going into the join may be replaced/removed;
@@ -397,7 +426,7 @@ async def stitch_episode(store: EventStore, episode: dict, media_root: str, work
     chunks = [c for c in chunks if c.get("media_path") in included]
     excluded_ids = [c["id"] for c in episode["chunks"] if c.get("media_path") not in included]
 
-    final_path = await _merged_path(store, episode, media_root, device_type)
+    final_path = await _merged_path(store, episode, chunks[0], media_root, device_type)
     # Build in the hidden work dir, not next to the final file: the final
     # name usually collides with one of the inputs (both derive from the
     # first chunk's timestamp) and ffmpeg reading a file it's writing would
@@ -440,9 +469,20 @@ async def stitch_episode(store: EventStore, episode: dict, media_root: str, work
                 os.remove(tmp_path)
         except OSError:
             pass
-        await store.mark_stitch_failed([c["id"] for c in chunks], "failed")
+        await store.mark_stitch_failed(_own(chunks), "failed")
         log.warning("Stitch failed for episode %s/%s - keeping %d original chunks",
                     episode["related_event"], episode["category"], len(chunks))
+        return None
+
+    if previous is not None and previous["media_path"] in on_disk and previous not in chunks:
+        # The earlier clip could not take part in the join, and joining the
+        # late chunks on their own would need a second stitched row for the
+        # visit. Keep everything as it is and stop offering these chunks.
+        _discard(tmp_path)
+        await store.mark_stitch_failed(_own(episode["chunks"]), "extension-mismatch")
+        log.warning("Stitch: episode %s/%s - the existing clip cannot be extended, "
+                    "keeping %d late chunks separate", episode["related_event"],
+                    episode["category"], len(episode["chunks"]))
         return None
 
     # Verified good, but the sources stay until the very end: move the clip in
@@ -454,12 +494,12 @@ async def stitch_episode(store: EventStore, episode: dict, media_root: str, work
     except OSError as e:
         log.error("Stitch: could not move %s into place: %s", tmp_path, e)
         _discard(tmp_path)
-        await store.mark_stitch_failed([c["id"] for c in chunks], "move-failed")
+        await store.mark_stitch_failed(_own(chunks), "move-failed")
         return None
 
     first, last = chunks[0], chunks[-1]
     merged_row = {
-        "file_id": f"stitched:{episode['related_event']}:{episode['category']}",
+        "file_id": _merged_file_id(episode),
         "device_id": episode["device_id"],
         "related_event": episode["related_event"],
         "module_type": first.get("module_type"),
@@ -478,16 +518,22 @@ async def stitch_episode(store: EventStore, episode: dict, media_root: str, work
         "size_bytes": size,
         "status": "ready",
         "stitch_state": "stitched",
+        # An extended clip keeps its visit's age, which retention orders on.
+        "created_at": previous.get("created_at") if previous is not None else None,
     }
+    # A previous clip whose file is gone is replaced too: its row names nothing.
+    replaced_ids = [c["id"] for c in chunks]
+    if prev_id is not None and prev_id not in replaced_ids:
+        replaced_ids.append(prev_id)
     try:
-        await store.replace_chunks_with_stitched([c["id"] for c in chunks], merged_row)
+        await store.replace_chunks_with_stitched(replaced_ids, merged_row)
     except SQLAlchemyError:
         # The chunk rows survived the rollback, so their files must too; the
         # clip is the only thing to undo. `replace_chunks_with_stitched` has
         # already logged the cause.
         _discard(final_path)
         try:
-            await store.mark_stitch_failed([c["id"] for c in chunks], "swap-failed")
+            await store.mark_stitch_failed(_own(chunks), "swap-failed")
         except SQLAlchemyError:
             # The store is unwritable right now; leaving the chunks unmarked
             # lets the next pass try again once it recovers.
