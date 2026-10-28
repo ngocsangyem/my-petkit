@@ -27,6 +27,20 @@ my-petkit has two planes with opposite rules:
 The full model, the per-tier rules and the known firmware limitations are in
 `docs/security/secure-coding-rules.md` (and, once written, `docs/security/threat-model.md`).
 
+## Data on disk and the container user
+
+The process runs with `umask 077` and tightens its data directory to `0700` before writing
+anything, so every file it creates (`devices.json`, `petkit.db`, certificates and keys, uploaded
+sounds, media) is readable by its own user only.
+
+- **Home Assistant add-on: runs as root.** The Supervisor creates `/data`, `/media` and `/share`
+  owned by root and gives the add-on no way to change that, so a non-root user could not write
+  its own state. Containment there is the Supervisor's container, not a Unix user.
+- **Compose and VPS: run as a non-root user.** The only privilege needed is binding the device
+  ports below 1024 (80, 443), granted with `cap_add: [NET_BIND_SERVICE]` on the container (with
+  every other capability dropped), never with `setcap` on the Python binary, which would hand the
+  capability to every Python program on the host.
+
 ## Captures contain secrets
 
 Traffic capture writes verbatim payloads. A capture can contain your Wi-Fi SSID, your LAN topology,

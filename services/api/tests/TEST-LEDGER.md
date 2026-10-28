@@ -523,6 +523,19 @@ reviewer can find every place the suite was touched.
 - added: tests/test_ffmpeg_hardening.py::test_talk_runs_ffmpeg_with_stdin_off_and_per_file_whitelists
 - added: tests/test_ffmpeg_hardening.py::test_the_cap_constants_are_sane
 
+### Files this process writes are owner-only (umask 077, data dir 0700)
+
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[main/data_permissions.py]
+  — the per-module clock check covers the new module.
+- added: tests/test_data_file_permissions.py::test_the_data_dir_is_tightened_and_the_umask_set
+- added: tests/test_data_file_permissions.py::test_a_missing_data_dir_is_created_owner_only
+- added: tests/test_data_file_permissions.py::test_an_unchmoddable_data_dir_is_logged_not_fatal
+- added: tests/test_data_file_permissions.py::test_devices_json_is_owner_only
+- added: tests/test_data_file_permissions.py::test_the_event_database_is_owner_only
+- added: tests/test_data_file_permissions.py::test_the_broker_certificate_and_key_are_owner_only
+- added: tests/test_data_file_permissions.py::test_a_device_sound_list_is_owner_only
+- added: tests/test_data_file_permissions.py::test_main_secures_the_data_dir_before_anything_is_written
+
 ## Removed
 
 None.

@@ -15,6 +15,7 @@ from aiohttp import web
 from my_petkit.config import show_in_sidebar_once
 from my_petkit.http.proxy import close_proxy_session
 from my_petkit.main.cli import build_config, parse_args
+from my_petkit.main.data_permissions import secure_data_dir
 from my_petkit.main.lifecycle import ListenerBindError, cleanup_background, start_background
 from my_petkit.main.wiring import build_services
 
@@ -45,6 +46,8 @@ def main() -> None:
         format="%(asctime)s [%(name)s] %(levelname)s %(message)s",
         stream=sys.stdout,
     )
+    # Before anything is written: every file this process creates is 0600.
+    secure_data_dir(config.data_dir)
 
     if args.ha_addon:
         # After logging is configured, so the one line it writes is visible, and
