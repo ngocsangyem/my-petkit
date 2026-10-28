@@ -273,6 +273,11 @@ reviewer can find every place the suite was touched.
 - added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[timeline.py]
 - added: tests/test_web_api_uses_appkeys_constants.py::test_the_check_catches_both_read_forms
 
+### MQTT CONNECT signature check (constant-time; a non-ASCII password never raises)
+
+- added: tests/test_repro_mqtt_auth_signature_log.py::test_a_non_ascii_password_is_refused_without_raising[False]
+- added: tests/test_repro_mqtt_auth_signature_log.py::test_a_non_ascii_password_is_refused_without_raising[True]
+
 ## Removed
 
 None.
@@ -286,3 +291,4 @@ None.
 | `test_version.py` | `config.yaml` and `CHANGELOG.md` read from the repository-root `addon/`; `pyproject.toml` from `services/api/` | mechanical | import |
 | `test_state_parsers.py` | real-looking SSID/BSSID fixture replaced by `ExampleNet` / `000000000000`; nothing asserts on it | fixture sanitising | import |
 | `test_repro_panel_app_key_reads.py` | strict xfail markers removed now the sound and device-delete handlers read `hub`/`ha_publisher` through `web/appkeys.py`; docstring now describes the wired behaviour; unused `pytest` import dropped | xfail removed | fix |
+| `test_repro_mqtt_auth_signature_log.py` | strict xfail marker removed now a sign mismatch logs pk/dn/signmethod and no signature; docstring in the past tense | xfail removed | fix |
