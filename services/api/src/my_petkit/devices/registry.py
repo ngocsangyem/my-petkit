@@ -13,6 +13,7 @@ from typing import Any
 
 from my_petkit.devices import defaults
 from my_petkit.devices.base import Device
+from my_petkit.utils.coerce import to_int
 from my_petkit.utils.jsonio import atomic_write_json, atomic_write_text, read_json
 
 log = logging.getLogger(__name__)
@@ -385,6 +386,12 @@ class DeviceRegistry(PersistedRegistry):
         for key, d_data in data.items():
             try:
                 device = Device.from_dict(d_data)
+                # A hand-edited or migrated file may hold the id as a string;
+                # every lookup keys on the int, so coerce it here or skip.
+                petkit_id = to_int(device.petkit_id, None)
+                if petkit_id is None:
+                    raise ValueError(f"petkit_id {device.petkit_id!r} is not an integer")
+                device.petkit_id = petkit_id
             except (AttributeError, KeyError, TypeError, ValueError) as e:
                 # Per entry, not per file: one malformed record must not cost
                 # every other device its credentials.
