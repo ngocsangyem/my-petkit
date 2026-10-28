@@ -190,6 +190,31 @@ async def test_upload_file_info_creates_media_row_and_schedules_processing():
             await client.close()
 
 
+async def test_a_replayed_upload_file_info_answers_success_and_keeps_the_item_ready():
+    with tempfile.TemporaryDirectory() as tmp:
+        client, reg, store, hub, device, raw_root, media_root = await _client(tmp)
+        try:
+            rel = "t5/100/eventImage/f-replay"
+            _stage_raw(raw_root, rel)
+            body = _upload_body("f-replay", rel)
+            r = await client.post("/6/t5/dev_upload_file_info_v2", headers=HDR, data=body)
+            assert r.status == 200
+            await upload_file_info.wait_for_pending()
+            filed = await store.get_media_by_file_id("f-replay")
+            assert filed["status"] == "ready"
+
+            replay = await client.post("/6/t5/dev_upload_file_info_v2", headers=HDR, data=body)
+            assert replay.status == 200
+            assert await replay.json() == await r.json() == {"result": "success"}
+            await upload_file_info.wait_for_pending()
+
+            row = await store.get_media_by_file_id("f-replay")
+            assert (row["status"], row["media_path"]) == ("ready", filed["media_path"])
+        finally:
+            await client.close()
+            await store.close()
+
+
 async def test_upload_file_info_keeps_a_strong_reference_to_its_task():
     # asyncio only holds a WEAK reference to a running task: without the
     # module-level set, the pipeline task can be collected mid-flight.

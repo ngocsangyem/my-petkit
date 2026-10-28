@@ -1,7 +1,9 @@
 """`EventStore` queries on the `media` table, including episode stitching."""
 from __future__ import annotations
 
+import asyncio
 import logging
+import os
 from typing import Any
 
 from sqlalchemy import delete, func, select, update
@@ -29,6 +31,14 @@ class MediaQueries(StoreBase):
         file: once when `dev_upload_file_info_v2` arrives (metadata only) and
         again once the bytes are decrypted/remuxed (media_path/status/size).
 
+        A row that is already `ready` with its file on disk is never moved out
+        of `ready`: a device retries `dev_upload_file_info_v2` when it misses
+        the answer, and that replay carries `status: "pending"` for an upload
+        the pipeline has already filed and whose raw bytes are gone. Taking the
+        status would drop a playable item off the timeline and out of
+        retention's reach, so a non-`ready` write keeps the row's status,
+        `media_path` and `size_bytes` and updates only the metadata.
+
         Raises:
             ValueError: if the row carries no `file_id` to key on.
         """
@@ -40,8 +50,13 @@ class MediaQueries(StoreBase):
         async with self._write() as session:
             existing = await session.scalar(select(Media).where(Media.file_id == file_id))
             if existing is not None:
+                skip = {"file_id"}
+                if (existing.status == "ready" and data.get("status", "ready") != "ready"
+                        and existing.media_path
+                        and await asyncio.to_thread(os.path.isfile, existing.media_path)):
+                    skip |= {"status", "media_path", "size_bytes"}
                 for key, value in data.items():
-                    if key != "file_id":
+                    if key not in skip:
                         setattr(existing, key, value)
                 await session.flush()
                 return existing.id

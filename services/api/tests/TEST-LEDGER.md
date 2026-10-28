@@ -265,6 +265,9 @@ reviewer can find every place the suite was touched.
 - added: tests/test_repro_media_late_chunks_after_stitch.py::test_a_clip_that_cannot_be_extended_keeps_everything
 - added: tests/test_media_stitch.py::test_late_chunks_extend_the_stitched_clip_with_real_ffmpeg
 - added: tests/test_repro_panel_media_raw_dir.py::test_panel_media_routes_still_serve_the_friendly_tree_and_hide_dot_files
+- added: tests/test_repro_media_file_info_resend.py::test_resent_file_info_with_fresh_bytes_keeps_the_filed_copy
+- added: tests/test_repro_media_file_info_resend.py::test_a_ready_row_whose_file_is_gone_is_processed_again
+- added: tests/test_ingest_endpoints.py::test_a_replayed_upload_file_info_answers_success_and_keeps_the_item_ready
 
 ## Removed
 
@@ -282,3 +285,4 @@ None.
 | `test_repro_media_late_chunks_after_stitch.py` | still a strict xfail, now also asserting one stitched clip per visit holding every chunk in order: with sources kept until the swap commits, footage is no longer lost, so the remaining failure is the second clip | repro tightened | bugfix |
 | `test_repro_media_late_chunks_after_stitch.py` | strict xfail removed: late chunks now extend the episode's existing stitched clip in one swap, so the reproduction is a regular test | repro promoted to regular test | bugfix |
 | `test_repro_panel_media_raw_dir.py` | strict xfail removed: the panel media routes refuse any dot-prefixed component of the resolved path, so the reproduction is a regular test | repro promoted to regular test | bugfix |
+| `test_repro_media_file_info_resend.py` | strict xfail removed: a replayed file_info no longer moves a ready row with its file on disk out of `ready`, so the reproduction is a regular test | repro promoted to regular test | bugfix |
