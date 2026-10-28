@@ -8,7 +8,7 @@ import { FeedbackLine } from './panel-parts';
 export interface Command {
   key: string;
   name: string;
-  /** Destructive commands are red text and always sort last. */
+  /** Destructive commands sit in their own group, after the others. */
   destructive: boolean;
   run: () => Promise<string>;
 }
@@ -25,15 +25,30 @@ interface CommandListProps {
 }
 
 /**
- * Device commands (R2): secondary buttons, destructive ones last, and each asks
- * before it runs. The confirm sheet's title is a question and its body says
+ * Device commands (R2): secondary buttons, destructive ones in a group of their
+ * own after the rest, and each asks before it runs. Destructive commands are not
+ * red: the design allows red once per object, and a panel can carry several of
+ * them (dump litter, reset a consumable); the group label and the confirm sheet
+ * say what they do. The confirm sheet's title is a question and its body says
  * what moves and how it gets there.
  */
 export function CommandList({ commands, target, route, refresh, extra }: CommandListProps) {
   const call = useDeviceCall();
   const [asking, setAsking] = useState<Command | null>(null);
-  // Stable: the server already sends destructive last, and this keeps it so.
-  const ordered = [...commands].sort((a, b) => Number(a.destructive) - Number(b.destructive));
+  const routine = commands.filter(cmd => !cmd.destructive);
+  const destructive = commands.filter(cmd => cmd.destructive);
+  const button = (cmd: Command) => (
+    <Button
+      key={cmd.key}
+      variant="secondary"
+      disabled={call.busy}
+      onClick={() => {
+        setAsking(cmd);
+      }}
+    >
+      {cmd.name}
+    </Button>
+  );
 
   const confirm = async () => {
     const cmd = asking;
@@ -46,19 +61,14 @@ export function CommandList({ commands, target, route, refresh, extra }: Command
     <div className="devices-stack">
       <div className="devices-command-row">
         {extra}
-        {ordered.map(cmd => (
-          <Button
-            key={cmd.key}
-            variant={cmd.destructive ? 'destructive' : 'secondary'}
-            disabled={call.busy}
-            onClick={() => {
-              setAsking(cmd);
-            }}
-          >
-            {cmd.name}
-          </Button>
-        ))}
+        {routine.map(button)}
       </div>
+      {destructive.length > 0 && (
+        <div className="devices-command-group" role="group" aria-label="Cannot be undone">
+          <span className="devices-note">Cannot be undone</span>
+          <div className="devices-command-row">{destructive.map(button)}</div>
+        </div>
+      )}
       <p className="devices-note">Each command asks before it runs.</p>
       <FeedbackLine feedback={call.feedback} />
       <ConfirmDialog

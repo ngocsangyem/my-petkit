@@ -258,3 +258,8 @@
     grid-column: 1 / -1;
   }
 }
+
+.devices-command-group {
+  display: grid;
+  gap: 6px;
+}
