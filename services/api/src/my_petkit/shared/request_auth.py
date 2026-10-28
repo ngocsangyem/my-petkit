@@ -68,7 +68,7 @@ def audit_r3(request: web.Request, action: str, *, device_id: int | None = None)
     ctx = auth_context(request)
     log.info(
         "r3_action action=%s principal=%s method=%s route=%s device=%s",
-        action,
+        one_line(action),
         one_line(ctx.principal) if ctx else "unknown",
         one_line(request.method),
         one_line(request.path),
