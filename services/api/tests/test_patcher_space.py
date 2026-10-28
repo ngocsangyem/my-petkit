@@ -16,7 +16,7 @@ from my_petkit.patchers.common import (
     ensure_space_for, parse_df_available_bytes, parse_wc_c_sizes,
     required_free_bytes, run_cmd_capture,
 )
-from my_petkit.web.api.patchers import ALL_PATCHERS
+from my_petkit.features.patchers.routes import ALL_PATCHERS
 
 
 def _device() -> Device:

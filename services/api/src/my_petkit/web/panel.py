@@ -1,8 +1,8 @@
 """The add-on's own web panel: the application object and its route table.
 
 This is the composition root. `create_panel_app` hangs every collaborator on
-`app[...]` — the keys are listed in `web/appkeys.py` — and registers every route
-in one function; the handlers themselves live in `web/api/`, whose package
+`app[...]` — the keys are listed in `shared/appkeys.py` — and registers every route
+in one function; the handlers themselves live in `features/`, whose package
 docstring carries the per-tab map of what the panel does.
 
 The table stays whole because three of its registrations are ordering-critical
@@ -30,16 +30,14 @@ The single-page app itself is no longer inlined here: `templates/index.html` is
 rendered by `handle_index` and links `static/js/main.js` (an ES module, which
 imports the rest of `static/js/`) + `static/styles.css`, both shipped inside
 the package (see `TEMPLATE_DIR` / `STATIC_DIR`). The JS consumes
-the exact key names the handlers in `web/api/` emit, so response shapes are a
+the exact key names the handlers in `features/` emit, so response shapes are a
 contract: adding a key is safe, renaming or removing one is not.
 """
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import logging
 import os
-from collections.abc import Coroutine
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -49,34 +47,38 @@ from aiohttp import web
 
 from my_petkit.utils.paths import UnsafePathError, safe_join
 
-from my_petkit.web.api.ble import (
+from my_petkit.features.ble.routes import (
     api_ble_accessories, api_ble_command, api_ble_delete, api_ble_import, api_ble_poll,
 )
-from my_petkit.web.api.devices import (
+from my_petkit.features.devices.routes import (
     api_ai_settings, api_capabilities, api_device_delete, api_device_detail,
     api_device_log_settings, api_timezone,
     api_devices, api_send_command,
 )
-from my_petkit.web.api.logs import (
+from my_petkit.features.logs.routes import (
     api_capture_delete, api_capture_download, api_capture_list, api_capture_read,
     api_device_log_read, api_device_logs, api_events, api_ws,
 )
-from my_petkit.web.api.media import api_media_file, api_media_thumb
-from my_petkit.web.api.patchers import api_patcher_apply, api_patcher_status
-from my_petkit.web.api.pets import (
+from my_petkit.features.media.routes import api_media_file, api_media_thumb
+from my_petkit.features.patchers.routes import api_patcher_apply, api_patcher_status
+from my_petkit.features.pets.routes import (
     api_pet_detail, api_pet_face_detail, api_pet_face_photo, api_pet_faces,
     api_pets_import, api_pets_list_create, api_pets_unbound,
 )
-from my_petkit.web.api.schedules import api_deferred_feed, api_save_schedule
-from my_petkit.web.api.settings import api_blocked, api_info, api_retention, api_settings
-from my_petkit.web.api.sounds import (
+from my_petkit.features.schedules.routes import api_deferred_feed, api_save_schedule
+from my_petkit.features.setup.routes import api_blocked, api_info, api_retention, api_settings
+from my_petkit.features.sounds.routes import (
     api_sounds_delete, api_sounds_list, api_sounds_play,
     api_sounds_select, api_sounds_upload,
 )
-from my_petkit.web.api.talk import api_talk
-from my_petkit.web.api.timeline import api_event_detail, api_timeline
-from my_petkit.web.appkeys import (
-    BACKGROUND_TASKS, BLE_REGISTRY, BRIDGE, CFG, EVENT_STORE, HA_PUBLISHER, HUB,
+from my_petkit.features.talk.routes import api_talk
+from my_petkit.features.timeline.routes import api_event_detail, api_timeline
+from my_petkit.shared.background_tasks import (
+    _spawn_background as _spawn_background,  # re-exported for callers of the old path
+    cancel_background_tasks,
+)
+from my_petkit.shared.appkeys import (
+    BACKGROUND_TASKS, PANEL_ASSET_VERSION, BLE_REGISTRY, BRIDGE, CFG, EVENT_STORE, HA_PUBLISHER, HUB,
     LIVE_CONFIG, PET_REGISTRY, REGISTRY, RETENTION_CONFIG,
 )
 
@@ -173,6 +175,7 @@ def create_panel_app(registry: DeviceRegistry, ble_registry: BLERegistry | None,
     app[PET_REGISTRY] = pet_registry
     app[HA_PUBLISHER] = ha_publisher
     app[BACKGROUND_TASKS] = set()
+    app[PANEL_ASSET_VERSION] = ASSET_VERSION
     # AppRunner.cleanup() fires on_cleanup, so main.py's existing
     # `panel_runner.cleanup()` already drains these — no change needed there.
     app.on_cleanup.append(cancel_background_tasks)
@@ -283,57 +286,6 @@ def create_panel_app(registry: DeviceRegistry, ble_registry: BLERegistry | None,
     app.router.add_delete("/api/pets/{id}/faces/{face_id}", api_pet_face_detail)
     app.router.add_get("/api/pets/{id}/faces/{face_id}/photo", api_pet_face_photo)
     return app
-
-
-def _log_background_result(task: asyncio.Task) -> None:
-    """Retrieve a finished task's exception so it is logged, not swallowed."""
-    if task.cancelled():
-        return
-    exc = task.exception()
-    if exc is not None:
-        log.error("panel: background task %s failed: %s", task.get_name(), exc, exc_info=exc)
-
-
-def _spawn_background(app: web.Application, coro: Coroutine[Any, Any, Any], *,
-                      name: str) -> asyncio.Task:
-    """Run `coro` detached from the request that started it.
-
-    The event loop only keeps a weak reference to a running task, so a bare
-    `create_task` can be garbage-collected mid-flight — a patcher run would then
-    stop somewhere between downloading a binary and uploading the patched one,
-    silently. The task is registered on the app instead, which both pins it and
-    lets shutdown drain it (`cancel_background_tasks`).
-
-    Args:
-        name: Shown in logs; make it identify the request that spawned it.
-    """
-    task = asyncio.create_task(coro, name=name)
-    tasks: set[asyncio.Task] = app[BACKGROUND_TASKS]
-    tasks.add(task)
-    task.add_done_callback(tasks.discard)
-    task.add_done_callback(_log_background_result)
-    return task
-
-
-async def cancel_background_tasks(app: web.Application) -> None:
-    """Cancel and await every in-flight background task.
-
-    Registered as an `on_cleanup` hook by `create_panel_app`, so an
-    `AppRunner.cleanup()` (what main.py already calls for the panel) drains
-    them. Safe to call directly and safe to call twice.
-    """
-    tasks = list(app.get(BACKGROUND_TASKS) or ())
-    for task in tasks:
-        task.cancel()
-    for task in tasks:
-        try:
-            await task
-        except asyncio.CancelledError:
-            pass
-        except Exception:
-            # Already reported by _log_background_result; awaiting here would
-            # otherwise re-raise into aiohttp's shutdown and abort it.
-            pass
 
 
 def asset_version() -> str:

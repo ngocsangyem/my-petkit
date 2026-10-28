@@ -229,7 +229,7 @@ def test_wrapper_talk_composes_with_camera():
 
 
 def test_talk_patcher_is_registered():
-    from my_petkit.web.api.patchers import ALL_PATCHERS
+    from my_petkit.features.patchers.routes import ALL_PATCHERS
     assert "talk" in ALL_PATCHERS
     assert ALL_PATCHERS["talk"]["files"] == ["pktalk_sink.sh"]
 
@@ -255,7 +255,7 @@ async def test_talk_apply_stages_sink_and_wrapper(monkeypatch, tmp_path):
     from unittest.mock import AsyncMock, MagicMock
 
     from my_petkit.patchers.common import TALK_SINK_NAME, get_staged_path
-    from my_petkit.web.api import patchers as P
+    from my_petkit.features.patchers import routes as P
 
     monkeypatch.setattr(P, "detect_patch_storage_dir", AsyncMock(return_value="/system"))
     monkeypatch.setattr(P, "ensure_space_for", AsyncMock(return_value="space ok"))

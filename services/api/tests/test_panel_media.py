@@ -15,9 +15,8 @@ from my_petkit.devices.registry import DeviceRegistry
 from my_petkit.events.store import MAX_FACES_PER_PET, EventStore
 from my_petkit.media.retention import RetentionConfig
 from my_petkit.web.hub import EventHub
-from my_petkit.web.api.media import (
-    _generate_video_thumb, _safe_media_path, _session_media_urls,
-)
+from my_petkit.features.media.routes import _generate_video_thumb, _safe_media_path
+from my_petkit.shared.media_slots import _session_media_urls
 from my_petkit.web.panel import create_panel_app
 
 JPEG_BYTES = b"\xff\xd8\xff\xe0" + b"A" * 60
@@ -103,7 +102,7 @@ def test_stitched_playback_is_shown():
 
 
 def test_lone_settled_chunk_becomes_ready_after_quiet_period():
-    from my_petkit.web.api.media import _STITCH_QUIET
+    from my_petkit.shared.media_slots import _STITCH_QUIET
     row = {"category": "fullVideo", "status": "ready", "media_path": "/root/Playback/only.mp4",
            "stitch_state": None, "created_at": 1000.0}
     # still fresh -> pending

@@ -51,19 +51,21 @@ rules:
     severity: ERROR
     message: >-
       Feature code reads application state through the typed keys in
-      web/appkeys.py, never app["..."]: a typo in a bare string key is a
+      shared/appkeys.py, never app["..."]: a typo in a bare string key is a
       KeyError at request time, and the same name can mean different objects
       on the device app and the panel app.
     paths:
       include:
-        - "services/api/src/my_petkit/features/**"
-        - ".semgrep/rules.py"
-    pattern-either:
-      - pattern: $APP["$KEY"]
-      - pattern: $APP.get("$KEY", ...)
-    metavariable-regex:
-      metavariable: $APP
-      regex: ^(app|request\.app|req\.app|request\.config_dict)$
+        - "/services/api/src/my_petkit/features/**"
+        - "/services/api/src/my_petkit/shared/**"
+        - "/.semgrep/rules.py"
+    patterns:
+      - pattern-either:
+          - pattern: $APP["$KEY"]
+          - pattern: $APP.get("$KEY", ...)
+      - metavariable-regex:
+          metavariable: $APP
+          regex: ^(app|request\.app|req\.app|request\.config_dict)$
 
   - id: no-dangerously-set-inner-html
     languages: [typescript, javascript]

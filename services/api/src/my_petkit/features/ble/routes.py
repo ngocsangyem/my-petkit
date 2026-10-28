@@ -24,8 +24,8 @@ from my_petkit.http.cloud_fetch import CLOUD_TIMEOUT, CloudRefused, fetch_as_dev
 from my_petkit.utils.coerce import to_int
 from my_petkit.utils.const import device_display_name
 from my_petkit.utils.dicts import dig_path
-from my_petkit.web.api._common import _cloud_upstream, _json_body, _path_id
-from my_petkit.web.appkeys import BLE_REGISTRY, BRIDGE, HA_PUBLISHER, HUB, REGISTRY
+from my_petkit.shared.panel_request import _cloud_upstream, _json_body, _path_id
+from my_petkit.shared.appkeys import BLE_REGISTRY, BRIDGE, HA_PUBLISHER, HUB, REGISTRY
 
 if TYPE_CHECKING:
     from my_petkit.devices.ble import BLEDevice, BLERegistry

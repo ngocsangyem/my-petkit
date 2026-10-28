@@ -1,7 +1,7 @@
 """The panel application's `app[...]` contract, in one place.
 
 `create_panel_app` builds one `web.Application` and hangs every collaborator on
-it; each handler in `web/api/` then reads what it needs back out. That contract
+it; each handler in `features/` then reads what it needs back out. That contract
 used to exist only as a string typed in eleven places and read in ten modules,
 which is exactly the kind of thing that drifts silently — a misspelt read is a
 `KeyError` at request time and a misspelt `.get` is a `None` that reads as "not
@@ -51,7 +51,7 @@ including the two written from `main/lifecycle.py` and the ones every test's own
 app is built with — for a type-checking benefit this codebase does not collect.
 The values below are therefore the literal spellings already in use. Reads go
 through these constants, never a bare string (a test enforces it in
-`web/api/`): a misspelt bare key read `"event_hub"` where the panel stores
+`features/`): a misspelt bare key read `"event_hub"` where the panel stores
 `"hub"`, and sound play/select answered 400 for as long as it went unnoticed.
 """
 from __future__ import annotations
@@ -70,6 +70,8 @@ HA_PUBLISHER = "ha_publisher"
 # aiohttp app key holding the strong references to in-flight background tasks
 # (see _spawn_background).
 BACKGROUND_TASKS = "background_tasks"
+#: The panel assets' content hash, set by `web/panel.py`, which owns the assets.
+PANEL_ASSET_VERSION = "panel_asset_version"
 
 #: Set from `main/lifecycle.py`, not from `create_panel_app`.
 MQTT_BROKER = "mqtt_broker"

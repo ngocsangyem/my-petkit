@@ -25,10 +25,10 @@ from my_petkit.events.store import MAX_FACES_PER_PET
 from my_petkit.http.cloud_fetch import CLOUD_TIMEOUT, CloudRefused, fetch_as_device
 from my_petkit.utils.coerce import to_int
 from my_petkit.utils.paths import UnsafePathError, safe_join
-from my_petkit.web.api._common import (
+from my_petkit.shared.panel_request import (
     _cloud_upstream, _face_summaries, _json_body, _path_id, _pets_by_id,
 )
-from my_petkit.web.appkeys import CFG, EVENT_STORE, HA_PUBLISHER, PET_REGISTRY, REGISTRY
+from my_petkit.shared.appkeys import CFG, EVENT_STORE, HA_PUBLISHER, PET_REGISTRY, REGISTRY
 
 log = logging.getLogger(__name__)
 

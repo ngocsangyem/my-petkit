@@ -24,70 +24,15 @@ from my_petkit.utils.const import (
     DEVICE_NAMES, DEVICE_TYPES_AI, VERSION,
 )
 from my_petkit.utils.jsonio import atomic_write_json, read_json
-from my_petkit.web.api._common import MAX_EVENT_LIMIT, _json_body, _limit_param, _live
-from my_petkit.web.appkeys import (
-    CFG, EVENT_STORE, HA_PUBLISHER, HUB, LIVE_CONFIG, REGISTRY, RETENTION_CONFIG,
+from my_petkit.shared.live_settings import LIVE_SETTINGS, _current_settings
+from my_petkit.shared.panel_request import MAX_EVENT_LIMIT, _json_body, _limit_param
+from my_petkit.shared.appkeys import (
+    CFG, PANEL_ASSET_VERSION, EVENT_STORE, HA_PUBLISHER, HUB, LIVE_CONFIG, REGISTRY, RETENTION_CONFIG,
 )
 
 log = logging.getLogger(__name__)
 
 
-# Runtime settings the panel may flip live. Each is read per-request from the
-# shared app config (or applied via a setter), so no restart is needed. Value is
-# the coercion type.
-#
-# These are the ONLY control surface for proxy mode and capture: neither has an
-# add-on option or a CLI flag any more. Every key here must also appear in
-# `config.PANEL_LIVE_KEYS`, or it is written now and dropped at the next start.
-LIVE_SETTINGS = {
-    "proxy_mode": bool,
-    "proxy_upstream": str,
-    "proxy_dns": str,
-    "proxy_block_run_cmd": bool,
-    "proxy_block_ota": bool,
-    "proxy_block_log_upload": bool,
-    "proxy_media_real_oss": bool,
-    "proxy_local_cvr_window": bool,
-    "proxy_mqtt_bridge": bool,
-    "proxy_only": str,
-    "capture": bool,
-}
-
-#: Defaults for `LIVE_SETTINGS`, used when the shared config has no value yet.
-#: Both guards default ON: proxy mode is a debugging tool, and a debugging tool
-#: that lets the cloud run a command or push firmware is a liability.
-LIVE_SETTING_DEFAULTS = {
-    "proxy_mode": False,
-    "proxy_upstream": "",
-    "proxy_dns": "",
-    "proxy_block_run_cmd": True,
-    "proxy_block_ota": True,
-    "proxy_block_log_upload": True,
-    "proxy_media_real_oss": False,
-    "proxy_local_cvr_window": False,
-    "proxy_mqtt_bridge": True,
-    "proxy_only": "",
-    "capture": False,
-}
-
-
-def _current_settings(request: web.Request) -> dict[str, Any]:
-    """The `LIVE_SETTINGS` values as they are right now, all keys always present.
-
-    `capture` alone falls back to the static panel config as well as the
-    default, because it is the one setting that also existed before the shared
-    live config did.
-    """
-    live = _live(request)
-    cfg = request.app[CFG]
-    fallbacks = dict(LIVE_SETTING_DEFAULTS)
-    fallbacks["capture"] = bool(cfg.get("capture", False))
-
-    settings = {}
-    for key, typ in LIVE_SETTINGS.items():
-        value = live.get(key, fallbacks[key])
-        settings[key] = bool(value) if typ is bool else (value or "")
-    return settings
 
 
 def _valid_upstream(value: str) -> bool:
@@ -241,11 +186,6 @@ async def api_info(request: web.Request) -> web.Response:
     `api_settings`' territory and are mirrored here only so the frontend can
     render the whole tab from one request.
     """
-    # Imported in the call rather than at module scope: `panel.py` renders the
-    # page this hash is stamped into, and it imports this module for its route
-    # table — so the dependency only runs one way at import time.
-    from my_petkit.web.panel import ASSET_VERSION  # noqa: PLC0415
-
     cfg = request.app[CFG]
     reg = request.app[REGISTRY]
     cert = cfg.get("cert_path", "")
@@ -257,7 +197,8 @@ async def api_info(request: web.Request) -> web.Response:
         # markup came with the document, possibly out of a cache, while this
         # one is answered live. A mismatch is the one failure the `version`
         # below cannot see — a fresh server running behind a stale page.
-        "asset_version": ASSET_VERSION,
+        # Set by `web/panel.py`, which renders the page this hash is stamped into.
+        "asset_version": request.app.get(PANEL_ASSET_VERSION, ""),
         # The running version. First thing to check when a device reports the
         # entities of a release you thought you had replaced.
         "version": VERSION,

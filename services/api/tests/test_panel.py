@@ -19,7 +19,7 @@ from my_petkit.devices.ble import BLERegistry
 from my_petkit.ha.categories import get_entities_for_device
 from my_petkit.ha.commands import ALL_ACTIONS
 from my_petkit.web.hub import EventHub
-from my_petkit.web.api.settings import LIVE_SETTINGS
+from my_petkit.shared.live_settings import LIVE_SETTINGS
 from my_petkit.web.panel import create_panel_app
 
 
@@ -911,7 +911,7 @@ async def test_capture_read_tails_file_and_reports_full_total():
 
 def test_capture_path_helper_contains_and_filters():
     with tempfile.TemporaryDirectory() as tmp:
-        from my_petkit.web.api.logs import _safe_capture_path
+        from my_petkit.features.logs.routes import _safe_capture_path
         cap = Path(tmp) / "capture"
         cap.mkdir()
         (cap / "ok.jsonl").write_text("{}\n")
@@ -970,7 +970,7 @@ async def test_background_task_exception_is_retrieved():
 async def test_patcher_run_is_tracked_and_drained_by_app_cleanup():
     """A patcher run outlives its request; it must be pinned and cancelled at
     shutdown rather than left to the garbage collector."""
-    import my_petkit.web.api.patchers as patchers_mod
+    import my_petkit.features.patchers.routes as patchers_mod
     import my_petkit.web.panel as panel
 
     reg = DeviceRegistry()

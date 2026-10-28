@@ -15,7 +15,6 @@ on the bucket port.
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 import os
 import time
@@ -24,8 +23,9 @@ from typing import Any
 from aiohttp import web
 
 from my_petkit.ha.commands import make_mqtt_property_set, _envelope
-from my_petkit.web.api._common import _device_or_404, _deliver, _refuse
-from my_petkit.web.appkeys import BRIDGE, CFG, HUB
+from my_petkit.devices import sound_store
+from my_petkit.shared.panel_request import _device_or_404, _deliver, _refuse
+from my_petkit.shared.appkeys import BRIDGE, CFG, HUB
 
 log = logging.getLogger(__name__)
 
@@ -33,59 +33,26 @@ MAX_SOUND_SIZE = 2 * 1024 * 1024  # 2 MB
 MAX_SOUNDS_PER_DEVICE = 10
 
 
+def _data_dir(request: web.Request) -> str:
+    return request.app[CFG].get("data_dir", "/data")
+
+
 def _sounds_dir(request: web.Request, device_id: int) -> str:
-    data_dir = request.app[CFG].get("data_dir", "/data")
-    return os.path.join(data_dir, "sounds", str(device_id))
-
-
-def _sounds_meta_path(request: web.Request, device_id: int) -> str:
-    return os.path.join(_sounds_dir(request, device_id), "sounds.json")
+    return sound_store.sounds_dir(_data_dir(request), device_id)
 
 
 def _load_sounds(request: web.Request, device_id: int) -> list[dict[str, Any]]:
-    path = _sounds_meta_path(request, device_id)
-    if not os.path.isfile(path):
-        return []
-    try:
-        with open(path) as f:
-            return json.load(f)
-    except (json.JSONDecodeError, OSError):
-        return []
+    return sound_store.load_sounds(_data_dir(request), device_id)
 
 
-def _save_sounds(request: web.Request, device_id: int,
-                 sounds: list[dict[str, Any]]) -> None:
-    d = _sounds_dir(request, device_id)
-    os.makedirs(d, exist_ok=True)
-    path = _sounds_meta_path(request, device_id)
-    with open(path, "w") as f:
-        json.dump(sounds, f, indent=2)
-
-
-def _next_id(sounds: list[dict[str, Any]]) -> int:
-    if not sounds:
-        return 1
-    return max(s["id"] for s in sounds) + 1
+def _save_sounds(request: web.Request, device_id: int, sounds: list[dict[str, Any]]) -> None:
+    sound_store.save_sounds(_data_dir(request), device_id, sounds)
 
 
 def sound_list_for_device(request: web.Request, device_id: int,
                           bucket_endpoint: str) -> list[dict[str, Any]]:
     """Build the ``dev_sound_get`` result list with download URLs."""
-    sounds = _load_sounds(request, device_id)
-    if not sounds or not bucket_endpoint:
-        return []
-    base = bucket_endpoint.rstrip("/")
-    result = []
-    for s in sounds:
-        result.append({
-            "id": s["id"],
-            "name": s.get("name", ""),
-            "duration": s.get("duration", 0),
-            "url": f"{base}/sounds/{device_id}/{s['filename']}",
-            "digest": s.get("digest", ""),
-            "size": s.get("size", 0),
-        })
-    return result
+    return sound_store.sound_list_for_device(_data_dir(request), device_id, bucket_endpoint)
 
 
 async def api_sounds_list(request: web.Request) -> web.Response:
@@ -113,7 +80,7 @@ async def api_sounds_upload(request: web.Request) -> web.Response:
     if not data:
         raise _refuse(web.HTTPBadRequest, "empty file")
 
-    sound_id = _next_id(sounds)
+    sound_id = sound_store.next_sound_id(sounds)
     digest = hashlib.md5(data).hexdigest()
     filename = f"sound_{sound_id}{ext}"
 

@@ -39,8 +39,9 @@ from my_petkit.patchers.ssh import (
 )
 from my_petkit.patchers.talk import PATCHER_INFO as TALK_PATCHER
 from my_petkit.patchers.verify import assert_download_plausible, elf_arch
-from my_petkit.web.api._common import _device_or_404, _json_body
-from my_petkit.web.appkeys import BRIDGE, CFG, HUB, REGISTRY
+from my_petkit.shared.panel_request import _device_or_404, _json_body
+from my_petkit.shared.background_tasks import _spawn_background
+from my_petkit.shared.appkeys import BRIDGE, CFG, HUB, REGISTRY
 
 if TYPE_CHECKING:
     from my_petkit.devices.base import Device
@@ -176,11 +177,6 @@ async def api_patcher_apply(request: web.Request) -> web.Response:
         except Exception as e:
             log.exception("Patcher %s %s failed for device %d", patcher_id, action, did)
             hub.publish("patcher", did, f"[{patcher_id}] FAILED: {e}")
-
-    # Imported in the call rather than at module scope: `panel.py` owns the
-    # background-task set this pins the run to, and it imports this module for
-    # its route table — so the dependency only runs one way at import time.
-    from my_petkit.web.panel import _spawn_background  # noqa: PLC0415
 
     _spawn_background(request.app, _run(), name=f"patcher-{patcher_id}-{action}-{did}")
     hub.publish("patcher", did, f"[{patcher_id}] {action} started")

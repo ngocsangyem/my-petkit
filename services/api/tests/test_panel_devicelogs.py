@@ -11,7 +11,7 @@ from aiohttp.test_utils import TestClient, TestServer
 
 from my_petkit.devices.registry import DeviceRegistry
 from my_petkit.web.hub import EventHub
-from my_petkit.web.api.logs import MAX_LOG_LINE_CHARS, MAX_LOG_LINES
+from my_petkit.features.logs.routes import MAX_LOG_LINE_CHARS, MAX_LOG_LINES
 from my_petkit.web.panel import create_panel_app
 
 

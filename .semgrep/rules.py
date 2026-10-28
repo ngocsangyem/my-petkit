@@ -48,4 +48,9 @@ def handler(request, app):
     hub = app.get("event_hub")
     # ok: no-bare-string-app-key-in-features
     store = request.app[REGISTRY_KEY]  # noqa: F821
-    return registry, hub, store
+    row = {}
+    # ok: no-bare-string-app-key-in-features
+    related = row.get("related_event")
+    # ok: no-bare-string-app-key-in-features
+    name = row["name"]
+    return registry, hub, store, related, name

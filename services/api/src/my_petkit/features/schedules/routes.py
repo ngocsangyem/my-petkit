@@ -19,8 +19,8 @@ from my_petkit.devices.base import encode_multi_range
 from my_petkit.ha.commands import PROPERTY_SET_SUFFIX, make_mqtt_property_set
 from my_petkit.http.handlers.feed import _build_latest, _compute_next_tick
 from my_petkit.utils.coerce import to_int
-from my_petkit.web.api._common import _deliver, _device_or_404, _json_body
-from my_petkit.web.appkeys import BRIDGE, HUB, REGISTRY
+from my_petkit.shared.panel_request import _deliver, _device_or_404, _json_body
+from my_petkit.shared.appkeys import BRIDGE, HUB, REGISTRY
 
 
 #: Minutes in a day. A schedule range runs 0..1440 inclusive — 1440 is the end
