@@ -1,9 +1,12 @@
-// Fails when a hex colour appears anywhere in src/ outside the token file:
-// every colour is a token (docs/design/design-reference.md §2).
+// Fails when a hex colour appears in src/ outside the token file: every colour
+// is a token (docs/design/design-reference.md §2). In CSS any `#rgb`..`#rrggbbaa`
+// counts; in TypeScript only a string that IS a colour (`'#0f6e66'`), so a
+// media path such as `.../#10000001/...` is not mistaken for one.
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const HEX = /#[0-9a-fA-F]{3,8}\b/;
+const CSS_HEX = /#[0-9a-fA-F]{3,8}\b/;
+const TS_HEX = /['"`]#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})['"`]/;
 const ALLOWED = new Set(['src/shared/ui/tokens.css', 'src/api/schema.d.ts']);
 const hits = [];
 
@@ -15,7 +18,8 @@ function walk(dir) {
       readFileSync(path, 'utf8')
         .split('\n')
         .forEach((line, i) => {
-          if (HEX.test(line)) hits.push(`${path}:${i + 1}: ${line.trim()}`);
+          const pattern = path.endsWith('.css') ? CSS_HEX : TS_HEX;
+          if (pattern.test(line)) hits.push(`${path}:${i + 1}: ${line.trim()}`);
         });
     }
   }
