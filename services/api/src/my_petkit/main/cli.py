@@ -62,6 +62,54 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return _build_parser().parse_args(argv)
 
 
+def _apply_flags(config: Config, args: argparse.Namespace) -> None:
+    """Apply every flag that was given; an absent flag leaves the setting alone.
+
+    Runs after either config source, add-on options included, so a bad option
+    file can be overridden from the command line without editing it.
+    """
+    if args.port:
+        config.http_port = args.port
+    if args.mqtt_port:
+        config.mqtt_port = args.mqtt_port
+    if args.api_url:
+        config.api_url = args.api_url
+    if args.data_dir:
+        config.data_dir = args.data_dir
+    if args.ha_mqtt_host:
+        config.ha_mqtt_host = args.ha_mqtt_host
+    if args.ha_mqtt_port:
+        config.ha_mqtt_port = args.ha_mqtt_port
+    if args.ha_mqtt_user:
+        config.ha_mqtt_user = args.ha_mqtt_user
+    if args.ha_mqtt_pass:
+        config.ha_mqtt_pass = args.ha_mqtt_pass
+    if args.offline_timeout is not None:
+        config.offline_timeout = args.offline_timeout
+    if args.mqtt_tls:
+        config.mqtt_tls = True
+    if args.mqtt_tls_port is not None:
+        config.mqtt_tls_port = args.mqtt_tls_port
+    if args.mqtt_cert:
+        config.mqtt_cert = args.mqtt_cert
+    if args.mqtt_key:
+        config.mqtt_key = args.mqtt_key
+    if args.mqtt_strict_auth:
+        config.mqtt_strict_auth = True
+    if args.web_port is not None:
+        config.web_port = args.web_port
+    if args.bucket_port is not None:
+        config.bucket_port = args.bucket_port
+    if args.bucket_endpoint is not None:
+        config.bucket_endpoint = args.bucket_endpoint
+    for key in ("device_bind_host", "mqtt_plain_bind", "user_bind_host", "rtsp_bind",
+                "timezone"):
+        if getattr(args, key) is not None:
+            setattr(config, key, getattr(args, key))
+    if args.debug:
+        config.log_level = "DEBUG"
+
+
 def build_config(args: argparse.Namespace) -> Config:
     """Turn the parsed flags into the one `Config` the whole process reads.
 
@@ -74,53 +122,15 @@ def build_config(args: argparse.Namespace) -> Config:
         config = Config.from_ha_addon()
     else:
         config = Config.from_file(args.config)
-        if args.port:
-            config.http_port = args.port
-        if args.mqtt_port:
-            config.mqtt_port = args.mqtt_port
-        if args.api_url:
-            config.api_url = args.api_url
-        if args.data_dir:
-            config.data_dir = args.data_dir
-        if args.ha_mqtt_host:
-            config.ha_mqtt_host = args.ha_mqtt_host
-        if args.ha_mqtt_port:
-            config.ha_mqtt_port = args.ha_mqtt_port
-        if args.ha_mqtt_user:
-            config.ha_mqtt_user = args.ha_mqtt_user
-        if args.ha_mqtt_pass:
-            config.ha_mqtt_pass = args.ha_mqtt_pass
-        if args.offline_timeout is not None:
-            config.offline_timeout = args.offline_timeout
-        if args.mqtt_tls:
-            config.mqtt_tls = True
-        if args.mqtt_tls_port is not None:
-            config.mqtt_tls_port = args.mqtt_tls_port
-        if args.mqtt_cert:
-            config.mqtt_cert = args.mqtt_cert
-        if args.mqtt_key:
-            config.mqtt_key = args.mqtt_key
-        if args.mqtt_strict_auth:
-            config.mqtt_strict_auth = True
-        if args.web_port is not None:
-            config.web_port = args.web_port
-        if args.bucket_port is not None:
-            config.bucket_port = args.bucket_port
-        if args.bucket_endpoint is not None:
-            config.bucket_endpoint = args.bucket_endpoint
-        for key in ("device_bind_host", "mqtt_plain_bind", "user_bind_host", "rtsp_bind",
-                    "timezone"):
-            if getattr(args, key) is not None:
-                setattr(config, key, getattr(args, key))
-        if args.debug:
-            config.log_level = "DEBUG"
+    _apply_flags(config, args)
 
-        # Re-read the panel's overrides now that --data-dir has been applied.
-        # `from_file` already read them, but from wherever `data_dir` pointed
-        # BEFORE the flag moved it — and proxy mode and capture now live only in
-        # that file, so a standalone run with --data-dir would otherwise start
-        # with them silently off however the panel was left.
-        config.apply_panel_overrides()
+    # Re-read the panel's overrides now that --data-dir has been applied.
+    # Both sources already read them, but from wherever `data_dir` pointed
+    # BEFORE the flag moved it — and proxy mode and capture now live only in
+    # that file, so a run with --data-dir would otherwise start with them
+    # silently off however the panel was left. Without the flag this re-reads
+    # the same file and changes nothing.
+    config.apply_panel_overrides()
 
     # After the flags, because --api-url and --bucket-port both feed it. The
     # add-on path already has an endpoint from the Supervisor, so this is a

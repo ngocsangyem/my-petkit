@@ -1,17 +1,13 @@
 """With `--ha-addon`, explicit command-line flags must still be applied.
 
 `build_config`'s docstring says "Flags always win over the add-on options, so a
-bad option file can be overridden without editing it", but every flag is
-applied only in the non-add-on branch.
+bad option file can be overridden without editing it", but the flags were
+once applied only in the non-add-on branch.
 """
-import pytest
-
 from my_petkit.config import Config
 from my_petkit.main import cli
 
 
-@pytest.mark.xfail(strict=True, reason="build_config ignores every CLI flag when "
-                   "--ha-addon is set")
 def test_flags_override_add_on_options_in_add_on_mode(monkeypatch, tmp_path):
     def add_on_options(cls) -> Config:
         c = cls()
