@@ -129,6 +129,9 @@ def decrypt_aes(data: bytes, key: bytes, iv_hex: str) -> bytes:
     block_count = len(data) // 16
     body, tail = data[:block_count * 16], data[block_count * 16:]
 
-    decryptor = Cipher(algorithms.AES(key), modes.CBC(iv)).decryptor()
+    # Unauthenticated CBC is the device's choice, not ours: the firmware
+    # encrypts its uploads this way and sends no MAC to check. Decrypting is all
+    # this can do; the output is then validated by magic bytes and ffmpeg.
+    decryptor = Cipher(algorithms.AES(key), modes.CBC(iv)).decryptor()  # nosemgrep: python.cryptography.security.mode-without-authentication.crypto-mode-without-authentication
     plain = decryptor.update(body) + decryptor.finalize()
     return plain + tail
