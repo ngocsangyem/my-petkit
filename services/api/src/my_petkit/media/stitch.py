@@ -39,7 +39,10 @@ import shutil
 import time
 from typing import TYPE_CHECKING, Iterable
 
+from sqlalchemy.exc import SQLAlchemyError
+
 from my_petkit.media import layout, transcode
+from my_petkit.media.pipeline import _claim_unique_path
 from my_petkit.media.transcode import STITCH_TIMEOUT, run_ffmpeg
 from my_petkit.utils.coerce import to_int
 from my_petkit.utils.jsonio import atomic_write_text
@@ -283,19 +286,41 @@ def _remove_files(paths: Iterable[str]) -> None:
             log.warning("Stitch: could not remove chunk %s: %s", p, e)
 
 
-def _move_into_place(tmp_path: str, final_path: str) -> int:
-    """Move the verified clip to its final name and return its size in bytes.
+def _discard(path: str) -> None:
+    """Unlink one file, ignoring one that is already gone (blocking)."""
+    try:
+        os.remove(path)
+    except OSError:
+        pass
+
+
+def _move_into_place(tmp_path: str, final_path: str) -> tuple[str, int]:
+    """Move the verified clip next to its sources under a name none of them
+    holds, and return that name and its size in bytes.
+
+    The preferred name usually belongs to the episode's first chunk (both
+    derive from its timestamp), and the chunks must outlive this move: they
+    are only deleted once the DB swap has committed. So the name is claimed
+    with `O_EXCL`, which skips every file that exists, inputs included, and
+    the rename then replaces only the empty placeholder this call created.
 
     The final directory may not exist yet: `concat_videos` only created the
     work dir, and the merged file's date folder derives from the episode's
     first chunk, which can differ from where the chunks themselves landed.
 
     Raises:
-        OSError: the directory could not be created or the rename failed.
+        OSError: the directory could not be created, no name could be claimed
+            or the rename failed. Nothing this call created is left behind;
+            `tmp_path` is the caller's.
     """
     os.makedirs(os.path.dirname(final_path), exist_ok=True)
-    os.replace(tmp_path, final_path)
-    return os.path.getsize(final_path)
+    dest = _claim_unique_path(final_path)
+    try:
+        os.replace(tmp_path, dest)
+        return dest, os.path.getsize(dest)
+    except OSError:
+        _discard(dest)
+        raise
 
 
 def _episode_slug(episode: dict) -> str:
@@ -315,10 +340,11 @@ async def _merged_path(store: EventStore, episode: dict, media_root: str,
                        device_type: str) -> str:
     """Where the joined clip belongs in the friendly tree.
 
-    Named from the episode's FIRST chunk, so the stitched file lands at the
-    moment the recording started and usually replaces that chunk in place —
-    which is also why `stitch_episode` builds into a work dir first (ffmpeg
-    would otherwise read a file it is writing).
+    Named from the episode's FIRST chunk, so the stitched file sorts at the
+    moment the recording started. That name is usually the first chunk's own,
+    which is why `stitch_episode` builds into a work dir first (ffmpeg would
+    otherwise read a file it is writing) and `_move_into_place` takes the next
+    free variant of it rather than overwriting a source.
     """
     chunks = episode["chunks"]
     first = chunks[0]
@@ -419,14 +445,15 @@ async def stitch_episode(store: EventStore, episode: dict, media_root: str, work
                     episode["related_event"], episode["category"], len(chunks))
         return None
 
-    # Verified good: now it's safe to drop the sources. One thread hop for all
-    # of them — an episode can carry a hundred chunks. `final_path` is skipped
-    # because the rename below is about to overwrite it anyway.
-    await asyncio.to_thread(_remove_files, [p for p in paths if p != final_path])
+    # Verified good, but the sources stay until the very end: move the clip in
+    # under a name no input holds, swap the rows in one transaction, and only
+    # once that has committed delete the chunks. Every step before the delete
+    # can fail without costing footage.
     try:
-        size = await asyncio.to_thread(_move_into_place, tmp_path, final_path)
+        final_path, size = await asyncio.to_thread(_move_into_place, tmp_path, final_path)
     except OSError as e:
         log.error("Stitch: could not move %s into place: %s", tmp_path, e)
+        _discard(tmp_path)
         await store.mark_stitch_failed([c["id"] for c in chunks], "move-failed")
         return None
 
@@ -440,12 +467,11 @@ async def stitch_episode(store: EventStore, episode: dict, media_root: str, work
         "file_type": first.get("file_type"),
         "media_path": final_path,
         "encrypted": 0,
-        # `to_int`, not `int()`: this row is built AFTER the source chunks have
-        # been deleted, so a raw device-supplied duration ("4000ms", a row
-        # written before ingest coerced it) raising here would lose the whole
-        # episode — the joined file would exist with no media row pointing at
-        # it. `_expected_duration_sec` guards the same field for the same
-        # reason; this one was missed.
+        # `to_int`, not `int()`: this row is built AFTER the joined clip has
+        # been moved in, so a raw device-supplied duration ("4000ms", a row
+        # written before ingest coerced it) raising here would leave that clip
+        # with no media row pointing at it. `_expected_duration_sec` guards the
+        # same field for the same reason.
         "duration_ms": sum(to_int(c.get("duration_ms"), 0) for c in chunks) or None,
         "start_ts": first.get("start_ts"),
         "end_ts": last.get("end_ts"),
@@ -453,7 +479,25 @@ async def stitch_episode(store: EventStore, episode: dict, media_root: str, work
         "status": "ready",
         "stitch_state": "stitched",
     }
-    await store.replace_chunks_with_stitched([c["id"] for c in chunks], merged_row)
+    try:
+        await store.replace_chunks_with_stitched([c["id"] for c in chunks], merged_row)
+    except SQLAlchemyError:
+        # The chunk rows survived the rollback, so their files must too; the
+        # clip is the only thing to undo. `replace_chunks_with_stitched` has
+        # already logged the cause.
+        _discard(final_path)
+        try:
+            await store.mark_stitch_failed([c["id"] for c in chunks], "swap-failed")
+        except SQLAlchemyError:
+            # The store is unwritable right now; leaving the chunks unmarked
+            # lets the next pass try again once it recovers.
+            log.warning("Stitch: could not mark episode %s/%s after a failed swap",
+                        episode["related_event"], episode["category"])
+        return None
+
+    # Committed: the rows now name only the clip, so the sources can go. One
+    # thread hop for all of them — an episode can carry a hundred chunks.
+    await asyncio.to_thread(_remove_files, paths)
     if excluded_ids:
         # Keep them visible and playable, but flagged so the sweeper doesn't
         # keep reconsidering them every pass.

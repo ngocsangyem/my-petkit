@@ -256,6 +256,12 @@ reviewer can find every place the suite was touched.
 - added: tests/test_repro_stitch_failure_keeps_chunks.py::test_failed_move_into_place_keeps_every_source_chunk
 - added: tests/test_repro_stitch_failure_keeps_chunks.py::test_failed_db_swap_keeps_every_source_chunk
 
+### Approved media fixes
+
+- added: tests/test_repro_stitch_failure_keeps_chunks.py::test_successful_stitch_never_overwrites_a_source_and_then_removes_them
+- added: tests/test_repro_stitch_failure_keeps_chunks.py::test_failed_stitch_leaves_only_the_source_chunks_on_disk[move]
+- added: tests/test_repro_stitch_failure_keeps_chunks.py::test_failed_stitch_leaves_only_the_source_chunks_on_disk[swap]
+
 ## Removed
 
 None.
@@ -268,3 +274,5 @@ None.
 | `test_panel.py`, `test_main_lifecycle.py`, `test_panel_script_loads.py`, `test_provision_js.py`, `test_ble_accessories.py`, `test_bounded_growth.py` | paths into the package gain the `src/` segment | mechanical | import |
 | `test_version.py` | `config.yaml` and `CHANGELOG.md` read from the repository-root `addon/`; `pyproject.toml` from `services/api/` | mechanical | import |
 | `test_state_parsers.py` | real-looking SSID/BSSID fixture replaced by `ExampleNet` / `000000000000`; nothing asserts on it | fixture sanitising | import |
+| `test_repro_stitch_failure_keeps_chunks.py` | strict xfail removed from both reproductions: the stitch now keeps every source until the DB swap commits, so they are regular tests | repro promoted to regular test | bugfix |
+| `test_repro_media_late_chunks_after_stitch.py` | still a strict xfail, now also asserting one stitched clip per visit holding every chunk in order: with sources kept until the swap commits, footage is no longer lost, so the remaining failure is the second clip | repro tightened | bugfix |

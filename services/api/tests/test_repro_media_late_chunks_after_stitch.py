@@ -52,8 +52,8 @@ async def _add_chunk(store, day_dir, name, ts, payload):
 
 
 @pytest.mark.xfail(strict=True, reason=(
-    "a second stitch of the same episode reuses file_id 'stitched:<event>:<category>' "
-    "and hits the media.file_id UNIQUE constraint after the late chunks were deleted"))
+    "a second stitch of the same episode reuses file_id 'stitched:<event>:<category>', "
+    "so the swap is refused and the late chunks stay a separate, unstitched clip"))
 async def test_late_chunks_after_a_stitch_are_joined_without_losing_footage(tmp_path, fake_ffmpeg):
     store = EventStore(tmp_path / "petkit.db")
     try:
@@ -87,5 +87,10 @@ async def test_late_chunks_after_a_stitch_are_joined_without_losing_footage(tmp_
         reachable = b"".join(Path(r["media_path"]).read_bytes() for r in rows)
         for payload in late_payloads:
             assert payload in reachable, "late chunk footage is not reachable from any media row"
+
+        # One clip per visit: the late chunks extend the existing one, in order.
+        assert len(rows) == 1, f"expected one clip for the visit, got {[r['file_id'] for r in rows]}"
+        assert rows[0]["stitch_state"] == "stitched"
+        assert reachable == b"early-0" * 50 + b"early-1" * 50 + b"".join(late_payloads)
     finally:
         await store.close()
