@@ -22,6 +22,8 @@ from typing import Any
 
 from aiohttp import web
 
+from my_petkit.utils.logtext import one_line
+
 log = logging.getLogger(__name__)
 
 _Handler = Callable[[web.Request], Awaitable[web.StreamResponse]]
@@ -131,7 +133,7 @@ def _normalize(status: int, raw: Any, route: str) -> dict[str, Any]:
 def _route_label(request: web.Request) -> str:
     """The route PATTERN, so a log line never carries a path's identifiers verbatim."""
     info = request.match_info.route.resource
-    return info.canonical if info is not None else request.path
+    return one_line(info.canonical if info is not None else request.path)
 
 
 @web.middleware

@@ -21,6 +21,7 @@ from dataclasses import dataclass
 from aiohttp import web
 
 from my_petkit.shared.errors import api_error
+from my_petkit.utils.logtext import one_line
 
 log = logging.getLogger("my_petkit.audit")
 
@@ -68,9 +69,9 @@ def audit_r3(request: web.Request, action: str, *, device_id: int | None = None)
     log.info(
         "r3_action action=%s principal=%s method=%s route=%s device=%s",
         action,
-        ctx.principal if ctx else "unknown",
-        request.method,
-        request.path,
+        one_line(ctx.principal) if ctx else "unknown",
+        one_line(request.method),
+        one_line(request.path),
         device_id if device_id is not None else "-",
     )
 

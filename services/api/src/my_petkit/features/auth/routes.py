@@ -24,6 +24,7 @@ from my_petkit.features.auth.schemas import (
 )
 from my_petkit.features.auth.service import AuthService
 from my_petkit.features.auth.middleware import peer_ip
+from my_petkit.utils.logtext import one_line
 from my_petkit.features.auth.sessions import (
     COOKIE_NAME,
     clear_session_cookie,
@@ -64,7 +65,9 @@ def _check_limit(auth: AuthService, bucket: str, request: web.Request) -> None:
 
 def _failed(auth: AuthService, bucket: str, request: web.Request) -> None:
     auth.limiter.failure(bucket, _peer(request))
-    log.warning("auth_failure check=%s peer=%s route=%s", bucket, _peer(request), request.path)
+    log.warning(
+        "auth_failure check=%s peer=%s route=%s", bucket, _peer(request), one_line(request.path)
+    )
 
 
 def _signed_in(auth: AuthService) -> web.Response:
@@ -199,7 +202,7 @@ async def api_auth_token_revoke(request: web.Request) -> web.Response:
     raw_id = request.match_info["id"]
     if not raw_id.isdigit() or not _auth(request).tokens.revoke(int(raw_id)):
         raise api_error(404, "not_found", "No such token.")
-    log.info("token_revoked token_id=%s", raw_id)
+    log.info("token_revoked token_id=%s", one_line(raw_id))
     return web.json_response({"ok": True})
 
 

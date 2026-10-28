@@ -102,7 +102,7 @@ async def test_the_index_csp_allows_exactly_its_one_inline_script(tmp_path):
         r = await client.get("/")
         html = await r.text()
         csp = r.headers["Content-Security-Policy"]
-        scripts = re.findall(r"<script>(.*?)</script>", html, re.S)
+        scripts = re.findall(r"<script>(.*?)</script>", html, re.S | re.I)
         assert scripts, "the index has an inline script"
         for body in scripts:
             assert inline_script_hash(body) in csp
