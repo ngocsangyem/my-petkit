@@ -87,6 +87,14 @@ Giới hạn kích thước file:
 | TS | `strict`, `noUncheckedIndexedAccess`, ESLint + `eslint-plugin-security`, cấm `any`, cấm `dangerouslySetInnerHTML` | – |
 | Swift | Swift 6 strict concurrency, SwiftLint. Cấm `!` force unwrap và `try!` ngoài test | – |
 
+Cấu hình hiện tại (`services/api/pyproject.toml`): bộ ruff mở rộng được `select` cho toàn repo rồi
+`per-file-ignores` với pattern phủ định cho mọi file KHÔNG thuộc danh sách code mới, vì ruff không
+chọn rule theo đường dẫn được. `mypy --strict` áp qua `[[tool.mypy.overrides]]` (liệt kê từng cờ
+của strict, vì `strict` không phải option theo module). `ruff format --check` chạy trong CI trên
+cùng danh sách. Danh sách hiện tại: `features/auth/`, `shared/{errors,redact_client,request_auth,tiers}.py`,
+`utils/user_tls.py`. Module port nằm trong `shared/` (`panel_request.py`, `live_settings.py`, …)
+vẫn theo baseline cho tới khi được siết riêng. Thêm file mới vào user plane thì thêm vào cả ba chỗ.
+
 ### B3. Comment, lỗi, log
 - **Comment** giải thích **vì sao**: invariant, ràng buộc của firmware, bằng chứng (capture, hàm firmware, commit).
   - Không ghi mã phase hay finding (R1, V4, H12…) trong code, test name hay commit message.

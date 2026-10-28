@@ -75,6 +75,13 @@ jobs:
       - name: mypy (baseline gate)
         run: python ../../scripts/lint-baseline-gate.py mypy mypy mypy-baseline.txt src/my_petkit
 
+      - name: ruff format (new user-plane code only; ported code is never reformatted)
+        # Same path list as the negated per-file-ignores entry in pyproject.toml.
+        run: >-
+          ruff format --check src/my_petkit/features/auth src/my_petkit/shared/errors.py
+          src/my_petkit/shared/redact_client.py src/my_petkit/shared/request_auth.py
+          src/my_petkit/shared/tiers.py src/my_petkit/utils/user_tls.py
+
       - name: pip-audit (runtime lock)
         # pip-audit exits non-zero on any known vulnerability in the shipped
         # dependency set.
