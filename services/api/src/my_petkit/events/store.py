@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Collection
 from typing import Any
 
 from sqlalchemy import delete, select, update
@@ -59,8 +60,14 @@ class EventStore(MediaQueries, PetQueries, BlockedAttemptQueries, StoreBase):
     # --- events -------------------------------------------------------
 
     async def upsert_event(self, row: dict[str, Any]) -> int:
-        """Insert an event, or update it in place if `event_uid` already
-        exists (a device retrying the same dev_event_report/MQTT event)."""
+        """Insert an event, or update it in place if this device already
+        stored the same `event_uid` (a retry of one dev_event_report/MQTT
+        event).
+
+        The lookup is scoped by `device_id` because `event_uid` carries no
+        device component: two devices whose firmware happens to emit the same
+        `event_id` would otherwise overwrite each other's row.
+        """
         data = _accepted(row, _EVENT_COLUMNS)
         for json_key in ("content_json", "state_json"):
             if json_key in data and not isinstance(data[json_key], str):
@@ -70,7 +77,8 @@ class EventStore(MediaQueries, PetQueries, BlockedAttemptQueries, StoreBase):
             existing = None
             if data.get("event_uid"):
                 existing = await session.scalar(
-                    select(Event).where(Event.event_uid == data["event_uid"]))
+                    select(Event).where(Event.device_id == data.get("device_id"),
+                                        Event.event_uid == data["event_uid"]))
             if existing is not None:
                 for key, value in data.items():
                     setattr(existing, key, value)
@@ -88,15 +96,38 @@ class EventStore(MediaQueries, PetQueries, BlockedAttemptQueries, StoreBase):
             obj = await session.get(Event, event_id)
             return obj.as_dict() if obj else None
 
-    async def all_events(self, limit: int = 100000) -> list[dict[str, Any]]:
-        """Every event row in insert order, oldest first.
+    async def all_events(self, limit: int = 100000,
+                         after_id: int = 0) -> list[dict[str, Any]]:
+        """Event rows in insert order, oldest first, at most `limit` of them.
 
         Unlike `query_timeline` this attaches no media and applies no window;
-        it exists for export/diagnostics, not for the panel.
+        it exists for export/diagnostics, not for the panel. `limit` truncates
+        silently, so a pass that must see every row pages with `after_id`: the
+        id of the last row of the previous page.
         """
         async with self._read() as session:
-            rows = await session.scalars(select(Event).order_by(Event.id).limit(limit))
+            rows = await session.scalars(
+                select(Event).where(Event.id > after_id).order_by(Event.id).limit(limit))
             return [r.as_dict() for r in rows]
+
+    async def device_events_by_type(self, device_id: int, event_types: Collection[str],
+                                    start_ts: float | None = None,
+                                    limit: int = 1000) -> list[dict[str, Any]]:
+        """One device's events of the given `event_type`s, newest first.
+
+        Rows with no `ts` are left out: the caller needs to know when each
+        event happened. Used to re-derive event-only device state at start-up.
+        """
+        if not event_types:
+            return []
+        stmt = select(Event).where(Event.device_id == device_id,
+                                   Event.event_type.in_(list(event_types)),
+                                   Event.ts.is_not(None))
+        if start_ts is not None:
+            stmt = stmt.where(Event.ts >= start_ts)
+        stmt = stmt.order_by(Event.ts.desc(), Event.id.desc()).limit(limit)
+        async with self._read() as session:
+            return [r.as_dict() for r in await session.scalars(stmt)]
 
     async def update_event_fields(self, event_id: int, **fields: Any) -> bool:
         """Overwrite named columns on one event.
@@ -148,7 +179,9 @@ class EventStore(MediaQueries, PetQueries, BlockedAttemptQueries, StoreBase):
         """Raw event rows for a window, newest first, each carrying its media.
 
         Every row gains a synthetic `"media"` key holding the media rows that
-        share its `related_event` (always a list, possibly empty). Session
+        share its `device_id` and `related_event` (always a list, possibly
+        empty). The device is part of the pairing because a session id is only
+        unique within one device. Session
         grouping - visit plus its sub-events - is NOT done here but by
         `events/sessions.py::group_sessions` on top of this result, keeping the
         grouping heuristic out of SQL where it stays readable and testable.
@@ -164,19 +197,23 @@ class EventStore(MediaQueries, PetQueries, BlockedAttemptQueries, StoreBase):
             stmt = stmt.where(Event.event_kind == event_kind)
         stmt = stmt.order_by(Event.ts.desc()).limit(limit)
 
-        media_by_related: dict[str, list[dict[str, Any]]] = {}
+        media_by_related: dict[tuple[int, str], list[dict[str, Any]]] = {}
         async with self._read() as session:
             events = [e.as_dict() for e in await session.scalars(stmt)]
             # One extra query for the whole page rather than one per event.
             related = sorted({e["related_event"] for e in events if e.get("related_event")})
+            device_ids = sorted({e["device_id"] for e in events if e.get("related_event")})
             if related:
                 rows = await session.scalars(
                     select(Media)
-                    .where(Media.related_event.in_(related))
+                    .where(Media.related_event.in_(related),
+                           Media.device_id.in_(device_ids))
                     .order_by(Media.created_at))
                 for media in rows:
-                    media_by_related.setdefault(media.related_event, []).append(media.as_dict())
+                    media_by_related.setdefault(
+                        (media.device_id, media.related_event), []).append(media.as_dict())
 
         for e in events:
-            e["media"] = media_by_related.get(e.get("related_event") or "", [])
+            e["media"] = media_by_related.get(
+                (e["device_id"], e.get("related_event") or ""), [])
         return events

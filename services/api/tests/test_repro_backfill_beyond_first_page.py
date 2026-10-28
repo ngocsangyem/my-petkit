@@ -1,22 +1,19 @@
 """The event backfill must reach every stored row, not only the oldest 100k.
 
-`events/migrations.py::backfill_event_rows` reads its input with
-`store.all_events()`, whose default `limit=100000` silently truncates. Rows past
-that point keep a stale `event_kind` forever, and they are the NEWEST rows.
+`events/migrations.py::backfill_event_rows` used to read its input with one
+`store.all_events()` call, whose default `limit=100000` silently truncates:
+rows past that point kept a stale `event_kind` forever, and they are the
+NEWEST rows. It now pages through the table by id.
 """
 from __future__ import annotations
 
 import sqlite3
-
-import pytest
 
 from my_petkit.events import ingest
 
 ROWS = 100_003
 
 
-@pytest.mark.xfail(strict=True, reason="backfill reads at most the first 100000 rows "
-                   "(all_events default limit), so newer rows are never repaired")
 async def test_backfill_repairs_rows_past_the_first_hundred_thousand(event_store, tmp_path):
     await event_store.connect()
     good_kind = ingest.classify_event_kind("10", {}, "t5")

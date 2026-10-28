@@ -70,14 +70,18 @@ async def test_the_heartbeat_queue_stays_bounded_and_keeps_the_newest():
     assert len(dev.command_queue) <= 64
 
 
-@pytest.mark.xfail(strict=True, reason="lookup ignores a code's families and says nothing")
-def test_a_code_reported_by_a_model_outside_its_families_is_logged(caplog):
+def test_a_code_reported_by_a_model_outside_its_families_is_logged(caplog, monkeypatch):
+    # The warning fires once per (model, code) per process; start from a clean
+    # slate so an earlier test that looked the same code up cannot hide it.
+    monkeypatch.setattr(codes, "_WARNED_OUTSIDE_FAMILIES", set())
     # A next-generation-only litter code, reported by a first-generation box.
     key = next(k for k, c in codes.LITTER_HTTP_CODES.items()
                if c.families == codes.LITTER_NEXT_GEN and codes.lookup(k, device_type="t4") is c)
     caplog.set_level(logging.WARNING)
     codes.lookup(key, device_type="t4")
-    assert any("famil" in r.getMessage() for r in caplog.records)
+    codes.lookup(key, device_type="t4")
+    warnings = [r for r in caplog.records if "famil" in r.getMessage()]
+    assert len(warnings) == 1
 
 
 @contextmanager
