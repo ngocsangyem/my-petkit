@@ -32,6 +32,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # The golden check checks the baseline tag out into a worktree.
+          fetch-depth: 0
+          fetch-tags: true
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
@@ -51,6 +54,12 @@ jobs:
 
       - name: pytest
         run: python -m pytest -q
+
+      - name: golden device responses (vs phase-02-baseline)
+        # Every byte handed to a device or to Home Assistant must match the
+        # imported baseline under two timezones, except changes approved and
+        # declared by moving the baseline tag forward.
+        run: python ../../scripts/golden_device_responses.py --against phase-02-baseline --tz UTC --tz Asia/Saigon
 
       - name: ruff (baseline gate)
         run: python ../../scripts/lint-baseline-gate.py ruff ruff ruff-baseline.txt src tests
