@@ -113,8 +113,9 @@ _OTA_SIBLING_KEYS = ("md5", "size", "fileSize", "version", "firmwareVersion")
 #: device-level resolver override, not just an informational string.
 _SERVER_KEYS = ("apiServers", "ipServers", "dns")
 
-#: The MQTT credential trio. Present together in both the `ali`-wrapped and the
-#: flat shape (`devices/payloads.py::to_iot_device_info` / `_flat`).
+#: The MQTT credential trio. Present together in both the `ali`-wrapped shape
+#: (`devices/payloads.py::to_iot_device_info`) and the flat one an upstream
+#: cloud may answer an ESP32 with; redaction is content-keyed, so both match.
 _MQTT_CRED_KEYS = ("productKey", "deviceName", "deviceSecret")
 
 

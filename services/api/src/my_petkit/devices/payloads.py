@@ -101,30 +101,6 @@ def to_iot_device_info(device: Device, mqtt_host: str) -> dict[str, Any]:
     }
 
 
-def to_iot_device_info_flat(device: Device, mqtt_host: str) -> dict[str, Any]:
-    """`dev_iot_device_info` — ESP32 path, FLAT block (no `ali` wrapper).
-
-    A different endpoint with a different schema from
-    `to_iot_device_info` (localkit's DevIotDeviceInfoResource): returning
-    the `ali`-wrapped block here leaves ESP32 devices unable to read their
-    MQTT credentials at all.
-    """
-    return {
-        "result": {
-            "id": device.petkit_id,
-            "deviceName": device.mqtt_device_name,
-            "deviceSecret": device.mqtt_device_secret,
-            "iotPlatform": "ALI",
-            "iotInstanceId": device.mqtt_product_key,
-            "productKey": device.mqtt_product_key,
-            "mqttHost": mqtt_host or device.aliyun_mqtt_host,
-            "createdAt": int(device.created_at * 1000),
-            "type": 1,
-            "regionId": "eu-central-1",
-        }
-    }
-
-
 def to_serverinfo(device: Device, api_url: str) -> dict[str, Any]:
     """`dev_serverinfo` — where the device should send everything from now on.
 

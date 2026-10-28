@@ -76,7 +76,11 @@ async def handle_iot_device_info(request: web.Request) -> web.Response:
         `payloads.to_iot_device_info()`: the broker host plus the product key,
         device name and secret the device signs its MQTT CONNECT with (see
         `mqtt/auth.py`), nested in the Aliyun IoT envelope this firmware family
-        expects. `handle_iot_device_info_flat` returns the same facts unnested.
+        expects. Also routed for the ESP32 `dev_iot_device_info`. Upstream once
+        carried a flat variant (same fields, no `ali` wrapper, after localkit's
+        DevIotDeviceInfoResource) on the grounds that an ESP32 cannot read the
+        wrapped block; it was never routed, and whether ESP32 firmware needs it
+        is unverified on hardware.
     """
     device = _resolve_or_create_device(request)
     if not device:
@@ -85,20 +89,3 @@ async def handle_iot_device_info(request: web.Request) -> web.Response:
     log.info("IoT device info: id=%d -> pk=%s dn=%s mqttHost=%s",
              device.petkit_id, device.mqtt_product_key, device.mqtt_device_name, mqtt_host)
     return web.json_response(payloads.to_iot_device_info(device, mqtt_host))
-
-
-async def handle_iot_device_info_flat(request: web.Request) -> web.Response:
-    """`dev_iot_device_info` (ESP32) — the same credentials, un-nested.
-
-    Resolution and credentials are identical to `handle_iot_device_info`; only
-    the response schema differs (`payloads.to_iot_device_info_flat()` — same
-    fields without the `ali` wrapper or its `iotPlatform` marker). Both are
-    routed, because which endpoint a device calls is decided by its firmware.
-    """
-    device = _resolve_or_create_device(request)
-    if not device:
-        return no_device_response()
-    mqtt_host = device.resolve_mqtt_host(self_mqtt_host(request.app["config"]))
-    log.info("IoT device info (flat): id=%d -> pk=%s dn=%s mqttHost=%s",
-             device.petkit_id, device.mqtt_product_key, device.mqtt_device_name, mqtt_host)
-    return web.json_response(payloads.to_iot_device_info_flat(device, mqtt_host))
