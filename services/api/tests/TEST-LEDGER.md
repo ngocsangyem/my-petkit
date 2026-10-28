@@ -266,6 +266,19 @@ reviewer can find every place the suite was touched.
 - added: tests/test_repro_derived_state_across_restart.py::test_start_up_replays_derived_state_after_the_backfill
 - added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[events/derived_state_replay.py]
 
+### Approved media fixes
+
+- added: tests/test_repro_stitch_failure_keeps_chunks.py::test_successful_stitch_never_overwrites_a_source_and_then_removes_them
+- added: tests/test_repro_stitch_failure_keeps_chunks.py::test_failed_stitch_leaves_only_the_source_chunks_on_disk[move]
+- added: tests/test_repro_stitch_failure_keeps_chunks.py::test_failed_stitch_leaves_only_the_source_chunks_on_disk[swap]
+- added: tests/test_repro_media_late_chunks_after_stitch.py::test_late_chunks_replace_a_stitched_row_whose_file_is_gone
+- added: tests/test_repro_media_late_chunks_after_stitch.py::test_a_clip_that_cannot_be_extended_keeps_everything
+- added: tests/test_media_stitch.py::test_late_chunks_extend_the_stitched_clip_with_real_ffmpeg
+- added: tests/test_repro_panel_media_raw_dir.py::test_panel_media_routes_still_serve_the_friendly_tree_and_hide_dot_files
+- added: tests/test_repro_media_file_info_resend.py::test_resent_file_info_with_fresh_bytes_keeps_the_filed_copy
+- added: tests/test_repro_media_file_info_resend.py::test_a_ready_row_whose_file_is_gone_is_processed_again
+- added: tests/test_ingest_endpoints.py::test_a_replayed_upload_file_info_answers_success_and_keeps_the_item_ready
+
 ## Removed
 
 None.
@@ -284,3 +297,8 @@ None.
 | `test_repro_backfill_beyond_first_page.py` | strict-xfail marker removed: the backfill pages through every row by id | fix landed | – |
 | `test_repro_device_scoped_commands_and_zones.py` | strict-xfail marker removed from `test_a_code_reported_by_a_model_outside_its_families_is_logged` only; it now resets the once-per-pair warning set and asserts the second lookup does not warn again | fix landed | – |
 | `test_repro_derived_state_across_restart.py` | strict-xfail markers removed from both tests and both retargeted from a bare registry reload to the start-up replay of stored events: they store events with fixed timestamps, reload the registry, run `replay_derived_state`, and assert each value carries its event's own time (feeder totals cover only the newest device day) | fix landed | – |
+| `test_repro_stitch_failure_keeps_chunks.py` | strict xfail removed from both reproductions: the stitch now keeps every source until the DB swap commits, so they are regular tests | repro promoted to regular test | bugfix |
+| `test_repro_media_late_chunks_after_stitch.py` | still a strict xfail, now also asserting one stitched clip per visit holding every chunk in order: with sources kept until the swap commits, footage is no longer lost, so the remaining failure is the second clip | repro tightened | bugfix |
+| `test_repro_media_late_chunks_after_stitch.py` | strict xfail removed: late chunks now extend the episode's existing stitched clip in one swap, so the reproduction is a regular test | repro promoted to regular test | bugfix |
+| `test_repro_panel_media_raw_dir.py` | strict xfail removed: the panel media routes refuse any dot-prefixed component of the resolved path, so the reproduction is a regular test | repro promoted to regular test | bugfix |
+| `test_repro_media_file_info_resend.py` | strict xfail removed: a replayed file_info no longer moves a ready row with its file on disk out of `ready`, so the reproduction is a regular test | repro promoted to regular test | bugfix |

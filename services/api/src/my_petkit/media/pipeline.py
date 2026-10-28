@@ -215,6 +215,11 @@ async def process_file_info(device: Device, info: dict, config: dict, store: Eve
     is updated to `skipped`/`missing`/`error`/`ready` either way, so the panel
     can always say what happened to a `fileId`.
 
+    A `fileId` that is already `ready` with its file on disk is a replay (the
+    device retries the call when it misses the answer): nothing is written and
+    the filed path is returned. Bytes the device may have PUT again are left
+    to the `.raw` retention sweep rather than replacing a playable file.
+
     `hub`, `ha_publisher` and `pet_registry` are pure side effects (panel
     event, HA media-ready entities, pet name in the filename) and are omitted
     wherever those aren't wired up.
@@ -232,6 +237,13 @@ async def process_file_info(device: Device, info: dict, config: dict, store: Eve
     media_root = config.get("media_root", "")
 
     row = ingest.from_file_info(device, info)
+    filed = await store.get_media_by_file_id(row["file_id"])
+    if (filed and filed.get("status") == "ready" and filed.get("media_path")
+            and await asyncio.to_thread(os.path.isfile, filed["media_path"])):
+        log.info("file_info for device %d: %s is already filed at %s - replay ignored, "
+                 "including any re-uploaded bytes", device.petkit_id, row["file_id"],
+                 filed["media_path"])
+        return filed["media_path"]
     await store.upsert_media(row)
 
     # Several media roles share one negotiated STS capability (the substream

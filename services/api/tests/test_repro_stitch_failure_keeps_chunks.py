@@ -76,9 +76,6 @@ def _assert_every_chunk_survived(before: dict[str, str]):
     assert not lost, f"source chunk bytes lost after a failed stitch: {lost}"
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "stitch_episode deletes source chunks before the final move; an OSError on "
-    "the move loses every chunk except the one at final_path"))
 async def test_failed_move_into_place_keeps_every_source_chunk(tmp_path, fake_ffmpeg, monkeypatch):
     store = EventStore(tmp_path / "petkit.db")
     try:
@@ -101,9 +98,6 @@ async def test_failed_move_into_place_keeps_every_source_chunk(tmp_path, fake_ff
         await store.close()
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "stitch_episode deletes chunks and overwrites the first chunk before the DB "
-    "swap; a SQLAlchemyError there leaves rows pointing at lost bytes"))
 async def test_failed_db_swap_keeps_every_source_chunk(tmp_path, fake_ffmpeg, monkeypatch):
     store = EventStore(tmp_path / "petkit.db")
     try:
@@ -127,5 +121,63 @@ async def test_failed_db_swap_keeps_every_source_chunk(tmp_path, fake_ffmpeg, mo
         rows = await store.media_for_related_event(EPISODE)
         assert sorted(r["media_path"] for r in rows) == sorted(paths)
         _assert_every_chunk_survived(before)
+    finally:
+        await store.close()
+
+
+def _files_under(root: str) -> set[str]:
+    return {os.path.join(d, f) for d, _, files in os.walk(root) for f in files}
+
+
+async def test_successful_stitch_never_overwrites_a_source_and_then_removes_them(tmp_path, fake_ffmpeg):
+    store = EventStore(tmp_path / "petkit.db")
+    try:
+        media_root = str(tmp_path / "media")
+        episode, paths = await _episode_whose_first_chunk_is_the_final_path(store, media_root)
+        joined = b"".join(Path(p).read_bytes() for p in paths)
+
+        out = await stitch.stitch_episode(
+            store, episode, media_root, work_dir=str(tmp_path / "media" / ".raw"),
+            device_type=DEVICE_TYPE)
+
+        assert out is not None and out not in paths
+        assert os.path.dirname(out) == os.path.dirname(paths[0])
+        assert Path(out).read_bytes() == joined
+        assert _files_under(media_root) == {out}, "sources and temp files must be gone"
+        rows = await store.media_for_related_event(EPISODE)
+        assert [r["media_path"] for r in rows] == [out]
+    finally:
+        await store.close()
+
+
+@pytest.mark.parametrize("failing_step", ["move", "swap"])
+async def test_failed_stitch_leaves_only_the_source_chunks_on_disk(
+        tmp_path, fake_ffmpeg, monkeypatch, failing_step):
+    store = EventStore(tmp_path / "petkit.db")
+    try:
+        media_root = str(tmp_path / "media")
+        episode, paths = await _episode_whose_first_chunk_is_the_final_path(store, media_root)
+
+        if failing_step == "move":
+            real_replace = os.replace
+
+            def _replace_fails(src, dst):
+                if src.endswith(".mp4") and "stitching_" in src:
+                    raise OSError(28, "No space left on device")
+                return real_replace(src, dst)
+
+            monkeypatch.setattr(stitch.os, "replace", _replace_fails)
+        else:
+            async def _swap_fails(chunk_ids, merged_row):
+                raise OperationalError("INSERT INTO media", {}, Exception("database is locked"))
+
+            monkeypatch.setattr(store, "replace_chunks_with_stitched", _swap_fails)
+
+        out = await stitch.stitch_episode(
+            store, episode, media_root, work_dir=str(tmp_path / "media" / ".raw"),
+            device_type=DEVICE_TYPE)
+
+        assert out is None
+        assert _files_under(media_root) == set(paths), "no temp file or orphan clip may remain"
     finally:
         await store.close()
