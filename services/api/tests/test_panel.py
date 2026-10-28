@@ -441,14 +441,19 @@ async def test_action_form_records_a_consumable_reset_like_the_entity_form():
         await c.close()
 
 
-async def test_action_and_entity_forms_have_the_same_side_effects():
+async def test_action_and_entity_forms_have_the_same_side_effects(monkeypatch):
     """The two request forms are the same press and must stay interchangeable.
 
     Compared on the SHAPE of what each left behind — which config keys, which
     consumables — rather than the values, because a reset stamps `time.time()`
     and the envelope carries an epoch id, so two calls a millisecond apart are
-    legitimately different.
+    legitimately different. The clock is pinned for the `params` comparison:
+    a feed's record id counts seconds since local midnight, so two requests
+    that straddle a second boundary would otherwise disagree.
     """
+    import time as time_module
+
+    monkeypatch.setattr(time_module, "time", lambda: 1_790_000_000.0)
     def _shape(dev):
         cfg = {k: sorted(v) if isinstance(v, dict) else "set" for k, v in dev.config.items()}
         return sorted(cfg.items())
