@@ -189,6 +189,13 @@ reviewer can find every place the suite was touched.
 - added: tests/test_no_naive_calendar_calls.py::test_the_detector_catches_each_forbidden_form
 - added: tests/test_no_naive_calendar_calls.py::test_the_detector_allows_explicit_zones
 
+### events/store.py split into per-table query modules (the per-module AST check gains one ID each)
+
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[events/store_base.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[events/store_blocked_attempts.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[events/store_media.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[events/store_pets.py]
+
 ## Removed
 
 None.

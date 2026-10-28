@@ -29,7 +29,7 @@ ASYNC230 src/my_petkit/web/api/logs.py 1
 ASYNC230 src/my_petkit/web/api/patchers.py 1
 ASYNC230 src/my_petkit/web/api/sounds.py 1
 ASYNC230 tests/test_bucket.py 2
-ASYNC240 src/my_petkit/events/store.py 1
+ASYNC240 src/my_petkit/events/store_base.py 1
 ASYNC240 src/my_petkit/http/bucket.py 4
 ASYNC240 src/my_petkit/http/handlers/discern.py 1
 ASYNC240 src/my_petkit/http/server.py 1

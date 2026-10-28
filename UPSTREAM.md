@@ -35,6 +35,7 @@ the touched files. Bump the synced commit in the table above in the same commit.
 | `addon/Dockerfile` | `Dockerfile` (repo root, multi-stage) |
 | `repository.yaml` | `repository.yaml` |
 | `addon/petkit_local/web/static/`, `templates/` (panel) | replaced by `apps/web/` |
+| `events/store.py` | split by table: `events/store.py` (events, timeline), `store_base.py` (connection, migration, write lock), `store_media.py` (media, stitching), `store_pets.py` (pets, faces, reported identities), `store_blocked_attempts.py`. Port a hunk to the file holding its section header. |
 
 ## Rename table
 
