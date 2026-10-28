@@ -42,6 +42,7 @@ from typing import TYPE_CHECKING, Any
 import aiohttp
 from aiohttp import web
 
+from my_petkit.http import upstream_allowlist
 from my_petkit.http.dns import UpstreamResolver
 from my_petkit.http.redact import Redaction, RedactionPolicy, cloud_error, redact_body
 
@@ -120,6 +121,10 @@ _SESSION_DNS: weakref.WeakKeyDictionary[web.Application, str] = (
 # collected mid-close, leaving the old connector's sockets open.
 _CLOSING: set[asyncio.Task[None]] = set()
 
+# Refused upstream values already logged, so a refused setting warns once
+# rather than on every device request. Bounded by the values ever configured.
+_REFUSED_LOGGED: set[str] = set()
+
 
 @dataclass
 class Exchange:
@@ -182,9 +187,10 @@ def resolve_upstream(setting: str) -> str:
 
     Args:
         setting: A key of `UPSTREAM_PRESETS`, `""` for `DEFAULT_UPSTREAM`, or a
-            full URL typed into the panel. A free-text URL is still accepted, and
-            is how you reach a server by address — which is what a LAN that
-            redirects PetKit's names to this add-on leaves you needing.
+            full URL typed into the panel. A typed URL must name a host in
+            `http/upstream_allowlist.py`; `forward` refuses anything else. A LAN
+            that redirects PetKit's names to this add-on needs `proxy_dns`, not
+            an address here.
 
     There is deliberately no per-generation choice: `api.eu-pet.com` and
     `api-eu.petkt.com` are two names for one server, answering on the same pair
@@ -296,6 +302,13 @@ async def forward(
     """
     if breaker_is_open(request.app):
         return None
+    if not upstream_allowlist.is_allowed_upstream_url(upstream):
+        # Not a PetKit host: the device's own credential would go with it. The
+        # device is answered locally, as for any unreachable upstream.
+        if upstream not in _REFUSED_LOGGED:
+            _REFUSED_LOGGED.add(upstream)
+            log.warning("PROXY: refusing to forward to %r, not a PetKit host", upstream[:200])
+        return None
 
     target_url = f"{upstream}{request.path}"
     if request.query_string:
@@ -311,6 +324,9 @@ async def forward(
             headers=headers,
             data=body if body else None,
             ssl=False,
+            # A redirect would carry the device's credential to a host the
+            # allowlist never saw.
+            allow_redirects=False,
         ) as resp:
             raw = await resp.read()
             resp_headers = {k: v for k, v in resp.headers.items() if k not in _HOP_BY_HOP}

@@ -1205,9 +1205,14 @@ async def test_a_custom_upstream_url_is_accepted():
     app, live = _proxy_settings_app()
     c = await _mk_client(app)
     try:
-        r = await c.post("/api/settings", data=json.dumps({"proxy_upstream": "https://my.mirror/6/"}))
+        # Typed, not picked from the presets -- but it must still be a PetKit
+        # host: every device request is forwarded there with its credential.
+        r = await c.post("/api/settings", data=json.dumps({"proxy_upstream": "https://api.eu-pet.com/6/"}))
         assert r.status == 200
-        assert live["proxy_upstream"] == "https://my.mirror/6/"
+        assert live["proxy_upstream"] == "https://api.eu-pet.com/6/"
+        r = await c.post("/api/settings", data=json.dumps({"proxy_upstream": "https://my.mirror/6/"}))
+        assert r.status == 400
+        assert live["proxy_upstream"] == "https://api.eu-pet.com/6/"
     finally:
         await c.close()
 

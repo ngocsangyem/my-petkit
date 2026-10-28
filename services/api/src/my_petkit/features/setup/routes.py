@@ -14,11 +14,11 @@ from __future__ import annotations
 import logging
 import os
 from typing import Any
-from urllib.parse import urlparse
 
 from aiohttp import web
 
 from my_petkit.http.proxy import DEFAULT_UPSTREAM, UPSTREAM_PRESETS
+from my_petkit.http.upstream_allowlist import is_allowed_upstream_url
 from my_petkit.utils.coerce import to_int
 from my_petkit.utils.const import (
     DEVICE_NAMES, DEVICE_TYPES_AI, VERSION,
@@ -40,13 +40,14 @@ def _valid_upstream(value: str) -> bool:
 
     Validated here rather than coerced, because the failure is silent otherwise:
     a typo'd URL would be saved happily and then produce a connection error per
-    device request with nothing in the panel to say why.
+    device request with nothing in the panel to say why. A typed URL must name a
+    PetKit or Aliyun IoT host (`http/upstream_allowlist.py`): every device
+    request is forwarded there with the device's credential attached.
     """
     value = (value or "").strip()
     if not value or value in UPSTREAM_PRESETS:
         return True
-    parsed = urlparse(value)
-    return parsed.scheme in ("http", "https") and bool(parsed.netloc)
+    return is_allowed_upstream_url(value)
 
 
 def _valid_dns(value: str) -> bool:

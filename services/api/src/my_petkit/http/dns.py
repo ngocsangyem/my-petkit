@@ -34,6 +34,8 @@ from urllib.parse import urlparse
 
 from aiohttp.abc import AbstractResolver
 
+from my_petkit.http import upstream_allowlist
+
 log = logging.getLogger(__name__)
 
 #: Default DNS port, and how long to wait. Short: a device heartbeats every ~15s
@@ -246,9 +248,14 @@ class UpstreamResolver(AbstractResolver):
         IPv4 only, because that is all `query_a` asks for.
 
         Raises:
-            OSError: the configured server returned no address. aiohttp treats
-                any other exception type as a bug rather than a lookup failure.
+            OSError: the configured server returned no address, or `host` is
+                not a PetKit/Aliyun host (`http/upstream_allowlist.py`): the
+                operator's resolver is used for those names and nothing else.
+                aiohttp treats any other exception type as a bug rather than a
+                lookup failure.
         """
+        if not upstream_allowlist.is_allowed_upstream_host(host):
+            raise OSError(f"{host!r} is not a PetKit host; not resolving it via {self._server}")
         addresses = await resolve_a(host, self._server)
         if not addresses:
             raise OSError(f"{host} could not be resolved via {self._server}")

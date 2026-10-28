@@ -40,6 +40,8 @@ from typing import Any
 
 import aiohttp
 
+from my_petkit.http import upstream_allowlist
+
 log = logging.getLogger(__name__)
 
 #: Shorter than a device would wait. This runs behind a panel button with
@@ -115,12 +117,18 @@ async def fetch_as_device(session: aiohttp.ClientSession, upstream: str, device,
             rather than the device's.
         aiohttp.ClientError / asyncio.TimeoutError: the upstream was not
             reached. Left to propagate — the caller knows whether it is fetching
-            one endpoint or eight, and only it can say what that means.
+            one endpoint or eight, and only it can say what that means. An
+            upstream outside `http/upstream_allowlist.py` is never contacted and
+            raises `aiohttp.InvalidURL`, a ClientError.
     """
     url = f"{upstream}/6/{device.device_type}/{endpoint}"
+    if not upstream_allowlist.is_allowed_upstream_url(upstream):
+        raise aiohttp.InvalidURL(url, "upstream is not a PetKit host")
     headers = {"X-Device": x_device_header(device), "User-Agent": USER_AGENT}
 
-    async with session.get(url, headers=headers, ssl=True) as resp:
+    # Not following redirects: the device's credential goes only to the host
+    # that was checked.
+    async with session.get(url, headers=headers, ssl=True, allow_redirects=False) as resp:
         raw = await resp.read()
         if resp.status != 200:
             raise CloudRefused(f"{endpoint}: PetKit answered HTTP {resp.status}",

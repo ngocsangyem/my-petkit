@@ -473,6 +473,41 @@ reviewer can find every place the suite was touched.
 - added: tests/test_outbound_guard_ssrf.py::test_device_reads_do_not_follow_redirects
 - added: tests/test_outbound_guard_ssrf.py::test_talk_refuses_a_device_address_the_guard_refuses
 
+### proxy_upstream and proxy_dns reach only PetKit and Aliyun IoT hosts
+
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[http/upstream_allowlist.py]
+  — the per-module clock check covers the new module.
+- added: tests/test_proxy_upstream_allowlist.py::test_every_preset_is_on_the_allowlist
+- added: tests/test_proxy_upstream_allowlist.py::test_every_region_has_its_api_host_and_the_presets_cover_every_region
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://api-eu.petkt.com/6/]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://api.eu-pet.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://api.petkt.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://api.petktasia.com/6/]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://api.petkit.cn]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://API-RU.PETKIT.CN/6/]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[http://api-eu.petkt.com:80]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://a1PK.iot-as-mqtt.eu-central-1.aliyuncs.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://iot-600a5gmp.mqtt.iothub.aliyuncs.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[http://127.0.0.1:8080]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[http://169.254.169.254/latest/meta-data/]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[http://192.168.1.10/6/]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://evil.example]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://api-eu.petkt.com.evil.example]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://evilapi-eu.petkt.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://user:pw@api-eu.petkt.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[ftp://api-eu.petkt.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[file:///etc/passwd]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://a1PK.iot-as-mqtt.mars-1.aliyuncs.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://bucket.oss-eu-central-1.aliyuncs.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://api-eu.petkt.com:99999]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[api-eu.petkt.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[]
+- added: tests/test_proxy_upstream_allowlist.py::test_preset_keys_are_still_valid_settings
+- added: tests/test_proxy_upstream_allowlist.py::test_forward_never_contacts_a_refused_upstream
+- added: tests/test_proxy_upstream_allowlist.py::test_cloud_fetch_never_contacts_a_refused_upstream
+- added: tests/test_proxy_upstream_allowlist.py::test_the_proxy_dns_resolver_resolves_only_allowlisted_names
+- added: tests/test_proxy_upstream_allowlist.py::test_forward_does_not_follow_redirects
+
 ## Removed
 
 None.
@@ -503,6 +538,8 @@ None.
 | `test_panel.py::test_action_and_entity_forms_have_the_same_side_effects` | pins `time.time` so the two requests' feed record ids (seconds since midnight) cannot straddle a second boundary; it failed about once in ten runs | flaky test fixed, assertion unchanged | 04 |
 | `test_listener_bind_addresses.py` | module docstring: plain MQTT is the one listener whose default moved off upstream's (loopback); the defaults test was renamed (see Added) | behaviour change: plain MQTT on loopback | 05 |
 | `test_go2rtc.py`, `test_patcher_space.py` | autouse fixture admits the TEST-NET and loopback test-server addresses through the outbound guard, which now gates the probe, the stream sources and the patcher read-back; assertions unchanged (the guard itself is tested in `test_outbound_guard_ssrf.py`) | fixture for the outbound guard | 05 |
+| `conftest.py` (every test) | autouse fixture admits `127.0.0.1`/`localhost` as a proxy upstream, so the proxy, cloud-fetch and panel tests keep forwarding to their local stand-in for PetKit; no test body changed (the allowlist itself is tested unpatched in `test_proxy_upstream_allowlist.py`) | fixture for the upstream allowlist | 05 |
+| `test_panel.py::test_a_custom_upstream_url_is_accepted` | the typed URL is now a PetKit host (`https://api.eu-pet.com/6/`); an arbitrary mirror (`https://my.mirror/6/`) is asserted refused with 400 and nothing changed | behaviour change: proxy upstream allowlist | 05 |
 | `test_repro_media_file_info_resend.py` | strict xfail removed: a replayed file_info no longer moves a ready row with its file on disk out of `ready`, so the reproduction is a regular test | repro promoted to regular test | bugfix |
 | `test_repro_panel_app_key_reads.py` | strict xfail markers removed now the sound and device-delete handlers read `hub`/`ha_publisher` through `web/appkeys.py`; docstring now describes the wired behaviour; unused `pytest` import dropped | xfail removed | fix |
 | `test_repro_mqtt_auth_signature_log.py` | strict xfail marker removed now a sign mismatch logs pk/dn/signmethod and no signature; docstring in the past tense | xfail removed | fix |
