@@ -1,0 +1,43 @@
+name: fuzz-nightly
+
+# The fuzz tests run on every PR at ~200 examples per parser (pytest's default
+# `ci` profile, inside api-tests). This runs the same tests at 10x that, with a
+# longer deadline, once a night. A failure here is a bug: it goes through the
+# approved-fix process, it is not "fixed" by narrowing the strategy.
+
+on:
+  schedule:
+    - cron: "23 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fuzz:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/api
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "20"
+
+      - name: Install (hash-locked)
+        run: |
+          python -m pip install --require-hashes -r requirements-dev.lock
+          python -m pip install --no-deps -e .
+
+      - name: Fuzz (nightly profile)
+        env:
+          HYPOTHESIS_PROFILE: nightly
+        run: python -m pytest -q tests/fuzz

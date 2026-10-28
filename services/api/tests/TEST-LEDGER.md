@@ -201,6 +201,23 @@ reviewer can find every place the suite was touched.
 - added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[ha/command_values.py]
 - added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[mqtt/user_get.py]
 
+### Device-plane fuzzing (never raise, never hang, bounded output)
+
+- added: tests/fuzz/test_fuzz_ble_frames_w5_ctw3.py::test_any_data_field_decodes_or_is_skipped
+- added: tests/fuzz/test_fuzz_ble_frames_w5_ctw3.py::test_any_bytes_unframe
+- added: tests/fuzz/test_fuzz_ble_frames_w5_ctw3.py::test_any_w5_response_parses
+- added: tests/fuzz/test_fuzz_ble_frames_w5_ctw3.py::test_any_ctw3_response_parses
+- added: tests/fuzz/test_fuzz_ble_frames_w5_ctw3.py::test_any_ctw3_config_tail_decodes
+- added: tests/fuzz/test_fuzz_json_bare_token_repair.py::test_repair_never_raises_and_stays_proportionate
+- added: tests/fuzz/test_fuzz_json_bare_token_repair.py::test_a_repaired_object_either_parses_or_is_dropped
+- added: tests/fuzz/test_fuzz_json_bare_token_repair.py::test_valid_json_survives_repair_unchanged
+- added: tests/fuzz/test_fuzz_normalize_http_mqtt.py::test_any_event_report_body_parses
+- added: tests/fuzz/test_fuzz_normalize_http_mqtt.py::test_any_event_report_form_normalizes
+- added: tests/fuzz/test_fuzz_normalize_http_mqtt.py::test_any_mqtt_event_normalizes
+- added: tests/fuzz/test_fuzz_normalize_http_mqtt.py::test_any_property_params_normalize
+- added: tests/fuzz/test_fuzz_parse_x_device.py::test_any_header_parses_to_a_dict_or_none
+- added: tests/fuzz/test_fuzz_provision_frame_decode.py::test_no_reply_makes_the_decoder_throw
+
 ## Removed
 
 None.
