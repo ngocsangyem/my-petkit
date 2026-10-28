@@ -168,7 +168,7 @@ async def send_run_cmd(device: Device, command: str, bridge: Any = None) -> str:
             log.exception("Patcher: MQTT run_cmd failed for device %d, queueing instead",
                           device.petkit_id)
 
-    device.command_queue.append(content)
+    device.enqueue_command(content)
     log.info("Patcher: queued run_cmd for device %d: %.120s", device.petkit_id, command)
     return "heartbeat"
 

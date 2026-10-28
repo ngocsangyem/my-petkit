@@ -147,7 +147,7 @@ async def _send_k3_link(request: web.Request, parent_id: int, k3_id: int) -> str
         except Exception as e:
             log.warning("panel: K3 link publish failed for device %d, queueing: %s", parent_id, e)
     envelope["_service_suffix"] = PROPERTY_SET_SUFFIX
-    parent.command_queue.append(envelope)
+    parent.enqueue_command(envelope)
     return "heartbeat-queue"
 
 

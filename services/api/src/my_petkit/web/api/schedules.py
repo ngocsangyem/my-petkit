@@ -334,5 +334,5 @@ async def api_deferred_feed(request: web.Request) -> web.Response:
 
 def _push_feed_get(d, hub, bridge, feed):
     """Queue feed_get:1 heartbeat + MQTT property.set{feed}."""
-    d.command_queue.append({"msgType": 1, "payload": {"feed_get": "1"},
-                            "timestamp": int(time.time())})
+    d.enqueue_command({"msgType": 1, "payload": {"feed_get": "1"},
+                       "timestamp": int(time.time())})

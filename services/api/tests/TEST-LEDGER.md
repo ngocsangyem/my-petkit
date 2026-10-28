@@ -299,6 +299,13 @@ reviewer can find every place the suite was touched.
 - added: tests/test_panel_command_action_validation.py::test_an_out_of_model_action_queues_nothing
 - added: tests/test_panel_command_action_validation.py::test_the_raw_suffix_payload_form_is_not_scoped_by_model
 
+### The heartbeat command queue is capped per device (Device.enqueue_command)
+
+- added: tests/test_device_command_queue_bound.py::test_below_the_cap_nothing_is_dropped_or_logged
+- added: tests/test_device_command_queue_bound.py::test_past_the_cap_the_oldest_are_dropped_and_the_device_is_named
+- added: tests/test_device_command_queue_bound.py::test_pop_commands_still_drains_everything_oldest_first
+- added: tests/test_device_command_queue_bound.py::test_nothing_outside_the_device_model_appends_to_the_queue_directly
+
 ## Removed
 
 None.
@@ -318,3 +325,4 @@ None.
 | `test_repro_ha_addon_cli_flags.py` | strict xfail marker removed now `build_config` applies the flags after either config source; docstring in the past tense; unused `pytest` import dropped | xfail removed | fix |
 | `test_repro_api_url_local_substring.py` | strict xfail marker removed now `.local` is matched on the parsed host; docstring in the past tense | xfail removed | fix |
 | `test_repro_device_scoped_commands_and_zones.py` | strict xfail marker removed from `test_an_action_the_model_has_no_button_for_is_refused` now a named action needs a button on the model; the file's other tests unchanged | xfail removed | fix |
+| `test_repro_device_scoped_commands_and_zones.py` | strict xfail marker removed from `test_the_heartbeat_queue_stays_bounded_and_keeps_the_newest` now `Device.enqueue_command` caps the queue at 64 | xfail removed | fix |

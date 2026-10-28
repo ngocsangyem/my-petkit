@@ -117,12 +117,12 @@ async def _deliver(hub, bridge, d, suffix: str, envelope: Any,
                         d.petkit_id, e)
             if isinstance(envelope, dict):
                 envelope["_service_suffix"] = suffix
-            d.command_queue.append(envelope)
+            d.enqueue_command(envelope)
             delivered = "heartbeat-queue"
     else:
         if isinstance(envelope, dict):
             envelope["_service_suffix"] = suffix
-        d.command_queue.append(envelope)
+        d.enqueue_command(envelope)
         delivered = "heartbeat-queue"
 
     params = envelope.get("params", envelope) if isinstance(envelope, dict) else envelope

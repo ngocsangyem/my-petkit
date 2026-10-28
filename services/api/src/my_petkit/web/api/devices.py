@@ -418,7 +418,7 @@ async def api_timezone(request: web.Request) -> web.Response:
             mqtt_live = False
     if not mqtt_live:
         envelope["_service_suffix"] = PROPERTY_SET_SUFFIX
-        d.command_queue.append(envelope)
+        d.enqueue_command(envelope)
         delivered = "heartbeat-queue"
     hub.record_command(d.petkit_id, delivered,
                        f"{PROPERTY_SET_SUFFIX} timezone={d.timezone_offset:g}")
