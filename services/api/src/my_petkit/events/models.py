@@ -65,6 +65,11 @@ class Event(Base):
         Index("idx_events_device_ts", "device_id", "ts"),
         Index("idx_events_related", "related_event"),
         Index("idx_events_ts", "ts"),
+        # The dedup key is per device: `event_uid` carries no device component,
+        # so two devices may legitimately store the same one. Also what keeps
+        # `upsert_event`'s lookup from scanning the table. A live database
+        # gains it in `StoreBase._migrate`, after its duplicates are removed.
+        Index("uq_events_device_uid", "device_id", "event_uid", unique=True),
         # AUTOINCREMENT rather than a bare rowid alias, matching the deployed
         # schema: ids of deleted rows are never handed out again, so a pruned
         # event cannot be confused with a newer one.

@@ -256,6 +256,11 @@ reviewer can find every place the suite was touched.
 - added: tests/test_repro_stitch_failure_keeps_chunks.py::test_failed_move_into_place_keeps_every_source_chunk
 - added: tests/test_repro_stitch_failure_keeps_chunks.py::test_failed_db_swap_keeps_every_source_chunk
 
+### Event fixes (tests added beside the reproductions they close)
+
+- added: tests/test_repro_event_identity_across_devices.py::test_a_retried_report_from_the_same_device_still_updates_its_row
+- added: tests/test_repro_event_identity_across_devices.py::test_connect_collapses_duplicate_keys_before_adding_the_unique_index
+
 ## Removed
 
 None.
@@ -268,3 +273,4 @@ None.
 | `test_panel.py`, `test_main_lifecycle.py`, `test_panel_script_loads.py`, `test_provision_js.py`, `test_ble_accessories.py`, `test_bounded_growth.py` | paths into the package gain the `src/` segment | mechanical | import |
 | `test_version.py` | `config.yaml` and `CHANGELOG.md` read from the repository-root `addon/`; `pyproject.toml` from `services/api/` | mechanical | import |
 | `test_state_parsers.py` | real-looking SSID/BSSID fixture replaced by `ExampleNet` / `000000000000`; nothing asserts on it | fixture sanitising | import |
+| `test_repro_event_identity_across_devices.py` | strict-xfail markers removed from both tests: event upsert and timeline media pairing are now scoped by device | fix landed | – |

@@ -49,6 +49,10 @@ _ADDED_COLUMNS = {
     "pets": {"device_pet_ids_json": "TEXT"},
 }
 
+# `create_all` never adds an index to a table that already exists, so a live
+# database gets the per-device dedup index here.
+_EVENT_UID_INDEX = "uq_events_device_uid"
+
 
 def _writable(model: type[Base]) -> tuple[str, ...]:
     """Column names a caller's dict may set, in schema order.
@@ -194,6 +198,34 @@ class StoreBase:
                     await conn.exec_driver_sql(
                         f"ALTER TABLE {table} ADD COLUMN {name} {coltype}")
                     log.info("Migrated %s: added column %s", table, name)
+        await self._migrate_event_uid_index(conn)
+
+    async def _migrate_event_uid_index(self, conn: AsyncConnection) -> None:
+        """Create the unique `(device_id, event_uid)` index on a live database.
+
+        Creating it would fail on a database already holding two rows with the
+        same key, so those are collapsed first, keeping the newest row of each
+        key: an upsert overwrites a row with the latest report, and the newest
+        row is the closest thing to that. Media pairs on `related_event`, not on
+        the event row's id, so no media is orphaned. Runs once: the index's
+        presence is what marks it done.
+        """
+        found = await conn.exec_driver_sql(
+            "SELECT 1 FROM sqlite_master WHERE type = 'index' AND name = ?",
+            (_EVENT_UID_INDEX,))
+        if found.first() is not None:
+            return
+        removed = await conn.exec_driver_sql(
+            "DELETE FROM events WHERE event_uid IS NOT NULL AND id NOT IN ("
+            "SELECT MAX(id) FROM events WHERE event_uid IS NOT NULL "
+            "GROUP BY device_id, event_uid)")
+        if removed.rowcount:
+            log.warning("Removed %d duplicate event rows before indexing "
+                        "(device_id, event_uid)", removed.rowcount)
+        await conn.exec_driver_sql(
+            f"CREATE UNIQUE INDEX IF NOT EXISTS {_EVENT_UID_INDEX} "
+            "ON events (device_id, event_uid)")
+        log.info("Migrated events: added index %s", _EVENT_UID_INDEX)
 
     async def _migrate_legacy_faces(self) -> None:
         """Carry a pre-`pet_faces` single photo into the new table.
