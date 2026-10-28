@@ -19,7 +19,8 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--mqtt-port", type=int, default=None, help="MQTT broker port")
     parser.add_argument("--api-url", default=None, help="API URL the device sees")
     parser.add_argument("--data-dir", default=None, help="Data directory for persistence")
-    parser.add_argument("--ha-mqtt-host", default=None, help="HA MQTT broker host")
+    parser.add_argument("--ha-mqtt-host", default=None,
+                        help="HA MQTT broker host (unset: no HA publishing)")
     parser.add_argument("--ha-mqtt-port", type=int, default=None, help="HA MQTT broker port")
     parser.add_argument("--ha-mqtt-user", default=None)
     parser.add_argument("--ha-mqtt-pass", default=None)

@@ -103,7 +103,7 @@ class HAPublisher:
         #: built before it and works fine headless — with no sidecar the Camera
         #: Stream URL sensor simply stays empty.
         self.go2rtc: Any | None = None
-        self._host = config.get("ha_mqtt_host", "localhost")
+        self._host = config.get("ha_mqtt_host", "")
         self._port = config.get("ha_mqtt_port", 1883)
         self._user = config.get("ha_mqtt_user", "")
         self._password = config.get("ha_mqtt_pass", "")

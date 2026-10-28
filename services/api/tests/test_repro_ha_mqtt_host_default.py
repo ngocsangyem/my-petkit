@@ -2,8 +2,8 @@
 
 The add-on docs say an empty `ha_mqtt_host` disables HA publishing, and
 `HAPublisher.__init__` documents that a bare `{}` "starts and immediately opts
-out". Both the `Config` default and the publisher's own fallback are
-"localhost", so an unconfigured standalone run reconnects to localhost forever.
+out". Both the `Config` default and the publisher's own fallback were
+"localhost", so an unconfigured standalone run reconnected to localhost forever.
 """
 import asyncio
 
@@ -14,8 +14,6 @@ from my_petkit.ha.publisher import HAPublisher
 from my_petkit.main.cli import build_config, parse_args
 
 
-@pytest.mark.xfail(strict=True, reason="standalone Config defaults ha_mqtt_host to "
-                   "'localhost' instead of empty (publishing disabled)")
 def test_standalone_run_without_a_broker_leaves_ha_publishing_disabled(tmp_path):
     args = parse_args(["--config", str(tmp_path / "absent.json"),
                        "--data-dir", str(tmp_path)])
@@ -23,8 +21,6 @@ def test_standalone_run_without_a_broker_leaves_ha_publishing_disabled(tmp_path)
     assert config.ha_mqtt_host == ""
 
 
-@pytest.mark.xfail(strict=True, reason="HAPublisher falls back to 'localhost' when "
-                   "ha_mqtt_host is absent and retries forever instead of opting out")
 async def test_publisher_without_a_broker_host_opts_out_without_connecting(monkeypatch):
     aiomqtt = pytest.importorskip("aiomqtt")
     attempts: list[str] = []

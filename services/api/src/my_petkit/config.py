@@ -325,7 +325,11 @@ class Config:
     #: real credentials have been learned from a proxied dev_iot_device_info.
     proxy_mqtt_bridge: bool = True
 
-    ha_mqtt_host: str = "localhost"
+    #: Empty disables HA publishing, as `addon/DOCS.md` documents. Defaulting
+    #: to "localhost" had an unconfigured standalone run reconnecting to a
+    #: broker nobody asked for, forever; one on this host is `--ha-mqtt-host
+    #: localhost`.
+    ha_mqtt_host: str = ""
     ha_mqtt_port: int = 1883
     ha_mqtt_user: str = ""
     ha_mqtt_pass: str = ""

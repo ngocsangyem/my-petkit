@@ -298,3 +298,4 @@ None.
 | `test_repro_panel_app_key_reads.py` | strict xfail markers removed now the sound and device-delete handlers read `hub`/`ha_publisher` through `web/appkeys.py`; docstring now describes the wired behaviour; unused `pytest` import dropped | xfail removed | fix |
 | `test_repro_mqtt_auth_signature_log.py` | strict xfail marker removed now a sign mismatch logs pk/dn/signmethod and no signature; docstring in the past tense | xfail removed | fix |
 | `test_repro_mqtt_feed_get_parity.py` | strict xfail marker removed now MQTT user/get builds dev_feed_get with the HTTP handler's builder; docstring in the past tense; unused `pytest` import dropped | xfail removed | fix |
+| `test_repro_ha_mqtt_host_default.py` | strict xfail markers removed now the standalone `Config` and `HAPublisher` default `ha_mqtt_host` to empty; docstring in the past tense | xfail removed | fix |
