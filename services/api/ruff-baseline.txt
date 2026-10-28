@@ -28,7 +28,6 @@ ASYNC109 tests/test_registry.py 1
 ASYNC230 src/my_petkit/web/api/logs.py 1
 ASYNC230 src/my_petkit/web/api/patchers.py 1
 ASYNC230 src/my_petkit/web/api/sounds.py 1
-ASYNC230 tests/test_bucket.py 2
 ASYNC240 src/my_petkit/events/store_base.py 1
 ASYNC240 src/my_petkit/http/bucket.py 4
 ASYNC240 src/my_petkit/http/handlers/discern.py 1
@@ -41,18 +40,6 @@ ASYNC240 src/my_petkit/web/api/pets.py 1
 ASYNC240 src/my_petkit/web/api/settings.py 1
 ASYNC240 src/my_petkit/web/api/sounds.py 1
 ASYNC240 src/my_petkit/web/panel.py 1
-ASYNC240 tests/test_ai_pets.py 4
-ASYNC240 tests/test_ble_accessories.py 1
-ASYNC240 tests/test_bucket.py 6
-ASYNC240 tests/test_events_store.py 1
-ASYNC240 tests/test_http.py 2
-ASYNC240 tests/test_ingest_endpoints.py 1
-ASYNC240 tests/test_media_pipeline.py 15
-ASYNC240 tests/test_media_retention.py 5
-ASYNC240 tests/test_media_stitch.py 11
-ASYNC240 tests/test_panel.py 2
-ASYNC240 tests/test_panel_devicelogs.py 1
-ASYNC240 tests/test_panel_media.py 1
 S101 src/my_petkit/patchers/cacert.py 1
 S105 src/my_petkit/http/redact/rules.py 1
 S107 tests/test_sidebar.py 1

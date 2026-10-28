@@ -95,4 +95,4 @@ ignore = [
 # inside the test body on purpose: the import is part of what the test pins,
 # and keeping it next to the assertion is what makes a one-symbol regression
 # readable — so PLC0415 is a production rule only.
-"tests/*" = ["F811", "B011", "PLC0415", "S101", "S105", "S106", "S108", "S311"]
+"tests/*" = ["F811", "B011", "PLC0415", "S101", "S105", "S106", "S108", "S311", "ASYNC230", "ASYNC240"]

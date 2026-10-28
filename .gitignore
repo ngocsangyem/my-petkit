@@ -71,3 +71,6 @@ captures/
 
 # Mockup-only photos (CC BY-SA), never shipped
 docs/design/assets/
+
+# Working plans and agent reports live beside the source plan, not in the repo
+plans/

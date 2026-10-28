@@ -218,6 +218,44 @@ reviewer can find every place the suite was touched.
 - added: tests/fuzz/test_fuzz_parse_x_device.py::test_any_header_parses_to_a_dict_or_none
 - added: tests/fuzz/test_fuzz_provision_frame_decode.py::test_no_reply_makes_the_decoder_throw
 
+### Reproductions awaiting approval (strict xfail; each becomes a plain test when its fix lands, or is removed if the fix is declined)
+
+- added: tests/test_repro_api_url_local_substring.py::test_an_mdns_local_api_url_is_still_replaced_by_the_host_ip
+- added: tests/test_repro_api_url_local_substring.py::test_an_explicit_api_url_merely_containing_dot_local_is_kept[http://my.localdomain.net/6/]
+- added: tests/test_repro_api_url_local_substring.py::test_an_explicit_api_url_merely_containing_dot_local_is_kept[http://petkit.localnet:8080/6/]
+- added: tests/test_repro_api_url_local_substring.py::test_an_explicit_api_url_merely_containing_dot_local_is_kept[http://10.0.0.7/.local/6/]
+- added: tests/test_repro_backfill_beyond_first_page.py::test_backfill_repairs_rows_past_the_first_hundred_thousand
+- added: tests/test_repro_bare_token_repair_inside_strings.py::test_repair_leaves_colon_text_inside_a_string_value_alone
+- added: tests/test_repro_bare_token_repair_inside_strings.py::test_event_report_keeps_parent_link_when_a_string_contains_colon_text
+- added: tests/test_repro_derived_state_across_restart.py::test_litter_box_derived_state_survives_registry_reload
+- added: tests/test_repro_derived_state_across_restart.py::test_feeder_daily_totals_survive_registry_reload
+- added: tests/test_repro_device_registry_string_petkit_id.py::test_registry_load_survives_a_string_petkit_id
+- added: tests/test_repro_device_scoped_commands_and_zones.py::test_an_action_the_model_has_no_button_for_is_refused[t4-pack_waste]
+- added: tests/test_repro_device_scoped_commands_and_zones.py::test_an_action_the_model_has_no_button_for_is_refused[d4-dump_litter]
+- added: tests/test_repro_device_scoped_commands_and_zones.py::test_an_action_the_model_has_no_button_for_is_refused[w5-feed]
+- added: tests/test_repro_device_scoped_commands_and_zones.py::test_an_action_the_model_has_a_button_for_is_still_sent
+- added: tests/test_repro_device_scoped_commands_and_zones.py::test_the_heartbeat_queue_stays_bounded_and_keeps_the_newest
+- added: tests/test_repro_device_scoped_commands_and_zones.py::test_a_code_reported_by_a_model_outside_its_families_is_logged
+- added: tests/test_repro_device_scoped_commands_and_zones.py::test_the_daily_feed_record_id_uses_the_device_zone_not_the_host_zone
+- added: tests/test_repro_event_identity_across_devices.py::test_same_event_id_from_two_devices_keeps_one_row_per_device
+- added: tests/test_repro_event_identity_across_devices.py::test_timeline_media_is_not_borrowed_from_another_device
+- added: tests/test_repro_ha_addon_cli_flags.py::test_flags_override_add_on_options_in_add_on_mode
+- added: tests/test_repro_ha_mqtt_host_default.py::test_standalone_run_without_a_broker_leaves_ha_publishing_disabled
+- added: tests/test_repro_ha_mqtt_host_default.py::test_publisher_without_a_broker_host_opts_out_without_connecting
+- added: tests/test_repro_media_file_info_resend.py::test_resent_file_info_keeps_processed_media_ready
+- added: tests/test_repro_media_late_chunks_after_stitch.py::test_late_chunks_after_a_stitch_are_joined_without_losing_footage
+- added: tests/test_repro_mqtt_auth_signature_log.py::test_sign_mismatch_does_not_log_the_expected_signature[False]
+- added: tests/test_repro_mqtt_auth_signature_log.py::test_sign_mismatch_does_not_log_the_expected_signature[True]
+- added: tests/test_repro_mqtt_feed_get_parity.py::test_mqtt_feed_get_answers_the_same_fields_as_http_feed_get
+- added: tests/test_repro_panel_app_key_reads.py::test_playing_a_sound_queues_the_command
+- added: tests/test_repro_panel_app_key_reads.py::test_selecting_a_sound_queues_the_command
+- added: tests/test_repro_panel_app_key_reads.py::test_uploading_a_sound_pushes_the_new_sound_list
+- added: tests/test_repro_panel_app_key_reads.py::test_deleting_a_device_unpublishes_its_ha_entities
+- added: tests/test_repro_panel_app_key_reads.py::test_deleting_a_device_clears_its_diagnostics
+- added: tests/test_repro_panel_media_raw_dir.py::test_panel_media_routes_refuse_the_raw_upload_dir
+- added: tests/test_repro_stitch_failure_keeps_chunks.py::test_failed_move_into_place_keeps_every_source_chunk
+- added: tests/test_repro_stitch_failure_keeps_chunks.py::test_failed_db_swap_keeps_every_source_chunk
+
 ## Removed
 
 None.
