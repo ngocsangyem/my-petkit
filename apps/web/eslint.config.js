@@ -66,7 +66,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/shared/ui/persisted-state.ts'],
+    files: ['src/shared/ui/persisted-state.ts', 'src/test/**', '**/*.test.ts', '**/*.test.tsx'],
     rules: { 'no-restricted-globals': 'off' },
   },
   {

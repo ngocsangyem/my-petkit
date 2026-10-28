@@ -15,6 +15,7 @@
     "@tanstack/react-query": "^5.105.0",
     "hls.js": "^1.7.3",
     "openapi-fetch": "^0.17.0",
+    "qrcode": "^1.5.4",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router": "^8.5.0"
@@ -27,6 +28,7 @@
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.8",
     "@types/node": "^22.20.5",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@types/web-bluetooth": "^0.0.22",

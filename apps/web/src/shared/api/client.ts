@@ -42,6 +42,8 @@ const refusals: Middleware = {
 export const api = createClient<paths>({
   baseUrl: window.location.origin + serverBase().replace(/\/$/, ''),
   credentials: 'same-origin',
+  // Looked up per call rather than captured once, so tests can stub it.
+  fetch: (request: Request) => globalThis.fetch(request),
 });
 api.use(refusals);
 
