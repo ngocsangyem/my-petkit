@@ -188,6 +188,13 @@ Two rules about placement that the map does not make obvious:
   --against approved-sound-list` replays every device endpoint, MQTT reply, HA publish and patcher
   script through the real wiring with time and randomness frozen. A refactor must leave it
   identical; an approved behaviour change moves the baseline in the same PR, with the reason.
+- **The user-plane contract follows the code.** `packages/contracts/openapi.yaml` is maintained by
+  hand; `tests/test_contract_spec_paths_exist.py` fails when an operation is missing from the
+  router, its `x-risk-tier` differs from the handler's `@tier`, or a served route is neither in the
+  spec nor in the test's `UNDESCRIBED` list. Add or change a user-plane route and the spec in the
+  same PR, then run `scripts/gen-clients.sh` and commit `apps/web/src/api/schema.d.ts` and the iOS
+  copy of the spec. A spec/code mismatch that looks like a code bug goes through approval, not a
+  silent code change.
 - **The test suite is pinned by ID.** `tests/baseline-test-ids.txt` + `tests/TEST-LEDGER.md`: add,
   remove or rewrite a test and declare it in the ledger, or `test_collected_ids_match_baseline`
   fails.
@@ -203,6 +210,8 @@ python scripts/golden_device_responses.py --against-self --tz UTC --tz Pacific/K
 HYPOTHESIS_PROFILE=nightly pytest services/api/tests/fuzz                            # long fuzz run
 gitleaks git --config .gitleaks.toml --redact .   # before every push; CI scans full history too
 cd .semgrep && semgrep --test .        # project semgrep rules still catch their fixtures
+scripts/gen-clients.sh                 # regenerate the TS types + iOS spec copy from the contract
+swift build --package-path apps/ios/PetkitKit   # builds the generated Swift client
 ```
 
 ## Repository rules

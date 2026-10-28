@@ -759,6 +759,14 @@ reviewer can find every place the suite was touched.
 - added: tests/test_data_file_permissions.py::test_main_secures_the_data_dir_before_anything_is_written
 - added: tests/test_log_line_escaping.py::test_a_crlf_in_a_logged_value_is_escaped_not_emitted
 - added: tests/test_log_line_escaping.py::test_an_ordinary_value_is_unchanged
+- added: tests/test_contract_spec_paths_exist.py::test_every_spec_operation_is_served_by_the_router
+- added: tests/test_contract_spec_paths_exist.py::test_every_spec_operation_declares_the_tier_the_handler_enforces
+- added: tests/test_contract_spec_paths_exist.py::test_a_route_left_out_of_the_spec_is_a_listed_exception
+- added: tests/test_contract_spec_paths_exist.py::test_every_listed_exception_is_still_served_and_still_absent_from_the_spec
+- added: tests/test_contract_spec_paths_exist.py::test_each_operation_carries_the_security_its_tier_requires
+- added: tests/test_contract_spec_paths_exist.py::test_every_error_response_uses_the_error_envelope
+- added: tests/test_contract_spec_paths_exist.py::test_each_operation_declares_the_refusals_its_tier_and_method_imply
+- added: tests/test_contract_spec_paths_exist.py::test_operation_ids_are_unique
 
 ## Removed
 

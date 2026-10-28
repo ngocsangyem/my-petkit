@@ -74,3 +74,8 @@ docs/design/assets/
 
 # Working plans and agent reports live beside the source plan, not in the repo
 plans/
+
+# Swift Package Manager build output and per-user Xcode state
+.build/
+.swiftpm/
+xcuserdata/

@@ -1,0 +1,5023 @@
+# The user-plane HTTP contract. Maintained by hand; the code is the source of truth.
+# Checked by services/api/tests/test_contract_spec_paths_exist.py.
+openapi: 3.1.0
+info:
+  title: my-petkit user-plane API
+  version: 1.0.0
+  description: 'The HTTP API the panel, the web app and the iOS app use. The server code is the source
+    of truth; this document follows it, and `services/api/tests/test_contract_spec_paths_exist.py` checks
+    that every operation here exists with the risk tier it claims.
+
+
+    Compatibility rule: adding a response key is safe; renaming or removing one is not.
+
+
+    Every operation carries `x-risk-tier`: `credential` (no principal, rate-limited), `signed-media` (a
+    principal or a valid `exp`+`sig` link), `R0`/`R0*` (reads, plus session housekeeping such as logout
+    and step-up; `*` = sensitive), `R1` (settings and data writes), `R2` (device commands), `R3` (needs
+    a step-up within the last 5 minutes). A handler may raise one request to R3 (for example a settings
+    write that touches a `proxy_*` key), answered by 403 `step_up_required`.
+
+
+    Every unsafe method (and the WebSocket upgrade) must be sent to an allowed `Host`, whatever the credential,
+    and a browser credential must also carry an `Origin` matching it; either refusal is a 403 (`host_not_allowed`,
+    `origin_not_allowed`, `origin_required`). Any request body is capped at 16 MiB (413). Home Assistant
+    Ingress is a third way in, trusted only from the Supervisor''s address on the Ingress port; it is
+    not a client-usable scheme and is not listed.
+
+
+    Not described here: the WebSocket streams `/api/ws` (see `ws-events.md`) and `/api/devices/{id}/talk`,
+    and the static shell and assets.'
+  license:
+    name: GPL-3.0-or-later
+    identifier: GPL-3.0-or-later
+servers:
+- url: ./
+  description: Relative, so the spec works behind the Ingress prefix.
+security:
+- bearerAuth: []
+- cookieAuth: []
+tags:
+- name: setup
+  description: Server info, settings, retention and the block list.
+- name: devices
+  description: 'Registered devices: detail, commands and per-device settings.'
+- name: schedules
+  description: Feeding schedules and deferred feeds.
+- name: sounds
+  description: Custom sounds on camera feeders.
+- name: ble
+  description: BLE accessories paired through a device.
+- name: patchers
+  description: On-device firmware patches.
+- name: logs
+  description: Live event log, traffic captures and device-uploaded logs.
+- name: timeline
+  description: Recorded events.
+- name: media
+  description: Recorded media files and thumbnails.
+- name: pets
+  description: Pets and their face photos.
+- name: auth
+  description: Admin setup, sessions, step-up, pairing and client tokens.
+paths:
+  /api/info:
+    get:
+      operationId: getServerInfo
+      tags:
+      - setup
+      summary: Server-wide facts for the Setup tab
+      x-risk-tier: R0*
+      responses:
+        '200':
+          description: Server facts, TLS pin, live settings and proxy counters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetupServerInfo'
+        '401':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/settings:
+    get:
+      operationId: getLiveSettings
+      tags:
+      - setup
+      summary: Live-editable runtime settings
+      x-risk-tier: R0
+      responses:
+        '200':
+          description: Current values of every live setting (all keys always present).
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - settings
+                - writable
+                properties:
+                  settings:
+                    $ref: '#/components/schemas/SetupLiveSettings'
+                  writable:
+                    type: boolean
+                    description: False when no shared live config is wired (writes then answer 400).
+        '401':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+    post:
+      operationId: updateLiveSettings
+      tags:
+      - setup
+      summary: Update live runtime settings
+      description: 'Keys outside the known set are ignored. The whole batch is validated before any of
+        it is applied. Writing any proxy_* key or capture needs a step-up (R3), other keys are R1; the
+        tier follows the keys named in the body.
+
+        '
+      x-risk-tier: R1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetupLiveSettingsPatch'
+      responses:
+        '200':
+          description: Settings applied and persisted to the overrides file (persist failure is only logged).
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - ok
+                - changed
+                - settings
+                properties:
+                  ok:
+                    type: boolean
+                  changed:
+                    $ref: '#/components/schemas/SetupLiveSettingsPatch'
+                  settings:
+                    $ref: '#/components/schemas/SetupLiveSettings'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/blocked:
+    get:
+      operationId: listBlockedAttempts
+      tags:
+      - setup
+      summary: What the real cloud tried to do to a device and was refused
+      x-risk-tier: R0*
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          default: 200
+        description: Clamped to 1..1000; junk falls back to the default.
+      - name: device
+        in: query
+        required: false
+        schema:
+          type: integer
+        description: Filter by device id (non-numeric value is ignored).
+      - name: kind
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Filter by blocking rule name (e.g. rce, ota, secret).
+      - name: reveal
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - '1'
+        description: With "1", payload_json is returned unmasked and the request needs a step-up.
+      responses:
+        '200':
+          description: Newest-first blocked attempts plus per-rule redaction counters since start.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - records
+                - counts
+                properties:
+                  records:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SetupBlockedAttempt'
+                  counts:
+                    type: object
+                    additionalProperties:
+                      type: integer
+                    description: Per-rule redaction totals since process start.
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/retention:
+    get:
+      operationId: getRetention
+      tags:
+      - setup
+      summary: Per-category media and event retention caps
+      x-risk-tier: R0
+      responses:
+        '200':
+          description: Current caps.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - retention
+                properties:
+                  retention:
+                    $ref: '#/components/schemas/SetupRetention'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+    post:
+      operationId: updateRetention
+      tags:
+      - setup
+      summary: Merge a partial retention patch and persist it
+      description: 'Unknown categories and fields are ignored. A max_mb/max_days value that is not a positive
+        finite number becomes null (no cap).
+
+        '
+      x-risk-tier: R1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetupRetentionPatch'
+      responses:
+        '200':
+          description: Patch applied and saved.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - ok
+                - retention
+                properties:
+                  ok:
+                    type: boolean
+                  retention:
+                    $ref: '#/components/schemas/SetupRetention'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/ble:
+    get:
+      operationId: listBleAccessories
+      tags:
+      - ble
+      summary: List paired BLE accessories
+      x-risk-tier: R0*
+      responses:
+        '200':
+          description: All accessories.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BleAccessoryList'
+        '401':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+    post:
+      operationId: pairBleAccessory
+      tags:
+      - ble
+      summary: Pair or update a BLE accessory by hand
+      description: Registers (or updates, when petkit_id/mac match) an accessory and announces it to Home
+        Assistant and its parent device.
+      x-risk-tier: R1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BleAccessoryPairRequest'
+      responses:
+        '200':
+          description: Full accessory list after the write.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BleAccessoryList'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/ble/import:
+    post:
+      operationId: importBleAccessories
+      tags:
+      - ble
+      summary: Import the accessories PetKit's cloud lists for a device
+      description: Queries dev_ble_device, dev_device_info and (litter boxes only) dev_k3_device_info
+        upstream as the device and pairs what it finds.
+      x-risk-tier: R1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - device_id
+              properties:
+                device_id:
+                  type: integer
+                  description: Registered parent device whose account is asked.
+      responses:
+        '200':
+          description: Import outcome per accessory plus the full list.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - imported
+                - results
+                - accessories
+                properties:
+                  imported:
+                    type: integer
+                    description: Count of accessories newly paired or changed.
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BleImportResult'
+                  accessories:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BleAccessory'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+        '502':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/ble/{id}:
+    delete:
+      operationId: deleteBleAccessory
+      tags:
+      - ble
+      summary: Unpair a BLE accessory
+      x-risk-tier: R1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Removed; remaining accessories returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - ok
+                - accessories
+                - note
+                properties:
+                  ok:
+                    type: boolean
+                  accessories:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BleAccessory'
+                  note:
+                    type: string
+                    description: Reminder that Home Assistant keeps the entities.
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/ble/{id}/command:
+    post:
+      operationId: sendBleCommand
+      tags:
+      - ble
+      summary: Set one entity on a BLE accessory via its parent
+      description: Delivered only while the parent is on MQTT; there is no queueing.
+      x-risk-tier: R2
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - entity
+              properties:
+                entity:
+                  type: string
+                  description: Entity key from the accessory's entities list.
+                value:
+                  description: 'Stringified by the server. switch: ON/OFF/1/0/TRUE/FALSE; select: one
+                    of the entity''s option labels; number: decimal; ignored for button.
+
+                    '
+                  type:
+                  - string
+                  - number
+                  - boolean
+      responses:
+        '200':
+          description: Command published to the parent.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - ok
+                - delivered
+                - entity
+                - cmd
+                - via
+                properties:
+                  ok:
+                    type: boolean
+                  delivered:
+                    type: string
+                    enum:
+                    - ble
+                  entity:
+                    type: string
+                  cmd:
+                    type: integer
+                    description: BLE command code built for the accessory.
+                  via:
+                    type: integer
+                    description: Parent device petkit_id that relayed it.
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+        '502':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/ble/{id}/poll:
+    post:
+      operationId: pollBleAccessory
+      tags:
+      - ble
+      summary: Ask the parent to read the accessory now
+      x-risk-tier: R2
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Read request sent.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - ok
+                - via
+                properties:
+                  ok:
+                    type: boolean
+                  via:
+                    type: integer
+                    description: Parent device petkit_id.
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+        '502':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/devices/{id}/patcher:
+    get:
+      operationId: getDevicePatcherStatus
+      tags:
+      - patchers
+      summary: Per-patcher status for a device
+      x-risk-tier: R0*
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Patcher states; supported false (empty patchers) for non-Linux devices.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatcherStatus'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+    post:
+      operationId: applyDevicePatcher
+      tags:
+      - patchers
+      summary: Start applying or removing an on-device patcher
+      description: Accepted means started; the run takes minutes and reports progress as patcher events
+        over the WebSocket. Any action other than "remove" is treated as apply.
+      x-risk-tier: R3
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - patcher
+              properties:
+                patcher:
+                  type: string
+                  enum:
+                  - mqtt
+                  - cloud
+                  - cacert
+                  - camera
+                  - ssh
+                  - talk
+                action:
+                  type: string
+                  default: apply
+                  description: '"remove" removes the patcher; any other value applies it.'
+                pubkey:
+                  type: string
+                  description: SSH public key (ssh-rsa, ecdsa-sha2-*, ssh-ed25519). Required for ssh apply
+                    unless one is already stored on the device; persisted on success.
+      responses:
+        '200':
+          description: Run accepted.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - ok
+                - patcher
+                - action
+                properties:
+                  ok:
+                    type: boolean
+                  patcher:
+                    type: string
+                  action:
+                    type: string
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+        '500':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/devices:
+    get:
+      operationId: listDevices
+      tags:
+      - devices
+      summary: List devices
+      x-risk-tier: R0*
+      responses:
+        '200':
+          description: Bare JSON array of device summaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceSummary'
+        '401':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/devices/{id}:
+    get:
+      operationId: getDevice
+      tags:
+      - devices
+      summary: Device detail
+      x-risk-tier: R0*
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceDetail'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+    delete:
+      operationId: deleteDevice
+      tags:
+      - devices
+      summary: Remove a device from the registry
+      x-risk-tier: R1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceDeleteResult'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/devices/{id}/command:
+    post:
+      operationId: sendDeviceCommand
+      tags:
+      - devices
+      summary: Send a command to a device
+      x-risk-tier: R2
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceCommandRequest'
+      responses:
+        '200':
+          description: Command accepted (delivered via MQTT or heartbeat queue, or applied locally)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceCommandResult'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/devices/{id}/schedule:
+    post:
+      operationId: saveDeviceSchedule
+      tags:
+      - schedules
+      summary: Store a schedule and push it to the device
+      x-risk-tier: R2
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleSaveRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceDeliveryResult'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/devices/{id}/deferred-feed:
+    get:
+      operationId: listDeferredFeeds
+      tags:
+      - schedules
+      summary: List pending deferred (one-off) feeds
+      x-risk-tier: R0
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeferredFeedList'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+    post:
+      operationId: addDeferredFeed
+      tags:
+      - schedules
+      summary: Add a deferred (one-off) feed
+      x-risk-tier: R2
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeferredFeedCreateRequest'
+      responses:
+        '200':
+          description: Deferred feed stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeferredFeedCreateResult'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/devices/{id}/deferred-feed/{feed_id}:
+    delete:
+      operationId: deleteDeferredFeed
+      tags:
+      - schedules
+      summary: Delete a deferred feed
+      x-risk-tier: R2
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      - name: feed_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Deferred feed id such as d_20260813_61500. Unknown ids are ignored.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResult'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/devices/{id}/capabilities:
+    get:
+      operationId: getDeviceCapabilities
+      tags:
+      - devices
+      summary: Get media capability toggles
+      x-risk-tier: R0
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceCapabilitiesView'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+    post:
+      operationId: setDeviceCapabilities
+      tags:
+      - devices
+      summary: Set media capability toggles
+      x-risk-tier: R1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceCapabilitiesRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceCapabilitiesResult'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/devices/{id}/timezone:
+    get:
+      operationId: getDeviceTimezone
+      tags:
+      - devices
+      summary: Get timezone offset and sources
+      x-risk-tier: R0
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceTimezoneView'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+    post:
+      operationId: setDeviceTimezone
+      tags:
+      - devices
+      summary: Set or clear the fixed UTC offset override
+      x-risk-tier: R2
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceTimezoneRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceTimezoneResult'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/devices/{id}/ai:
+    get:
+      operationId: getDeviceAi
+      tags:
+      - devices
+      summary: Get on-device recognition toggle
+      x-risk-tier: R0
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceAiView'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+    post:
+      operationId: setDeviceAi
+      tags:
+      - devices
+      summary: Set on-device recognition toggle
+      x-risk-tier: R1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceAiRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceAiResult'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/devices/{id}/logs:
+    get:
+      operationId: getDeviceLogSettings
+      tags:
+      - devices
+      summary: Get debug-log upload setting
+      x-risk-tier: R0
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceLogSettings'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+    post:
+      operationId: setDeviceLogSettings
+      tags:
+      - devices
+      summary: Set debug-log upload setting
+      x-risk-tier: R1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceLogSettingsRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceLogSettings'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/devices/{id}/sounds:
+    get:
+      operationId: listDeviceSounds
+      tags:
+      - sounds
+      summary: List uploaded custom sounds
+      x-risk-tier: R0
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SoundList'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+    post:
+      operationId: uploadDeviceSound
+      tags:
+      - sounds
+      summary: Upload a custom sound
+      x-risk-tier: R1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Audio file, max 2 MiB, must be the first multipart field. Extension kept
+                    (default .mp3).
+      responses:
+        '200':
+          description: Sound stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SoundUploadResult'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/devices/{id}/sounds/{sound_id}:
+    delete:
+      operationId: deleteDeviceSound
+      tags:
+      - sounds
+      summary: Delete a custom sound
+      x-risk-tier: R1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      - name: sound_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResult'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/devices/{id}/sounds/{sound_id}/play:
+    post:
+      operationId: playDeviceSound
+      tags:
+      - sounds
+      summary: Play a sound on the device
+      x-risk-tier: R2
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      - name: sound_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceDeliveryResult'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/devices/{id}/sounds/{sound_id}/select:
+    post:
+      operationId: selectDeviceSound
+      tags:
+      - sounds
+      summary: Select the active sound
+      x-risk-tier: R2
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      - name: sound_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceDeliveryResult'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/events:
+    get:
+      operationId: listHubEvents
+      tags:
+      - logs
+      summary: Recent live-log events from the in-memory hub ring, oldest first
+      description: Bare JSON array (not an object). The ring holds at most 800 events and is volatile
+        (empty after restart). Every string and credential-keyed field is passed through the client redactor.
+      x-risk-tier: R0*
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        description: Max events returned; junk ignored, clamped to 1..1000.
+        schema:
+          type: integer
+          default: 200
+          minimum: 1
+          maximum: 1000
+      - name: device
+        in: query
+        required: false
+        description: Petkit device id to narrow to. A non-numeric value is silently ignored (no filter).
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Events, oldest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LogsHubEvent'
+        '401':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/capture:
+    get:
+      operationId: listCaptureFiles
+      tags:
+      - logs
+      summary: List capture files (*.jsonl) with size and line count
+      x-risk-tier: R0
+      responses:
+        '200':
+          description: Capture directory listing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaptureListing'
+        '401':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/capture/{name}:
+    get:
+      operationId: readCaptureFile
+      tags:
+      - logs
+      summary: Read the newest records of one capture file
+      description: 'Returns the tail of the file. A line that is not valid JSON is returned as {"raw":
+        line}. Name must end in .jsonl and resolve inside the capture directory; otherwise 404.'
+      x-risk-tier: R0*
+      parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Number of tail lines; junk ignored, clamped to 1..5000.
+        schema:
+          type: integer
+          default: 100
+          minimum: 1
+          maximum: 5000
+      responses:
+        '200':
+          description: Tail records and total line count.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaptureRead'
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '500':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+    delete:
+      operationId: deleteCaptureFile
+      tags:
+      - logs
+      summary: Delete one capture file
+      x-risk-tier: R1
+      parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: File unlinked.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - ok
+                - name
+                properties:
+                  ok:
+                    type: boolean
+                  name:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '500':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/capture/{name}/download:
+    get:
+      operationId: downloadCaptureFile
+      tags:
+      - logs
+      summary: Download a capture file as an attachment
+      description: Served by aiohttp FileResponse, so conditional and Range requests are honoured.
+      x-risk-tier: R3
+      parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: Range
+        in: header
+        required: false
+        schema:
+          type: string
+          examples:
+          - bytes=0-1023
+      responses:
+        '200':
+          description: Raw JSON-lines file (Content-Disposition attachment; unredacted).
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '206':
+          description: Partial content for a Range request.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '304':
+          description: Not modified (conditional request).
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '416':
+          description: Unsatisfiable Range; empty body, answered by the file server.
+          headers:
+            Content-Range:
+              schema:
+                type: string
+              description: '`bytes */<size>`'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/devicelogs:
+    get:
+      operationId: listDeviceLogs
+      tags:
+      - logs
+      summary: List device-uploaded log files, newest first
+      description: files is capped at 200 entries while total_bytes sums every matching file.
+      x-risk-tier: R0*
+      parameters:
+      - name: device
+        in: query
+        required: false
+        description: Petkit device id; non-numeric ignored.
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Listing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceLogListing'
+        '401':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/devicelogs/{path}:
+    get:
+      operationId: readDeviceLog
+      tags:
+      - logs
+      summary: Read a filtered window of one device log, or download the raw file
+      description: 'With a non-empty `download` query the raw file is returned as text/plain attachment
+        and the request additionally needs a fresh step-up (otherwise 403 step_up_required). Otherwise
+        a JSON window of lines is returned, unmasked except for the client redactor. `path` may contain
+        slashes (relative to the device log root).
+
+
+        `{path}` spans several segments (it may contain `/`), which OpenAPI path parameters cannot express:
+        a generated client would percent-encode the slashes. Build the URL by appending the relative path
+        to the base instead.'
+      x-risk-tier: R0*
+      parameters:
+      - name: path
+        in: path
+        required: true
+        description: File path relative to the device log root (the `rel` value from the listing).
+        schema:
+          type: string
+      - name: download
+        in: query
+        required: false
+        description: Any non-empty value switches to raw download (step-up required).
+        schema:
+          type: string
+      - name: q
+        in: query
+        required: false
+        description: Case-insensitive substring terms (whitespace separated, ANDed). Never a regex.
+        schema:
+          type: string
+          default: ''
+      - name: limit
+        in: query
+        required: false
+        description: Lines per window; junk ignored, clamped to 1..2000.
+        schema:
+          type: integer
+          default: 500
+          minimum: 1
+          maximum: 2000
+      - name: offset
+        in: query
+        required: false
+        description: Index into the matched lines; negative or junk becomes 0.
+        schema:
+          type: integer
+          default: 0
+          minimum: 0
+      - name: Range
+        in: header
+        required: false
+        description: Only honoured on the download branch (FileResponse); the JSON window ignores it.
+        schema:
+          type: string
+          examples:
+          - bytes=0-1023
+      responses:
+        '200':
+          description: JSON window of lines, or the raw file when `download` is set.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceLogRead'
+            text/plain:
+              schema:
+                type: string
+                format: binary
+        '206':
+          description: Partial content for a Range request (download branch only).
+          content:
+            text/plain:
+              schema:
+                type: string
+                format: binary
+        '304':
+          description: Not modified (conditional request; download branch only).
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '416':
+          description: Unsatisfiable Range; empty body, answered by the file server.
+          headers:
+            Content-Range:
+              schema:
+                type: string
+              description: '`bytes */<size>`'
+        '500':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/timeline:
+    get:
+      operationId: getTimeline
+      tags:
+      - timeline
+      summary: Grouped visit sessions for one local day, with media slots
+      description: The day is cut at local midnight (server timezone). An unparseable `date` falls back
+        to today and the response echoes the day used. Reads at most 2000 stored events for the day. `counts`
+        is computed after the device/pet narrowing but before the `filter` chip.
+      x-risk-tier: R0*
+      parameters:
+      - name: device
+        in: query
+        required: false
+        description: Petkit device id; non-numeric ignored.
+        schema:
+          type: integer
+      - name: pet
+        in: query
+        required: false
+        description: Pet id; keeps only sessions attributed to that pet. Non-numeric ignored.
+        schema:
+          type: integer
+      - name: filter
+        in: query
+        required: false
+        description: Filter chip. Unknown values match nothing.
+        schema:
+          type: string
+          default: all
+          examples:
+          - all
+          - pet
+          - toileting
+          - drinking
+          - feeding
+          - cleaning
+          - health_alert
+          - fault
+      - name: date
+        in: query
+        required: false
+        description: Local day, YYYY-MM-DD.
+        schema:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+      responses:
+        '200':
+          description: The day's sessions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimelineDay'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/timeline/{id}:
+    get:
+      operationId: getTimelineEventDetail
+      tags:
+      - timeline
+      summary: Everything stored about one event (Debug info)
+      x-risk-tier: R0
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Event row, code table entry, decoded fields, raw content and state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimelineEventDetail'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/media/thumb/{path}:
+    get:
+      operationId: getMediaThumb
+      tags:
+      - media
+      summary: Thumbnail for a media path (the image itself for stills, cached ffmpeg frame for video)
+      description: '.jpg/.jpeg/.png are served as-is. Anything else gets a cached JPEG frame grab. Every
+        failure (missing, hidden path component, ffmpeg absent, grab failed) is 404 by design. Served
+        by aiohttp FileResponse, so conditional and Range requests are honoured.
+
+
+        `{path}` spans several segments (it may contain `/`), which OpenAPI path parameters cannot express:
+        a generated client would percent-encode the slashes. Build the URL by appending the relative path
+        to the base instead.'
+      x-risk-tier: signed-media
+      parameters:
+      - name: path
+        in: path
+        required: true
+        description: Path relative to the media root (may contain slashes).
+        schema:
+          type: string
+      - name: Range
+        in: header
+        required: false
+        schema:
+          type: string
+          examples:
+          - bytes=0-1023
+      - name: exp
+        in: query
+        required: false
+        description: Signed-link expiry (epoch seconds); with sig, replaces a session/token.
+        schema:
+          type: string
+      - name: sig
+        in: query
+        required: false
+        description: Signed-link signature.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Image bytes.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '206':
+          description: Partial content for a Range request.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '304':
+          description: Not modified (conditional request).
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '416':
+          description: Unsatisfiable Range; empty body, answered by the file server.
+          headers:
+            Content-Range:
+              schema:
+                type: string
+              description: '`bytes */<size>`'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+      - signedUrl: []
+  /api/media/{path}:
+    get:
+      operationId: getMediaFile
+      tags:
+      - media
+      summary: Serve one file from the media tree (stills, video, HLS playlists)
+      description: 'Path is relative to the media root. Files are served by aiohttp FileResponse (Content-Type
+        guessed from the extension; Range gives 206, bad range 416, conditional gives 304). A .m3u8 playlist
+        is instead read and returned as application/vnd.apple.mpegurl with every segment URI re-signed
+        (no Range support on that branch). Missing, hidden (dot-prefixed component) and path-escape attempts
+        are all 404.
+
+
+        `{path}` spans several segments (it may contain `/`), which OpenAPI path parameters cannot express:
+        a generated client would percent-encode the slashes. Build the URL by appending the relative path
+        to the base instead.'
+      x-risk-tier: signed-media
+      parameters:
+      - name: path
+        in: path
+        required: true
+        description: Path relative to the media root (may contain slashes).
+        schema:
+          type: string
+      - name: Range
+        in: header
+        required: false
+        schema:
+          type: string
+          examples:
+          - bytes=0-1023
+      - name: exp
+        in: query
+        required: false
+        description: Signed-link expiry (epoch seconds); with sig, replaces a session/token.
+        schema:
+          type: string
+      - name: sig
+        in: query
+        required: false
+        description: Signed-link signature.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: File bytes, or a re-signed HLS playlist.
+          content:
+            application/vnd.apple.mpegurl:
+              schema:
+                type: string
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            video/mp4:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '206':
+          description: Partial content for a Range request.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            video/mp4:
+              schema:
+                type: string
+                format: binary
+        '304':
+          description: Not modified (conditional request).
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '416':
+          description: Unsatisfiable Range; empty body, answered by the file server.
+          headers:
+            Content-Range:
+              schema:
+                type: string
+              description: '`bytes */<size>`'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+      - signedUrl: []
+  /api/pets:
+    get:
+      operationId: listPets
+      tags:
+      - pets
+      summary: List pets with their reference faces
+      x-risk-tier: R0*
+      responses:
+        '200':
+          description: Every pet ordered by id, each with its faces attached.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - pets
+                properties:
+                  pets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PetWithFaces'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+    post:
+      operationId: createPet
+      tags:
+      - pets
+      summary: Create a pet
+      x-risk-tier: R1
+      description: Unparseable device_ids degrade to an empty list instead of failing. The new pet is
+        published to Home Assistant as a virtual device.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PetCreateRequest'
+      responses:
+        '200':
+          description: The stored pet row (no faces key).
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - pet
+                properties:
+                  pet:
+                    $ref: '#/components/schemas/Pet'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/pets/unbound:
+    get:
+      operationId: listUnboundPetRefs
+      tags:
+      - pets
+      summary: List device-reported pet identities that match no pet
+      x-risk-tier: R0
+      responses:
+        '200':
+          description: Unresolved pet_ref values, busiest first.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - unbound
+                properties:
+                  unbound:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PetUnboundRef'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/pets/import:
+    post:
+      operationId: importPetsFromPetkit
+      tags:
+      - pets
+      summary: Import the pets and reference photos PetKit holds for a device
+      x-risk-tier: R1
+      description: Asks the PetKit cloud (dev_discern_pic) once, creates a new local pet per unknown identity
+        with the PetKit id bound as an alias, and downloads its photos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - device_id
+              properties:
+                device_id:
+                  type: integer
+                  description: PetKit device id. Missing or non-numeric is treated as 0 and yields 404.
+      responses:
+        '200':
+          description: Per-identity outcome of the import.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - imported
+                - results
+                properties:
+                  imported:
+                    type: integer
+                    description: Number of results with outcome "imported".
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PetImportResult'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+        '502':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/pets/{id}:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: Local pet id. Non-numeric yields 400.
+    get:
+      operationId: getPet
+      tags:
+      - pets
+      summary: Get one pet
+      x-risk-tier: R0*
+      responses:
+        '200':
+          description: The pet row (no faces key).
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - pet
+                properties:
+                  pet:
+                    $ref: '#/components/schemas/Pet'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+    post:
+      operationId: updatePet
+      tags:
+      - pets
+      summary: Partially update a pet
+      x-risk-tier: R1
+      description: Only keys present are changed. Unparseable device_ids or device_pet_ids are silently
+        skipped. Changing device_pet_ids retroactively rebinds past events and steals the alias from any
+        other pet holding it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PetUpdateRequest'
+      responses:
+        '200':
+          description: The updated pet row.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - pet
+                - bound_events
+                properties:
+                  pet:
+                    $ref: '#/components/schemas/Pet'
+                  bound_events:
+                    type: integer
+                    description: Events (re)attributed or cleared by the alias change; 0 when device_pet_ids
+                      was not sent.
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+    delete:
+      operationId: deletePet
+      tags:
+      - pets
+      summary: Delete a pet and its photos
+      x-risk-tier: R1
+      description: An unknown id answers 200 with ok false, not 404.
+      responses:
+        '200':
+          description: Whether a pet was deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PetsOk'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/pets/{id}/faces:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: Local pet id. Non-numeric yields 400.
+    get:
+      operationId: listPetFaces
+      tags:
+      - pets
+      summary: List a pet's reference photos
+      x-risk-tier: R0*
+      responses:
+        '200':
+          description: Face summaries.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - faces
+                properties:
+                  faces:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PetFace'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+    post:
+      operationId: addPetFace
+      tags:
+      - pets
+      summary: Add a reference photo (raw JPEG body)
+      x-risk-tier: R1
+      description: The body is the raw image bytes, not multipart. Must start with JPEG magic bytes. At
+        most 6 photos per pet. The image is normalised to the NPU input size.
+      requestBody:
+        required: true
+        content:
+          image/jpeg:
+            schema:
+              type: string
+              format: binary
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: The stored face.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - face
+                properties:
+                  face:
+                    $ref: '#/components/schemas/PetFace'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/pets/{id}/faces/{face_id}:
+    delete:
+      operationId: deletePetFace
+      tags:
+      - pets
+      summary: Delete one reference photo
+      x-risk-tier: R1
+      description: Both ids must match; a face owned by another pet, or a non-numeric id, answers 404.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: face_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Whether the face was deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PetsOk'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/pets/{id}/faces/{face_id}/photo:
+    get:
+      operationId: getPetFacePhoto
+      tags:
+      - pets
+      summary: Download one reference photo
+      description: Served by aiohttp FileResponse, so conditional and Range requests are honoured.
+      x-risk-tier: R0*
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: face_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: Range
+        in: header
+        required: false
+        schema:
+          type: string
+          examples:
+          - bytes=0-1023
+      responses:
+        '200':
+          description: The stored JPEG.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '206':
+          description: Partial content for a Range request.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '304':
+          description: Not modified (conditional request).
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          description: Pet or face unknown, face not owned by that pet, non-numeric id, or the photo file
+            is missing. Plain text body `not found`, not the JSON error envelope.
+          content:
+            text/plain:
+              schema:
+                type: string
+        '416':
+          description: Unsatisfiable Range; empty body, answered by the file server.
+          headers:
+            Content-Range:
+              schema:
+                type: string
+              description: '`bytes */<size>`'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/auth/setup:
+    post:
+      operationId: authSetup
+      tags:
+      - auth
+      summary: Create the first admin with the setup token and sign in
+      x-risk-tier: credential
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthSetupRequest'
+      responses:
+        '200':
+          description: Admin created and signed in. Sets the `__Host-mp_session` cookie.
+          headers:
+            Set-Cookie:
+              description: '`__Host-mp_session` session cookie (Path=/; Secure; HttpOnly; SameSite=Strict;
+                Max-Age=604800).'
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthOk'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      security: []
+  /api/auth/login:
+    post:
+      operationId: authLogin
+      tags:
+      - auth
+      summary: Exchange the admin password for a session cookie
+      x-risk-tier: credential
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthPasswordRequest'
+      responses:
+        '200':
+          description: Signed in. Sets the `__Host-mp_session` cookie.
+          headers:
+            Set-Cookie:
+              description: '`__Host-mp_session` session cookie (Path=/; Secure; HttpOnly; SameSite=Strict;
+                Max-Age=604800).'
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthOk'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      security: []
+  /api/auth/logout:
+    post:
+      operationId: authLogout
+      tags:
+      - auth
+      summary: End the current session
+      x-risk-tier: R0
+      description: Revokes the session and step-up grant of the caller; a client token is not revoked
+        (use the token revoke route). Also clears the session cookie.
+      responses:
+        '200':
+          description: Signed out. Expires the `__Host-mp_session` cookie.
+          headers:
+            Set-Cookie:
+              description: Expires the `__Host-mp_session` cookie (Path=/; Secure; HttpOnly; SameSite=Strict).
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthOk'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/auth/step-up:
+    post:
+      operationId: authStepUp
+      tags:
+      - auth
+      summary: Re-enter the password to unlock R3 routes for 5 minutes
+      x-risk-tier: R0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthPasswordRequest'
+      responses:
+        '200':
+          description: Step-up granted for the calling principal. No cookie is set.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - ok
+                - expires_in
+                properties:
+                  ok:
+                    type: boolean
+                  expires_in:
+                    type: integer
+                    description: Seconds the grant lasts (300).
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/auth/pairing:
+    post:
+      operationId: authPairingCreate
+      tags:
+      - auth
+      summary: Create a single-use pairing code and QR payload
+      x-risk-tier: R3
+      description: No request body is read.
+      responses:
+        '200':
+          description: The code and what the QR encodes.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - code
+                - expires_at
+                - expires_in
+                - qr
+                properties:
+                  code:
+                    type: string
+                    description: Single-use pairing code.
+                  expires_at:
+                    type: number
+                    description: Unix time the code expires.
+                  expires_in:
+                    type: integer
+                    description: Code lifetime in seconds (300).
+                  qr:
+                    type: object
+                    required:
+                    - url
+                    - cert_sha256
+                    - code
+                    properties:
+                      url:
+                        type: string
+                        description: Configured user URL, or https://host:port derived from the request
+                          Host.
+                      cert_sha256:
+                        type: string
+                      code:
+                        type: string
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/auth/pairing/redeem:
+    post:
+      operationId: authPairingRedeem
+      tags:
+      - auth
+      summary: Trade a pairing code for a client token
+      x-risk-tier: credential
+      description: The raw token is returned only here.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRedeemRequest'
+      responses:
+        '200':
+          description: Client token issued.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - token
+                - token_id
+                properties:
+                  token:
+                    type: string
+                    description: Raw bearer token, shown once.
+                  token_id:
+                    type: integer
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      security: []
+  /api/auth/tokens:
+    get:
+      operationId: authListTokens
+      tags:
+      - auth
+      summary: List live client tokens
+      x-risk-tier: R0*
+      description: Never includes the token value. Idle-expired tokens are dropped first.
+      responses:
+        '200':
+          description: Token metadata.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - tokens
+                properties:
+                  tokens:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuthTokenInfo'
+        '401':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/auth/tokens/{id}:
+    delete:
+      operationId: authRevokeToken
+      tags:
+      - auth
+      summary: Revoke one client token
+      x-risk-tier: R1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Token id; non-digit or unknown answers 404.
+      responses:
+        '200':
+          description: Revoked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthOk'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/auth/media-url:
+    post:
+      operationId: authMediaUrl
+      tags:
+      - auth
+      summary: Sign a five-minute URL for a file under /api/media/
+      x-risk-tier: R0*
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthMediaUrlRequest'
+      responses:
+        '200':
+          description: Signed, percent-encoded URL.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - url
+                - expires_in
+                properties:
+                  url:
+                    type: string
+                    description: Path under /api/media/ with exp and signature query parameters.
+                  expires_in:
+                    type: integer
+                    description: Lifetime in seconds (300).
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+      description: 'Sign a five-minute URL for a file under /api/media/
+
+
+        The returned `url` is root-absolute (`/api/media/...`). Behind Home Assistant Ingress the client
+        must put its Ingress prefix in front of it.'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: A client token from `POST /api/auth/pairing/redeem`.
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: __Host-mp_session
+      description: The browser session set by setup or login.
+    signedUrl:
+      type: apiKey
+      in: query
+      name: sig
+      description: 'A link from `POST /api/auth/media-url`: `exp` (expiry, Unix seconds) and `sig` together,
+        valid for exactly the path they were issued for. For media players that cannot send a token.'
+  schemas:
+    AuthMediaUrlRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - path
+      properties:
+        path:
+          type: string
+          minLength: 1
+          maxLength: 1024
+          description: File path, with or without the /api/media/ prefix.
+    AuthOk:
+      type: object
+      required:
+      - ok
+      properties:
+        ok:
+          type: boolean
+    AuthPasswordRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - password
+      properties:
+        password:
+          type: string
+          minLength: 1
+          maxLength: 1024
+    AuthRedeemRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 64
+        name:
+          type: string
+          minLength: 1
+          maxLength: 64
+          default: client
+          description: Label for the issued token.
+    AuthSetupRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - setup_token
+      - password
+      properties:
+        setup_token:
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: One-time token printed in the server log.
+        password:
+          type: string
+          minLength: 10
+          maxLength: 1024
+          description: Schema accepts 1-1024 characters; setup additionally refuses under 10 with 400
+            weak_password.
+    AuthTokenInfo:
+      type: object
+      required:
+      - id
+      - name
+      - created_at
+      - last_used
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        created_at:
+          type: number
+        last_used:
+          type: number
+    BleAccessory:
+      type: object
+      description: One accessory as the panel shows it, after client redaction (secret may be masked).
+      required:
+      - petkit_id
+      - ble_type
+      - name
+      - parent_name
+      - parent_type
+      - parent_online
+      - last_seen
+      - entities
+      - mac
+      - secret
+      - interval
+      - link_with
+      - serial_number
+      - scan_type
+      - scan_type_is_guessed
+      - wire_entry
+      - state
+      properties:
+        petkit_id:
+          type: integer
+        ble_type:
+          type: string
+          enum:
+          - w5
+          - w4
+          - ctw3
+          - ctw2
+          - k3
+        name:
+          type: string
+        parent_name:
+          type: string
+        parent_type:
+          description: Parent device type; empty string when no parent.
+          type:
+          - string
+          - integer
+        parent_online:
+          type: boolean
+        last_seen:
+          type:
+          - number
+          - 'null'
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/BleAccessoryEntity'
+        mac:
+          type: string
+        secret:
+          type: string
+          description: Pairing secret after client redaction. An empty secret is returned as an empty
+            string; any non-empty value is always masked as the literal text [redacted N chars], where
+            N is the length of the stored secret (for example [redacted 16 chars]). The real value is
+            never returned.
+        interval:
+          type: integer
+        link_with:
+          type: integer
+          description: Parent device id; 0 when unlinked.
+        serial_number:
+          type: string
+        scan_type:
+          type: integer
+        scan_type_is_guessed:
+          type: boolean
+        wire_entry:
+          type: object
+          description: Entry handed to the parent in dev_ble_device. Its secret is masked the same way
+            as the top-level secret.
+          required:
+          - id
+          - secret
+          - type
+          - mac
+          - interval
+          properties:
+            id:
+              type: integer
+            secret:
+              type: string
+            type:
+              type: integer
+              description: Numeric BLE type code
+            mac:
+              type: string
+              description: MAC in the wire form the device expects
+            interval:
+              type: integer
+        state:
+          type: object
+          additionalProperties: true
+          description: Decoded accessory state document.
+    BleAccessoryEntity:
+      type: object
+      required:
+      - component
+      - key
+      - name
+      - value_path
+      - unit
+      - device_class
+      - icon
+      - options
+      - option_values
+      - settable
+      - entity_category
+      - min
+      - max
+      - step
+      - value
+      properties:
+        component:
+          type: string
+          description: HA component (sensor, switch, select, number, button, ...).
+        key:
+          type: string
+        name:
+          type: string
+        value_path:
+          type:
+          - string
+          - 'null'
+        unit:
+          type:
+          - string
+          - 'null'
+        device_class:
+          type:
+          - string
+          - 'null'
+        icon:
+          type:
+          - string
+          - 'null'
+        options:
+          type:
+          - array
+          - 'null'
+          items: {}
+        option_values:
+          type:
+          - array
+          - 'null'
+          items: {}
+        settable:
+          type: boolean
+        entity_category:
+          type:
+          - string
+          - 'null'
+        min:
+          type:
+          - number
+          - 'null'
+        max:
+          type:
+          - number
+          - 'null'
+        step:
+          type:
+          - number
+          - 'null'
+        value:
+          description: Resolved value from the accessory state; null for buttons or unreported.
+    BleAccessoryList:
+      type: object
+      required:
+      - accessories
+      properties:
+        accessories:
+          type: array
+          items:
+            $ref: '#/components/schemas/BleAccessory'
+    BleAccessoryPairRequest:
+      type: object
+      required:
+      - ble_type
+      - mac
+      properties:
+        ble_type:
+          type: string
+          enum:
+          - w5
+          - w4
+          - ctw3
+          - ctw2
+          - k3
+          description: Lower-cased and trimmed by the server.
+        petkit_id:
+          type: integer
+          description: Omitted or 0 allocates an id from 900001 upward. Must not equal a real device id.
+        mac:
+          type: string
+          description: 12 hex digits, any common separator; must not already be paired to another id.
+        link_with:
+          type: integer
+          description: Parent device id; must exist when non-zero.
+        secret:
+          type: string
+          default: ''
+        interval:
+          type: integer
+          default: 240
+        serial_number:
+          type: string
+          default: ''
+        scan_type:
+          type: integer
+          minimum: 0
+          default: 0
+          description: Overrides the type the parent is told to scan for; negatives become 0.
+    BleImportResult:
+      type: object
+      required:
+      - outcome
+      properties:
+        endpoint:
+          type: string
+          description: Present on upstream refusal entries.
+        petkit_id:
+          type: integer
+        ble_type:
+          type:
+          - string
+          - 'null'
+        mac:
+          type:
+          - string
+          - 'null'
+        outcome:
+          type: string
+          description: imported, updated, unchanged, an upstream refusal message, or a reason the entry
+            was skipped.
+    CaptureFile:
+      type: object
+      required:
+      - name
+      - size
+      - lines
+      properties:
+        name:
+          type: string
+        size:
+          type: integer
+          description: Bytes.
+        lines:
+          type: integer
+    CaptureListing:
+      type: object
+      required:
+      - dir
+      - files
+      - enabled
+      properties:
+        dir:
+          type: string
+          description: Configured capture directory (empty when none)
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/CaptureFile'
+        enabled:
+          type: boolean
+          description: Whether capture mode is currently on.
+    CaptureRead:
+      type: object
+      required:
+      - records
+      - total
+      properties:
+        records:
+          type: array
+          description: 'One entry per non-blank tail line: the json.loads result (any JSON value), or
+            an object with a single raw key when the line is not valid JSON.'
+          items: {}
+        total:
+          type: integer
+          description: Total line count of the file.
+    DeferredFeed:
+      type: object
+      required:
+      - id
+      - a1
+      - a2
+      - fire_at
+      properties:
+        id:
+          type: string
+        a1:
+          type: integer
+        a2:
+          type: integer
+        fire_at:
+          type: number
+          description: Unix timestamp
+    DeferredFeedCreateRequest:
+      type: object
+      required:
+      - date
+      - time
+      properties:
+        date:
+          type: string
+          description: YYYY-MM-DD in the device timezone
+        time:
+          type: string
+          description: HH:MM in the device timezone
+        a1:
+          type: integer
+          default: 0
+        a2:
+          type: integer
+          default: 0
+    DeferredFeedCreateResult:
+      type: object
+      required:
+      - ok
+      - feed
+      properties:
+        ok:
+          type: boolean
+        feed:
+          $ref: '#/components/schemas/DeferredFeed'
+    DeferredFeedList:
+      type: object
+      required:
+      - deferred
+      properties:
+        deferred:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeferredFeed'
+    DeviceAction:
+      type: object
+      required:
+      - key
+      - name
+      - destructive
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+        destructive:
+          type: boolean
+    DeviceAiRequest:
+      type: object
+      properties:
+        ai_enabled:
+          type: boolean
+    DeviceAiResult:
+      type: object
+      required:
+      - ok
+      - ai_enabled
+      properties:
+        ok:
+          type: boolean
+        ai_enabled:
+          type: boolean
+    DeviceAiView:
+      type: object
+      required:
+      - supports_ai
+      - ai_enabled
+      properties:
+        supports_ai:
+          type: boolean
+        ai_enabled:
+          type: boolean
+    DeviceBleChild:
+      type: object
+      required:
+      - id
+      - type
+      - mac
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        mac:
+          type: string
+    DeviceCapabilitiesRequest:
+      description: Any subset of capability flags; unknown keys are ignored
+      type: object
+      properties:
+        fullVideo:
+          type: boolean
+        eventImage:
+          type: boolean
+        highLight:
+          type: boolean
+        dynamicVideo:
+          type: boolean
+    DeviceCapabilitiesResult:
+      type: object
+      required:
+      - ok
+      - capabilities
+      properties:
+        ok:
+          type: boolean
+        capabilities:
+          $ref: '#/components/schemas/DeviceCapabilityFlags'
+    DeviceCapabilitiesView:
+      type: object
+      required:
+      - is_camera
+      - capabilities
+      properties:
+        is_camera:
+          type: boolean
+        capabilities:
+          $ref: '#/components/schemas/DeviceCapabilityFlags'
+    DeviceCapabilityFlags:
+      type: object
+      required:
+      - fullVideo
+      - eventImage
+      - highLight
+      - dynamicVideo
+      properties:
+        fullVideo:
+          type: boolean
+        eventImage:
+          type: boolean
+        highLight:
+          type: boolean
+        dynamicVideo:
+          type: boolean
+    DeviceCommandRequest:
+      description: One of three forms, checked in order. action wins over entity, entity over suffix+payload.
+        The raw suffix+payload form requires step-up.
+      type: object
+      properties:
+        action:
+          type: string
+          description: Named button action available on this model
+        entity:
+          type: string
+          description: Entity key
+        value:
+          description: Value for an entity write; stringified before use
+        suffix:
+          type: string
+          description: Raw service suffix
+        payload:
+          description: Raw envelope published verbatim
+        transport:
+          type: string
+          default: auto
+          description: auto uses MQTT when the device has a live MQTT session and the bridge is connected,
+            else the heartbeat queue. mqtt tries MQTT whenever the bridge has a live client (it does not
+            check the device session) and falls back to the heartbeat queue when there is no live bridge
+            or the publish fails. Any other value (for example heartbeat) queues for the next heartbeat.
+            The response `delivered` reports what actually happened.
+    DeviceCommandResult:
+      description: Either a delivery result or a local-only result
+      oneOf:
+      - $ref: '#/components/schemas/DeviceDeliveryResult'
+      - type: object
+        required:
+        - ok
+        - delivered
+        properties:
+          ok:
+            type: boolean
+          delivered:
+            type: string
+            enum:
+            - local
+          action:
+            type: string
+            description: Present for action writes
+          entity:
+            type: string
+            description: Present for entity writes
+    DeviceDeleteResult:
+      type: object
+      required:
+      - ok
+      - removed
+      - orphaned_accessories
+      - note
+      properties:
+        ok:
+          type: boolean
+        removed:
+          type: integer
+        orphaned_accessories:
+          type: array
+          items:
+            type: integer
+        note:
+          type: string
+    DeviceDeliveryResult:
+      type: object
+      required:
+      - ok
+      - delivered
+      - suffix
+      - envelope
+      properties:
+        ok:
+          type: boolean
+        delivered:
+          type: string
+          enum:
+          - mqtt
+          - heartbeat-queue
+        suffix:
+          type: string
+        envelope:
+          description: Envelope sent to the device
+          type:
+          - object
+          - string
+          - array
+          - number
+          - boolean
+          - 'null'
+          additionalProperties: true
+    DeviceDetail:
+      description: Every DeviceSummary key (except that entities is an array here, not a count) plus the
+        detail-only keys. Client-redacted.
+      type: object
+      required:
+      - id
+      - type
+      - name
+      - sn
+      - mac
+      - firmware
+      - online
+      - mqtt_connected
+      - is_camera
+      - is_feeder
+      - supports_ai
+      - pk
+      - dn
+      - last_heartbeat
+      - last_state_report
+      - last_seen
+      - last_mqtt
+      - mqtt_subscriptions
+      - mqtt_delivery
+      - queue
+      - http_count
+      - mqtt_count
+      - ble
+      - state
+      - settings
+      - config
+      - diag
+      - streams
+      - schedules
+      - entities
+      - actions
+      - timezoneInfo
+      - logInfo
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        name:
+          type: string
+        sn:
+          type: string
+        mac:
+          type: string
+        firmware:
+          type: string
+        online:
+          type: boolean
+        mqtt_connected:
+          type: boolean
+        is_camera:
+          type: boolean
+        is_feeder:
+          type: boolean
+        supports_ai:
+          type: boolean
+        pk:
+          type: string
+          description: MQTT product key
+        dn:
+          type: string
+          description: MQTT device name
+        last_heartbeat:
+          description: Timestamp as stored by the device model
+          type:
+          - number
+          - string
+          - 'null'
+        last_state_report:
+          description: Timestamp as stored by the device model
+          type:
+          - number
+          - string
+          - 'null'
+        last_seen:
+          description: Timestamp as stored by the device model
+          type:
+          - number
+          - string
+          - 'null'
+        last_mqtt:
+          description: Timestamp as stored by the device model
+          type:
+          - number
+          - string
+          - 'null'
+        mqtt_subscriptions:
+          type: array
+          items:
+            type: string
+        mqtt_delivery:
+          description: What the broker would deliver; null when the broker is not running
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+        queue:
+          type: integer
+          description: Pending heartbeat commands
+        http_count:
+          type: integer
+        mqtt_count:
+          type: integer
+        ble:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeviceBleChild'
+        state:
+          description: Device-reported state blob; keys vary by model
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+        settings:
+          type: object
+          additionalProperties: true
+        config:
+          description: Stored device config without settings; keys vary
+          type: object
+          additionalProperties: true
+        diag:
+          description: 'Hub diagnostics: {} for a device never seen, else http_count and mqtt_count plus
+            last_* keys once recorded.'
+          type: object
+          additionalProperties: true
+        streams:
+          description: Stream URLs; empty until a probe confirms the device is serving
+          type: object
+          additionalProperties: true
+        schedules:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeviceScheduleTarget'
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeviceEntity'
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeviceAction'
+        capInfo:
+          description: Null unless the device is a camera
+          oneOf:
+          - $ref: '#/components/schemas/DeviceCapabilitiesView'
+          - type: 'null'
+        timezoneInfo:
+          $ref: '#/components/schemas/DeviceTimezoneView'
+        logInfo:
+          $ref: '#/components/schemas/DeviceLogSettings'
+        aiInfo:
+          description: Null unless the device supports AI
+          oneOf:
+          - $ref: '#/components/schemas/DeviceAiView'
+          - type: 'null'
+    DeviceEntity:
+      type: object
+      required:
+      - component
+      - key
+      - name
+      - value_path
+      - unit
+      - device_class
+      - icon
+      - options
+      - option_values
+      - settable
+      - entity_category
+      - min
+      - max
+      - step
+      - value
+      properties:
+        component:
+          type: string
+        key:
+          type: string
+        name:
+          type: string
+        value_path:
+          type: string
+        unit:
+          type:
+          - string
+          - 'null'
+        device_class:
+          type:
+          - string
+          - 'null'
+        icon:
+          type:
+          - string
+          - 'null'
+        options:
+          type:
+          - array
+          - 'null'
+          items: {}
+        option_values:
+          type:
+          - object
+          - array
+          - 'null'
+          additionalProperties: true
+        settable:
+          type: boolean
+        entity_category:
+          type:
+          - string
+          - 'null'
+        min:
+          type:
+          - number
+          - 'null'
+        max:
+          type:
+          - number
+          - 'null'
+        step:
+          type:
+          - number
+          - 'null'
+        value:
+          description: Resolved current value, any JSON type
+    DeviceLogFile:
+      type: object
+      required:
+      - rel
+      - name
+      - device
+      - size
+      - mtime
+      properties:
+        rel:
+          type: string
+          description: Path relative to the log root (slash-separated)
+        name:
+          type: string
+        device:
+          type:
+          - integer
+          - 'null'
+          description: First path segment parsed as device id.
+        size:
+          type: integer
+        mtime:
+          type: number
+          description: Epoch seconds.
+    DeviceLogListing:
+      type: object
+      required:
+      - dir
+      - reason
+      - enabled_devices
+      - files
+      - total_bytes
+      properties:
+        dir:
+          type: string
+        reason:
+          type: string
+          description: Machine-readable token for why no logs can arrive right now.
+        enabled_devices:
+          type: array
+          items:
+            type: integer
+          description: Petkit ids with log_upload_enabled.
+        files:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/DeviceLogFile'
+        total_bytes:
+          type: integer
+    DeviceLogRead:
+      type: object
+      required:
+      - lines
+      - total
+      - matched
+      - offset
+      - limit
+      - size
+      properties:
+        lines:
+          type: array
+          description: Pairs of line number (1-based, of the file) and text (cut at 2000 chars).
+          items:
+            type: array
+            prefixItems:
+            - type: integer
+            - type: string
+            minItems: 2
+            maxItems: 2
+        total:
+          type: integer
+          description: Line count of the whole file.
+        matched:
+          type: integer
+          description: Lines matching q.
+        offset:
+          type: integer
+        limit:
+          type: integer
+        size:
+          type: integer
+          description: File size in bytes.
+    DeviceLogSettings:
+      type: object
+      required:
+      - ok
+      - log_upload_enabled
+      - reason
+      properties:
+        ok:
+          type: boolean
+        log_upload_enabled:
+          type: boolean
+        reason:
+          type: string
+          description: Empty when collection can work, else no_log_root, no_bucket_endpoint or authority_not_splittable
+    DeviceLogSettingsRequest:
+      type: object
+      properties:
+        log_upload_enabled:
+          type: boolean
+    DeviceScheduleTarget:
+      type: object
+      required:
+      - target
+      - name
+      - kind
+      - value
+      properties:
+        target:
+          type: string
+          description: Field name accepted by POST /schedule
+        name:
+          type: string
+        kind:
+          type: string
+          enum:
+          - ranges
+          - weekly
+          - points
+          - feed
+        value:
+          description: Current effective value; shape depends on kind
+        dual:
+          type: boolean
+          description: 'Only present on feed targets: true for dual-hopper feeders (a meal carries a1
+            and a2 portions)'
+    DeviceSummary:
+      type: object
+      required:
+      - id
+      - type
+      - name
+      - sn
+      - mac
+      - firmware
+      - online
+      - mqtt_connected
+      - is_camera
+      - is_feeder
+      - supports_ai
+      - pk
+      - dn
+      - last_heartbeat
+      - last_state_report
+      - last_seen
+      - last_mqtt
+      - mqtt_subscriptions
+      - mqtt_delivery
+      - queue
+      - http_count
+      - mqtt_count
+      - entities
+      - ble
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        name:
+          type: string
+        sn:
+          type: string
+        mac:
+          type: string
+        firmware:
+          type: string
+        online:
+          type: boolean
+        mqtt_connected:
+          type: boolean
+        is_camera:
+          type: boolean
+        is_feeder:
+          type: boolean
+        supports_ai:
+          type: boolean
+        pk:
+          type: string
+          description: MQTT product key
+        dn:
+          type: string
+          description: MQTT device name
+        last_heartbeat:
+          description: Timestamp as stored by the device model
+          type:
+          - number
+          - string
+          - 'null'
+        last_state_report:
+          description: Timestamp as stored by the device model
+          type:
+          - number
+          - string
+          - 'null'
+        last_seen:
+          description: Timestamp as stored by the device model
+          type:
+          - number
+          - string
+          - 'null'
+        last_mqtt:
+          description: Timestamp as stored by the device model
+          type:
+          - number
+          - string
+          - 'null'
+        mqtt_subscriptions:
+          type: array
+          items:
+            type: string
+        mqtt_delivery:
+          description: What the broker would deliver; null when the broker is not running
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+        queue:
+          type: integer
+          description: Pending heartbeat commands
+        http_count:
+          type: integer
+        mqtt_count:
+          type: integer
+        entities:
+          type: integer
+          description: Entity count
+        ble:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeviceBleChild'
+    DeviceTimezoneRequest:
+      type: object
+      required:
+      - timezone
+      properties:
+        timezone:
+          description: Offset hours in -12..14. Numeric strings accepted. null or blank string clears
+            the override. Booleans rejected.
+          type:
+          - number
+          - string
+          - 'null'
+          minimum: -12
+          maximum: 14
+    DeviceTimezoneResult:
+      allOf:
+      - $ref: '#/components/schemas/DeviceTimezoneView'
+      - type: object
+        required:
+        - ok
+        - delivered
+        properties:
+          ok:
+            type: boolean
+          delivered:
+            type: string
+            enum:
+            - mqtt
+            - heartbeat-queue
+    DeviceTimezoneView:
+      type: object
+      required:
+      - effective
+      - override
+      - reported
+      - locale
+      - source
+      properties:
+        effective:
+          type: number
+        override:
+          type:
+          - number
+          - 'null'
+        reported:
+          type:
+          - number
+          - 'null'
+        locale:
+          type: string
+        source:
+          type: string
+          enum:
+          - override
+          - locale
+          - device
+          - server
+    Error:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          properties:
+            code:
+              type: string
+              description: Stable, machine-readable.
+            message:
+              type: string
+              description: Human-readable; may change.
+            correlation_id:
+              type: string
+              description: Present on a 500 (not on 502/503/504); the server log line carries the same
+                id.
+    LogsHubEvent:
+      type: object
+      description: One live-log entry as stored in the hub ring (see publish in web/hub.py).
+      required:
+      - seq
+      - ts
+      - kind
+      - device_id
+      - summary
+      properties:
+        seq:
+          type: integer
+          description: Per-process monotonic counter
+        ts:
+          type: number
+          description: Epoch seconds (float).
+        kind:
+          type: string
+          description: Event kind.
+          examples:
+          - http
+          - mqtt
+          - connect
+          - cmd
+          - redact
+          - blocked
+          - event
+          - media
+          - devlog
+          - patcher
+        device_id:
+          type:
+          - integer
+          - string
+          - 'null'
+          description: Petkit device id; null/other when unattributed.
+        summary:
+          type: string
+        detail:
+          description: Present only when the publisher supplied one; shape varies by kind (object, usually).
+          additionalProperties: true
+    OkResult:
+      type: object
+      required:
+      - ok
+      properties:
+        ok:
+          type: boolean
+    PatcherEntry:
+      type: object
+      required:
+      - id
+      - name
+      - description
+      - status
+      - applied
+      - unavailable
+      - greyed
+      - needs_bytes
+      properties:
+        id:
+          type: string
+          enum:
+          - mqtt
+          - cloud
+          - cacert
+          - camera
+          - ssh
+          - talk
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          description: '"applied", "not applied" or "active (MQTT connected)".'
+        applied:
+          type: boolean
+        unavailable:
+          type: string
+        greyed:
+          type: boolean
+        needs_bytes:
+          type: integer
+        needs_pubkey:
+          type: boolean
+          description: Present (true) only for the ssh patcher.
+        ssh_pubkey:
+          type: string
+          description: Stored public key; present only with needs_pubkey.
+    PatcherStatus:
+      type: object
+      required:
+      - patchers
+      - device_ip
+      - supported
+      properties:
+        patchers:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/PatcherEntry'
+        device_ip:
+          type: string
+        supported:
+          type: boolean
+    Pet:
+      type: object
+      description: The pets table row verbatim.
+      required:
+      - id
+      - name
+      - device_ids_json
+      - device_pet_ids_json
+      - face_id
+      - photo_path
+      - weight
+      - created_at
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        device_ids_json:
+          type:
+          - string
+          - 'null'
+          description: JSON-encoded array of PetKit device ids, as a string (e.g. "[123]").
+        device_pet_ids_json:
+          type:
+          - string
+          - 'null'
+          description: JSON-encoded array of device-reported pet identities bound to this pet, as a string.
+        face_id:
+          type:
+          - string
+          - 'null'
+          description: Legacy single-photo column, unused.
+        photo_path:
+          type:
+          - string
+          - 'null'
+          description: Legacy single-photo column, unused (may hold a server filesystem path).
+        weight:
+          type:
+          - number
+          - 'null'
+        created_at:
+          type: number
+          description: Unix time.
+    PetCreateRequest:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          description: Stripped; empty yields 400.
+        device_ids:
+          type: array
+          items:
+            type: integer
+          description: Unparseable values degrade to an empty list.
+        weight:
+          type:
+          - number
+          - 'null'
+          description: Stored as given, not validated.
+    PetFace:
+      type: object
+      required:
+      - id
+      - url
+      properties:
+        id:
+          type: integer
+        url:
+          type: string
+          description: Relative URL without leading slash, `api/pets/{pet_id}/faces/{id}/photo`.
+    PetImportResult:
+      type: object
+      required:
+      - pet_ref
+      - outcome
+      properties:
+        pet_ref:
+          type: integer
+        outcome:
+          type: string
+          enum:
+          - imported
+          - already yours
+        pet_id:
+          type: integer
+          description: Present when imported.
+        name:
+          type: string
+          description: Present when imported.
+        faces_imported:
+          type: integer
+          description: Present when imported.
+        faces_offered:
+          type: integer
+          description: Present when imported.
+        bound_events:
+          type: integer
+          description: Present when imported.
+    PetUnboundRef:
+      type: object
+      required:
+      - pet_ref
+      - count
+      - last_ts
+      properties:
+        pet_ref:
+          type: integer
+        count:
+          type: integer
+        last_ts:
+          type:
+          - number
+          - 'null'
+    PetUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Stripped; an empty result is accepted.
+        device_ids:
+          type: array
+          items:
+            type: integer
+        device_pet_ids:
+          type: array
+          items:
+            type: integer
+          description: Foreign PetKit pet identities to bind.
+        weight:
+          type:
+          - number
+          - 'null'
+          description: Stored as given, not validated.
+    PetWithFaces:
+      allOf:
+      - $ref: '#/components/schemas/Pet'
+      - type: object
+        required:
+        - faces
+        properties:
+          faces:
+            type: array
+            items:
+              $ref: '#/components/schemas/PetFace'
+    PetsOk:
+      type: object
+      required:
+      - ok
+      properties:
+        ok:
+          type: boolean
+    ScheduleSaveRequest:
+      type: object
+      required:
+      - target
+      - value
+      properties:
+        target:
+          type: string
+          description: A target name from the device schedules list
+        value:
+          description: 'Shape depends on the target kind. ranges: [[start,end]] minutes 0..1440. weekly:
+            [{enable, rpt, time:[[s,e]]}], rpt comma-separated weekdays 1-7 (Sunday 1). points: [{id,
+            repeats, time, type}] with time 0..1439. feed: {schedule:[{re, it:[{id,t,a1,a2}]}]} with t
+            in seconds 0..86399, a1/a2 0..255.'
+    SetupBlockedAttempt:
+      type: object
+      description: A blocked_attempts row (BlockedAttempt.as_dict, every column always present). Passed
+        through the client redactor, except when reveal=1 (then returned as stored).
+      required:
+      - id
+      - device_id
+      - kind
+      - transport
+      - endpoint
+      - upstream
+      - field_path
+      - payload_json
+      - detail_json
+      - created_at
+      properties:
+        id:
+          type: integer
+        device_id:
+          type:
+          - integer
+          - 'null'
+        kind:
+          type:
+          - string
+          - 'null'
+          description: Blocking rule name (rce, ota, secret).
+        transport:
+          type:
+          - string
+          - 'null'
+          enum:
+          - http
+          - mqtt
+          - null
+        endpoint:
+          type:
+          - string
+          - 'null'
+          description: Request path or MQTT topic.
+        payload_json:
+          type:
+          - string
+          - 'null'
+          description: Blocked payload; masked to a 6-char prefix plus length unless reveal=1.
+        upstream:
+          type:
+          - string
+          - 'null'
+          description: Which upstream the answer came from, as recorded when the attempt was stored.
+        field_path:
+          type:
+          - string
+          - 'null'
+          description: Where in the decoded body the blocking rule matched.
+        detail_json:
+          type:
+          - string
+          - 'null'
+          description: Extra detail about the match, stored as a JSON-encoded string.
+        created_at:
+          type: number
+    SetupLiveSettings:
+      type: object
+      description: Every live setting, all keys always present.
+      required:
+      - proxy_mode
+      - proxy_upstream
+      - proxy_dns
+      - proxy_block_run_cmd
+      - proxy_block_ota
+      - proxy_block_log_upload
+      - proxy_media_real_oss
+      - proxy_local_cvr_window
+      - proxy_mqtt_bridge
+      - proxy_only
+      - capture
+      properties:
+        proxy_mode:
+          type: boolean
+          description: Forward device traffic to the real cloud. Default false. R3.
+        proxy_upstream:
+          type: string
+          description: Upstream preset key or an allow-listed PetKit/Aliyun IoT URL; empty means default
+            preset. Default "". R3.
+        proxy_dns:
+          type: string
+          description: IPv4 resolver, optional ":port"; hostnames refused. Default "". R3.
+        proxy_block_run_cmd:
+          type: boolean
+          description: Block cloud shell commands. Default true. R3.
+        proxy_block_ota:
+          type: boolean
+          description: Block cloud firmware pushes. Default true. R3.
+        proxy_block_log_upload:
+          type: boolean
+          description: Default true. R3.
+        proxy_media_real_oss:
+          type: boolean
+          description: Default false. R3.
+        proxy_local_cvr_window:
+          type: boolean
+          description: Default false. R3.
+        proxy_mqtt_bridge:
+          type: boolean
+          description: Default true. R3.
+        proxy_only:
+          type: string
+          description: Default "". R3.
+        capture:
+          type: boolean
+          description: Record traffic (including secrets) to disk. Default false. R3.
+    SetupLiveSettingsPatch:
+      type: object
+      description: Any subset of the live settings. Bool keys are coerced with bool(), string keys with
+        str(). Unknown keys ignored. A body with no known key yields 400.
+      additionalProperties: true
+      properties:
+        proxy_mode:
+          type: boolean
+        proxy_upstream:
+          type: string
+          description: Empty, a preset key (petkit-eu, petkit-americas, petkit-asia, petkit-cn, petkit-ru)
+            or an allow-listed URL.
+        proxy_dns:
+          type: string
+          description: Empty or IPv4[:port].
+        proxy_block_run_cmd:
+          type: boolean
+        proxy_block_ota:
+          type: boolean
+        proxy_block_log_upload:
+          type: boolean
+        proxy_media_real_oss:
+          type: boolean
+        proxy_local_cvr_window:
+          type: boolean
+        proxy_mqtt_bridge:
+          type: boolean
+        proxy_only:
+          type: string
+        capture:
+          type: boolean
+    SetupRetention:
+      type: object
+      description: Caps keyed by category; every category is always present.
+      required:
+      - fullVideo
+      - eventImage
+      - highLight
+      - dynamicVideo
+      - cloudDouble
+      - wasteCheck
+      - healthPic
+      - events
+      - blocked
+      - deviceLog
+      - rawUpload
+      - thumbnail
+      properties:
+        fullVideo:
+          $ref: '#/components/schemas/SetupRetentionCap'
+        eventImage:
+          $ref: '#/components/schemas/SetupRetentionCap'
+        highLight:
+          $ref: '#/components/schemas/SetupRetentionCap'
+        dynamicVideo:
+          $ref: '#/components/schemas/SetupRetentionCap'
+        cloudDouble:
+          $ref: '#/components/schemas/SetupRetentionCap'
+        wasteCheck:
+          $ref: '#/components/schemas/SetupRetentionCap'
+        healthPic:
+          $ref: '#/components/schemas/SetupRetentionCap'
+        events:
+          $ref: '#/components/schemas/SetupRetentionCap'
+        blocked:
+          $ref: '#/components/schemas/SetupRetentionCap'
+        deviceLog:
+          $ref: '#/components/schemas/SetupRetentionCap'
+        rawUpload:
+          $ref: '#/components/schemas/SetupRetentionCap'
+        thumbnail:
+          $ref: '#/components/schemas/SetupRetentionCap'
+    SetupRetentionCap:
+      type: object
+      required:
+      - max_days
+      properties:
+        max_mb:
+          type:
+          - number
+          - 'null'
+          description: Size cap in MB; null means no cap. Absent for events and blocked.
+        max_days:
+          type:
+          - number
+          - 'null'
+          description: Age cap in days; null means no cap.
+    SetupRetentionPatch:
+      type: object
+      description: Partial retention caps keyed by category; unknown categories and fields are ignored.
+      additionalProperties:
+        type: object
+        properties:
+          max_mb:
+            type:
+            - number
+            - 'null'
+            description: Size cap in MB. Values that are not a positive finite number become null (no
+              cap).
+          max_days:
+            type:
+            - number
+            - 'null'
+            description: Age cap in days. Values that are not a positive finite number become null (no
+              cap).
+    SetupServerInfo:
+      type: object
+      required:
+      - asset_version
+      - version
+      - api_url
+      - mqtt_tls
+      - mqtt_tls_port
+      - mqtt_port
+      - strict_auth
+      - cert_exists
+      - user_tls
+      - ha_publishing
+      - ha_enabled
+      - device_count
+      - settings
+      - settings_writable
+      - capture
+      - ai_device_names
+      - upstreams
+      - redactions
+      - upstream
+      properties:
+        asset_version:
+          type: string
+          description: Hash of the panel assets this process serves.
+        version:
+          type: string
+        api_url:
+          type:
+          - string
+          - 'null'
+        mqtt_tls:
+          description: Config passthrough, may be null when unset.
+        mqtt_tls_port:
+          type:
+          - integer
+          - 'null'
+        mqtt_port:
+          type:
+          - integer
+          - 'null'
+        strict_auth:
+          description: Config passthrough, may be null when unset.
+        cert_exists:
+          type: boolean
+        user_tls:
+          type: object
+          required:
+          - port
+          - cert_sha256
+          properties:
+            port:
+              type:
+              - integer
+              - 'null'
+            cert_sha256:
+              type: string
+        ha_publishing:
+          type: boolean
+        ha_enabled:
+          type: boolean
+        device_count:
+          type: integer
+        settings:
+          $ref: '#/components/schemas/SetupLiveSettings'
+        settings_writable:
+          type: boolean
+        capture:
+          type: boolean
+        ai_device_names:
+          type: array
+          items:
+            type: string
+        upstreams:
+          type: array
+          items:
+            $ref: '#/components/schemas/SetupUpstreamChoice'
+        redactions:
+          type: object
+          additionalProperties:
+            type: integer
+        upstream:
+          type: object
+          description: Proxied-call outcome counters (ok, error_<code>, http_<status>).
+          additionalProperties:
+            type: integer
+    SetupUpstreamChoice:
+      type: object
+      required:
+      - key
+      - url
+      - default
+      properties:
+        key:
+          type: string
+        url:
+          type: string
+        default:
+          type: boolean
+    Sound:
+      type: object
+      required:
+      - id
+      - name
+      - filename
+      - size
+      - digest
+      - duration
+      - uploaded_at
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        filename:
+          type: string
+        size:
+          type: integer
+        digest:
+          type: string
+          description: MD5 hex
+        duration:
+          type: integer
+        uploaded_at:
+          type: integer
+          description: Unix seconds
+    SoundList:
+      type: object
+      required:
+      - sounds
+      properties:
+        sounds:
+          type: array
+          items:
+            $ref: '#/components/schemas/Sound'
+    SoundUploadResult:
+      type: object
+      required:
+      - ok
+      - sound
+      properties:
+        ok:
+          type: boolean
+        sound:
+          $ref: '#/components/schemas/Sound'
+    TimelineCounts:
+      type: object
+      required:
+      - all
+      - pet
+      - toileting
+      - drinking
+      - feeding
+      - cleaning
+      - health_alert
+      - fault
+      properties:
+        all:
+          type: integer
+        pet:
+          type: integer
+        toileting:
+          type: integer
+        drinking:
+          type: integer
+        feeding:
+          type: integer
+        cleaning:
+          type: integer
+        health_alert:
+          type: integer
+        fault:
+          type: integer
+    TimelineDay:
+      type: object
+      required:
+      - date
+      - tz_offset
+      - counts
+      - sessions
+      properties:
+        date:
+          type: string
+          description: Local day used (YYYY-MM-DD)
+        tz_offset:
+          type: integer
+          description: Seconds east of UTC for that day.
+        counts:
+          $ref: '#/components/schemas/TimelineCounts'
+        sessions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimelineSession'
+    TimelineEventDetail:
+      type: object
+      required:
+      - event
+      - decoded
+      - content
+      - state
+      properties:
+        event:
+          type: object
+          required:
+          - id
+          - event_uid
+          - event_type
+          - event_kind
+          - label
+          - ts
+          - created_at
+          - source
+          - device_id
+          - device_type
+          - pet_id
+          - pet_ref
+          - pet_name
+          - pet_photo_url
+          - score
+          - related_event
+          - parent_event
+          properties:
+            id:
+              type: integer
+            event_uid:
+              type:
+              - string
+              - 'null'
+            event_type:
+              type:
+              - string
+              - integer
+              - 'null'
+            event_kind:
+              type:
+              - string
+              - 'null'
+            label:
+              type:
+              - string
+              - 'null'
+            ts:
+              type:
+              - number
+              - 'null'
+            created_at:
+              type:
+              - number
+              - 'null'
+            source:
+              type:
+              - string
+              - 'null'
+            device_id:
+              type:
+              - integer
+              - 'null'
+            device_type:
+              type:
+              - string
+              - 'null'
+            pet_id:
+              type:
+              - integer
+              - 'null'
+            pet_ref:
+              type:
+              - string
+              - integer
+              - 'null'
+              description: What the device claimed
+            pet_name:
+              type:
+              - string
+              - 'null'
+            pet_photo_url:
+              type:
+              - string
+              - 'null'
+            score:
+              type:
+              - number
+              - 'null'
+            related_event:
+              type:
+              - string
+              - integer
+              - 'null'
+            parent_event:
+              type:
+              - integer
+              - string
+              - 'null'
+        code:
+          description: Event-code table entry, null when the type is unknown.
+          anyOf:
+          - type: object
+            required:
+            - code
+            - label
+            - kind
+            - grade
+            - role
+            - detail
+            - firmware
+            - note
+            properties:
+              code:
+                type:
+                - string
+                - integer
+                - 'null'
+              label:
+                type: string
+              kind:
+                type: string
+              grade:
+                type: string
+              role:
+                type: string
+              detail:
+                type: boolean
+              firmware:
+                type: string
+              note:
+                type: string
+          - type: 'null'
+        decoded:
+          type: array
+          items:
+            type: object
+            required:
+            - key
+            - label
+            - raw
+            - text
+            - grade
+            - note
+            - epoch
+            properties:
+              key:
+                type: string
+              label:
+                type: string
+              raw:
+                description: Value as the device sent it.
+              text:
+                type: string
+              grade:
+                type: string
+              note:
+                type: string
+              epoch:
+                type: boolean
+                description: True when raw is an epoch the UI should format itself.
+        content:
+          type: object
+          additionalProperties: true
+          description: Raw stored content payload.
+        state:
+          type: object
+          additionalProperties: true
+          description: Raw stored device state snapshot.
+    TimelineMediaSlots:
+      type: object
+      description: Media files by role (shared/media_slots.py). Every *_url value and every entry of waste
+        and health is a path relative to the media root, not a URL (see _rel_media). A client builds the
+        link by prefixing api/media/ (or api/media/thumb/ for a thumbnail) to the path, relative to its
+        base URL.
+      required:
+      - highlight_url
+      - playback_url
+      - preview_url
+      - poster_url
+      - waste
+      - health
+      - snapshot_url
+      - video_pending
+      properties:
+        highlight_url:
+          type:
+          - string
+          - 'null'
+        playback_url:
+          type:
+          - string
+          - 'null'
+        preview_url:
+          type:
+          - string
+          - 'null'
+        poster_url:
+          type:
+          - string
+          - 'null'
+        waste:
+          type: array
+          items:
+            type: string
+        health:
+          type: array
+          items:
+            type: string
+        snapshot_url:
+          type:
+          - string
+          - 'null'
+        video_pending:
+          type: boolean
+    TimelineSession:
+      type: object
+      required:
+      - kind
+      - id
+      - related_event
+      - device_id
+      - device_name
+      - ts
+      - display_ts
+      - pet_id
+      - event_type
+      - pet_name
+      - pet_photo_url
+      - label
+      - event_kind
+      - duration_sec
+      - weight
+      - bits
+      - sub_events
+      - media
+      properties:
+        kind:
+          type: string
+          description: Either visit or event.
+        id:
+          type:
+          - integer
+          - string
+          - 'null'
+        related_event:
+          type:
+          - string
+          - integer
+          - 'null'
+        device_id:
+          type:
+          - integer
+          - 'null'
+        device_name:
+          type: string
+          description: Empty when the device is unregistered.
+        ts:
+          type:
+          - number
+          - 'null'
+        display_ts:
+          type:
+          - number
+          - 'null'
+          description: When to show the card (visit entry time).
+        pet_id:
+          type:
+          - integer
+          - 'null'
+        event_type:
+          type:
+          - string
+          - integer
+          - 'null'
+        pet_name:
+          type:
+          - string
+          - 'null'
+        pet_photo_url:
+          type:
+          - string
+          - 'null'
+        label:
+          type:
+          - string
+          - 'null'
+          description: Null for visits.
+        event_kind:
+          type:
+          - string
+          - 'null'
+        duration_sec:
+          type:
+          - number
+          - 'null'
+        weight:
+          type:
+          - number
+          - 'null'
+        bits:
+          type: array
+          items:
+            type: string
+        sub_events:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimelineSubEvent'
+        media:
+          $ref: '#/components/schemas/TimelineMediaSlots'
+    TimelineSubEvent:
+      type: object
+      required:
+      - id
+      - event_type
+      - ts
+      - label
+      - detail
+      properties:
+        id:
+          type:
+          - integer
+          - 'null'
+        event_type:
+          type:
+          - string
+          - integer
+          - 'null'
+        ts:
+          type:
+          - number
+          - 'null'
+        label:
+          type:
+          - string
+          - 'null'
+        detail:
+          type: boolean
+          description: Low-level step the UI collapses.
+        media:
+          anyOf:
+          - $ref: '#/components/schemas/TimelineMediaSlots'
+          - type: 'null'
+  responses:
+    Error:
+      description: The error envelope.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
