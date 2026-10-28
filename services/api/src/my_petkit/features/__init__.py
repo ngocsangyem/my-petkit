@@ -1,4 +1,4 @@
-"""The JSON API behind the panel: one module per group of routes.
+"""The user plane: one package per feature, each with its own `routes.py`.
 
 This is the operator-facing side of my-petkit, next to (but separate from)
 the device-facing API in `http/`. It covers real-device bring-up and day-to-day
@@ -22,31 +22,33 @@ control:
 * **Provisioning** — the Web Bluetooth page is pure frontend; it talks to the
   device directly from the browser, so there is no route for it here.
 
-Which module owns what
-----------------------
-`_common.py`    what more than one of the others needs: the app-config readers,
-                the `{id}`/JSON-body/`?limit=` parsers, the shared `_deliver`,
-                and the pet lookups the timeline shares with pets
-`settings.py`   the live-editable runtime settings, `/api/info`, the blocked-
+Which package owns what
+-----------------------
+Features never import one another (`.importlinter`). What more than one needs
+lives in `shared/`: `panel_request.py` (the app-config readers, the
+`{id}`/JSON-body/`?limit=` parsers, `_deliver`, the pet lookups),
+`live_settings.py`, `media_slots.py`, `background_tasks.py`, `appkeys.py`.
+
+`setup/`        the live-editable runtime settings, `/api/info`, the blocked-
                 attempt log and the retention caps
-`devices.py`    the device list, the device detail and everything it inlines,
+`devices/`      the device list, the device detail and everything it inlines,
                 the manual command sender, the per-device toggles
-`schedules.py`  the schedule editors' one write endpoint and its validators
-`media.py`      serving the friendly media tree, thumbnails, and the role ->
+`schedules/`    the schedule editors' one write endpoint and its validators
+`media/`        serving the friendly media tree, thumbnails, and the role ->
                 slot mapping the Timeline renders from
-`timeline.py`   the grouped day view and one event's stored detail
-`pets.py`       pet CRUD, reference face photos, and the cloud import
-`ble.py`        the BLE accessories: pairing, commands, cloud import
-`patchers.py`   applying and removing the on-device binary patches
-`logs.py`       the live event ring and WebSocket, the capture browser and the
+`timeline/`     the grouped day view and one event's stored detail
+`pets/`         pet CRUD, reference face photos, and the cloud import
+`ble/`          the BLE accessories: pairing, commands, cloud import
+`patchers/`     applying and removing the on-device binary patches
+`logs/`         the live event ring and WebSocket, the capture browser and the
                 uploaded device logs
 
 The route table is NOT here. `web/panel.py` registers all of it in one
 function, because three of the registrations are ordering-critical (the media
 thumb route, `/api/pets/unbound`, `/api/devicelogs`) and that is only checkable
-while they sit together. Nothing in this package imports `panel.py` at module
-scope, so the dependency runs one way; the two handlers that do need something
-from it import it inside the call and say why.
+while they sit together. Nothing here imports `web/` at all; what the panel
+owns and a feature needs (the asset hash, the background-task set) reaches it
+through `shared/`.
 
 The panel's JS consumes the exact key names these handlers emit, so response
 shapes are a contract: adding a key is safe, renaming or removing one is not.

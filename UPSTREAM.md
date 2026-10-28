@@ -38,6 +38,7 @@ the touched files. Bump the synced commit in the table above in the same commit.
 | `events/store.py` | split by table: `events/store.py` (events, timeline), `store_base.py` (connection, migration, write lock), `store_media.py` (media, stitching), `store_pets.py` (pets, faces, reported identities), `store_blocked_attempts.py`. Port a hunk to the file holding its section header. |
 | `ha/commands.py` | value coercion (`_coerce_*`, `_select_value`, bounds) moved to `ha/command_values.py`, re-exported |
 | `mqtt/bridge.py` | `_user_get_payload` body moved to `mqtt/user_get.py::user_get_payload` |
+| `web/api/<x>.py` | `features/<x>/routes.py` (`settings.py` → `features/setup/`); `_common.py` → `shared/panel_request.py`; `web/appkeys.py` → `shared/appkeys.py`. Shared helpers split out: `shared/media_slots.py`, `shared/live_settings.py`, `shared/background_tasks.py`; sound storage → `devices/sound_store.py` |
 
 ## Rename table
 

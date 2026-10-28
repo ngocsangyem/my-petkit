@@ -1,7 +1,7 @@
 """What more than one of the panel's API modules needs.
 
 Two kinds of thing live here. The first is the reading end of the `app[...]`
-contract (`web/appkeys.py`) plus the request parsers every handler starts with:
+contract (`shared/appkeys.py`) plus the request parsers every handler starts with:
 the `{id}` segment, the JSON body, `?limit=`, and the JSON refusal they raise.
 The second is the handful of helpers two endpoints must not answer differently
 — `_deliver` (the MQTT-or-heartbeat fallback every panel write takes) and the
@@ -20,7 +20,7 @@ from aiohttp import web
 from my_petkit.devices.base import Device, split_bucket_authority
 from my_petkit.http.proxy import resolve_upstream
 from my_petkit.utils.coerce import to_int
-from my_petkit.web.appkeys import CFG, LIVE_CONFIG, PET_REGISTRY, REGISTRY
+from my_petkit.shared.appkeys import CFG, LIVE_CONFIG, PET_REGISTRY, REGISTRY
 
 log = logging.getLogger(__name__)
 

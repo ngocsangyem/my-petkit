@@ -20,9 +20,9 @@ from my_petkit.utils.coerce import to_int
 from my_petkit.utils.const import device_display_name
 from my_petkit.utils import clock
 from my_petkit.utils.timeutil import local_day_bounds
-from my_petkit.web.api._common import _pet_fields, _pets_by_id
-from my_petkit.web.api.media import _has_media, _session_media_urls
-from my_petkit.web.appkeys import CFG, EVENT_STORE, REGISTRY
+from my_petkit.shared.panel_request import _pet_fields, _pets_by_id
+from my_petkit.shared.media_slots import _has_media, _session_media_urls
+from my_petkit.shared.appkeys import CFG, EVENT_STORE, REGISTRY
 
 
 async def api_timeline(request: web.Request) -> web.Response:

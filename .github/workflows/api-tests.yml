@@ -66,6 +66,9 @@ jobs:
           python ../../scripts/golden_device_responses.py --against-self --tz UTC --tz Pacific/Kiritimati
           python ../../scripts/golden_device_responses.py --against-self --zone Asia/Saigon --tz UTC --tz Pacific/Kiritimati
 
+      - name: import boundaries (import-linter)
+        run: lint-imports
+
       - name: ruff (baseline gate)
         run: python ../../scripts/lint-baseline-gate.py ruff ruff ruff-baseline.txt src tests
 

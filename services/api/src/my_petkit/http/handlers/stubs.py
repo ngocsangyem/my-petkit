@@ -34,7 +34,7 @@ from my_petkit.http.handlers._common import (
 )
 from my_petkit.media.crypto import resolve_key_string as _get_aes_key
 from my_petkit.utils.capture import capture_record
-from my_petkit.web.api.sounds import sound_list_for_device
+from my_petkit.devices.sound_store import sound_list_for_device
 
 
 async def handle_sync_time(request: web.Request) -> web.Response:
@@ -250,7 +250,12 @@ async def handle_sound_get(request: web.Request) -> web.Response:
     bucket_endpoint = config.get("bucket_endpoint", "")
     device = request_device(request)
     if device and bucket_endpoint:
-        sounds = sound_list_for_device(request, device.petkit_id, bucket_endpoint)
+        # Reads the PANEL app's "cfg" key on the DEVICE app, which has none, so
+        # this raises and `never_fail_middleware` answers an empty list: no
+        # uploaded sound ever reaches a device. Kept as is until the fix is
+        # approved, because the device would then receive different bytes.
+        data_dir = request.app["cfg"].get("data_dir", "/data")
+        sounds = sound_list_for_device(data_dir, device.petkit_id, bucket_endpoint)
         if sounds:
             return web.json_response({"result": sounds})
     return web.json_response({"result": []})

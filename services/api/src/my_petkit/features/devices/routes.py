@@ -29,10 +29,10 @@ from my_petkit.utils.coerce import to_float
 from my_petkit.utils.timeutil import offset_hours_for_locale
 from my_petkit.utils.const import device_display_name
 from my_petkit.utils.dicts import dig_path
-from my_petkit.web.api._common import (
+from my_petkit.shared.panel_request import (
     _deliver, _device_log_reason, _device_or_404, _json_body,
 )
-from my_petkit.web.appkeys import (
+from my_petkit.shared.appkeys import (
     BLE_REGISTRY, BRIDGE, GO2RTC, HA_PUBLISHER, HUB, MQTT_BROKER, REGISTRY,
 )
 

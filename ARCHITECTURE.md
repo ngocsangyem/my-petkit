@@ -46,7 +46,9 @@ my_petkit/
 │                  store.py SQLAlchemy async (+ store_base/media/pets/blocked_attempts) · models.py · migrations.py
 ├── media/         pipeline.py decrypt -> remux -> path -> row · stitch.py joins ~4s chunks
 │                  crypto · transcode · layout · retention · go2rtc
-├── web/           panel.py the application + the whole route table · api/ the JSON handlers
+├── features/      the user plane, one package per feature (routes.py each); never import each other
+├── shared/        what several features need: appkeys, request helpers, media slots, live settings
+├── web/           panel.py the composition root: the application + the whole route table · hub
 │                  appkeys.py the app[...] contract · hub.py event ring/WS · static/ · templates/
 ├── patchers/      on-device patches: cacert · mqtt · cloud · camera · ssh
 ├── ai/pets.py     pet CRUD + the face photos the device's NPU matches against

@@ -50,7 +50,7 @@ class Refused(ValueError):
 
     Lives here rather than in `ha/commands.py` because a BLE accessory refuses
     writes too (`devices/ble/`), and `devices/` cannot import `ha/`. Two
-    classes of one name reaching the same `except` in `web/api/` is the
+    classes of one name reaching the same `except` in `features/` is the
     trap this avoids.
     """
 
@@ -70,7 +70,7 @@ def encode_multi_range(key: str, value: Any) -> str:
 
     `schedule` is NOT this shape, despite travelling the same way: it is a
     plain JSON string of the array, with no wrapping key. See
-    `web/api/schedules.py::api_save_schedule`.
+    `features/schedules/routes.py::api_save_schedule`.
     """
     return json.dumps({key: value}, separators=(",", ":"))
 
@@ -348,7 +348,7 @@ class Device:
         watermarks — the firmware does not take its clock from this response.
         It CAN be fixed without re-provisioning, though: a `property.set`
         carrying `timezone` as a JSON STRING moves it, verified on a live T5.
-        `web/api/devices.py::api_timezone` is the path that does both, and the
+        `features/devices/routes.py::api_timezone` is the path that does both, and the
         string is not a detail — see the note there.
         """
         override = to_float(self.config.get("timezone"), None)

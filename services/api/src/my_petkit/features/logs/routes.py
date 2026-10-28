@@ -24,11 +24,11 @@ from aiohttp import web
 
 from my_petkit.utils.coerce import to_int
 from my_petkit.utils.paths import UnsafePathError, safe_join
-from my_petkit.web.api._common import (
+from my_petkit.shared.panel_request import (
     MAX_CAPTURE_LIMIT, MAX_EVENT_LIMIT, _device_log_reason, _device_log_root, _limit_param,
 )
-from my_petkit.web.api.settings import _current_settings
-from my_petkit.web.appkeys import CFG, HUB, REGISTRY
+from my_petkit.shared.live_settings import _current_settings
+from my_petkit.shared.appkeys import CFG, HUB, REGISTRY
 
 log = logging.getLogger(__name__)
 

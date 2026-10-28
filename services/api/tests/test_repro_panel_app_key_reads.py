@@ -1,7 +1,7 @@
 """Panel handlers must read collaborators under the keys the panel stores them.
 
 `create_panel_app` stores the event hub as `hub` and the HA publisher as
-`ha_publisher` (`web/appkeys.py`). The sound handlers once read `event_hub`, and
+`ha_publisher` (`shared/appkeys.py`). The sound handlers once read `event_hub`, and
 device delete `publisher` and `event_hub` — keys the panel app never sets, so
 each `.get` was silently None. These pin the wired behaviour end to end.
 """

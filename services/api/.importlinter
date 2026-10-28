@@ -1,0 +1,50 @@
+# Dependency rules for the my_petkit package (docs/code-standards.md, part A3).
+# Run from services/api: `lint-imports`. Imports under `if TYPE_CHECKING:` are
+# annotations only and do not count.
+[importlinter]
+root_package = my_petkit
+exclude_type_checking_imports = True
+
+[importlinter:contract:protocol-core-is-standalone]
+name = Protocol core never imports the user plane or the composition root
+type = forbidden
+source_modules =
+    my_petkit.ai
+    my_petkit.config
+    my_petkit.devices
+    my_petkit.events
+    my_petkit.ha
+    my_petkit.http
+    my_petkit.media
+    my_petkit.mqtt
+    my_petkit.patchers
+    my_petkit.utils
+forbidden_modules =
+    my_petkit.features
+    my_petkit.shared
+    my_petkit.web
+
+[importlinter:contract:features-are-independent]
+name = User-plane features do not import one another
+type = independence
+modules =
+    my_petkit.features.ble
+    my_petkit.features.devices
+    my_petkit.features.logs
+    my_petkit.features.media
+    my_petkit.features.patchers
+    my_petkit.features.pets
+    my_petkit.features.schedules
+    my_petkit.features.setup
+    my_petkit.features.sounds
+    my_petkit.features.talk
+    my_petkit.features.timeline
+
+[importlinter:contract:features-do-not-import-the-composition-root]
+name = Features and shared helpers never import web/ (the composition root)
+type = forbidden
+source_modules =
+    my_petkit.features
+    my_petkit.shared
+forbidden_modules =
+    my_petkit.web

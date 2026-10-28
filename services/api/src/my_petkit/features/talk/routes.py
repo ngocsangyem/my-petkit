@@ -15,7 +15,7 @@ import aiohttp
 from aiohttp import web
 
 from my_petkit.patchers.common import TALK_TCP_PORT
-from my_petkit.web.appkeys import REGISTRY
+from my_petkit.shared.appkeys import REGISTRY
 
 
 async def api_talk(request: web.Request) -> web.WebSocketResponse:

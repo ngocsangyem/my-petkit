@@ -17,6 +17,9 @@ dependencies = [
     # [asyncio] pulls in greenlet, which SQLAlchemy's async engine needs to
     # bridge its synchronous internals — without it every await raises.
     "SQLAlchemy[asyncio]>=2.0,<3",
+    # The IANA zone database as a package: `zoneinfo` otherwise relies on the
+    # OS copy, which slim and musl images and some CI runners do not ship.
+    "tzdata>=2024.1",
     "aiosqlite>=0.19",
     "Jinja2>=3.1",
     "aiohttp-jinja2>=1.6",
@@ -30,6 +33,7 @@ dev = [
     "mypy>=1.10",
     "pip-audit>=2.7",
     "hypothesis>=6.100",
+    "import-linter>=2.1",
 ]
 
 [project.urls]
