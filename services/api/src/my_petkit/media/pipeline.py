@@ -193,7 +193,8 @@ async def _gallery_index(store: EventStore, row: dict) -> int | None:
     if category not in _GALLERY_CATEGORIES or not row.get("related_event"):
         return None
     siblings = sorted(
-        (m for m in await store.media_for_related_event(row["related_event"])
+        (m for m in await store.media_for_related_event(row["related_event"],
+                                                         row.get("device_id"))
          if m.get("category") == category),
         key=lambda m: m.get("created_at") or 0,
     )
@@ -281,14 +282,14 @@ async def process_file_info(device: Device, info: dict, config: dict, store: Eve
 
     pet_name = None
     if pet_registry is not None and row.get("related_event"):
-        pet = await pet_registry.pet_for_related_event(row["related_event"])
+        pet = await pet_registry.pet_for_related_event(row["related_event"], row.get("device_id"))
         if pet:
             pet_name = pet.get("name")
 
     flags = {k: info.get(k) for k in ("petEvent", "toiletEvent", "cleanEvent", "cvrEvent")}
     event_kind = None
     if not any(flags.values()) and row.get("related_event"):
-        paired = await store.event_by_related(row["related_event"])
+        paired = await store.event_by_related(row["related_event"], row.get("device_id"))
         if paired:
             event_kind = paired.get("event_kind")
     label = layout.media_filename_label(flags, event_kind)

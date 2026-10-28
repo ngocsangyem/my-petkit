@@ -217,7 +217,7 @@ async def test_stitch_episode_end_to_end_replaces_chunks_and_keeps_one_playable_
             assert not os.path.exists(p) or p == out
         rows = await store.media_for_retention("fullVideo")
         assert len(rows) == 1
-        assert rows[0]["file_id"] == "stitched:epE:fullVideo"
+        assert rows[0]["file_id"] == "stitched:1:epE:fullVideo"
         assert rows[0]["media_path"] == out
         assert await stitch.verify_video(out, expected_duration_sec=3.0) is True
 
@@ -250,7 +250,7 @@ async def test_late_chunks_extend_the_stitched_clip_with_real_ffmpeg():
 
         assert out is not None
         rows = await store.media_for_retention("fullVideo")
-        assert [(r["file_id"], r["media_path"]) for r in rows] == [("stitched:epX:fullVideo", out)]
+        assert [(r["file_id"], r["media_path"]) for r in rows] == [("stitched:1:epX:fullVideo", out)]
         assert rows[0]["duration_ms"] == 4000
         assert await stitch.verify_video(out, expected_duration_sec=4.0) is True
 
@@ -353,7 +353,7 @@ async def test_stitch_episode_excludes_mismatched_chunk_but_keeps_its_file():
         # the odd one out survives untouched...
         assert os.path.isfile(odd), "excluded chunk must not be deleted"
         rows = {r["file_id"]: r for r in await store.media_for_retention("fullVideo")}
-        assert "stitched:epX:fullVideo" in rows
+        assert "stitched:1:epX:fullVideo" in rows
         odd_row = next(r for fid, r in rows.items() if r["media_path"] == odd)
         assert odd_row["stitch_state"] == "excluded-stream-mismatch"
         # ...and the join covers only the 3 consistent chunks

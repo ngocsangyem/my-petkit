@@ -145,18 +145,20 @@ class EventStore(MediaQueries, PetQueries, BlockedAttemptQueries, StoreBase):
                 execution_options=_NO_SYNC)
         return True
 
-    async def event_by_related(self, related_event: str) -> dict[str, Any] | None:
+    async def event_by_related(self, related_event: str,
+                               device_id: int | None = None) -> dict[str, Any] | None:
         """Most recent event sharing this related_event (session) id.
 
         Used to recover an `event_kind` label for media that arrives without
-        its own content flags (see media/pipeline.py).
+        its own content flags (see media/pipeline.py). Pass `device_id`: a
+        session id is only unique within one device, so without it another
+        device's visit can lend its label or pet.
         """
+        query = select(Event).where(Event.related_event == related_event)
+        if device_id is not None:
+            query = query.where(Event.device_id == device_id)
         async with self._read() as session:
-            obj = await session.scalar(
-                select(Event)
-                .where(Event.related_event == related_event)
-                .order_by(Event.ts.desc())
-                .limit(1))
+            obj = await session.scalar(query.order_by(Event.ts.desc()).limit(1))
             return obj.as_dict() if obj else None
 
     async def prune_events(self, before_ts: float) -> int:

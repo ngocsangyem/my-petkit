@@ -279,6 +279,12 @@ reviewer can find every place the suite was touched.
 - added: tests/test_repro_media_file_info_resend.py::test_a_ready_row_whose_file_is_gone_is_processed_again
 - added: tests/test_ingest_endpoints.py::test_a_replayed_upload_file_info_answers_success_and_keeps_the_item_ready
 
+### Session lookups scoped to the device (completes per-device event identity)
+
+- added: tests/test_session_lookups_are_scoped_to_the_device.py::test_event_lookup_by_session_ignores_another_devices_event
+- added: tests/test_session_lookups_are_scoped_to_the_device.py::test_media_lookup_by_session_ignores_another_devices_media
+- added: tests/test_session_lookups_are_scoped_to_the_device.py::test_stitched_clip_ids_differ_per_device
+
 ## Removed
 
 None.
@@ -302,4 +308,5 @@ None.
 | `test_repro_media_late_chunks_after_stitch.py` | strict xfail removed: late chunks now extend the episode's existing stitched clip in one swap, so the reproduction is a regular test | repro promoted to regular test | bugfix |
 | `test_repro_panel_media_raw_dir.py` | strict xfail removed: the panel media routes refuse any dot-prefixed component of the resolved path, so the reproduction is a regular test | repro promoted to regular test | bugfix |
 | `test_repro_stitch_failure_keeps_chunks.py::test_successful_stitch_never_overwrites_a_source_and_then_removes_them` | asserts the move-in name is free of every source, and that the clip then takes the first chunk's (preferred) name once the sources are deleted | behaviour refined per the approved fix | 04 |
+| `test_media_stitch.py` (3 tests: end-to-end, late-chunk real ffmpeg, mismatched chunk) | expected stitched `file_id` now carries the device id (`stitched:1:<session>:<category>`) | behaviour change per the approved per-device identity fix | 04 |
 | `test_repro_media_file_info_resend.py` | strict xfail removed: a replayed file_info no longer moves a ready row with its file on disk out of `ready`, so the reproduction is a regular test | repro promoted to regular test | bugfix |

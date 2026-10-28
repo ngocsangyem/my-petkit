@@ -337,7 +337,16 @@ def _episode_slug(episode: dict) -> str:
 
 
 def _merged_file_id(episode: dict) -> str:
-    """The `file_id` of an episode's stitched row: one per visit and stream."""
+    """The `file_id` of an episode's stitched row: one per device, visit and stream.
+
+    The device id is part of it because a session id is only unique within one
+    device; two devices sharing one would otherwise fight over a single row.
+    """
+    return f"stitched:{episode['device_id']}:{episode['related_event']}:{episode['category']}"
+
+
+def _legacy_merged_file_id(episode: dict) -> str:
+    """The id stitched rows had before it carried the device, still read back."""
     return f"stitched:{episode['related_event']}:{episode['category']}"
 
 
@@ -350,7 +359,8 @@ async def _previous_clip(store: EventStore, episode: dict) -> dict | None:
     and the stitched row's `file_id` is unique per episode. A row of another
     device that merely shares the `related_event` is not ours to extend.
     """
-    row = await store.get_media_by_file_id(_merged_file_id(episode))
+    row = (await store.get_media_by_file_id(_merged_file_id(episode))
+           or await store.get_media_by_file_id(_legacy_merged_file_id(episode)))
     if (row is None or row.get("stitch_state") != "stitched"
             or row.get("device_id") != episode["device_id"]):
         return None
@@ -367,7 +377,7 @@ async def _merged_path(store: EventStore, episode: dict, first: dict, media_root
     otherwise read a file it is writing) and `_move_into_place` takes the next
     free variant of it rather than overwriting a source.
     """
-    event = await store.event_by_related(episode["related_event"])
+    event = await store.event_by_related(episode["related_event"], episode["device_id"])
     label = layout.media_filename_label(None, event.get("event_kind") if event else None)
     return layout.build_media_path(
         media_root, device_type, episode["device_id"], episode["category"],

@@ -72,18 +72,20 @@ class MediaQueries(StoreBase):
             obj = await session.scalar(select(Media).where(Media.file_id == file_id))
             return obj.as_dict() if obj else None
 
-    async def media_for_related_event(self, related_event: str) -> list[dict[str, Any]]:
+    async def media_for_related_event(self, related_event: str,
+                                      device_id: int | None = None) -> list[dict[str, Any]]:
         """Every media row of one session, in arrival order.
 
         Arrival order is what makes a burst (waste/health gallery) render in
         the order the device shot it, and what lets `media/stitch.py` see
-        video chunks in sequence.
+        video chunks in sequence. Pass `device_id`: a session id is only
+        unique within one device.
         """
+        query = select(Media).where(Media.related_event == related_event)
+        if device_id is not None:
+            query = query.where(Media.device_id == device_id)
         async with self._read() as session:
-            rows = await session.scalars(
-                select(Media)
-                .where(Media.related_event == related_event)
-                .order_by(Media.created_at))
+            rows = await session.scalars(query.order_by(Media.created_at))
             return [r.as_dict() for r in rows]
 
     async def latest_media(self, device_id: int,

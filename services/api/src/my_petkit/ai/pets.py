@@ -370,12 +370,13 @@ class PetRegistry:
                 return pet["id"]
         return None
 
-    async def pet_for_related_event(self, related_event: str) -> dict | None:
+    async def pet_for_related_event(self, related_event: str,
+                                    device_id: int | None = None) -> dict | None:
         """Best-effort pet lookup for a visit session — used by
         media/pipeline.py to append `· {Pet}` to friendly filenames. Reads
         the most recent event sharing this related_event and its attributed
         pet_id, if any (see events/ingest.py's `pet_id` extraction)."""
-        event = await self._store.event_by_related(related_event)
+        event = await self._store.event_by_related(related_event, device_id)
         if not event or event.get("pet_id") is None:
             return None
         return await self.get(event["pet_id"])
