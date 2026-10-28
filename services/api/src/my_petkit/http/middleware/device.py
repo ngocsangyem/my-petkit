@@ -13,6 +13,7 @@ from urllib.parse import parse_qs
 from aiohttp import web
 
 from my_petkit.http.middleware import Handler
+from my_petkit.http.middleware.body import request_body
 
 
 def parse_x_device(header: str) -> dict | None:
@@ -53,10 +54,8 @@ async def parse_form_body(request: web.Request) -> dict[str, str]:
     Read here rather than in the handlers so `_common.py`'s accessors stay
     synchronous and every endpoint gets it at once, exactly as `X-Device` is.
 
-    Costs nothing: `logging_middleware` already reads the body of every POST
-    under `/6/`, and aiohttp caches it, so this is the same bytes a second time.
-    It cannot starve `proxy_middleware` either -- that copies the body into a
-    local before calling the handler.
+    Costs nothing: `body_middleware` has already read the body once and kept
+    it, so this parses those same bytes and never touches the stream.
 
     Never raises. A body that is not urlencoded, not decodable, or simply
     absent yields {}, which reads the same as a device that sent nothing.
@@ -66,10 +65,7 @@ async def parse_form_body(request: web.Request) -> dict[str, str]:
     ctype = request.headers.get("Content-Type", "")
     if "application/x-www-form-urlencoded" not in ctype.lower():
         return {}
-    try:
-        raw = await request.read()
-    except Exception:  # noqa: BLE001 - a body we cannot read is a body we ignore
-        return {}
+    raw = await request_body(request)
     if not raw:
         return {}
     try:

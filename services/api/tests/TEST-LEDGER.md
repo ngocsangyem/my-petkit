@@ -306,6 +306,14 @@ reviewer can find every place the suite was touched.
 - added: tests/test_device_command_queue_bound.py::test_pop_commands_still_drains_everything_oldest_first
 - added: tests/test_device_command_queue_bound.py::test_nothing_outside_the_device_model_appends_to_the_queue_directly
 
+### A device request body is read once; one too large to read whole is dropped and logged, never handled truncated
+
+- added: tests/test_device_request_body_read_once.py::test_a_two_mib_event_report_is_parsed_whole
+- added: tests/test_device_request_body_read_once.py::test_a_body_over_the_limit_is_dropped_logged_and_answered_success
+- added: tests/test_device_request_body_read_once.py::test_the_device_limit_is_above_aiohttps_default_and_below_the_buckets
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[http/middleware/body.py]
+  — the new `http/middleware/body.py` gains the per-module clock check's ID.
+
 ## Removed
 
 None.

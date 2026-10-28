@@ -18,6 +18,7 @@ from aiohttp import web
 
 from my_petkit.http.handlers._common import device_id, request_device
 from my_petkit.http.middleware import API_PREFIX, PROXY_OUTCOME, Handler
+from my_petkit.http.middleware.body import BODY_DROPPED, REQUEST_BODY
 from my_petkit.utils.capture import capture_record
 
 log = logging.getLogger(__name__)
@@ -61,19 +62,14 @@ async def logging_middleware(request: web.Request, handler: Handler) -> web.Stre
     resolved device — firing the app's ``on_device_seen`` callback if that
     request is what brought it back online.
     """
-    # Pre-read the request body for POST/PUT so we can surface it in the panel
-    # log. aiohttp caches the payload, so the handler still reads it normally.
-    req_body = None
-    if request.method in ("POST", "PUT", "PATCH") and request.path.startswith(API_PREFIX):
-        try:
-            raw = await request.read()
-            if raw:
-                req_body = raw.decode("utf-8", "replace")
-        except Exception:
-            req_body = None
-
     resp = await handler(request)
     if request.path.startswith(API_PREFIX):
+        # The copy `body_middleware` read, inside this one and before anything
+        # else touched it. Not read here: only the first read of an oversized
+        # body can tell it was cut short, so a read here would hand every later
+        # reader a truncated tail.
+        raw = request.get(REQUEST_BODY)
+        req_body = raw.decode("utf-8", "replace") if raw else None
         dt = request.get("device_type", "?")
         pid = request.get("x_device", {}).get("id", "?")
         log.info("%s %s [%s id=%s] -> %d", request.method, request.path, dt, pid, resp.status)
@@ -100,6 +96,8 @@ async def logging_middleware(request: web.Request, handler: Handler) -> web.Stre
             # the entry rather than published separately — see `_note_outcome`.
             if PROXY_OUTCOME in request:
                 detail["proxy"] = request[PROXY_OUTCOME]
+            if BODY_DROPPED in request:
+                detail["body_dropped"] = request[BODY_DROPPED]
             hub.record_http(did, request.method, request.path, resp.status, detail=detail)
 
         config = request.app.get("config", {})
