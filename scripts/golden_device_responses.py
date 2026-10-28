@@ -27,6 +27,8 @@ import tempfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
+#: The configured `timezone` the scenarios run with (`--zone`); "" leaves it unset.
+ZONE = ""
 SCENARIOS = Path(__file__).resolve().parent / "golden_scenarios.py"
 
 
@@ -41,6 +43,7 @@ def emit(src_dir: Path, out: Path, tz: str, data_dir: Path) -> None:
     with tempfile.TemporaryDirectory(prefix="golden-cwd-") as scratch:
         shutil.rmtree(data_dir, ignore_errors=True)
         env = {**os.environ, "PYTHONPATH": str(src_dir), "GOLDEN_SRC": str(src_dir), "TZ": tz,
+               "GOLDEN_ZONE": ZONE,
                "PYTHONHASHSEED": "0"}
         result = subprocess.run(  # noqa: S603 - argv built from constants and paths
             [sys.executable, str(SCENARIOS), str(out), str(data_dir)],
@@ -62,8 +65,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--against", help="git ref to compare the working tree with")
     parser.add_argument("--emit", type=Path, help="write the working tree's output here")
-    parser.add_argument("--tz", action="append", default=None, help="timezone(s) to run under")
+    parser.add_argument("--tz", action="append", default=None, help="host timezone(s) to run under")
+    parser.add_argument("--zone", default="", help="configured `timezone` for the scenarios")
+    parser.add_argument("--against-self", action="store_true",
+                        help="compare the working tree with itself across --tz values "
+                             "(proves output does not depend on the host zone)")
     args = parser.parse_args()
+    global ZONE  # noqa: PLW0603 - read by emit() for the child environment
+    ZONE = args.zone
     zones = args.tz or ["UTC", "Asia/Saigon"]
     current_src = REPO / "services" / "api" / "src"
 
@@ -71,8 +80,25 @@ def main() -> int:
         with tempfile.TemporaryDirectory(prefix="golden-data-") as data:
             emit(current_src, args.emit, zones[0], Path(data) / "data")
         return 0
+    if args.against_self:
+        outputs = []
+        with tempfile.TemporaryDirectory(prefix="golden-") as tmp:
+            for tz in zones:
+                out = Path(tmp) / f"{tz.replace('/', '_')}.json"
+                emit(current_src, out, tz, Path(tmp) / "data")
+                outputs.append((tz, out.read_text()))
+        first_tz, first = outputs[0]
+        for tz, text in outputs[1:]:
+            if text != first:
+                print(f"golden: output under TZ={tz} differs from TZ={first_tz} (zone={ZONE!r})")
+                sys.stdout.writelines(difflib.unified_diff(
+                    first.splitlines(keepends=True), text.splitlines(keepends=True),
+                    f"TZ={first_tz}", f"TZ={tz}"))
+                return 1
+        print(f"golden: identical across host zones {zones} with zone={ZONE!r}")
+        return 0
     if not args.against:
-        parser.error("--against or --emit is required")
+        parser.error("--against, --against-self or --emit is required")
 
     status = 0
     with tempfile.TemporaryDirectory(prefix="golden-") as tmp:

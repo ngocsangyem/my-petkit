@@ -55,11 +55,16 @@ jobs:
       - name: pytest
         run: python -m pytest -q
 
-      - name: golden device responses (vs phase-02-baseline)
+      - name: golden device responses (vs phase-04-approved)
         # Every byte handed to a device or to Home Assistant must match the
-        # imported baseline under two timezones, except changes approved and
-        # declared by moving the baseline tag forward.
-        run: python ../../scripts/golden_device_responses.py --against phase-02-baseline --tz UTC --tz Asia/Saigon
+        # last approved baseline. An approved behaviour change moves the tag
+        # in the same PR, with the reason in the commit.
+        run: python ../../scripts/golden_device_responses.py --against phase-04-approved --tz UTC --tz Asia/Saigon
+
+      - name: golden output does not depend on the host zone
+        run: |
+          python ../../scripts/golden_device_responses.py --against-self --tz UTC --tz Pacific/Kiritimati
+          python ../../scripts/golden_device_responses.py --against-self --zone Asia/Saigon --tz UTC --tz Pacific/Kiritimati
 
       - name: ruff (baseline gate)
         run: python ../../scripts/lint-baseline-gate.py ruff ruff ruff-baseline.txt src tests

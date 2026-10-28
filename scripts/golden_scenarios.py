@@ -92,6 +92,11 @@ DEVICE_ENDPOINTS = [
     "dev_discern_pic", "dev_upload_log_token", "dev_state_report", "dev_event_report",
     "dev_attire_over", "dev_upload_file_info_v2",
 ]
+USER_GET_TYPES = ["dev_device_info", "dev_multi_config", "dev_serverinfo", "dev_schedule_get",
+                  "dev_feed_get", "dev_ble_device"]
+FEED_SCHEDULE = {"v": 2, "schedule": [{"re": "1,2,3,4,5,6,7", "it": [
+    {"id": "n_28800", "t": 28800, "a1": 1, "a2": 0},
+    {"id": "n_64800", "t": 64800, "a1": 2, "a2": 0}]}]}
 STATE_BODY = {"workState": 1, "sandPercent": 55, "usedTimes": 9, "locale": "Asia/Saigon",
               "timezone": 7.0, "wifi": {"ssid": "ExampleNet", "rsq": -50, "bssid": "000000000000"}}
 EVENT_BODY = {"event_type": 10, "event_id": "golden-1", "timestamp": int(FIXED_NOW),
@@ -115,6 +120,10 @@ def _services(data_dir: str) -> Any:
     from my_petkit.main.wiring import build_services
 
     config = Config(api_url="http://192.0.2.55/6/", data_dir=data_dir)
+    # The operator's zone, when this version of the package has the setting.
+    zone = os.environ.get("GOLDEN_ZONE", "")
+    if zone and "timezone" in Config.__dataclass_fields__:
+        config.timezone = zone
     config.resolve_bucket_endpoint()
     services = build_services(config, argparse.Namespace(no_ha=False, no_mqtt=False, ha_addon=False))
     for client_owner in (services.ha_publisher, services.mqtt_bridge):
@@ -185,6 +194,14 @@ async def _mqtt(dtypes: list[str], data_dir: str) -> dict[str, Any]:
                 await bridge._handle_message(FakeMessage(topic, json.dumps(payload).encode()))
             user_get = f"/{dev.mqtt_product_key}/{dev.mqtt_device_name}/user/get"
             await bridge._handle_message(FakeMessage(user_get, b'{"id":"9","params":{"dataType":"feed"}}'))
+            # Every resource a device can ask for over MQTT, with a stored feed
+            # schedule so dev_feed_get has something to answer.
+            dev.config["feed_schedule"] = FEED_SCHEDULE
+            data_get = f"/sys/{dev.mqtt_product_key}/{dev.mqtt_device_name}/thing/event/data_get/post"
+            for data_type in USER_GET_TYPES:
+                body = json.dumps({"id": data_type, "params": {"dataType": data_type},
+                                   "method": "thing.event.data_get.post"})
+                await bridge._handle_message(FakeMessage(data_get, body.encode()))
         finally:
             await services.event_store.close()
         out[dtype] = bridge._client.published
