@@ -10,14 +10,20 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import json
+import logging
 
 import aiohttp
 from aiohttp import web
 
 from my_petkit.patchers.common import TALK_TCP_PORT
 from my_petkit.shared.appkeys import REGISTRY
+from my_petkit.shared.tiers import Tier, tier
+from my_petkit.utils import outbound_guard
+
+log = logging.getLogger(__name__)
 
 
+@tier(GET=Tier.R2)
 async def api_talk(request: web.Request) -> web.WebSocketResponse:
     """Two-way talk: stream the browser microphone to the device speaker.
 
@@ -54,6 +60,13 @@ async def api_talk(request: web.Request) -> web.WebSocketResponse:
                             "msg": "device IP unknown — wait for a state report"})
         await ws.close()
         return ws
+    try:
+        talk_host = outbound_guard.authority(outbound_guard.check_device_target(device_ip))
+    except outbound_guard.OutboundRefused as e:
+        log.warning("talk: %s", e)
+        await ws.send_json({"type": "error", "msg": "device address refused"})
+        await ws.close()
+        return ws
 
     ffmpeg: asyncio.subprocess.Process | None = None
 
@@ -63,14 +76,18 @@ async def api_talk(request: web.Request) -> web.WebSocketResponse:
             return
         # Low-latency decode: the input is a live webm/opus stream, so keep
         # ffmpeg from buffering ahead before it starts emitting. Output goes
-        # straight to the device sink over TCP.
+        # straight to the device sink over TCP. The whitelists are per file:
+        # the input may only be our pipe, the output only the TCP sink, so a
+        # crafted stream cannot make ffmpeg open anything else. No size or
+        # duration cap: this is a live session that ends with the WebSocket.
         ffmpeg = await asyncio.create_subprocess_exec(
-            "ffmpeg", "-hide_banner", "-loglevel", "error",
+            "ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error",
             "-fflags", "nobuffer", "-flags", "low_delay",
             "-probesize", "32", "-analyzeduration", "0",
-            "-i", "pipe:0",
+            "-protocol_whitelist", "pipe", "-i", "pipe:0",
             "-ar", "16000", "-ac", "1", "-c:a", "aac", "-b:a", "48k",
-            "-f", "adts", f"tcp://{device_ip}:{TALK_TCP_PORT}",
+            "-protocol_whitelist", "tcp",
+            "-f", "adts", f"tcp://{talk_host}:{TALK_TCP_PORT}",
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.DEVNULL,
             stderr=asyncio.subprocess.DEVNULL,

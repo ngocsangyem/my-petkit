@@ -8,6 +8,7 @@ and whether a chunked video has been stitched yet or is still assembling.
 """
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import logging
 import os
@@ -18,6 +19,8 @@ from aiohttp import web
 from my_petkit.media.transcode import THUMB_TIMEOUT, have_ffmpeg, run_ffmpeg
 from my_petkit.utils.paths import UnsafePathError, safe_join
 from my_petkit.shared.appkeys import CFG
+from my_petkit.shared.request_auth import playlist_signer
+from my_petkit.shared.tiers import Tier, tier
 
 log = logging.getLogger(__name__)
 
@@ -51,6 +54,7 @@ def _safe_media_path(request: web.Request, rel_path: str) -> str | None:
     return candidate if os.path.isfile(candidate) else None
 
 
+@tier(GET=Tier.SIGNED_MEDIA)
 async def api_media_file(request: web.Request) -> web.StreamResponse:
     """Serve one file from the friendly media tree.
 
@@ -61,7 +65,19 @@ async def api_media_file(request: web.Request) -> web.StreamResponse:
     p = _safe_media_path(request, request.match_info["path"])
     if not p:
         return web.json_response({"error": "not found"}, status=404)
+    resign = playlist_signer(request)
+    if p.lower().endswith(".m3u8") and resign is not None:
+        # A player fetches the segments a playlist names WITHOUT this request's
+        # `?exp=&sig=`, so each segment URI gets a signature of its own.
+        text = await asyncio.to_thread(_read_text, p)
+        return web.Response(text=resign(text, request.path),
+                            content_type="application/vnd.apple.mpegurl")
     return web.FileResponse(p)
+
+
+def _read_text(path: str) -> str:
+    with open(path, encoding="utf-8", errors="replace") as f:
+        return f.read()
 
 
 async def _generate_video_thumb(video_path: str, thumb_path: str) -> bool:
@@ -101,6 +117,7 @@ async def _generate_video_thumb(video_path: str, thumb_path: str) -> bool:
             pass
 
 
+@tier(GET=Tier.SIGNED_MEDIA)
 async def api_media_thumb(request: web.Request) -> web.StreamResponse:
     """Serve a thumbnail for a media path: the image itself for stills, or a
     cached frame grab for video.

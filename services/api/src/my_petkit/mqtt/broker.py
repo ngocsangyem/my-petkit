@@ -188,7 +188,7 @@ async def start_broker(
     *,
     tls: bool = False,
     tls_port: int = 443,
-    plain_bind: str = "0.0.0.0",  # noqa: S104 - default kept from upstream
+    plain_bind: str = "127.0.0.1",
     tls_bind: str = "0.0.0.0",  # noqa: S104
     certfile: str = "",
     keyfile: str = "",

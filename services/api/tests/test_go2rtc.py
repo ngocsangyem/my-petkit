@@ -8,6 +8,7 @@ from aiohttp.test_utils import TestClient, TestServer
 from my_petkit.devices.base import Device
 from my_petkit.devices.registry import DeviceRegistry
 from my_petkit.media import go2rtc as g
+from my_petkit.utils import outbound_guard
 
 
 @pytest.fixture(autouse=True)
@@ -17,6 +18,14 @@ def _binary_present(monkeypatch):
     monkeypatch.setattr(g, "_have_go2rtc_cache", True)
     yield
     g._have_go2rtc_cache = None
+
+
+@pytest.fixture(autouse=True)
+def _guard_admits_the_test_servers(monkeypatch):
+    """These tests are about the sidecar, not the outbound guard
+    (`test_outbound_guard_ssrf.py`): admit their TEST-NET and loopback
+    addresses as if a registered device had reported them."""
+    monkeypatch.setattr(outbound_guard, "check_device_target", lambda host: str(host))
 
 
 def _registry(*devices):

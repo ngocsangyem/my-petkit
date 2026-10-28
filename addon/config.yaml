@@ -29,21 +29,24 @@ arch:
   - armv7
 # Device-facing ports. The device speaks plain HTTP to the API and MQTT over
 # TLS on 443 (confirmed for both ESP32 and Ingenic from a real capture).
-# The embedded broker's plain listener (1883) is internal-only for the bridge
-# and is intentionally NOT mapped to the host, so it never clashes with the
-# Mosquitto add-on. 443 must be free on the host (HA usually runs on 8123).
+# The embedded broker's plain listener (1883) is internal-only for the bridge:
+# it binds loopback and is intentionally NOT mapped to the host, so it never
+# clashes with the Mosquitto add-on. 443 must be free on the host (HA usually
+# runs on 8123).
 ports:
   80/tcp: 80
   443/tcp: 443
   1883/tcp: null
   8099/tcp: null
+  8443/tcp: 8443
   8554/tcp: null
   9000/tcp: 9000
 ports_description:
   80/tcp: "PetKit device API (plain HTTP). A remap is honoured — the host port is put in the address devices are handed — but prefer host 80 anyway: a device redirected by DNS dials 80 with nowhere to tell it otherwise, and an ESP32 model provisioned with another port reaches Wi-Fi and then fails to reach the server."
   443/tcp: "PetKit device MQTT over TLS. Port is inferred from localkit; change mqtt_tls_port + this mapping if your device dials a different one (e.g. 1883)."
-  1883/tcp: "Optional: expose the plain MQTT listener (internal by default; map a host port only if a device connects plaintext)."
-  8099/tcp: "Optional: expose the web panel directly on the LAN (no HA auth) for debugging/curl. Leave unmapped to use auth-only Ingress."
+  1883/tcp: "Optional: expose the plain MQTT listener (loopback-only by default; for a device that connects plaintext, set mqtt_plain_expose and map a host port)."
+  8099/tcp: "Ingress port. Leave unmapped: Ingress reaches it internally, and a direct mapping only ever answers requests that carry a client token."
+  8443/tcp: "User plane over TLS (self-signed certificate, pinned by the iOS app through pairing). Every request needs the admin password or a paired client token. Change user_port + this mapping together."
   8554/tcp: "Camera RTSP, from the bundled go2rtc. Home Assistant reaches this over the internal network without a host port, so leave it unmapped unless you want the stream on your LAN. Mapping it to 8554 would clash with the go2rtc add-on."
   9000/tcp: "Local S3/OSS bucket — device uploads photos/videos/events here instead of PetKit cloud. Files appear in HA media browser."
 # Use the Supervisor MQTT service if it's available (Mosquitto add-on), but
@@ -84,6 +87,7 @@ options:
   mqtt_tls: true
   mqtt_tls_port: 443
   mqtt_strict_auth: false
+  user_port: 8443
   # NOTE: proxy mode and payload capture are deliberately NOT options here.
   # Both are debugging switches you flip while watching a device, so they live
   # in the panel's Setup -> Settings and persist to
@@ -100,13 +104,21 @@ schema:
   mqtt_tls: bool
   mqtt_tls_port: port
   mqtt_strict_auth: bool
+  user_port: port
+  # Host names (comma-separated) browsers may use to reach the user plane, for
+  # example the name of a reverse proxy in front of it. IP addresses and
+  # localhost are always allowed.
+  user_hosts: str?
   # Optional, unset by default (shown under "unused optional options"). Each
   # is the IP literal one listener binds: the device plane (API, bucket, MQTT
   # TLS), the plain MQTT listener (must include loopback for the internal
   # bridge), the web panel, and go2rtc's RTSP `host:port` / `:port`. The
-  # default for all of them is every interface, as before.
+  # default is every interface, except plain MQTT, which is loopback.
   device_bind_host: str?
   mqtt_plain_bind: str?
+  # Serve plain MQTT (1883) on every interface instead of loopback only, for a
+  # device that speaks plaintext MQTT. Off by default.
+  mqtt_plain_expose: bool?
   user_bind_host: str?
   rtsp_bind: str?
   # IANA zone for local time (e.g. Europe/Amsterdam). Empty uses the container's.

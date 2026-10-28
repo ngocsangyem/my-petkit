@@ -11,7 +11,6 @@ The field names here are not guesses. T4 firmware 1.652 parses the K3 payload
 key by key with a log line for each (`##########ENTRY Prase K3 info#########`),
 and `t4/dev_k3_device_info` is a literal string in the same image.
 """
-import json
 
 import pytest
 from aiohttp import web
@@ -24,6 +23,7 @@ from my_petkit.devices.registry import DeviceRegistry
 from my_petkit.http.server import create_app
 from my_petkit.web.hub import EventHub
 from my_petkit.web.panel import create_panel_app
+from tests.conftest_auth import authed_test_client
 
 HDR = {"X-Device": "id=10&sn=SN10"}
 DEVICE_CONFIG = {"api_url": "http://x/6/", "mqtt_port": 1883, "proxy_mode": False,
@@ -31,7 +31,7 @@ DEVICE_CONFIG = {"api_url": "http://x/6/", "mqtt_port": 1883, "proxy_mode": Fals
 
 
 async def _client(app):
-    c = TestClient(TestServer(app))
+    c = authed_test_client(app)
     await c.start_server()
     return c
 
@@ -338,7 +338,7 @@ async def test_the_button_asks_petkit_and_pairs_what_it_answers():
     c = await _client(_panel(reg, ble, base))
     try:
         body = await (await c.post("/api/ble/import",
-                                   data=json.dumps({"device_id": 10}))).json()
+                                   json={"device_id": 10})).json()
         assert body["imported"] == 1
         assert ble.get(400000001).secret == "real"
         # All three are asked: a K3 is in none of the places a fountain is.
@@ -364,7 +364,7 @@ async def test_a_refusal_on_one_endpoint_does_not_lose_the_others():
     c = await _client(_panel(reg, ble, base))
     try:
         body = await (await c.post("/api/ble/import",
-                                   data=json.dumps({"device_id": 10}))).json()
+                                   json={"device_id": 10})).json()
         assert body["imported"] == 1
         # And the refusals are reported rather than swallowed.
         assert any("401" in str(r.get("outcome")) for r in body["results"])
@@ -377,9 +377,9 @@ async def test_an_unreachable_cloud_is_an_error_not_a_silent_nothing():
     reg, ble = _registries()
     c = await _client(_panel(reg, ble, "http://127.0.0.1:1"))
     try:
-        r = await c.post("/api/ble/import", data=json.dumps({"device_id": 10}))
+        r = await c.post("/api/ble/import", json={"device_id": 10})
         assert r.status == 502
-        assert "PetKit" in (await r.json())["error"]
+        assert "PetKit" in (await r.json())["error"]["message"]
     finally:
         await c.close()
 
@@ -398,7 +398,7 @@ async def test_an_id_a_real_device_already_owns_is_refused():
     c = await _client(_panel(reg, ble, base))
     try:
         body = await (await c.post("/api/ble/import",
-                                   data=json.dumps({"device_id": 10}))).json()
+                                   json={"device_id": 10})).json()
         assert body["imported"] == 0
         assert ble.get(10) is None
         assert any("already a real device" in str(r["outcome"]) for r in body["results"])
@@ -412,7 +412,8 @@ async def test_a_malformed_request_is_refused(body):
     reg, ble = _registries()
     c = await _client(_panel(reg, ble))
     try:
-        assert (await c.post("/api/ble/import", data=body)).status == 400
+        assert (await c.post("/api/ble/import", data=body,
+                              headers={"Content-Type": "application/json"})).status == 400
     finally:
         await c.close()
 
@@ -421,7 +422,7 @@ async def test_importing_for_a_device_we_do_not_have_is_a_404():
     reg, ble = _registries()
     c = await _client(_panel(reg, ble))
     try:
-        r = await c.post("/api/ble/import", data=json.dumps({"device_id": 999}))
+        r = await c.post("/api/ble/import", json={"device_id": 999})
         assert r.status == 404
     finally:
         await c.close()
@@ -443,7 +444,7 @@ async def test_a_device_that_cannot_have_a_spray_is_not_asked_about_one():
     up, base = await _fake_cloud(cloud)
     c = await _client(_panel(reg, ble, base))
     try:
-        await c.post("/api/ble/import", data=json.dumps({"device_id": 11}))
+        await c.post("/api/ble/import", json={"device_id": 11})
         assert "dev_k3_device_info" not in asked
         assert "dev_ble_device" in asked
     finally:
@@ -464,7 +465,7 @@ async def test_an_endpoint_this_model_does_not_have_is_not_reported_as_a_problem
     c = await _client(_panel(reg, ble, base))
     try:
         body = await (await c.post("/api/ble/import",
-                                   data=json.dumps({"device_id": 10}))).json()
+                                   json={"device_id": 10})).json()
         assert body["results"] == []
     finally:
         await c.close()

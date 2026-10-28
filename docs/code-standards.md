@@ -87,6 +87,14 @@ Giới hạn kích thước file:
 | TS | `strict`, `noUncheckedIndexedAccess`, ESLint + `eslint-plugin-security`, cấm `any`, cấm `dangerouslySetInnerHTML` | – |
 | Swift | Swift 6 strict concurrency, SwiftLint. Cấm `!` force unwrap và `try!` ngoài test | – |
 
+Cấu hình hiện tại (`services/api/pyproject.toml`): bộ ruff mở rộng được `select` cho toàn repo rồi
+`per-file-ignores` với pattern phủ định cho mọi file KHÔNG thuộc danh sách code mới, vì ruff không
+chọn rule theo đường dẫn được. `mypy --strict` áp qua `[[tool.mypy.overrides]]` (liệt kê từng cờ
+của strict, vì `strict` không phải option theo module). `ruff format --check` chạy trong CI trên
+cùng danh sách. Danh sách hiện tại: `features/auth/`, `shared/{errors,redact_client,request_auth,tiers}.py`,
+`utils/user_tls.py`. Module port nằm trong `shared/` (`panel_request.py`, `live_settings.py`, …)
+vẫn theo baseline cho tới khi được siết riêng. Thêm file mới vào user plane thì thêm vào cả ba chỗ.
+
 ### B3. Comment, lỗi, log
 - **Comment** giải thích **vì sao**: invariant, ràng buộc của firmware, bằng chứng (capture, hàm firmware, commit).
   - Không ghi mã phase hay finding (R1, V4, H12…) trong code, test name hay commit message.
@@ -138,6 +146,29 @@ Giới hạn kích thước file:
 | Image | Trivy/Grype | Có (critical) với release |
 | Fuzz | hypothesis (chạy ngắn mỗi PR, chạy dài hằng đêm) | Có (bản ngắn) |
 
+## Thư viện validate schema: `pydantic` v2 (đã chốt 2026-10-28)
+Quy tắc: chỉ dùng thư viện có **binary wheel** cho cả ba target của image (Python 3.12):
+musl amd64, musl aarch64 (Alpine) và glibc armv7. Không có thì viết validator tay trên `utils/coerce`.
+
+Bằng chứng, chạy `pip download --only-binary=:all: --python-version 3.12 --implementation cp`
+kèm đủ tag tương thích của từng target (pip không tự nới một `--platform` tường minh xuống tag cũ
+hơn, nên phải liệt kê `musllinux_1_1` bên cạnh `musllinux_1_2`, và `manylinux_2_17`…`2_36` cho armv7):
+
+| Gói (bản mới nhất) | musl amd64 | musl aarch64 | glibc armv7 |
+|---|---|---|---|
+| `pydantic` 2.14.1 + `pydantic-core` 2.50.1 | `musllinux_1_1_x86_64` | `musllinux_1_1_aarch64` | `manylinux_2_17_armv7l` |
+| `msgspec` 0.22.0 | `musllinux_1_2_x86_64` | `musllinux_1_2_aarch64` | **không có** |
+
+- Chọn `pydantic` v2: là ứng viên duy nhất đủ wheel cho cả ba target. `msgspec` loại vì armv7 phải
+  build từ source.
+- Bẫy đã gặp khi kiểm: chỉ truyền `--platform musllinux_1_2_*` thì pip không thấy wheel
+  `musllinux_1_1` của `pydantic-core` và lặng lẽ lùi về `pydantic` 1.10. Luôn liệt kê đủ tag.
+- Dùng cho code mới của user plane (`features/auth/schemas.py`): `extra="forbid"`, giới hạn độ dài
+  chuỗi. Code port giữ `utils/coerce`.
+- `argon2-cffi` (bắt buộc cho mật khẩu) có wheel musl cho amd64/aarch64 nhưng **không có wheel
+  armv7**: `argon2-cffi-bindings` build từ source trên armv7 glibc. Đây không phải yêu cầu build mới:
+  `cffi` (phụ thuộc của `cryptography`) cũng không có wheel armv7 và đã build từ source ở đó, nên
+  image armv7 vốn cần sẵn toolchain C.
+
 ## Câu hỏi chưa giải đáp
-- Thư viện validate schema: `pydantic` v2 hay `msgspec`. Cần xác minh có wheel cho cả amd64/arm64 (musl) và armv7 (glibc) trước khi dùng. Nếu không thì dùng validator viết tay trên `utils/coerce`. Chốt ở phase 03.
 - CSP `frame-ancestors` cho HA Ingress: origin chính xác cần cho phép, xác minh trên HA thật ở phase 11.

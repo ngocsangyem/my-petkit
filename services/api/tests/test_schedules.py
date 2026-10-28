@@ -12,7 +12,6 @@ import json
 
 import pytest
 
-from aiohttp.test_utils import TestClient, TestServer
 
 from my_petkit.devices import defaults, payloads
 from my_petkit.devices.base import Device, encode_multi_range
@@ -20,6 +19,7 @@ from my_petkit.devices.ble import BLERegistry
 from my_petkit.devices.registry import DeviceRegistry
 from my_petkit.web.hub import EventHub
 from my_petkit.web.panel import create_panel_app
+from tests.conftest_auth import authed_test_client
 
 
 def _decode(reply, key):
@@ -210,14 +210,14 @@ def _panel(device_type="t5"):
 
 
 async def _client(app):
-    c = TestClient(TestServer(app))
+    c = authed_test_client(app)
     await c.start_server()
     return c
 
 
 async def _save(c, target, value):
     r = await c.post("/api/devices/1/schedule",
-                     data=json.dumps({"target": target, "value": value}))
+                     json={"target": target, "value": value})
     return r.status, await r.json()
 
 
@@ -360,7 +360,7 @@ async def test_an_unknown_target_is_refused():
     c = await _client(app)
     try:
         status, out = await _save(c, "somethingMultiRange", [[0, 60]])
-        assert status == 400 and "unknown schedule" in out["error"]
+        assert status == 400 and "unknown schedule" in out["error"]["message"]
         # And a schedule a DIFFERENT model has is just as unknown.
         status, _ = await _save(c, "awDisturbMultiRange", [[0, 60]])
         assert status == 400

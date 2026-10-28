@@ -83,9 +83,17 @@ async def _json_body(request: web.Request) -> dict[str, Any]:
     reads it with `.get`, so a list would reach that call as an AttributeError
     and answer 500 to what is a malformed request.
 
+    The content type must say JSON. A browser sends `text/plain` and
+    `application/x-www-form-urlencoded` cross-site without a preflight, so a
+    body parsed regardless of its declared type is a body any page can post;
+    requiring `application/json` forces the preflight that CORS-off refuses.
+
     Raises:
+        web.HTTPUnsupportedMediaType: the content type is not application/json.
         web.HTTPBadRequest: the body is not a JSON object.
     """
+    if request.content_type != "application/json":
+        raise _refuse(web.HTTPUnsupportedMediaType, "content type must be application/json")
     try:
         body = await request.json()
     except Exception:

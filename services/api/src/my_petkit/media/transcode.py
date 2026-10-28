@@ -9,7 +9,9 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import shutil
+from collections.abc import Iterable
 
 log = logging.getLogger(__name__)
 
@@ -39,6 +41,67 @@ REMUX_TIMEOUT = 600.0
 #: Joins every ~4s chunk of one visit, so the largest budget of the four.
 STITCH_TIMEOUT = 1800.0
 
+# Every input here came from a device and is untrusted. A media file can name
+# other resources (an HLS playlist, a concat list, a subtitle reference), so
+# ffmpeg may open only local files and our own pipes: nothing on the network,
+# nothing through `subfile:`/`data:`/`crypto:` tricks.
+PROTOCOL_WHITELIST = "file,pipe"
+#: Total bytes one ffmpeg/ffprobe run may be handed. A device upload is capped
+#: at 50 MB by the bucket; a stitch joins a whole visit's chunks, so this is
+#: generous on purpose and bounds only the absurd.
+MAX_INPUT_BYTES = 2 * 1024**3
+#: Seconds of each input ffmpeg will read (`-t` as an input option). A crafted
+#: timestamp cannot turn a short file into hours of decode; a real visit is
+#: minutes long.
+MAX_INPUT_SECONDS = 4 * 3600
+
+
+def harden_args(args: list[str]) -> list[str]:
+    """`args` with the hardening every run gets, output otherwise unchanged.
+
+    ffmpeg: `-nostdin` (never reads the terminal; `pipe:0` input still works),
+    and before every `-i` the protocol whitelist and the duration cap, which are
+    per-input options. ffprobe: the protocol whitelist. Anything else is
+    returned as is.
+    """
+    if not args:
+        return list(args)
+    binary = os.path.basename(args[0])
+    if binary == "ffprobe":
+        return [args[0], "-protocol_whitelist", PROTOCOL_WHITELIST, *args[1:]]
+    if binary != "ffmpeg":
+        return list(args)
+    hardened = [args[0], "-nostdin"]
+    for arg in args[1:]:
+        if arg == "-i":
+            hardened += ["-protocol_whitelist", PROTOCOL_WHITELIST,
+                         "-t", str(MAX_INPUT_SECONDS)]
+        hardened.append(arg)
+    return hardened
+
+
+def total_input_bytes(paths: Iterable[str]) -> int:
+    """Sum of the sizes of the regular files among `paths`. Never raises."""
+    total = 0
+    for path in paths:
+        try:
+            if os.path.isfile(path):
+                total += os.path.getsize(path)
+        except OSError:
+            continue
+    return total
+
+
+def _input_paths(args: list[str]) -> list[str]:
+    """The file inputs of one ffmpeg/ffprobe argv (pipes excluded)."""
+    if not args:
+        return []
+    if os.path.basename(args[0]) == "ffprobe":
+        candidates = args[-1:]
+    else:
+        candidates = [args[i + 1] for i, a in enumerate(args[:-1]) if a == "-i"]
+    return [c for c in candidates if not c.startswith("pipe:")]
+
 
 async def run_ffmpeg(args: list[str], *, timeout: float, what: str,
                      stdin_data: bytes | None = None) -> tuple[int, bytes, bytes]:
@@ -54,7 +117,11 @@ async def run_ffmpeg(args: list[str], *, timeout: float, what: str,
     Returns:
         `(returncode, stdout, stderr)`. A returncode of -1 means it never ran
         (binary missing, fork failed); -2 means it hit the deadline and was
-        killed. Both are failures the caller already handles as "non-zero".
+        killed; -3 means the input exceeded `MAX_INPUT_BYTES` and it was never
+        started. All are failures the caller already handles as "non-zero".
+
+    Every argv goes through `harden_args` first, so no caller can forget the
+    protocol whitelist, `-nostdin` or the duration cap.
 
     Killing the child is the whole point and is easy to get wrong:
     `asyncio.wait_for` cancels the *await*, not the process, so simply timing
@@ -67,9 +134,14 @@ async def run_ffmpeg(args: list[str], *, timeout: float, what: str,
     the stitcher is cancelled at shutdown, so without it a restart mid-stitch
     orphans the child.
     """
+    size = total_input_bytes(_input_paths(args)) + len(stdin_data or b"")
+    if size > MAX_INPUT_BYTES:
+        log.warning("ffmpeg refused for %s: %d bytes of input exceeds the %d-byte cap",
+                    what, size, MAX_INPUT_BYTES)
+        return -3, b"", b""
     try:
         proc = await asyncio.create_subprocess_exec(
-            *args,
+            *harden_args(args),
             stdin=asyncio.subprocess.PIPE if stdin_data is not None else None,
             stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
     except OSError as e:

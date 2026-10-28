@@ -23,6 +23,12 @@ dependencies = [
     "aiosqlite>=0.19",
     "Jinja2>=3.1",
     "aiohttp-jinja2>=1.6",
+    # argon2id for the user-plane admin password (features/auth/passwords.py).
+    "argon2-cffi>=23.1",
+    # Request schemas on the user plane. Chosen over msgspec and hand-written
+    # validators because it is the one with binary wheels for every image
+    # target; the evidence is in docs/code-standards.md.
+    "pydantic>=2.6,<3",
 ]
 
 [project.optional-dependencies]
@@ -87,11 +93,24 @@ target-version = "py311"
 # ruff-baseline.txt, with the reason for each group; CI
 # (scripts/lint-baseline-gate.py) fails when any count grows, so the ported code
 # is not reformatted or noqa-littered and new code gets no pass.
-select = ["F", "E9", "B", "PLC0415", "S", "ASYNC"]
+#
+# New user-plane code is held to the extended set from docs/code-standards.md
+# (E, W, UP, SIM, RUF, PL, PT, BLE, TRY on top of the above). It is selected
+# for everything and then ignored for everything that is NOT new code, through
+# the negated pattern under per-file-ignores: ruff cannot select per path, and
+# this keeps the ported code exactly as it was. `PLC` stays at PLC0415 and `E`
+# keeps E9 for the ported code, because those were already its gate.
+select = [
+    "F", "E9", "B", "PLC0415", "S", "ASYNC",
+    "E4", "E5", "E7", "W", "UP", "SIM", "RUF", "PLE", "PLR", "PLW", "PT", "BLE", "TRY",
+]
 ignore = [
     # `raise ... from err` inside an except block. The codebase deliberately
     # swallows and re-reports device-facing failures rather than chaining.
     "B904",
+    # A message naming the file or value that failed IS the useful part of a
+    # ValueError here; one exception class per message would add nothing.
+    "TRY003",
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -100,3 +119,36 @@ ignore = [
 # and keeping it next to the assertion is what makes a one-symbol regression
 # readable — so PLC0415 is a production rule only.
 "tests/*" = ["F811", "B011", "PLC0415", "S101", "S105", "S106", "S108", "S311", "ASYNC230", "ASYNC240"]
+# Everything outside the new-code paths keeps the narrow gate above.
+"!src/my_petkit/{features/auth/**,shared/errors.py,shared/redact_client.py,shared/request_auth.py,shared/tiers.py,utils/user_tls.py}" = [
+    "E4", "E5", "E7", "W", "UP", "SIM", "RUF", "PLE", "PLR", "PLW", "PT", "BLE", "TRY",
+]
+
+[tool.ruff.lint.pylint]
+# Route handlers and the middleware read several request facts in sequence;
+# six returns is where a split starts costing more than it saves.
+max-returns = 8
+
+# mypy --strict for the new user-plane code. `strict` itself is not a
+# per-module option, so its component flags are listed. The ported code keeps
+# plain mypy against mypy-baseline.txt (scripts/lint-baseline-gate.py).
+[[tool.mypy.overrides]]
+module = [
+    "my_petkit.features.auth.*",
+    "my_petkit.shared.errors",
+    "my_petkit.shared.redact_client",
+    "my_petkit.shared.request_auth",
+    "my_petkit.shared.tiers",
+    "my_petkit.utils.user_tls",
+]
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+warn_return_any = true
+no_implicit_reexport = true
+strict_equality = true
+extra_checks = true

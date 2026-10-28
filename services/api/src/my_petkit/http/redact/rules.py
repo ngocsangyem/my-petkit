@@ -118,6 +118,22 @@ _SERVER_KEYS = ("apiServers", "ipServers", "dns")
 #: cloud may answer an ESP32 with; redaction is content-keyed, so both match.
 _MQTT_CRED_KEYS = ("productKey", "deviceName", "deviceSecret")
 
+#: Keys whose VALUE is a credential, wherever they appear. The device-facing
+#: rules above meet each of them: `secret` (`_match_secret`; an accessory's
+#: pairing secret has the same key), `deviceSecret` (the MQTT trio), the media
+#: AES keys and STS tokens `_match_oss_sts` / the log-upload rule withhold, and
+#: the transport credentials every request carries (`XDevice` in the MQTT
+#: envelope, `X-Device` / `X-Session` as HTTP headers). The device plane never
+#: reads this set; it exists so `shared/redact_client.py` masks for a client
+#: exactly what this package already treats as secret, from one list.
+#: Matched case-insensitively with `-` and `_` ignored, so the header and the
+#: envelope spelling are one entry.
+CREDENTIAL_KEYS = frozenset({
+    "secret", _MQTT_CRED_KEYS[2], "primaryAesKeyStr", "standbyAesKeyStr",
+    "aesKey", "token", "securityToken", "accessKeySecret", "XDevice", "XSession",
+    "password",
+})
+
 
 # --- the rules --------------------------------------------------------------
 

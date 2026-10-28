@@ -11,18 +11,19 @@ a property anybody can check.
 
 Serving
 -------
-`create_panel_app` builds one `web.Application` that main.py mounts on plain
-HTTP `web_port` (8099) — what Home Assistant Ingress proxies into the sidebar,
-and which can optionally be mapped to the LAN as an unauthenticated debug port.
-It is therefore reachable unauthenticated whenever that mapping exists, hence
-the caller-supplied limits below being clamped and every path built from
-request input going through `utils/paths.safe_join`.
+`create_panel_app` builds one `web.Application` that main.py mounts twice: on
+plain HTTP `web_port` (8099) — what Home Assistant Ingress proxies into the
+sidebar — and over TLS on `user_port` with the install's self-signed
+certificate. Every route declares a tier and every request but the static
+shell needs a principal (`features/auth/`): Ingress is trusted only from the
+Supervisor's own address on the Ingress port, and anything else — the TLS port,
+or 8099 if it is mapped to the LAN — needs a token or a session. Caller-supplied
+limits are still clamped and every path built from request input still goes
+through `utils/paths.safe_join`.
 
-There used to be a second, self-signed HTTPS site on 8098 so Web Bluetooth had
-a top-level secure context. It was removed: it published this entire API — every
-device setting, command, pet record and on-device patcher — to the LAN with no
-authentication, in exchange for a convenience the operator can provide safely
-with their own certificate in front of `web_port`.
+Upstream once had a self-signed HTTPS site on 8098 that published this whole
+API to the LAN with no authentication; it was removed there. The TLS site here
+is not that: nothing on it answers without a token or session.
 
 Frontend
 --------
@@ -47,6 +48,15 @@ from aiohttp import web
 
 from my_petkit.utils.paths import UnsafePathError, safe_join
 
+from my_petkit.features.auth.middleware import auth_middleware
+from my_petkit.features.auth.routes import (
+    api_auth_login, api_auth_logout, api_auth_media_url, api_auth_pairing_create,
+    api_auth_pairing_redeem, api_auth_setup, api_auth_step_up, api_auth_token_revoke,
+    api_auth_tokens,
+)
+from my_petkit.features.auth.security_headers import (
+    apply_security_headers, inline_script_hash, legacy_panel_csp,
+)
 from my_petkit.features.ble.routes import (
     api_ble_accessories, api_ble_command, api_ble_delete, api_ble_import, api_ble_poll,
 )
@@ -77,13 +87,16 @@ from my_petkit.shared.background_tasks import (
     _spawn_background as _spawn_background,  # re-exported for callers of the old path
     cancel_background_tasks,
 )
+from my_petkit.shared.errors import error_middleware
 from my_petkit.shared.appkeys import (
-    BACKGROUND_TASKS, PANEL_ASSET_VERSION, BLE_REGISTRY, BRIDGE, CFG, EVENT_STORE, HA_PUBLISHER, HUB,
+    AUTH, BACKGROUND_TASKS, PANEL_ASSET_VERSION, BLE_REGISTRY, BRIDGE, CFG, EVENT_STORE, HA_PUBLISHER, HUB,
     LIVE_CONFIG, PET_REGISTRY, REGISTRY, RETENTION_CONFIG,
 )
+from my_petkit.shared.tiers import Tier, tier
 
 if TYPE_CHECKING:
     from my_petkit.ai.pets import PetRegistry
+    from my_petkit.features.auth.service import AuthService
     from my_petkit.devices.ble import BLERegistry
     from my_petkit.devices.registry import DeviceRegistry
     from my_petkit.events.store import EventStore
@@ -142,7 +155,8 @@ def create_panel_app(registry: DeviceRegistry, ble_registry: BLERegistry | None,
                      event_store: EventStore | None = None,
                      retention_config: RetentionConfig | None = None,
                      pet_registry: PetRegistry | None = None,
-                     ha_publisher: HAPublisher | None = None) -> web.Application:
+                     ha_publisher: HAPublisher | None = None,
+                     auth: AuthService | None = None) -> web.Application:
     """Build the panel application, wiring every collaborator into `app[...]`.
 
     Everything after `panel_config` is optional so tests (and a degraded
@@ -154,6 +168,9 @@ def create_panel_app(registry: DeviceRegistry, ble_registry: BLERegistry | None,
             `media_root`, `capture_dir`, `data_dir`, `settings_path`, ...).
         live_config: The SAME dict the device-facing HTTP handlers read, so a
             settings change from the panel takes effect with no restart.
+        auth: The user plane's `AuthService`. Without one every route but the
+            static shell is refused (`features/auth/middleware.py`): there is
+            no unauthenticated mode to fall back to.
     """
     # A pet's reference face photo is uploaded as a raw body, and a phone
     # camera produces 2-8 MB of JPEG. aiohttp's default cap is 1 MiB, which
@@ -161,7 +178,12 @@ def create_panel_app(registry: DeviceRegistry, ble_registry: BLERegistry | None,
     # failed to parse as JSON — so the button appeared to do nothing at all.
     # Same reasoning as http/bucket.py's cap, one size down: nothing the panel
     # accepts is media-sized.
-    app = web.Application(client_max_size=16 * 1024 * 1024)  # 16MB
+    #
+    # Middlewares, outermost first: every error leaves as the envelope
+    # (`shared/errors.py`), and nothing reaches a handler without passing its
+    # route's tier (`features/auth/middleware.py`).
+    app = web.Application(client_max_size=16 * 1024 * 1024,  # 16MB
+                          middlewares=[error_middleware, auth_middleware])
     app[REGISTRY] = registry
     app[BLE_REGISTRY] = ble_registry
     app[HUB] = hub
@@ -174,6 +196,11 @@ def create_panel_app(registry: DeviceRegistry, ble_registry: BLERegistry | None,
     app[RETENTION_CONFIG] = retention_config
     app[PET_REGISTRY] = pet_registry
     app[HA_PUBLISHER] = ha_publisher
+    app[AUTH] = auth
+    if auth is not None:
+        async def _close_auth(_app: web.Application) -> None:
+            auth.close()
+        app.on_cleanup.append(_close_auth)
     app[BACKGROUND_TASKS] = set()
     app[PANEL_ASSET_VERSION] = ASSET_VERSION
     # AppRunner.cleanup() fires on_cleanup, so main.py's existing
@@ -195,6 +222,7 @@ def create_panel_app(registry: DeviceRegistry, ble_registry: BLERegistry | None,
     # inherited by every relative import for free.
     app.router.add_get("/asset/{v}/js/{name}", handle_versioned_js)
     app.on_response_prepare.append(_no_heuristic_caching)
+    app.on_response_prepare.append(apply_security_headers)
     app.router.add_get("/api/info", api_info)
 
     # --- devices: list, detail, commands ---
@@ -285,6 +313,18 @@ def create_panel_app(registry: DeviceRegistry, ble_registry: BLERegistry | None,
     app.router.add_post("/api/pets/{id}/faces", api_pet_faces)
     app.router.add_delete("/api/pets/{id}/faces/{face_id}", api_pet_face_detail)
     app.router.add_get("/api/pets/{id}/faces/{face_id}/photo", api_pet_face_photo)
+
+    # --- auth: first-run setup, login, step-up, pairing, client tokens, and
+    # signed links for media players that cannot send a token.
+    app.router.add_post("/api/auth/setup", api_auth_setup)
+    app.router.add_post("/api/auth/login", api_auth_login)
+    app.router.add_post("/api/auth/logout", api_auth_logout)
+    app.router.add_post("/api/auth/step-up", api_auth_step_up)
+    app.router.add_post("/api/auth/pairing", api_auth_pairing_create)
+    app.router.add_post("/api/auth/pairing/redeem", api_auth_pairing_redeem)
+    app.router.add_get("/api/auth/tokens", api_auth_tokens)
+    app.router.add_delete("/api/auth/tokens/{id}", api_auth_token_revoke)
+    app.router.add_post("/api/auth/media-url", api_auth_media_url)
     return app
 
 
@@ -332,7 +372,13 @@ def asset_version() -> str:
 
 ASSET_VERSION = asset_version()
 
+#: The index document's CSP. Its one inline script is `templates/index.html`'s
+#: `window.PANEL_ASSET_V` line, allowed by the hash of exactly that body.
+INDEX_CSP = legacy_panel_csp(
+    [inline_script_hash(f'window.PANEL_ASSET_V = "{ASSET_VERSION}";')])
 
+
+@tier(GET=Tier.PUBLIC_STATIC)
 async def handle_versioned_js(request: web.Request) -> web.StreamResponse:
     """Serve `static/js/{name}` from a URL whose path carries the asset hash.
 
@@ -350,6 +396,7 @@ async def handle_versioned_js(request: web.Request) -> web.StreamResponse:
     return web.FileResponse(path)
 
 
+@tier(GET=Tier.PUBLIC_STATIC)
 async def handle_index(request: web.Request) -> web.Response:
     """Render the single-page app shell.
 
@@ -368,4 +415,5 @@ async def handle_index(request: web.Request) -> web.Response:
     response = aiohttp_jinja2.render_template("index.html", request,
                                               {"asset_version": ASSET_VERSION})
     response.headers["Cache-Control"] = "no-cache"
+    response.headers["Content-Security-Policy"] = INDEX_CSP
     return response

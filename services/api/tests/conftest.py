@@ -19,6 +19,7 @@ import pytest
 
 from my_petkit.ai.pets import PetRegistry
 from my_petkit.events.store import EventStore
+from my_petkit.http import upstream_allowlist
 
 
 def pytest_addoption(parser):
@@ -52,3 +53,21 @@ async def event_store(tmp_path: Path) -> AsyncIterator[EventStore]:
 def pet_registry(event_store: EventStore, tmp_path: Path) -> PetRegistry:
     """A PetRegistry backed by `event_store`, hosting faces under `tmp_path`."""
     return PetRegistry(event_store, str(tmp_path / "faces"))
+
+
+# The signed-in panel client lives in its own module; re-exported here so
+# pytest registers the fixture for every test.
+from tests.conftest_auth import authed_client  # noqa: E402, F401
+
+
+@pytest.fixture(autouse=True)
+def _a_loopback_test_server_stands_in_for_petkit(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Admit `127.0.0.1` / `localhost` as a proxy upstream in every test.
+
+    Proxy, cloud-fetch and panel tests forward to a local aiohttp server playing
+    PetKit. Production admits only PetKit/Aliyun hosts; that allowlist itself is
+    tested, unpatched, in `test_proxy_upstream_allowlist.py`.
+    """
+    real = upstream_allowlist.is_allowed_upstream_host
+    monkeypatch.setattr(upstream_allowlist, "is_allowed_upstream_host",
+                        lambda host: host in ("127.0.0.1", "localhost") or real(host))

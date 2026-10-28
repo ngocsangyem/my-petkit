@@ -16,7 +16,12 @@ reviewer can find every place the suite was touched.
 
 ### Listener bind addresses (each listener binds its own configured address)
 
-- added: tests/test_listener_bind_addresses.py::test_defaults_bind_what_upstream_bound
+- added: tests/test_listener_bind_addresses.py::test_defaults_bind_what_upstream_bound_except_plain_mqtt_on_loopback
+  — renamed from `test_defaults_bind_what_upstream_bound` when plain MQTT moved to loopback.
+- added: tests/test_listener_bind_addresses.py::test_mqtt_plain_expose_restores_every_interface
+- added: tests/test_listener_bind_addresses.py::test_mqtt_plain_expose_flag_and_addon_option
+- added: tests/test_listener_bind_addresses.py::test_the_addon_schema_offers_mqtt_plain_expose
+- added: tests/test_listener_bind_addresses.py::test_the_broker_binds_plain_mqtt_to_loopback_by_default
 - added: tests/test_listener_bind_addresses.py::test_a_bind_host_that_is_not_an_ip_literal_is_refused[localhost-device_bind_host]
 - added: tests/test_listener_bind_addresses.py::test_a_bind_host_that_is_not_an_ip_literal_is_refused[localhost-mqtt_plain_bind]
 - added: tests/test_listener_bind_addresses.py::test_a_bind_host_that_is_not_an_ip_literal_is_refused[localhost-user_bind_host]
@@ -385,6 +390,376 @@ reviewer can find every place the suite was touched.
 - added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[shared/media_slots.py]
 - added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[shared/panel_request.py]
 
+### Default-deny user plane: every route declares a tier; only static files, signed media and the credential exchanges answer without a token
+
+- added: tests/test_auth_every_route_requires_token.py::test_a_panel_without_auth_refuses_everything_but_static
+- added: tests/test_auth_every_route_requires_token.py::test_an_undeclared_method_has_no_tier
+- added: tests/test_auth_every_route_requires_token.py::test_an_unknown_path_reveals_nothing_without_a_token
+- added: tests/test_auth_every_route_requires_token.py::test_every_non_exempt_route_refuses_a_request_without_a_token
+- added: tests/test_auth_every_route_requires_token.py::test_every_route_declares_a_tier
+- added: tests/test_auth_every_route_requires_token.py::test_only_the_named_routes_are_credential_exchanges
+- added: tests/test_auth_every_route_requires_token.py::test_signed_media_without_a_signature_is_refused
+- added: tests/test_auth_every_route_requires_token.py::test_static_shell_needs_no_token
+- added: tests/test_auth_every_route_requires_token.py::test_the_websockets_are_covered
+
+### Host allowlist and exact-Origin check on every unsafe method and WebSocket upgrade
+
+- added: tests/test_ws_origin_allowlist.py::test_a_cross_origin_post_with_a_cookie_is_refused
+- added: tests/test_ws_origin_allowlist.py::test_a_cross_origin_websocket_upgrade_is_refused[/api/devices/1/talk]
+- added: tests/test_ws_origin_allowlist.py::test_a_cross_origin_websocket_upgrade_is_refused[/api/ws]
+- added: tests/test_ws_origin_allowlist.py::test_a_rebound_host_name_is_refused_on_writes
+- added: tests/test_ws_origin_allowlist.py::test_a_same_origin_websocket_upgrade_is_accepted
+- added: tests/test_ws_origin_allowlist.py::test_a_token_client_without_origin_may_upgrade
+- added: tests/test_ws_origin_allowlist.py::test_a_websocket_upgrade_without_origin_on_a_cookie_is_refused
+- added: tests/test_ws_origin_allowlist.py::test_host_allowlist[-False]
+- added: tests/test_ws_origin_allowlist.py::test_host_allowlist[192.168.1.10:8443-True]
+- added: tests/test_ws_origin_allowlist.py::test_host_allowlist[None-False]
+- added: tests/test_ws_origin_allowlist.py::test_host_allowlist[[::1]:8443-True]
+- added: tests/test_ws_origin_allowlist.py::test_host_allowlist[evil.example-False]
+- added: tests/test_ws_origin_allowlist.py::test_host_allowlist[localhost:8443-True]
+- added: tests/test_ws_origin_allowlist.py::test_host_allowlist[petkit.example.com-True]
+- added: tests/test_ws_origin_allowlist.py::test_origin_must_name_exactly_the_requested_host[file://-10.0.0.5-False]
+- added: tests/test_ws_origin_allowlist.py::test_origin_must_name_exactly_the_requested_host[http://ha.local:8123-ha.local:8123-True]
+- added: tests/test_ws_origin_allowlist.py::test_origin_must_name_exactly_the_requested_host[https://10.0.0.5-10.0.0.5-True]
+- added: tests/test_ws_origin_allowlist.py::test_origin_must_name_exactly_the_requested_host[https://10.0.0.5-10.0.0.5:443-True]
+- added: tests/test_ws_origin_allowlist.py::test_origin_must_name_exactly_the_requested_host[https://10.0.0.5:8443-10.0.0.5:8443-True]
+- added: tests/test_ws_origin_allowlist.py::test_origin_must_name_exactly_the_requested_host[https://10.0.0.5:8443-10.0.0.5:8444-False]
+- added: tests/test_ws_origin_allowlist.py::test_origin_must_name_exactly_the_requested_host[https://10.0.0.5:8443-None-False]
+- added: tests/test_ws_origin_allowlist.py::test_origin_must_name_exactly_the_requested_host[https://10.0.0.6:8443-10.0.0.5:8443-False]
+- added: tests/test_ws_origin_allowlist.py::test_origin_must_name_exactly_the_requested_host[null-10.0.0.5-False]
+
+### Pairing codes and client tokens (128-bit single-use codes, 256-bit hashed tokens, idle expiry, revocation)
+
+- added: tests/test_pairing_flow.py::test_a_code_carries_128_random_bits_and_never_repeats
+- added: tests/test_pairing_flow.py::test_a_code_expires_after_five_minutes
+- added: tests/test_pairing_flow.py::test_a_code_works_exactly_once
+- added: tests/test_pairing_flow.py::test_a_revoked_token_stops_working
+- added: tests/test_pairing_flow.py::test_a_token_carries_256_bits
+- added: tests/test_pairing_flow.py::test_a_token_expires_after_90_idle_days_and_use_resets_the_clock
+- added: tests/test_pairing_flow.py::test_a_wrong_or_oversized_code_is_refused
+- added: tests/test_pairing_flow.py::test_only_hashes_reach_the_database
+- added: tests/test_pairing_flow.py::test_pairing_end_to_end_gives_a_working_pinned_token
+
+### Rate limits on login, step-up, setup and pairing redeem (per IP, global, exponential backoff)
+
+- added: tests/test_rate_limit.py::test_a_failed_login_is_logged_without_the_password
+- added: tests/test_rate_limit.py::test_buckets_are_independent
+- added: tests/test_rate_limit.py::test_counters_forget_after_the_window_and_on_success
+- added: tests/test_rate_limit.py::test_many_addresses_trip_the_global_limit
+- added: tests/test_rate_limit.py::test_one_address_does_not_lock_out_another
+- added: tests/test_rate_limit.py::test_pairing_redeem_is_rate_limited
+- added: tests/test_rate_limit.py::test_the_first_failures_are_free_then_the_lockout_doubles
+- added: tests/test_rate_limit.py::test_the_lockout_is_capped
+- added: tests/test_rate_limit.py::test_the_login_endpoint_answers_429_with_retry_after
+
+### Step-up for R3 actions, and the structured audit line they write
+
+- added: tests/test_step_up_r3_routes.py::test_a_step_up_lasts_five_minutes_per_principal
+- added: tests/test_step_up_r3_routes.py::test_an_r3_action_with_step_up_gets_past_the_gate[GET-/api/blocked?reveal=1-None]
+- added: tests/test_step_up_r3_routes.py::test_an_r3_action_with_step_up_gets_past_the_gate[GET-/api/capture/c.jsonl/download-None]
+- added: tests/test_step_up_r3_routes.py::test_an_r3_action_with_step_up_gets_past_the_gate[GET-/api/devicelogs/10/devRun.log?download=1-None]
+- added: tests/test_step_up_r3_routes.py::test_an_r3_action_with_step_up_gets_past_the_gate[POST-/api/auth/pairing-None]
+- added: tests/test_step_up_r3_routes.py::test_an_r3_action_with_step_up_gets_past_the_gate[POST-/api/devices/10/command-body1]
+- added: tests/test_step_up_r3_routes.py::test_an_r3_action_with_step_up_gets_past_the_gate[POST-/api/devices/10/patcher-body0]
+- added: tests/test_step_up_r3_routes.py::test_an_r3_action_with_step_up_gets_past_the_gate[POST-/api/settings-body2]
+- added: tests/test_step_up_r3_routes.py::test_an_r3_action_without_step_up_is_refused[GET-/api/blocked?reveal=1-None]
+- added: tests/test_step_up_r3_routes.py::test_an_r3_action_without_step_up_is_refused[GET-/api/capture/c.jsonl/download-None]
+- added: tests/test_step_up_r3_routes.py::test_an_r3_action_without_step_up_is_refused[GET-/api/devicelogs/10/devRun.log?download=1-None]
+- added: tests/test_step_up_r3_routes.py::test_an_r3_action_without_step_up_is_refused[POST-/api/auth/pairing-None]
+- added: tests/test_step_up_r3_routes.py::test_an_r3_action_without_step_up_is_refused[POST-/api/devices/10/command-body1]
+- added: tests/test_step_up_r3_routes.py::test_an_r3_action_without_step_up_is_refused[POST-/api/devices/10/patcher-body0]
+- added: tests/test_step_up_r3_routes.py::test_an_r3_action_without_step_up_is_refused[POST-/api/settings-body2]
+- added: tests/test_step_up_r3_routes.py::test_an_r3_action_writes_one_audit_line_without_values
+- added: tests/test_step_up_r3_routes.py::test_stepping_up_with_the_password_unlocks_r3
+- added: tests/test_step_up_r3_routes.py::test_the_entity_command_form_stays_r2
+
+### Settings writes: proxy_* and capture keys are R3
+
+- added: tests/test_settings_key_tiers.py::test_a_proxy_or_capture_write_needs_a_step_up[body0]
+- added: tests/test_settings_key_tiers.py::test_a_proxy_or_capture_write_needs_a_step_up[body1]
+- added: tests/test_settings_key_tiers.py::test_a_proxy_or_capture_write_needs_a_step_up[body2]
+- added: tests/test_settings_key_tiers.py::test_any_other_key_is_r1
+- added: tests/test_settings_key_tiers.py::test_every_proxy_and_capture_key_is_r3[capture]
+- added: tests/test_settings_key_tiers.py::test_every_proxy_and_capture_key_is_r3[proxy_block_log_upload]
+- added: tests/test_settings_key_tiers.py::test_every_proxy_and_capture_key_is_r3[proxy_block_ota]
+- added: tests/test_settings_key_tiers.py::test_every_proxy_and_capture_key_is_r3[proxy_block_run_cmd]
+- added: tests/test_settings_key_tiers.py::test_every_proxy_and_capture_key_is_r3[proxy_dns]
+- added: tests/test_settings_key_tiers.py::test_every_proxy_and_capture_key_is_r3[proxy_local_cvr_window]
+- added: tests/test_settings_key_tiers.py::test_every_proxy_and_capture_key_is_r3[proxy_media_real_oss]
+- added: tests/test_settings_key_tiers.py::test_every_proxy_and_capture_key_is_r3[proxy_mode]
+- added: tests/test_settings_key_tiers.py::test_every_proxy_and_capture_key_is_r3[proxy_mqtt_bridge]
+- added: tests/test_settings_key_tiers.py::test_every_proxy_and_capture_key_is_r3[proxy_only]
+- added: tests/test_settings_key_tiers.py::test_every_proxy_and_capture_key_is_r3[proxy_upstream]
+- added: tests/test_settings_key_tiers.py::test_reading_settings_is_not_r3
+- added: tests/test_settings_key_tiers.py::test_the_same_write_after_a_step_up_is_applied
+
+### Client redaction built on the device-facing credential keys
+
+- added: tests/test_client_redaction.py::test_ble_accessories_do_not_carry_their_pairing_secret
+- added: tests/test_client_redaction.py::test_every_credential_key_is_masked_in_every_spelling
+- added: tests/test_client_redaction.py::test_json_inside_strings_and_plain_text_are_masked
+- added: tests/test_client_redaction.py::test_the_endpoints_that_relay_device_data_mask_credentials
+- added: tests/test_client_redaction.py::test_the_input_is_not_mutated_and_empty_values_stay_empty
+- added: tests/test_client_redaction.py::test_the_websocket_masks_credentials
+- added: tests/test_client_redaction.py::test_there_is_no_second_key_list
+
+### Signed media URLs (path-bound, five minutes, Range, HLS re-signing, masked in the access log)
+
+- added: tests/test_signed_media_urls.py::test_a_range_request_goes_through_the_same_check
+- added: tests/test_signed_media_urls.py::test_a_signature_does_not_open_another_path
+- added: tests/test_signed_media_urls.py::test_a_signed_url_serves_the_file_without_a_token
+- added: tests/test_signed_media_urls.py::test_a_tampered_or_expired_signature_is_refused
+- added: tests/test_signed_media_urls.py::test_an_hls_playlist_has_every_segment_re_signed
+- added: tests/test_signed_media_urls.py::test_nothing_outside_the_media_tree_can_be_signed_valid
+- added: tests/test_signed_media_urls.py::test_signed_media_key_is_per_install
+- added: tests/test_signed_media_urls.py::test_the_access_log_masks_the_signature
+
+### First-run admin through the CLI or the one-time setup token only
+
+- added: tests/test_bootstrap_setup_token.py::test_a_password_change_voids_existing_sessions
+- added: tests/test_bootstrap_setup_token.py::test_a_setup_token_works_once_and_for_thirty_minutes
+- added: tests/test_bootstrap_setup_token.py::test_loopback_gets_no_privilege
+- added: tests/test_bootstrap_setup_token.py::test_no_token_exists_until_one_is_issued
+- added: tests/test_bootstrap_setup_token.py::test_setup_needs_the_token_and_happens_once
+- added: tests/test_bootstrap_setup_token.py::test_setup_token_is_logged_at_warning_for_visibility
+- added: tests/test_bootstrap_setup_token.py::test_the_cli_refuses_a_weak_password
+- added: tests/test_bootstrap_setup_token.py::test_the_cli_sets_the_password_and_signs_everyone_out
+- added: tests/test_bootstrap_setup_token.py::test_the_token_is_printed_only_when_there_is_no_admin
+
+### Home Assistant Ingress trusted only on the Ingress port from the Supervisor's exact address
+
+- added: tests/test_ingress_trust_exact_peer_and_port.py::test_a_real_socket_with_ingress_headers_is_refused
+- added: tests/test_ingress_trust_exact_peer_and_port.py::test_an_ingress_write_still_needs_its_own_origin
+- added: tests/test_ingress_trust_exact_peer_and_port.py::test_forged_ingress_headers_from_another_peer_are_refused
+- added: tests/test_ingress_trust_exact_peer_and_port.py::test_no_ingress_port_means_no_ingress_trust
+- added: tests/test_ingress_trust_exact_peer_and_port.py::test_the_supervisor_needs_no_token
+- added: tests/test_ingress_trust_exact_peer_and_port.py::test_the_supervisor_on_the_tls_port_still_needs_a_token
+- added: tests/test_ingress_trust_exact_peer_and_port.py::test_trust_needs_both_the_port_and_the_exact_peer[127.0.0.1-8099-False]
+- added: tests/test_ingress_trust_exact_peer_and_port.py::test_trust_needs_both_the_port_and_the_exact_peer[172.30.32.1-8099-False]
+- added: tests/test_ingress_trust_exact_peer_and_port.py::test_trust_needs_both_the_port_and_the_exact_peer[172.30.32.2-8099-True]
+- added: tests/test_ingress_trust_exact_peer_and_port.py::test_trust_needs_both_the_port_and_the_exact_peer[172.30.32.2-8443-False]
+- added: tests/test_ingress_trust_exact_peer_and_port.py::test_trust_needs_both_the_port_and_the_exact_peer[172.30.32.3-8099-False]
+- added: tests/test_ingress_trust_exact_peer_and_port.py::test_trust_needs_both_the_port_and_the_exact_peer[192.168.1.20-8099-False]
+- added: tests/test_ingress_trust_exact_peer_and_port.py::test_trust_needs_both_the_port_and_the_exact_peer[::ffff:172.30.32.2-8099-True]
+
+### Auth database, per-install keys and user-plane TLS material are private
+
+- added: tests/test_auth_data_file_permissions.py::test_a_loose_existing_file_is_tightened
+- added: tests/test_auth_data_file_permissions.py::test_auth_db_and_keys_are_created_private
+- added: tests/test_auth_data_file_permissions.py::test_keys_are_per_install_and_stable_across_restarts
+- added: tests/test_auth_data_file_permissions.py::test_the_certificate_is_kept_so_its_pinned_fingerprint_holds
+- added: tests/test_auth_data_file_permissions.py::test_two_installs_never_share_a_certificate
+- added: tests/test_auth_data_file_permissions.py::test_user_tls_certificate_and_key_are_private
+
+### Error envelope, JSON-only bodies, security headers, no CORS
+
+- added: tests/test_user_plane_errors_and_headers.py::test_a_flat_error_becomes_the_envelope_with_its_text_kept
+- added: tests/test_user_plane_errors_and_headers.py::test_a_handler_500_with_an_os_error_text_is_masked
+- added: tests/test_user_plane_errors_and_headers.py::test_a_json_body_without_the_json_content_type_is_refused
+- added: tests/test_user_plane_errors_and_headers.py::test_an_unexpected_exception_is_a_500_with_a_correlation_id_and_no_detail
+- added: tests/test_user_plane_errors_and_headers.py::test_every_response_carries_the_security_headers_and_no_cors
+- added: tests/test_user_plane_errors_and_headers.py::test_the_index_csp_allows_exactly_its_one_inline_script
+
+### Web sessions (signed cookie, idle and absolute limits, logout, password epoch)
+
+- added: tests/test_web_sessions.py::test_a_forged_or_foreign_cookie_is_refused
+- added: tests/test_web_sessions.py::test_a_refresh_is_not_issued_on_every_request
+- added: tests/test_web_sessions.py::test_a_session_survives_activity_but_not_twelve_idle_hours
+- added: tests/test_web_sessions.py::test_logout_ends_the_session
+- added: tests/test_web_sessions.py::test_no_session_outlives_seven_days
+
+### New user-plane modules join the per-module checks (local time through the clock; app state through appkeys constants)
+
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/auth/__init__.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/auth/bootstrap.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/auth/install_secrets.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/auth/middleware.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/auth/pairing.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/auth/passwords.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/auth/rate_limit.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/auth/routes.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/auth/schemas.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/auth/security_headers.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/auth/service.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/auth/sessions.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/auth/signed_media.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/auth/step_up.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/auth/store.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/auth/tokens.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[shared/errors.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[shared/redact_client.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[shared/request_auth.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[shared/tiers.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[utils/user_tls.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/auth/__init__.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/auth/bootstrap.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/auth/install_secrets.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/auth/middleware.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/auth/pairing.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/auth/passwords.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/auth/rate_limit.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/auth/routes.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/auth/schemas.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/auth/security_headers.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/auth/service.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/auth/sessions.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/auth/signed_media.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/auth/step_up.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/auth/store.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/auth/tokens.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[shared/errors.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[shared/redact_client.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[shared/request_auth.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[shared/tiers.py]
+
+### A client without an Aliyun-shaped MQTT id is accepted only from loopback
+
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[127.0.0.1-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[127.0.0.1-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[127.0.0.53-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[127.0.0.53-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[::1-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[::1-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[::ffff:127.0.0.1-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[::ffff:127.0.0.1-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[192.168.1.20-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[192.168.1.20-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[10.0.0.5-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[10.0.0.5-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[203.0.113.9-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[203.0.113.9-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[::ffff:192.168.1.20-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[::ffff:192.168.1.20-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[fe80::1-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[fe80::1-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[0.0.0.0-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[0.0.0.0-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[None-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[None-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[localhost-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[localhost-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[garbage-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[garbage-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_refusal_holds_before_a_registry_is_set
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_an_empty_client_id_from_the_lan_is_refused
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_device_shaped_id_from_the_lan_still_takes_the_device_path
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_is_loopback_peer_strips_an_ipv6_zone
+
+### Every connection the server opens to a device goes through utils/outbound_guard.py
+
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[utils/outbound_guard.py]
+  — the per-module clock check covers the new module.
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[8.8.8.8]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[203.0.113.7]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[127.0.0.1]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[::1]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[169.254.169.254]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[fe80::1]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[0.0.0.0]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[224.0.0.1]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[::ffff:127.0.0.1]
+- added: tests/test_outbound_guard_ssrf.py::test_a_private_address_no_device_reported_is_refused
+- added: tests/test_outbound_guard_ssrf.py::test_anything_but_an_ip_literal_is_refused[]
+- added: tests/test_outbound_guard_ssrf.py::test_anything_but_an_ip_literal_is_refused[device.local]
+- added: tests/test_outbound_guard_ssrf.py::test_anything_but_an_ip_literal_is_refused[192.168.1.50:8888]
+- added: tests/test_outbound_guard_ssrf.py::test_anything_but_an_ip_literal_is_refused[http://192.168.1.50]
+- added: tests/test_outbound_guard_ssrf.py::test_anything_but_an_ip_literal_is_refused[192.168.1.050]
+- added: tests/test_outbound_guard_ssrf.py::test_anything_but_an_ip_literal_is_refused[None]
+- added: tests/test_outbound_guard_ssrf.py::test_a_reported_address_on_a_device_network_is_allowed[10.1.2.3]
+- added: tests/test_outbound_guard_ssrf.py::test_a_reported_address_on_a_device_network_is_allowed[172.16.0.9]
+- added: tests/test_outbound_guard_ssrf.py::test_a_reported_address_on_a_device_network_is_allowed[172.31.255.1]
+- added: tests/test_outbound_guard_ssrf.py::test_a_reported_address_on_a_device_network_is_allowed[192.168.1.50]
+- added: tests/test_outbound_guard_ssrf.py::test_a_reported_address_on_a_device_network_is_allowed[fd00::42]
+- added: tests/test_outbound_guard_ssrf.py::test_a_mapped_ipv4_device_address_is_canonicalised
+- added: tests/test_outbound_guard_ssrf.py::test_a_configured_wireguard_subnet_is_a_device_network
+- added: tests/test_outbound_guard_ssrf.py::test_a_wireguard_subnet_cannot_reopen_loopback_or_metadata
+- added: tests/test_outbound_guard_ssrf.py::test_with_no_guard_installed_everything_is_refused
+- added: tests/test_outbound_guard_ssrf.py::test_a_failing_device_list_fails_closed
+- added: tests/test_outbound_guard_ssrf.py::test_the_guard_follows_the_registry_live
+- added: tests/test_outbound_guard_ssrf.py::test_an_ipv6_target_is_bracketed_in_a_url
+- added: tests/test_outbound_guard_ssrf.py::test_wireguard_subnets_config_accepts_cidrs[value0]
+- added: tests/test_outbound_guard_ssrf.py::test_wireguard_subnets_config_accepts_cidrs[value1]
+- added: tests/test_outbound_guard_ssrf.py::test_wireguard_subnets_config_refuses_anything_else[value0]
+- added: tests/test_outbound_guard_ssrf.py::test_wireguard_subnets_config_refuses_anything_else[value1]
+- added: tests/test_outbound_guard_ssrf.py::test_wireguard_subnets_config_refuses_anything_else[10.0.0.0/8]
+- added: tests/test_outbound_guard_ssrf.py::test_go2rtc_serves_no_stream_for_a_refused_address[8.8.8.8]
+- added: tests/test_outbound_guard_ssrf.py::test_go2rtc_serves_no_stream_for_a_refused_address[127.0.0.1]
+- added: tests/test_outbound_guard_ssrf.py::test_go2rtc_serves_no_stream_for_a_refused_address[169.254.169.254]
+- added: tests/test_outbound_guard_ssrf.py::test_go2rtc_serves_no_stream_for_a_refused_address[192.168.1.99]
+- added: tests/test_outbound_guard_ssrf.py::test_the_go2rtc_probe_never_dials_a_refused_address
+- added: tests/test_outbound_guard_ssrf.py::test_the_patcher_read_back_refuses_before_connecting[8.8.8.8]
+- added: tests/test_outbound_guard_ssrf.py::test_the_patcher_read_back_refuses_before_connecting[127.0.0.1]
+- added: tests/test_outbound_guard_ssrf.py::test_the_patcher_read_back_refuses_before_connecting[169.254.169.254]
+- added: tests/test_outbound_guard_ssrf.py::test_the_patcher_read_back_refuses_before_connecting[192.168.1.99]
+- added: tests/test_outbound_guard_ssrf.py::test_run_cmd_capture_sends_nothing_to_a_refused_device
+- added: tests/test_outbound_guard_ssrf.py::test_device_reads_do_not_follow_redirects
+- added: tests/test_outbound_guard_ssrf.py::test_talk_refuses_a_device_address_the_guard_refuses
+
+### proxy_upstream and proxy_dns reach only PetKit and Aliyun IoT hosts
+
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[http/upstream_allowlist.py]
+  — the per-module clock check covers the new module.
+- added: tests/test_proxy_upstream_allowlist.py::test_every_preset_is_on_the_allowlist
+- added: tests/test_proxy_upstream_allowlist.py::test_every_region_has_its_api_host_and_the_presets_cover_every_region
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://api-eu.petkt.com/6/]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://api.eu-pet.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://api.petkt.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://api.petktasia.com/6/]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://api.petkit.cn]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://API-RU.PETKIT.CN/6/]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[http://api-eu.petkt.com:80]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://a1PK.iot-as-mqtt.eu-central-1.aliyuncs.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://iot-600a5gmp.mqtt.iothub.aliyuncs.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[http://127.0.0.1:8080]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[http://169.254.169.254/latest/meta-data/]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[http://192.168.1.10/6/]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://evil.example]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://api-eu.petkt.com.evil.example]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://evilapi-eu.petkt.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://user:pw@api-eu.petkt.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[ftp://api-eu.petkt.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[file:///etc/passwd]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://a1PK.iot-as-mqtt.mars-1.aliyuncs.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://bucket.oss-eu-central-1.aliyuncs.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://api-eu.petkt.com:99999]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[api-eu.petkt.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[]
+- added: tests/test_proxy_upstream_allowlist.py::test_preset_keys_are_still_valid_settings
+- added: tests/test_proxy_upstream_allowlist.py::test_forward_never_contacts_a_refused_upstream
+- added: tests/test_proxy_upstream_allowlist.py::test_cloud_fetch_never_contacts_a_refused_upstream
+- added: tests/test_proxy_upstream_allowlist.py::test_the_proxy_dns_resolver_resolves_only_allowlisted_names
+- added: tests/test_proxy_upstream_allowlist.py::test_forward_does_not_follow_redirects
+
+### ffmpeg runs with -nostdin, a file/pipe protocol whitelist and input size and duration caps; output unchanged
+
+- added: tests/test_ffmpeg_hardening.py::test_every_ffmpeg_input_gets_the_whitelist_and_the_duration_cap
+- added: tests/test_ffmpeg_hardening.py::test_ffprobe_gets_the_whitelist_and_other_binaries_are_untouched
+- added: tests/test_ffmpeg_hardening.py::test_run_ffmpeg_always_runs_the_hardened_argv
+- added: tests/test_ffmpeg_hardening.py::test_an_input_over_the_size_cap_is_never_handed_to_ffmpeg
+- added: tests/test_ffmpeg_hardening.py::test_a_stitch_over_the_size_cap_is_refused
+- added: tests/test_ffmpeg_hardening.py::test_a_remux_is_byte_identical_to_the_unhardened_command
+- added: tests/test_ffmpeg_hardening.py::test_a_stitch_is_byte_identical_to_the_unhardened_command
+- added: tests/test_ffmpeg_hardening.py::test_the_probe_and_face_resize_still_work
+- added: tests/test_ffmpeg_hardening.py::test_a_device_file_cannot_make_ffmpeg_open_the_network
+- added: tests/test_ffmpeg_hardening.py::test_the_duration_cap_bounds_what_ffmpeg_reads
+- added: tests/test_ffmpeg_hardening.py::test_talk_runs_ffmpeg_with_stdin_off_and_per_file_whitelists
+- added: tests/test_ffmpeg_hardening.py::test_the_cap_constants_are_sane
+
+### Files this process writes are owner-only (umask 077, data dir 0700)
+
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[main/data_permissions.py]
+  — the per-module clock check covers the new module.
+- added: tests/test_data_file_permissions.py::test_the_data_dir_is_tightened_and_the_umask_set
+- added: tests/test_data_file_permissions.py::test_a_missing_data_dir_is_created_owner_only
+- added: tests/test_data_file_permissions.py::test_an_unchmoddable_data_dir_is_logged_not_fatal
+- added: tests/test_data_file_permissions.py::test_devices_json_is_owner_only
+- added: tests/test_data_file_permissions.py::test_the_event_database_is_owner_only
+- added: tests/test_data_file_permissions.py::test_the_broker_certificate_and_key_are_owner_only
+- added: tests/test_data_file_permissions.py::test_a_device_sound_list_is_owner_only
+- added: tests/test_data_file_permissions.py::test_main_secures_the_data_dir_before_anything_is_written
+- added: tests/test_log_line_escaping.py::test_a_crlf_in_a_logged_value_is_escaped_not_emitted
+- added: tests/test_log_line_escaping.py::test_an_ordinary_value_is_unchanged
+
 ## Removed
 
 None.
@@ -413,6 +788,10 @@ None.
 | `test_feed_get.py::test_recurring_meal_appears_with_live_countdown` | computes "now" on the device's calendar via `clock.local_datetime` instead of `time.localtime` | same | 04 |
 | `test_repro_device_scoped_commands_and_zones.py::test_the_daily_feed_record_id_uses_the_device_zone_not_the_host_zone` | strict xfail removed: the feeder record id uses the device's zone | fix landed | 04 |
 | `test_panel.py::test_action_and_entity_forms_have_the_same_side_effects` | pins `time.time` so the two requests' feed record ids (seconds since midnight) cannot straddle a second boundary; it failed about once in ten runs | flaky test fixed, assertion unchanged | 04 |
+| `test_listener_bind_addresses.py` | module docstring: plain MQTT is the one listener whose default moved off upstream's (loopback); the defaults test was renamed (see Added) | behaviour change: plain MQTT on loopback | 05 |
+| `test_go2rtc.py`, `test_patcher_space.py` | autouse fixture admits the TEST-NET and loopback test-server addresses through the outbound guard, which now gates the probe, the stream sources and the patcher read-back; assertions unchanged (the guard itself is tested in `test_outbound_guard_ssrf.py`) | fixture for the outbound guard | 05 |
+| `conftest.py` (every test) | autouse fixture admits `127.0.0.1`/`localhost` as a proxy upstream, so the proxy, cloud-fetch and panel tests keep forwarding to their local stand-in for PetKit; no test body changed (the allowlist itself is tested unpatched in `test_proxy_upstream_allowlist.py`) | fixture for the upstream allowlist | 05 |
+| `test_panel.py::test_a_custom_upstream_url_is_accepted` | the typed URL is now a PetKit host (`https://api.eu-pet.com/6/`); an arbitrary mirror (`https://my.mirror/6/`) is asserted refused with 400 and nothing changed | behaviour change: proxy upstream allowlist | 05 |
 | `test_repro_media_file_info_resend.py` | strict xfail removed: a replayed file_info no longer moves a ready row with its file on disk out of `ready`, so the reproduction is a regular test | repro promoted to regular test | bugfix |
 | `test_repro_panel_app_key_reads.py` | strict xfail markers removed now the sound and device-delete handlers read `hub`/`ha_publisher` through `web/appkeys.py`; docstring now describes the wired behaviour; unused `pytest` import dropped | xfail removed | fix |
 | `test_repro_mqtt_auth_signature_log.py` | strict xfail marker removed now a sign mismatch logs pk/dn/signmethod and no signature; docstring in the past tense | xfail removed | fix |
@@ -422,3 +801,8 @@ None.
 | `test_repro_api_url_local_substring.py` | strict xfail marker removed now `.local` is matched on the parsed host; docstring in the past tense | xfail removed | fix |
 | `test_repro_device_scoped_commands_and_zones.py` | strict xfail marker removed from `test_an_action_the_model_has_no_button_for_is_refused` now a named action needs a button on the model; the file's other tests unchanged | xfail removed | fix |
 | `test_repro_device_scoped_commands_and_zones.py` | strict xfail marker removed from `test_the_heartbeat_queue_stays_bounded_and_keeps_the_newest` now `Device.enqueue_command` caps the queue at 64 | xfail removed | fix |
+| `test_panel.py`, `test_ble_accessories.py`, `test_cloud_pet_import.py`, `test_k3_and_cloud_bindings.py`, `test_panel_command_action_validation.py`, `test_panel_devicelogs.py`, `test_panel_media.py`, `test_repro_device_scoped_commands_and_zones.py`, `test_repro_panel_app_key_reads.py`, `test_repro_panel_media_raw_dir.py`, `test_schedules.py` | panel clients built with `authed_test_client(app)` (`tests/conftest_auth.py`: a client token plus a fresh step-up) instead of `TestClient(TestServer(app))`, since every panel route now needs a principal; now-unused `TestClient`/`TestServer`/`json` imports dropped | auth migration | 05 |
+| same files | JSON request bodies sent with `json=` instead of `data=json.dumps(...)`, so they carry `Content-Type: application/json`, which `_json_body` now requires | auth migration | 05 |
+| `test_cloud_pet_import.py::test_a_malformed_request_is_refused`, `test_k3_and_cloud_bindings.py::test_a_malformed_request_is_refused` | the malformed body is sent with `Content-Type: application/json`, so it is still the BODY that is refused (400) rather than the content type (415) | auth migration | 05 |
+| `test_panel.py` (3 tests), `test_schedules.py::test_an_unknown_target_is_refused`, `test_k3_and_cloud_bindings.py::test_an_unreachable_cloud_is_an_error_not_a_silent_nothing`, `test_cloud_pet_import.py::test_a_refusal_from_petkit_is_reported_not_swallowed`, `test_panel_media.py::test_pet_face_upload_stops_at_the_cap`, `test_panel_command_action_validation.py::test_an_unknown_action_is_refused_with_the_existing_message` | read the error text from `["error"]["message"]`: errors are the `{"error": {"code", "message"}}` envelope now; the message text is unchanged | error envelope | 05 |
+| `conftest.py` | re-exports the `authed_client` fixture from `conftest_auth.py` | auth migration | 05 |

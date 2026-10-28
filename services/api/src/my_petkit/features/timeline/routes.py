@@ -23,8 +23,10 @@ from my_petkit.utils.timeutil import local_day_bounds
 from my_petkit.shared.panel_request import _pet_fields, _pets_by_id
 from my_petkit.shared.media_slots import _has_media, _session_media_urls
 from my_petkit.shared.appkeys import CFG, EVENT_STORE, REGISTRY
+from my_petkit.shared.tiers import Tier, tier
 
 
+@tier(GET=Tier.R0_SENSITIVE)
 async def api_timeline(request: web.Request) -> web.Response:
     """Grouped visit sessions for one LOCAL day, with their media.
 
@@ -130,6 +132,7 @@ async def api_timeline(request: web.Request) -> web.Response:
     })
 
 
+@tier(GET=Tier.R0)
 async def api_event_detail(request: web.Request) -> web.Response:
     """Everything the database holds about one stored event.
 

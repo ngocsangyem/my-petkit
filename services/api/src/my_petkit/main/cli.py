@@ -46,9 +46,16 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--device-bind-host", default=None,
                         help="IP the device API, bucket and MQTT TLS listeners bind (default 0.0.0.0)")
     parser.add_argument("--mqtt-plain-bind", default=None,
-                        help="IP the plain MQTT listener binds; must include loopback (default 0.0.0.0)")
+                        help="IP the plain MQTT listener binds; must include loopback (default 127.0.0.1)")
+    parser.add_argument("--mqtt-plain-expose", action="store_true",
+                        help="Serve plain MQTT on every interface, for a device that speaks plaintext")
     parser.add_argument("--user-bind-host", default=None,
                         help="IP the web panel binds (default 0.0.0.0)")
+    parser.add_argument("--user-port", type=int, default=None,
+                        help="User plane TLS port (default 8443)")
+    parser.add_argument("--user-hosts", default=None,
+                        help="Comma-separated host names browsers may use to reach the "
+                             "user plane (IP literals and localhost are always allowed)")
     parser.add_argument("--rtsp-bind", default=None,
                         help="go2rtc RTSP listen address, host:port or :port (default :8554)")
     parser.add_argument("--timezone", default=None, help="IANA timezone for local time")
@@ -96,14 +103,18 @@ def _apply_flags(config: Config, args: argparse.Namespace) -> None:
         config.mqtt_key = args.mqtt_key
     if args.mqtt_strict_auth:
         config.mqtt_strict_auth = True
+    if args.mqtt_plain_expose:
+        config.mqtt_plain_expose = True
     if args.web_port is not None:
         config.web_port = args.web_port
     if args.bucket_port is not None:
         config.bucket_port = args.bucket_port
     if args.bucket_endpoint is not None:
         config.bucket_endpoint = args.bucket_endpoint
+    if args.user_port is not None:
+        config.user_port = args.user_port
     for key in ("device_bind_host", "mqtt_plain_bind", "user_bind_host", "rtsp_bind",
-                "timezone"):
+                "timezone", "user_hosts"):
         if getattr(args, key) is not None:
             setattr(config, key, getattr(args, key))
     if args.debug:
@@ -139,4 +150,5 @@ def build_config(args: argparse.Namespace) -> Config:
     # Last, after every source has had its say: a bad bind address stops the
     # process here with the setting's name, before anything has bound.
     config.validate_bind_addresses()
+    config.validate_wireguard_subnets()
     return config

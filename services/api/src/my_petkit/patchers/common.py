@@ -21,6 +21,7 @@ from typing import Any
 import aiohttp
 
 from my_petkit.devices.base import Device
+from my_petkit.utils import outbound_guard
 log = logging.getLogger(__name__)
 
 DEVICE_HTTPD_PORT = 8888
@@ -199,10 +200,17 @@ async def download_from_device(device_ip: str, filename: str, timeout: float = 3
         port: Which httpd to ask. The default is the file server rooted at
             /app/bin; `run_cmd_capture` uses `DEVICE_PROBE_PORT`, rooted at
             /tmp, because command output cannot be written under /app/bin.
+
+    Raises:
+        outbound_guard.OutboundRefused: `device_ip` is not a registered device's
+            reported address on a device network (`utils/outbound_guard.py`).
+            Redirects are never followed, for the same reason.
     """
-    url = f"http://{device_ip}:{port}/{filename}"
+    target = outbound_guard.check_device_target(device_ip)
+    url = f"http://{outbound_guard.authority(target)}:{port}/{filename}"
     async with aiohttp.ClientSession() as session:
-        async with session.get(url, timeout=aiohttp.ClientTimeout(total=timeout)) as resp:
+        async with session.get(url, timeout=aiohttp.ClientTimeout(total=timeout),
+                               allow_redirects=False) as resp:
             if resp.status != 200:
                 raise RuntimeError(f"GET {url} returned {resp.status}")
             data = await resp.read()
@@ -238,6 +246,13 @@ async def run_cmd_capture(device: Device, device_ip: str, command: str, *,
         never produced it within `timeout`. Never raises for a device-side
         failure — the caller decides what an unknown result means.
     """
+    # Checked before the command is sent: its output could never be read back.
+    try:
+        outbound_guard.check_device_target(device_ip)
+    except outbound_guard.OutboundRefused as e:
+        log.warning("Patcher: cannot read output from device %d: %s", device.petkit_id, e)
+        return None
+
     nonce = secrets.token_hex(8)
     name = f"pk_{nonce}"
     sentinel = f"__PK_END_{nonce}"

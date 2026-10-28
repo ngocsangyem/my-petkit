@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import ipaddress
 import logging
 import re
 import time
@@ -42,6 +43,23 @@ CLIENT_ID_PATTERN = re.compile(
     r"^(?P<pk>[^.]+)\.(?P<dn>[^|]+)\|"
     r"(?P<params>[^|]*)\|$"
 )
+
+
+def is_loopback_peer(address: object) -> bool:
+    """Whether a session's peer address is this host's loopback interface.
+
+    The internal bridge dials `localhost`, so it is the only client that should
+    ever connect from here. An IPv4 address arriving on a dual-stack socket as
+    `::ffff:127.0.0.1` is loopback too. Anything unparsable (None, a hostname,
+    garbage) is not: the answer gates access, so it fails closed.
+    """
+    try:
+        ip = ipaddress.ip_address(str(address).split("%", 1)[0])
+    except ValueError:
+        return False
+    if isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped is not None:
+        return ip.ipv4_mapped.is_loopback
+    return ip.is_loopback
 
 
 def parse_client_id(client_id: str) -> dict | None:
@@ -405,8 +423,10 @@ class AliyunAuthPlugin(BaseAuthPlugin):
     async def authenticate(self, *, session: Session) -> bool:
         """Decide whether one CONNECT may proceed (amqtt's auth hook).
 
-        A client whose id is not in the Aliyun shape at all is our own bridge,
-        and is always allowed: only devices are authenticated here.
+        A client whose id is not in the Aliyun shape at all can only be our own
+        bridge, which dials loopback, so it is allowed from loopback and refused
+        from anywhere else, strict or not. Every device connects with an
+        Aliyun-shaped id, so firmware never takes this path.
 
         Returns:
             True to accept. False is returned only under `set_strict` — the
@@ -415,18 +435,25 @@ class AliyunAuthPlugin(BaseAuthPlugin):
             That is deliberate: locking a physical device out of its only server
             is worse than accepting an unverified one on a LAN-local broker.
         """
+        client_id = session.client_id or ""
+        parsed = parse_client_id(client_id)
+        if not parsed:
+            peer = getattr(session, "remote_address", None)
+            if is_loopback_peer(peer):
+                log.debug("Non-Aliyun client '%s' on loopback - allowing (internal)", client_id)
+                return True
+            # %r: both values come off the wire, and a repr cannot forge a log line.
+            log.warning("Non-Aliyun MQTT client %r from %r refused: only the internal "
+                        "bridge may connect without a device id, and it dials loopback",
+                        client_id[:128], peer)
+            return False
+
         if not self._registry:
             log.warning("No device registry set - allowing connection")
             return True
 
-        client_id = session.client_id or ""
         username = session.username or ""
         password = session.password or ""
-
-        parsed = parse_client_id(client_id)
-        if not parsed:
-            log.debug("Non-Aliyun client '%s' - allowing (internal)", client_id)
-            return True
 
         pk = parsed["product_key"]
         dn = parsed["device_name"]

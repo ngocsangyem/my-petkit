@@ -488,6 +488,7 @@ onAction('sched-save', async el => {
   try {
     const res = await api(`devices/${id}/schedule`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ target, value: schedValue(id, t) }),
     });
     if (res && res.error) return toast(res.error);

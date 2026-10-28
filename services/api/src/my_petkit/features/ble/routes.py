@@ -26,6 +26,8 @@ from my_petkit.utils.const import device_display_name
 from my_petkit.utils.dicts import dig_path
 from my_petkit.shared.panel_request import _cloud_upstream, _json_body, _path_id
 from my_petkit.shared.appkeys import BLE_REGISTRY, BRIDGE, HA_PUBLISHER, HUB, REGISTRY
+from my_petkit.shared.redact_client import redact_for_client
+from my_petkit.shared.tiers import Tier, tier
 
 if TYPE_CHECKING:
     from my_petkit.devices.ble import BLEDevice, BLERegistry
@@ -83,7 +85,9 @@ def _ble_view(dev: BLEDevice, reg: DeviceRegistry | None = None) -> dict[str, An
     """
     entities = get_ble_entities(dev.ble_type)
     parent = reg.get(dev.link_with) if (reg and dev.link_with) else None
-    return {
+    # Through the client redactor: this view carries the accessory's
+    # pairing `secret`, both bare and inside `wire_entry`.
+    return redact_for_client({
         "petkit_id": dev.petkit_id,
         "ble_type": dev.ble_type,
         "name": device_display_name(dev.ble_type),
@@ -116,7 +120,7 @@ def _ble_view(dev: BLEDevice, reg: DeviceRegistry | None = None) -> dict[str, An
         # whether what they typed is what the device will be told to scan for.
         "wire_entry": dev.to_ble_list_entry(),
         "state": dev.state,
-    }
+    })
 
 
 async def _send_k3_link(request: web.Request, parent_id: int, k3_id: int) -> str:
@@ -175,6 +179,7 @@ async def _nudge_relay_list(request: web.Request, parent_id: int) -> None:
                     parent_id, exc)
 
 
+@tier(GET=Tier.R0_SENSITIVE, POST=Tier.R1)
 async def api_ble_accessories(request: web.Request) -> web.Response:
     """List (GET) or pair/update (POST) a BLE accessory.
 
@@ -270,6 +275,7 @@ async def _announce_pairing(request: web.Request, dev: BLEDevice | None) -> None
         await _nudge_relay_list(request, dev.link_with)
 
 
+@tier(POST=Tier.R1)
 async def api_ble_import(request: web.Request) -> web.Response:
     """Ask PetKit which accessories this device owns, and pair them here.
 
@@ -388,6 +394,7 @@ def _ble_entity_value(entity: Any, payload: str) -> int | None:
     return to_int(text, None)
 
 
+@tier(POST=Tier.R2)
 async def api_ble_command(request: web.Request) -> web.Response:
     """Set one entity on a BLE accessory, from the panel.
 
@@ -457,6 +464,7 @@ async def api_ble_command(request: web.Request) -> web.Response:
                               "cmd": cmd, "via": parent.petkit_id})
 
 
+@tier(POST=Tier.R2)
 async def api_ble_poll(request: web.Request) -> web.Response:
     """Ask an accessory's parent to fetch a reading now.
 
@@ -494,6 +502,7 @@ async def api_ble_poll(request: web.Request) -> web.Response:
     return web.json_response({"ok": True, "via": parent.petkit_id})
 
 
+@tier(DELETE=Tier.R1)
 async def api_ble_delete(request: web.Request) -> web.Response:
     """Unpair an accessory.
 

@@ -6,12 +6,12 @@ device delete `publisher` and `event_hub` — keys the panel app never sets, so
 each `.get` was silently None. These pin the wired behaviour end to end.
 """
 from aiohttp import FormData
-from aiohttp.test_utils import TestClient, TestServer
 
 from my_petkit.devices.ble import BLERegistry
 from my_petkit.devices.registry import DeviceRegistry
 from my_petkit.web.hub import EventHub
 from my_petkit.web.panel import create_panel_app
+from tests.conftest_auth import authed_test_client
 
 
 class _FakeBridge:
@@ -38,7 +38,7 @@ async def _panel(tmp_path, *, bridge=None, ha_publisher=None):
     cfg = {"api_url": "http://x/6/", "capture": False, "capture_dir": str(tmp_path),
            "data_dir": str(tmp_path), "bucket_endpoint": "https://10.0.0.7:9000"}
     app = create_panel_app(reg, BLERegistry(), hub, cfg, bridge, ha_publisher=ha_publisher)
-    client = TestClient(TestServer(app))
+    client = authed_test_client(app)
     await client.start_server()
     return client, reg, dev, hub
 

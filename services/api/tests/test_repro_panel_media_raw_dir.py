@@ -8,13 +8,13 @@ the user plane must refuse it however the path is spelled.
 import tempfile
 from pathlib import Path
 
-from aiohttp.test_utils import TestClient, TestServer
 
 from my_petkit.devices.registry import DeviceRegistry
 from my_petkit.events.store import EventStore
 from my_petkit.media.retention import RetentionConfig
 from my_petkit.web.hub import EventHub
 from my_petkit.web.panel import create_panel_app
+from tests.conftest_auth import authed_test_client
 
 RAW_BYTES = b"\xff\xd8\xff\xe0" + b"RAW-UPLOAD" * 8
 
@@ -45,7 +45,7 @@ async def test_panel_media_routes_refuse_the_raw_upload_dir():
                "data_dir": tmp, "media_root": str(media_root)}
         app = create_panel_app(reg, None, EventHub(), cfg, bridge=None,
                                event_store=store, retention_config=RetentionConfig())
-        client = TestClient(TestServer(app))
+        client = authed_test_client(app)
         await client.start_server()
         try:
             leaked = []
@@ -74,7 +74,7 @@ async def test_panel_media_routes_still_serve_the_friendly_tree_and_hide_dot_fil
                "data_dir": tmp, "media_root": str(media_root)}
         app = create_panel_app(reg, None, EventHub(), cfg, bridge=None,
                                event_store=store, retention_config=RetentionConfig())
-        client = TestClient(TestServer(app))
+        client = authed_test_client(app)
         await client.start_server()
         try:
             base = "/api/media/Device%20(T5%201)/Snapshots/2026-10-28/"

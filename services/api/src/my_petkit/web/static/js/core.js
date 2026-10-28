@@ -1,12 +1,25 @@
+import { credentialPrompt } from './auth.js';
+
 const BASE = location.pathname.endsWith('/') ? location.pathname : location.pathname + '/';
 // Never rejects, and never resolves to something a caller could mistake for
 // data: a dead backend, an Ingress error page and a 500 all come back as the
-// `{error}` shape the server answers failures with. Most call sites carry no
-// `.catch`, so a rejection here leaves a tab showing "Loading…" forever.
-const api = async (p, o) => {
+// `{error}` shape callers read, with `error` the server's human-readable
+// message (the server answers `{error: {code, message}}`). Most call sites
+// carry no `.catch`, so a rejection here leaves a tab showing "Loading…"
+// forever.
+//
+// A string body is always JSON here, and says so: the server refuses a JSON
+// body sent under any other content type (that is what stops a cross-site
+// form from posting one). A 401 or a 403 `step_up_required` opens the
+// password prompt once and retries the request.
+const api = async (p, o, retried) => {
+  let opts = o;
+  if (o && typeof o.body === 'string') {
+    opts = { ...o, headers: { 'Content-Type': 'application/json', ...(o.headers || {}) } };
+  }
   let r;
   try {
-    r = await fetch(BASE + 'api/' + p, o);
+    r = await fetch(BASE + 'api/' + p, opts);
   } catch (e) {
     return { error: e.message || 'network error' };
   }
@@ -17,7 +30,13 @@ const api = async (p, o) => {
     return { error: r.ok ? 'malformed response' : 'HTTP ' + r.status };
   }
   if (r.ok) return body;
-  return { error: (body && body.error) || 'HTTP ' + r.status };
+  const err = body && body.error;
+  const code = err && err.code;
+  if (!retried && (r.status === 401 || code === 'step_up_required')) {
+    const kind = code === 'step_up_required' ? 'step-up' : 'login';
+    if (await credentialPrompt(BASE, kind)) return api(p, o, true);
+  }
+  return { error: (err && (err.message || err)) || 'HTTP ' + r.status };
 };
 
 // Markup escaping for the two entity-decoding contexts this file builds:

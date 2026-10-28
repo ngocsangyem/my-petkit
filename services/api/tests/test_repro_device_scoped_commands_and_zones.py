@@ -11,13 +11,13 @@ import time
 from contextlib import contextmanager
 
 import pytest
-from aiohttp.test_utils import TestClient, TestServer
 
 from my_petkit.devices.ble import BLERegistry
 from my_petkit.devices.registry import DeviceRegistry
 from my_petkit.events import codes
 from my_petkit.web.hub import EventHub
 from my_petkit.web.panel import create_panel_app
+from tests.conftest_auth import authed_test_client
 
 PANEL_CFG = {"api_url": "http://x/6/", "mqtt_tls": True, "mqtt_tls_port": 443,
              "capture": False, "capture_dir": "/nope"}
@@ -27,10 +27,10 @@ async def _send_action(device_type: str, action: str) -> tuple[int, dict]:
     reg = DeviceRegistry()
     reg.get_or_create(petkit_id=1, device_type=device_type, serial_number="SN")
     app = create_panel_app(reg, BLERegistry(), EventHub(), dict(PANEL_CFG), None)
-    client = TestClient(TestServer(app))
+    client = authed_test_client(app)
     await client.start_server()
     try:
-        r = await client.post("/api/devices/1/command", data=json.dumps({"action": action}))
+        r = await client.post("/api/devices/1/command", json={"action": action})
         return r.status, await r.json()
     finally:
         await client.close()
@@ -56,12 +56,12 @@ async def test_the_heartbeat_queue_stays_bounded_and_keeps_the_newest():
     reg = DeviceRegistry()
     dev = reg.get_or_create(petkit_id=1, device_type="t5", serial_number="SN")
     app = create_panel_app(reg, BLERegistry(), EventHub(), dict(PANEL_CFG), None)
-    client = TestClient(TestServer(app))
+    client = authed_test_client(app)
     await client.start_server()
     try:
         for _ in range(300):
             r = await client.post("/api/devices/1/command",
-                                  data=json.dumps({"action": "cleaning_start"}))
+                                  json={"action": "cleaning_start"})
             assert r.status == 200
     finally:
         await client.close()

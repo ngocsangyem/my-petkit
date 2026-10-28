@@ -7,12 +7,12 @@ import os
 import tempfile
 from pathlib import Path
 
-from aiohttp.test_utils import TestClient, TestServer
 
 from my_petkit.devices.registry import DeviceRegistry
 from my_petkit.web.hub import EventHub
 from my_petkit.features.logs.routes import MAX_LOG_LINE_CHARS, MAX_LOG_LINES
 from my_petkit.web.panel import create_panel_app
+from tests.conftest_auth import authed_test_client
 
 
 def _panel(tmp, bucket_endpoint="https://192.0.2.199:9000"):
@@ -28,7 +28,7 @@ def _panel(tmp, bucket_endpoint="https://192.0.2.199:9000"):
 
 
 async def _client(app):
-    c = TestClient(TestServer(app))
+    c = authed_test_client(app)
     await c.start_server()
     return c
 

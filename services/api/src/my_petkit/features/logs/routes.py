@@ -29,6 +29,9 @@ from my_petkit.shared.panel_request import (
 )
 from my_petkit.shared.live_settings import _current_settings
 from my_petkit.shared.appkeys import CFG, HUB, REGISTRY
+from my_petkit.shared.redact_client import redact_for_client
+from my_petkit.shared.request_auth import require_step_up
+from my_petkit.shared.tiers import Tier, tier
 
 log = logging.getLogger(__name__)
 
@@ -41,6 +44,7 @@ MAX_LOG_LINE_CHARS = 2000
 MAX_LOG_FILES = 200
 
 
+@tier(GET=Tier.R0_SENSITIVE)
 async def api_events(request: web.Request) -> web.Response:
     """A bare JSON array of the most recent hub events, oldest first.
 
@@ -51,9 +55,10 @@ async def api_events(request: web.Request) -> web.Response:
     limit = _limit_param(request, 200, MAX_EVENT_LIMIT)
     device = request.query.get("device")
     did = to_int(device, None) if device else None
-    return web.json_response(hub.recent(limit, device_id=did))
+    return web.json_response(redact_for_client(hub.recent(limit, device_id=did)))
 
 
+@tier(GET=Tier.R0_SENSITIVE)
 async def api_ws(request: web.Request) -> web.WebSocketResponse:
     """Stream hub events to the panel: a replay of the last 80, then live ones.
 
@@ -68,11 +73,11 @@ async def api_ws(request: web.Request) -> web.WebSocketResponse:
     q = hub.subscribe()
     try:
         for ev in hub.recent(80):
-            await ws.send_json(ev)
+            await ws.send_json(redact_for_client(ev))
         while not ws.closed:
             try:
                 ev = await asyncio.wait_for(q.get(), timeout=25)
-                await ws.send_json(ev)
+                await ws.send_json(redact_for_client(ev))
             except asyncio.TimeoutError:
                 await ws.send_json({"kind": "ping", "ts": time.time()})
     except (asyncio.CancelledError, ConnectionResetError, RuntimeError):
@@ -87,6 +92,7 @@ def _capture_dir(request: web.Request) -> str:
     return request.app[CFG].get("capture_dir", "")
 
 
+@tier(GET=Tier.R0)
 async def api_capture_list(request: web.Request) -> web.Response:
     """List the capture files as `{"dir", "files": [{name, size, lines}], "enabled"}`.
 
@@ -138,6 +144,7 @@ def _safe_capture_path(request: web.Request) -> str | None:
     return p if os.path.isfile(p) else None
 
 
+@tier(GET=Tier.R0_SENSITIVE)
 async def api_capture_read(request: web.Request) -> web.Response:
     """Answer `{"records": [...], "total": n}` for one capture file.
 
@@ -171,9 +178,10 @@ async def api_capture_read(request: web.Request) -> web.Response:
             out.append(json.loads(line))
         except json.JSONDecodeError:
             out.append({"raw": line})
-    return web.json_response({"records": out, "total": total})
+    return web.json_response({"records": redact_for_client(out), "total": total})
 
 
+@tier(GET=Tier.R3)
 async def api_capture_download(request: web.Request) -> web.StreamResponse:
     """Serve a capture file as an attachment, for offline analysis."""
     p = _safe_capture_path(request)
@@ -184,6 +192,7 @@ async def api_capture_download(request: web.Request) -> web.StreamResponse:
     })
 
 
+@tier(DELETE=Tier.R1)
 async def api_capture_delete(request: web.Request) -> web.Response:
     """Delete one capture file; answers `{"ok": True, "name": ...}`.
 
@@ -240,6 +249,7 @@ def _device_log_listing(root: str) -> list[dict[str, Any]]:
     return files
 
 
+@tier(GET=Tier.R0_SENSITIVE)
 async def api_device_logs(request: web.Request) -> web.Response:
     """List the uploaded device logs, newest first.
 
@@ -305,6 +315,7 @@ def _read_device_log(path: str, query: str, limit: int, offset: int) -> dict[str
     }
 
 
+@tier(GET=Tier.R0_SENSITIVE)
 async def api_device_log_read(request: web.Request) -> web.StreamResponse:
     """One log's contents, filtered and windowed — or the raw file to download.
 
@@ -324,6 +335,9 @@ async def api_device_log_read(request: web.Request) -> web.StreamResponse:
         return web.json_response({"error": "not found"}, status=404)
 
     if request.query.get("download"):
+        # The raw file, past the redactor below: same footing as a capture
+        # download, so the same step-up.
+        require_step_up(request, "device_log_download")
         return web.FileResponse(path, headers={
             "Content-Type": "text/plain; charset=utf-8",
             "Content-Disposition": f'attachment; filename="{quote(os.path.basename(path))}"',
@@ -338,4 +352,5 @@ async def api_device_log_read(request: web.Request) -> web.StreamResponse:
         payload = await asyncio.to_thread(_read_device_log, path, query, limit, offset)
     except OSError as e:
         return web.json_response({"error": str(e)}, status=500)
+    payload["lines"] = redact_for_client(payload["lines"])
     return web.json_response(payload)

@@ -8,22 +8,27 @@ cancelled at all, which is the whole reason `_spawn` exists.
 from __future__ import annotations
 
 import asyncio
+import ipaddress
 import logging
 import os
 import ssl
 from collections.abc import Coroutine
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 from aiohttp import web
 
 from my_petkit.events.derived_state_replay import replay_derived_state
+from my_petkit.features.auth.service import AuthService, UserPlaneSettings
+from my_petkit.features.auth.signed_media import SignatureMaskingAccessLogger
 from my_petkit.events.ingest import _MODULE_TYPE_TO_CATEGORY, backfill_event_rows
 from my_petkit.http.bucket import create_bucket_app
 from my_petkit.http.handlers.upload_file_info import wait_for_pending as wait_for_media_tasks
 from my_petkit.media.retention import RetentionSweeper
 from my_petkit.media.stitch import EpisodeStitcher
 from my_petkit.mqtt.broker import ensure_self_signed, start_broker
+from my_petkit.utils.user_tls import ensure_user_cert, server_context
 from my_petkit.web.panel import create_panel_app
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
@@ -95,6 +100,25 @@ async def start_site(runner: web.AppRunner, host: str, port: int, *, listener: s
         ) from e
 
 
+def _open_user_plane(config: Any, ha_addon: bool) -> tuple[AuthService, ssl.SSLContext]:
+    """The user plane's certificate and `AuthService`, both under `data_dir`."""
+    api_host = urlparse(config.api_url).hostname or ""
+    names = [h.strip().lower() for h in config.user_hosts.split(",") if h.strip()]
+    # A specific bind address is one more name a client may dial; "every
+    # interface" is not an address anybody connects to.
+    bind = "" if ipaddress.ip_address(config.user_bind_host).is_unspecified else config.user_bind_host
+    cert, key, fingerprint = ensure_user_cert(Path(config.data_dir) / "certs",
+                                              [api_host, bind, *names])
+    settings = UserPlaneSettings(
+        ingress_port=config.web_port if ha_addon else None,
+        allowed_hosts=frozenset(names),
+        user_url=f"https://{api_host}:{config.user_port}" if api_host else "",
+        user_port=config.user_port,
+        cert_sha256=fingerprint,
+    )
+    return AuthService(Path(config.data_dir), settings), server_context(cert, key)
+
+
 async def start_background(services: Services, app_instance: web.Application) -> None:
     """aiohttp on_startup hook: open the store, then spawn every service.
 
@@ -164,22 +188,34 @@ async def start_background(services: Services, app_instance: web.Application) ->
         # unsplittable (or absent) bucket address is one of the two reasons.
         "bucket_endpoint": config.bucket_endpoint,
     }
+    # The user plane: its TLS certificate (pinned by clients through the
+    # pairing QR code) and its auth state. Ingress is trusted only in add-on
+    # mode, and only on the port Ingress proxies to (`web_port`).
+    user_auth, user_tls = _open_user_plane(config, services.ha_addon)
+    panel_config["user_port"] = config.user_port
+    panel_config["user_cert_sha256"] = user_auth.settings.cert_sha256
     # Pass the SAME app_config dict the device-facing handlers read, so the
     # panel can flip runtime settings (proxy, capture) live with no restart.
     panel = create_panel_app(registry, ble_registry, hub, panel_config,
                              mqtt_bridge, live_config=app_config,
                              event_store=event_store, retention_config=retention_config,
-                             pet_registry=pet_registry, ha_publisher=ha_publisher)
+                             pet_registry=pet_registry, ha_publisher=ha_publisher,
+                             auth=user_auth)
     # The panel asks the sidecar for each device's RTSP URL. Set here rather
     # than passed to `create_panel_app`, so every test that builds a panel
     # does not have to know about a camera sidecar it never uses — but
     # BEFORE `runner.setup()`, which freezes the Application and makes a new
     # key a DeprecationWarning today and an error under aiohttp 4.
     panel["go2rtc"] = go2rtc
-    runner = web.AppRunner(panel)
+    # Signed media URLs carry a short-lived credential in `?sig=`, which the
+    # default access log would write out verbatim.
+    runner = web.AppRunner(panel, access_log_class=SignatureMaskingAccessLogger)
     await runner.setup()
     await start_site(runner, config.user_bind_host, config.web_port,
                      listener="web panel", setting="user_bind_host")
+    await start_site(runner, config.user_bind_host, config.user_port,
+                     listener="user plane (TLS)", setting="user_port", ssl_context=user_tls)
+    user_auth.announce_setup_if_needed()
     app_instance["panel_runner"] = runner
     # "(HA Ingress)" only when there IS a Supervisor to proxy it. Home
     # Assistant Container and Core have no add-on system, so this also runs
@@ -188,6 +224,8 @@ async def start_background(services: Services, app_instance: web.Application) ->
     # exist.
     log.info("Web panel on port %d%s", config.web_port,
              " (HA Ingress)" if services.ha_addon else "")
+    log.info("User plane (TLS) on port %d, certificate SHA-256 %s", config.user_port,
+             user_auth.settings.cert_sha256)
 
     # Local S3/OSS bucket — accepts uploads from the device's cloud
     # process. Raw uploads (AES-encrypted, cryptically named) land in a
@@ -273,7 +311,7 @@ async def start_background(services: Services, app_instance: web.Application) ->
     if not services.no_mqtt:
         broker = await start_broker(
             config.mqtt_port, registry,
-            plain_bind=config.mqtt_plain_bind, tls_bind=config.device_bind_host,
+            plain_bind=config.mqtt_plain_listen_host, tls_bind=config.device_bind_host,
             tls=config.mqtt_tls, tls_port=config.mqtt_tls_port,
             certfile=cert_path,
             keyfile=config.mqtt_key or f"{config.data_dir}/certs/broker.key",

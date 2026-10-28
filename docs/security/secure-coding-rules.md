@@ -28,6 +28,13 @@ Nguồn: tài liệu quy ước của plan rebuild (phần C), chép vào repo �
   - `Referrer-Policy: no-referrer`;
   - `Strict-Transport-Security` khi chạy TLS.
 - **CORS** tắt.
+- **Hiện thực (đã có trong code)**:
+  - Tier khai báo trên handler bằng `@tier(...)` (`shared/tiers.py`); middleware `features/auth/middleware.py` từ chối route thiếu tier. Ngoài `public-static` và `signed-media`, chỉ ba route trao đổi bí mật lấy credential được miễn token (tier `credential`: `/api/auth/setup`, `/login`, `/pairing/redeem`), có rate limit; test liệt kê đúng ba route này.
+  - **Ingress**: chỉ tin khi request đến `ingress_port` (= `web_port`, chỉ ở mode add-on) **và** peer TCP đúng `172.30.32.2`. Nguồn: tài liệu developer của Home Assistant, "Presenting your app" → Ingress (`docs/apps/presentation.md`, repo `home-assistant/developers.home-assistant`, commit `8da484e`): "Only connections from `172.30.32.2` must be allowed". Header (`X-Ingress-Path`, `X-Forwarded-*`, `X-Hass-Source`) không bao giờ được tin.
+  - **`frame-ancestors 'self'` đủ cho Ingress**: Supervisor proxy panel dưới `/api/hassio_ingress/<token>/` trên chính origin của HA, nên trang HA nhúng panel là `'self'`. Không cần ghi origin HA. Vẫn kiểm trên HA thật.
+  - Tài liệu index của panel cũ dùng CSP rộng hơn (`legacy_panel_csp`): một inline script cho phép theo hash, `style-src 'unsafe-inline'` cho ~90 thuộc tính `style=`, ảnh `blob:`/`data:`. Bỏ khi dashboard mới thay panel cũ.
+  - Origin/Host: mọi method không an toàn và mọi WS upgrade. Host phải là IP literal, `localhost` hoặc tên trong `user_hosts`; Origin (nếu có) phải trùng đúng host:port. Cookie/Ingress mà không có Origin thì bị từ chối; client token (không tự gửi kèm) thì được.
+  - Lỗi 5xx: thông điệp của handler bị thay bằng correlation id, trừ 502/503/504 là thông điệp mô tả upstream do handler viết có chủ ý.
 - **Input**: schema chặt, từ chối field lạ. Giới hạn độ dài chuỗi, kích thước body và số phần tử mảng. Định dạng đặc biệt (SSH pubkey, IANA timezone, tên file âm thanh) validate bằng allowlist, không dùng blocklist.
 - **Output**: chỉ JSON. Web render qua React, không bao giờ chèn HTML thô. Mọi chuỗi đến từ thiết bị là dữ liệu không tin cậy.
 
@@ -41,7 +48,7 @@ Nguồn: tài liệu quy ước của plan rebuild (phần C), chép vào repo �
   - pin phiên bản ffmpeg trong image, quét CVE theo image.
 
 ### C3. SSRF và kết nối ra ngoài
-- **Đích là thiết bị**: mọi kết nối server tự khởi tạo tới thiết bị (go2rtc, đọc ngược của patcher, talk 9010) đi qua một module `shared/outbound_guard.py` duy nhất. Chỉ cho phép khi đủ hai điều kiện:
+- **Đích là thiết bị**: mọi kết nối server tự khởi tạo tới thiết bị (go2rtc, đọc ngược của patcher, talk 9010) đi qua một module `utils/outbound_guard.py` duy nhất. Module nằm ở `utils/outbound_guard.py` (không phải `shared/`): protocol core (`media/`, `patchers/`) không được import `shared/` theo contract import-linter, còn feature thì import được `utils/`. Chỉ cho phép khi đủ hai điều kiện:
   - IP thuộc dải private, ULA hoặc subnet WireGuard đã cấu hình;
   - IP thuộc về thiết bị đã đăng ký.
 

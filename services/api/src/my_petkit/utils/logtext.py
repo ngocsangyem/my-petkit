@@ -25,3 +25,9 @@ def excerpt(payload: object, limit: int) -> str:
     """`payload_text`, capped at `limit` characters and marked where it was cut."""
     text = payload_text(payload)
     return (text[:limit] + "...") if len(text) > limit else text
+
+
+def one_line(value: object) -> str:
+    """`value` as text with CR and LF escaped, so a caller-supplied string
+    (a request path, a route id) cannot forge a second log line."""
+    return str(value).replace("\r", "\\r").replace("\n", "\\n")
