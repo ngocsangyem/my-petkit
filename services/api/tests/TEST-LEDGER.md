@@ -757,6 +757,8 @@ reviewer can find every place the suite was touched.
 - added: tests/test_data_file_permissions.py::test_the_broker_certificate_and_key_are_owner_only
 - added: tests/test_data_file_permissions.py::test_a_device_sound_list_is_owner_only
 - added: tests/test_data_file_permissions.py::test_main_secures_the_data_dir_before_anything_is_written
+- added: tests/test_log_line_escaping.py::test_a_crlf_in_a_logged_value_is_escaped_not_emitted
+- added: tests/test_log_line_escaping.py::test_an_ordinary_value_is_unchanged
 
 ## Removed
 

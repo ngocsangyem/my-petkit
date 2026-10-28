@@ -37,6 +37,7 @@ from my_petkit.features.auth.service import AuthService
 from my_petkit.features.auth.sessions import COOKIE_NAME, Session, set_session_cookie
 from my_petkit.shared.appkeys import AUTH
 from my_petkit.shared.errors import error_response
+from my_petkit.utils.logtext import one_line
 from my_petkit.shared.request_auth import PLAYLIST_SIGNER, REQUEST_AUTH, AuthContext, audit_r3
 from my_petkit.shared.tiers import Tier, route_tier
 
@@ -218,7 +219,9 @@ async def auth_middleware(request: web.Request, handler: _Handler) -> web.Stream
     """Enforce the route's tier. See the module docstring for the order."""
     tier = _route_tier(request)
     if tier is None:
-        log.error("route without a tier refused: %s %s", request.method, request.path)
+        log.error(
+            "route without a tier refused: %s %s", one_line(request.method), one_line(request.path)
+        )
         return _deny(403, "forbidden", "This route is not available.")
     if tier is Tier.PUBLIC_STATIC:
         return await handler(request)
