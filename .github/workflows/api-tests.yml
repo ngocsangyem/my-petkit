@@ -55,11 +55,11 @@ jobs:
       - name: pytest
         run: python -m pytest -q
 
-      - name: golden device responses (vs phase-04-approved)
+      - name: golden device responses (vs approved-sound-list)
         # Every byte handed to a device or to Home Assistant must match the
         # last approved baseline. An approved behaviour change moves the tag
         # in the same PR, with the reason in the commit.
-        run: python ../../scripts/golden_device_responses.py --against phase-04-approved --tz UTC --tz Asia/Saigon
+        run: python ../../scripts/golden_device_responses.py --against approved-sound-list --tz UTC --tz Asia/Saigon
 
       - name: golden output does not depend on the host zone
         run: |

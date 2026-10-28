@@ -1,14 +1,12 @@
-"""Reproduction awaiting approval: uploaded sounds never reach a device.
+"""An uploaded sound is listed to its device by `dev_sound_get`.
 
-The device API's `dev_sound_get` reads the panel app's `cfg` key on the device
-app, which has none; the request raises and the never-fail middleware answers
-an empty list. Fixing it changes what a device receives, so it waits for
-approval like every other device-facing change.
+The handler once read the panel app's `cfg` key on the device app, which has
+none; the request raised and the never-fail middleware answered an empty list,
+so no uploaded sound ever reached a device.
 """
 
 import json
 
-import pytest
 from aiohttp.test_utils import TestClient, TestServer
 
 from my_petkit.devices import sound_store
@@ -16,7 +14,6 @@ from my_petkit.devices.registry import DeviceRegistry
 from my_petkit.http.server import create_app
 
 
-@pytest.mark.xfail(strict=True, reason="dev_sound_get reads a key the device app does not have")
 async def test_an_uploaded_sound_is_listed_to_its_device(tmp_path):
     reg = DeviceRegistry()
     reg.get_or_create(petkit_id=100, device_type="d4h", serial_number="SN100")

@@ -26,6 +26,7 @@ import secrets
 import sys
 import time
 import uuid
+from pathlib import Path
 from datetime import datetime, timezone
 from typing import Any
 
@@ -112,6 +113,20 @@ def _register(registry: Any, pid: int, dtype: str) -> Any:
     return dev
 
 
+#: One camera feeder carries an uploaded sound, so `dev_sound_get` is pinned
+#: both with a sound to list and (every other type) with none.
+SOUND_DEVICE_TYPE = "d4h"
+
+
+def _upload_sound(data_dir: str, device_id: int) -> None:
+    """Write what the panel's upload leaves on disk: `sounds/<id>/sounds.json`."""
+    folder = Path(data_dir) / "sounds" / str(device_id)
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / "sounds.json").write_text(json.dumps([
+        {"id": 1, "name": "dinner", "filename": "1.mp3", "duration": 2,
+         "digest": "golden-digest", "size": 3}]))
+
+
 def _services(data_dir: str) -> Any:
     """The real wiring (`main.wiring.build_services`), as `main()` builds it."""
     import argparse
@@ -140,6 +155,8 @@ async def _http(dtypes: list[str], data_dir: str) -> dict[str, Any]:
     for dtype in dtypes:
         services = _services(f"{data_dir}/{dtype}")
         dev = _register(services.registry, 100, dtype)
+        if dtype == SOUND_DEVICE_TYPE:
+            _upload_sound(f"{data_dir}/{dtype}", dev.petkit_id)
         client = TestClient(TestServer(services.app))
         await client.start_server()
         hdr = {"X-Device": f"id={dev.petkit_id}&sn={dev.serial_number}"}
