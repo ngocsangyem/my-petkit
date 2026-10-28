@@ -17,6 +17,7 @@ from my_petkit.http.handlers._common import request_device
 from my_petkit.http.handlers.heartbeat import carries_commands
 from my_petkit.http.handlers.iot_device_info import self_mqtt_host
 from my_petkit.http.middleware import API_PREFIX, PROXY_OUTCOME, Handler
+from my_petkit.http.middleware.body import request_body
 from my_petkit.http.middleware.logging import _short, _text_or_none
 from my_petkit.http.proxy import forward, resolve_upstream
 from my_petkit.http.redact import RedactionPolicy
@@ -183,14 +184,12 @@ async def proxy_middleware(request: web.Request, handler: Handler) -> web.Stream
     if not config.get("proxy_mode") or not request.path.startswith(API_PREFIX):
         return await handler(request)
 
-    # Read before the handler so we own the bytes whatever it does with them.
-    # aiohttp caches the payload, so the handler's own `request.read()` still
-    # works. A future handler using `request.multipart()` — a one-shot stream —
-    # would need this revisited.
-    try:
-        body = await request.read()
-    except Exception:
-        body = b""
+    # The bytes `body_middleware` read once, before the handler ran, so we own
+    # them whatever it does. A body too large to read whole never gets here: it
+    # was answered locally, rather than forwarded upstream as b"" or a tail.
+    # A future handler using `request.multipart()` — a one-shot stream — would
+    # need this revisited.
+    body = await request_body(request)
 
     local = await handler(request)
 

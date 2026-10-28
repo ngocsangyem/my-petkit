@@ -25,6 +25,7 @@ from my_petkit.utils.coerce import to_int
 from my_petkit.utils.const import device_display_name
 from my_petkit.utils.dicts import dig_path
 from my_petkit.web.api._common import _cloud_upstream, _json_body, _path_id
+from my_petkit.web.appkeys import BLE_REGISTRY, BRIDGE, HA_PUBLISHER, HUB, REGISTRY
 
 if TYPE_CHECKING:
     from my_petkit.devices.ble import BLEDevice, BLERegistry
@@ -131,8 +132,8 @@ async def _send_k3_link(request: web.Request, parent_id: int, k3_id: int) -> str
     parent that is asleep must not fail the pairing the user just entered. It
     picks the property up from `dev_device_info` on its next poll regardless.
     """
-    reg = request.app["registry"]
-    bridge = request.app.get("bridge")
+    reg = request.app[REGISTRY]
+    bridge = request.app.get(BRIDGE)
     parent = reg.get(parent_id)
     if parent is None:
         return "no parent"
@@ -146,7 +147,7 @@ async def _send_k3_link(request: web.Request, parent_id: int, k3_id: int) -> str
         except Exception as e:
             log.warning("panel: K3 link publish failed for device %d, queueing: %s", parent_id, e)
     envelope["_service_suffix"] = PROPERTY_SET_SUFFIX
-    parent.command_queue.append(envelope)
+    parent.enqueue_command(envelope)
     return "heartbeat-queue"
 
 
@@ -162,8 +163,8 @@ async def _nudge_relay_list(request: web.Request, parent_id: int) -> None:
     Best effort: a parent that is off MQTT picks the change up on its next
     fetch, which is the behaviour we had for everything.
     """
-    bridge = request.app.get("bridge")
-    reg = request.app["registry"]
+    bridge = request.app.get(BRIDGE)
+    reg = request.app[REGISTRY]
     parent = reg.get(parent_id) if parent_id else None
     if bridge is None or parent is None:
         return
@@ -185,8 +186,8 @@ async def api_ble_accessories(request: web.Request) -> web.Response:
     Answers `{"accessories": [...]}` either way, so the caller never has to
     re-fetch after a write.
     """
-    ble = request.app["ble_registry"]
-    reg = request.app["registry"]
+    ble = request.app[BLE_REGISTRY]
+    reg = request.app[REGISTRY]
     if ble is None:
         return web.json_response({"error": "no BLE registry"}, status=503)
 
@@ -256,7 +257,7 @@ async def _announce_pairing(request: web.Request, dev: BLEDevice | None) -> None
 
     # Publish immediately rather than waiting for the next HA reconnect:
     # an accessory that appears in the panel but not in HA reads as broken.
-    publisher = request.app.get("ha_publisher")
+    publisher = request.app.get(HA_PUBLISHER)
     if publisher is not None:
         await publisher.publish_ble_discovery(dev)
         await publisher.publish_ble_state(dev)
@@ -287,8 +288,8 @@ async def api_ble_import(request: web.Request) -> web.Response:
     accessory and what happened to it, refusals included — an import that
     quietly covers four of five is worse than one that says so.
     """
-    ble = request.app["ble_registry"]
-    reg = request.app["registry"]
+    ble = request.app[BLE_REGISTRY]
+    reg = request.app[REGISTRY]
     if ble is None:
         return web.json_response({"error": "no BLE registry"}, status=503)
 
@@ -403,10 +404,10 @@ async def api_ble_command(request: web.Request) -> web.Response:
     restate every field they carry, so a setting cannot be changed before the
     accessory has reported the rest of them.
     """
-    ble = request.app["ble_registry"]
-    reg = request.app["registry"]
-    bridge = request.app.get("bridge")
-    hub = request.app["hub"]
+    ble = request.app[BLE_REGISTRY]
+    reg = request.app[REGISTRY]
+    bridge = request.app.get(BRIDGE)
+    hub = request.app[HUB]
 
     ble_id = to_int(request.match_info.get("id"), 0) or 0
     dev = ble.get(ble_id)
@@ -467,10 +468,10 @@ async def api_ble_poll(request: web.Request) -> web.Response:
     guess, "has it ever answered" is the only question, and waiting four
     minutes to ask it is not a workflow.
     """
-    ble = request.app["ble_registry"]
-    reg = request.app["registry"]
-    bridge = request.app.get("bridge")
-    hub = request.app["hub"]
+    ble = request.app[BLE_REGISTRY]
+    reg = request.app[REGISTRY]
+    bridge = request.app.get(BRIDGE)
+    hub = request.app[HUB]
 
     dev = ble.get(to_int(request.match_info.get("id"), 0) or 0)
     if dev is None:
@@ -501,7 +502,7 @@ async def api_ble_delete(request: web.Request) -> web.Response:
     are left behind — nothing here publishes an empty discovery payload — so
     the answer says so rather than letting the user think HA has been tidied.
     """
-    ble = request.app["ble_registry"]
+    ble = request.app[BLE_REGISTRY]
     if ble is None:
         return web.json_response({"error": "no BLE registry"}, status=503)
     did = _path_id(request)
@@ -519,6 +520,6 @@ async def api_ble_delete(request: web.Request) -> web.Response:
         await _nudge_relay_list(request, parent_id)
     return web.json_response({
         "ok": True,
-        "accessories": [_ble_view(d, request.app["registry"]) for d in ble.all()],
+        "accessories": [_ble_view(d, request.app[REGISTRY]) for d in ble.all()],
         "note": "Home Assistant keeps the entities until you delete the device there.",
     })

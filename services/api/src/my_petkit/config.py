@@ -85,6 +85,22 @@ def _opt_bool(opts: dict[str, Any], key: str, default: bool) -> bool:
     return value
 
 
+def _is_mdns_url(url: str) -> bool:
+    """True when the URL's HOST is an mDNS name (`local` or `*.local`).
+
+    Matched on the parsed host, not the whole string: a routable name that only
+    contains ".local" (`my.localdomain.net`, a `/.local/` path) is a real
+    address the owner typed and must be kept. A value without a scheme is read
+    as a bare host, and one that does not parse is left to the owner.
+    """
+    try:
+        host = urlparse(url if "://" in url else f"//{url}").hostname or ""
+    except ValueError:
+        return False
+    host = host.rstrip(".").lower()
+    return host == "local" or host.endswith(".local")
+
+
 def _supervisor_host_ip() -> str | None:
     """The HA host's LAN IPv4 on its primary interface, via the Supervisor API.
 
@@ -325,7 +341,11 @@ class Config:
     #: real credentials have been learned from a proxied dev_iot_device_info.
     proxy_mqtt_bridge: bool = True
 
-    ha_mqtt_host: str = "localhost"
+    #: Empty disables HA publishing, as `addon/DOCS.md` documents. Defaulting
+    #: to "localhost" had an unconfigured standalone run reconnecting to a
+    #: broker nobody asked for, forever; one on this host is `--ha-mqtt-host
+    #: localhost`.
+    ha_mqtt_host: str = ""
     ha_mqtt_port: int = 1883
     ha_mqtt_user: str = ""
     ha_mqtt_pass: str = ""
@@ -522,7 +542,7 @@ class Config:
         ports = _supervisor_port_map()
 
         api_opt = (opts.get("api_url") or "").strip()
-        if not api_opt or ".local" in api_opt:
+        if not api_opt or _is_mdns_url(api_opt):
             auto = _auto_api_url(host_ip, ports, c.http_port)
             c.api_url = auto or api_opt or c.api_url
         else:

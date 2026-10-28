@@ -464,9 +464,9 @@ def handle_ha_command(device: Device, entity: EntityDef, payload: str) -> Comman
             # A raw save is current-format by definition — the stamp keeps the
             # one-time minute migration (feed.migrate_minute_schedule) off it.
             parsed["v"] = 2
-            device.command_queue.append({"msgType": 1,
-                                         "payload": {"feed_get": "1"},
-                                         "timestamp": int(time.time())})
+            device.enqueue_command({"msgType": 1,
+                                    "payload": {"feed_get": "1"},
+                                    "timestamp": int(time.time())})
             latest = _feed_latest(parsed, time.time())
             wire_groups = [{"re": g.get("re", ""), "it": g.get("it", [])}
                            for g in parsed.get("schedule", [])]

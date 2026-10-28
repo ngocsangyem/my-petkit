@@ -1,19 +1,25 @@
 """Request-scoped identity, proxying and observability for the device-facing server.
 
-Three middlewares, in the order aiohttp applies them (outermost first):
+Four middlewares, in the order aiohttp applies them (outermost first):
 
 * `logging_middleware` — the one place every device request is logged, mirrored
   to the panel's live log and (optionally) written to a capture file, and the
   one place a device's `online`/`last_seen` is refreshed. Liveness lives here
   rather than in the handlers because *any* HTTP contact proves the device is
   up, and not every device model does MQTT or even an HTTP heartbeat.
+* `body_middleware` — reads the request body ONCE into ``request[REQUEST_BODY]``
+  for everything after it, and answers a body too large to read whole with an
+  empty success instead of handing a truncated one on (see `body.py`).
 * `device_middleware` — parses the firmware's `X-Device` header and the URL
   into ``request["x_device"]``, ``request["api_version"]`` and
   ``request["device_type"]``, so no handler has to re-derive them.
 * `proxy_middleware` — when proxy mode is on, forwards the request to the real
   PetKit cloud and answers with its (redacted) reply instead of ours.
 
-That order is load-bearing in both directions. `device_middleware` runs before
+That order is load-bearing in both directions. `body_middleware` is the first to
+touch the body, because only the first `read()` of an oversized one can tell it
+was cut short; `logging_middleware` reads the stored copy after the handler.
+`device_middleware` runs before
 the proxy so `request["device_type"]` is set when the upstream is being chosen,
 and `logging_middleware` stays outermost so the panel's live log and the capture
 file record **what the device actually received**, not what our handler would
@@ -24,7 +30,7 @@ optional, because a device that cannot be identified must still get a valid
 answer (see `http/server.py`'s "never 404 a device" rule). The proxy holds the
 same line — every failure path falls back to the local answer.
 
-One module each — `device.py`, `logging.py`, `proxy.py` — plus the backstop
+One module each — `body.py`, `device.py`, `logging.py`, `proxy.py` — plus the backstop
 below and the three values all of them share. Those are defined before the
 submodules are imported, because each one imports them back from here.
 """
@@ -53,6 +59,13 @@ PROXY_OUTCOME = "proxy_outcome"
 # from here. Importing `.logging` also rebinds the name `logging` on this module
 # to that submodule, which is why `log` is built first and nothing after this
 # point reaches for the stdlib module by name.
+from my_petkit.http.middleware.body import (
+    BODY_DROPPED,
+    DEVICE_MAX_BODY,
+    REQUEST_BODY,
+    body_middleware,
+    request_body,
+)
 from my_petkit.http.middleware.device import (
     device_middleware,
     parse_form_body,
@@ -80,16 +93,21 @@ from my_petkit.http.middleware.proxy import (
 #: read as unused imports.
 __all__ = [
     "API_PREFIX",
+    "BODY_DROPPED",
+    "DEVICE_MAX_BODY",
     "GUARDED_LOCAL_ENDPOINTS",
     "Handler",
     "LOCAL_ONLY_ENDPOINTS",
     "PROXY_OUTCOME",
+    "REQUEST_BODY",
+    "body_middleware",
     "device_middleware",
     "logging_middleware",
     "never_fail_middleware",
     "parse_form_body",
     "parse_x_device",
     "proxy_middleware",
+    "request_body",
     "_FORWARDED_HEADERS",
     "_build_policy",
     "_capture_exchange",
@@ -118,7 +136,7 @@ async def never_fail_middleware(request: web.Request, handler: Handler) -> web.S
     from deeply nested JSON. Each of those became aiohttp's default 500, i.e.
     precisely the retry loop the rule exists to prevent.
 
-    So this is the backstop, outermost of the four. It answers `{"result": {}}`,
+    So this is the backstop, outermost of the five. It answers `{"result": {}}`,
     the same shape `handle_catchall` uses for an endpoint we do not implement —
     a device treats it as "nothing to do" and moves on.
 

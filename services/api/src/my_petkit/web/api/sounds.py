@@ -25,6 +25,7 @@ from aiohttp import web
 
 from my_petkit.ha.commands import make_mqtt_property_set, _envelope
 from my_petkit.web.api._common import _device_or_404, _deliver, _refuse
+from my_petkit.web.appkeys import BRIDGE, CFG, HUB
 
 log = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ MAX_SOUNDS_PER_DEVICE = 10
 
 
 def _sounds_dir(request: web.Request, device_id: int) -> str:
-    data_dir = request.app["cfg"].get("data_dir", "/data")
+    data_dir = request.app[CFG].get("data_dir", "/data")
     return os.path.join(data_dir, "sounds", str(device_id))
 
 
@@ -134,11 +135,11 @@ async def api_sounds_upload(request: web.Request) -> web.Response:
     sounds.append(entry)
     _save_sounds(request, d.petkit_id, sounds)
 
-    bucket_endpoint = request.app["cfg"].get("bucket_endpoint", "")
+    bucket_endpoint = request.app[CFG].get("bucket_endpoint", "")
     if bucket_endpoint:
         sound_list = sound_list_for_device(request, d.petkit_id, bucket_endpoint)
-        hub = request.app.get("event_hub")
-        bridge = request.app.get("bridge")
+        hub = request.app.get(HUB)
+        bridge = request.app.get(BRIDGE)
         if hub and bridge:
             envelope = make_mqtt_property_set({"soundList": sound_list})
             await _deliver(hub, bridge, d, "property/set", envelope)
@@ -178,8 +179,8 @@ async def api_sounds_play(request: web.Request) -> web.Response:
     except (ValueError, KeyError):
         raise _refuse(web.HTTPBadRequest, "bad sound_id") from None
 
-    hub = request.app.get("event_hub")
-    bridge = request.app.get("bridge")
+    hub = request.app.get(HUB)
+    bridge = request.app.get(BRIDGE)
     if not hub:
         raise _refuse(web.HTTPBadRequest, "no event hub")
 
@@ -196,8 +197,8 @@ async def api_sounds_select(request: web.Request) -> web.Response:
 
     d.config.setdefault("settings", {})["selectedSound"] = sound_id
 
-    hub = request.app.get("event_hub")
-    bridge = request.app.get("bridge")
+    hub = request.app.get(HUB)
+    bridge = request.app.get(BRIDGE)
     if not hub:
         raise _refuse(web.HTTPBadRequest, "no event hub")
 

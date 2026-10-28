@@ -22,6 +22,7 @@ from my_petkit.utils import clock
 from my_petkit.utils.timeutil import local_day_bounds
 from my_petkit.web.api._common import _pet_fields, _pets_by_id
 from my_petkit.web.api.media import _has_media, _session_media_urls
+from my_petkit.web.appkeys import CFG, EVENT_STORE, REGISTRY
 
 
 async def api_timeline(request: web.Request) -> web.Response:
@@ -41,7 +42,7 @@ async def api_timeline(request: web.Request) -> web.Response:
     after-midnight toilet visits. `tz_offset` is reported so the panel's date
     picker agrees with the server about which day "today" is.
     """
-    store = request.app.get("event_store")
+    store = request.app.get(EVENT_STORE)
     if store is None:
         return web.json_response({"error": "event store not available"}, status=400)
 
@@ -65,8 +66,8 @@ async def api_timeline(request: web.Request) -> web.Response:
     counts = ingest.filter_counts(sessions)
     filtered = [s for s in sessions if ingest.matches_filter(s, filt)]
 
-    media_root = request.app["cfg"].get("media_root", "")
-    reg = request.app["registry"]
+    media_root = request.app[CFG].get("media_root", "")
+    reg = request.app[REGISTRY]
     # Resolved once for the whole day rather than per card: a household has a
     # handful of pets, and a card carrying a bare `pet_id` is what made the
     # Timeline silent about which cat it was showing.
@@ -150,7 +151,7 @@ async def api_event_detail(request: web.Request) -> web.Response:
     ~100 kB of payload re-fetched on every websocket refresh, to show one row
     the user may never open.
     """
-    store = request.app.get("event_store")
+    store = request.app.get(EVENT_STORE)
     if store is None:
         return web.json_response({"error": "event store not available"}, status=400)
 

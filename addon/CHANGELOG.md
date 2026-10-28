@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- **A standalone run no longer publishes to a Home Assistant broker on
+  `localhost` unless asked to.** The standalone default for the HA broker host
+  was `localhost`, so a run with no broker configured retried a connection
+  forever; it is now empty, which disables HA publishing exactly as an empty
+  `ha_mqtt_host` add-on option always has. The add-on itself is unaffected. If
+  you run standalone and relied on an implicit broker on the same host, pass
+  `--ha-mqtt-host localhost`.
+
 ## 2.1.0 — 2026-08-12
 
 The YumShare Dual-Hopper (D4SH) camera feeder is now confirmed working, and most

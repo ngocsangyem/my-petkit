@@ -285,6 +285,64 @@ reviewer can find every place the suite was touched.
 - added: tests/test_session_lookups_are_scoped_to_the_device.py::test_media_lookup_by_session_ignores_another_devices_media
 - added: tests/test_session_lookups_are_scoped_to_the_device.py::test_stitched_clip_ids_differ_per_device
 
+### Panel handlers read app state through the web/appkeys.py constants (one AST-check ID per module)
+
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[__init__.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[_common.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[ble.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[devices.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[logs.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[media.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[patchers.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[pets.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[schedules.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[settings.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[sounds.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[talk.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[timeline.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_the_check_catches_both_read_forms
+
+### MQTT CONNECT signature check (constant-time; a non-ASCII password never raises)
+
+- added: tests/test_repro_mqtt_auth_signature_log.py::test_a_non_ascii_password_is_refused_without_raising[False]
+- added: tests/test_repro_mqtt_auth_signature_log.py::test_a_non_ascii_password_is_refused_without_raising[True]
+
+### dev_feed_get answers the same over MQTT user/get as over HTTP
+
+- added: tests/test_repro_mqtt_feed_get_parity.py::test_mqtt_and_http_feed_get_agree_value_for_value_at_the_same_instant
+- added: tests/test_repro_mqtt_feed_get_parity.py::test_mqtt_feed_get_stays_silent_when_no_schedule_is_stored
+
+### The add-on api_url is replaced only for an mDNS host, matched on the parsed host
+
+- added: tests/test_repro_api_url_local_substring.py::test_other_spellings_of_an_mdns_host_are_still_replaced[http://HomeAssistant.LOCAL:8123/6/]
+- added: tests/test_repro_api_url_local_substring.py::test_other_spellings_of_an_mdns_host_are_still_replaced[http://homeassistant.local./6/]
+- added: tests/test_repro_api_url_local_substring.py::test_other_spellings_of_an_mdns_host_are_still_replaced[homeassistant.local/6/]
+- added: tests/test_repro_api_url_local_substring.py::test_an_api_url_that_does_not_parse_is_kept_rather_than_raising
+
+### Panel command actions are scoped to the model's buttons
+
+- added: tests/test_panel_command_action_validation.py::test_a_non_string_action_is_refused_not_a_server_error[action0]
+- added: tests/test_panel_command_action_validation.py::test_a_non_string_action_is_refused_not_a_server_error[action1]
+- added: tests/test_panel_command_action_validation.py::test_a_non_string_action_is_refused_not_a_server_error[7]
+- added: tests/test_panel_command_action_validation.py::test_an_unknown_action_is_refused_with_the_existing_message
+- added: tests/test_panel_command_action_validation.py::test_an_out_of_model_action_queues_nothing
+- added: tests/test_panel_command_action_validation.py::test_the_raw_suffix_payload_form_is_not_scoped_by_model
+
+### The heartbeat command queue is capped per device (Device.enqueue_command)
+
+- added: tests/test_device_command_queue_bound.py::test_below_the_cap_nothing_is_dropped_or_logged
+- added: tests/test_device_command_queue_bound.py::test_past_the_cap_the_oldest_are_dropped_and_the_device_is_named
+- added: tests/test_device_command_queue_bound.py::test_pop_commands_still_drains_everything_oldest_first
+- added: tests/test_device_command_queue_bound.py::test_nothing_outside_the_device_model_appends_to_the_queue_directly
+
+### A device request body is read once; one too large to read whole is dropped and logged, never handled truncated
+
+- added: tests/test_device_request_body_read_once.py::test_a_two_mib_event_report_is_parsed_whole
+- added: tests/test_device_request_body_read_once.py::test_a_body_over_the_limit_is_dropped_logged_and_answered_success
+- added: tests/test_device_request_body_read_once.py::test_the_device_limit_is_above_aiohttps_default_and_below_the_buckets
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[http/middleware/body.py]
+  — the new `http/middleware/body.py` gains the per-module clock check's ID.
+
 ## Removed
 
 None.
@@ -310,3 +368,11 @@ None.
 | `test_repro_stitch_failure_keeps_chunks.py::test_successful_stitch_never_overwrites_a_source_and_then_removes_them` | asserts the move-in name is free of every source, and that the clip then takes the first chunk's (preferred) name once the sources are deleted | behaviour refined per the approved fix | 04 |
 | `test_media_stitch.py` (3 tests: end-to-end, late-chunk real ffmpeg, mismatched chunk) | expected stitched `file_id` now carries the device id (`stitched:1:<session>:<category>`) | behaviour change per the approved per-device identity fix | 04 |
 | `test_repro_media_file_info_resend.py` | strict xfail removed: a replayed file_info no longer moves a ready row with its file on disk out of `ready`, so the reproduction is a regular test | repro promoted to regular test | bugfix |
+| `test_repro_panel_app_key_reads.py` | strict xfail markers removed now the sound and device-delete handlers read `hub`/`ha_publisher` through `web/appkeys.py`; docstring now describes the wired behaviour; unused `pytest` import dropped | xfail removed | fix |
+| `test_repro_mqtt_auth_signature_log.py` | strict xfail marker removed now a sign mismatch logs pk/dn/signmethod and no signature; docstring in the past tense | xfail removed | fix |
+| `test_repro_mqtt_feed_get_parity.py` | strict xfail marker removed now MQTT user/get builds dev_feed_get with the HTTP handler's builder; docstring in the past tense; unused `pytest` import dropped | xfail removed | fix |
+| `test_repro_ha_mqtt_host_default.py` | strict xfail markers removed now the standalone `Config` and `HAPublisher` default `ha_mqtt_host` to empty; docstring in the past tense | xfail removed | fix |
+| `test_repro_ha_addon_cli_flags.py` | strict xfail marker removed now `build_config` applies the flags after either config source; docstring in the past tense; unused `pytest` import dropped | xfail removed | fix |
+| `test_repro_api_url_local_substring.py` | strict xfail marker removed now `.local` is matched on the parsed host; docstring in the past tense | xfail removed | fix |
+| `test_repro_device_scoped_commands_and_zones.py` | strict xfail marker removed from `test_an_action_the_model_has_no_button_for_is_refused` now a named action needs a button on the model; the file's other tests unchanged | xfail removed | fix |
+| `test_repro_device_scoped_commands_and_zones.py` | strict xfail marker removed from `test_the_heartbeat_queue_stays_bounded_and_keeps_the_newest` now `Device.enqueue_command` caps the queue at 64 | xfail removed | fix |

@@ -28,6 +28,7 @@ from my_petkit.web.api._common import (
     MAX_CAPTURE_LIMIT, MAX_EVENT_LIMIT, _device_log_reason, _device_log_root, _limit_param,
 )
 from my_petkit.web.api.settings import _current_settings
+from my_petkit.web.appkeys import CFG, HUB, REGISTRY
 
 log = logging.getLogger(__name__)
 
@@ -46,7 +47,7 @@ async def api_events(request: web.Request) -> web.Response:
     Optionally narrowed to one `?device=`. This backfills the Log tab on load;
     `api_ws` is what keeps it live afterwards.
     """
-    hub = request.app["hub"]
+    hub = request.app[HUB]
     limit = _limit_param(request, 200, MAX_EVENT_LIMIT)
     device = request.query.get("device")
     did = to_int(device, None) if device else None
@@ -61,7 +62,7 @@ async def api_ws(request: web.Request) -> web.WebSocketResponse:
     tells the frontend the connection is still good, and its absence is what
     flips the header pill to disconnected.
     """
-    hub = request.app["hub"]
+    hub = request.app[HUB]
     ws = web.WebSocketResponse(heartbeat=25)
     await ws.prepare(request)
     q = hub.subscribe()
@@ -83,7 +84,7 @@ async def api_ws(request: web.Request) -> web.WebSocketResponse:
 
 def _capture_dir(request: web.Request) -> str:
     """The configured capture directory, or an empty string when there is none."""
-    return request.app["cfg"].get("capture_dir", "")
+    return request.app[CFG].get("capture_dir", "")
 
 
 async def api_capture_list(request: web.Request) -> web.Response:
@@ -248,7 +249,7 @@ async def api_device_logs(request: web.Request) -> web.Response:
     arrangement `api_capture_list` uses for captures.
     """
     root = _device_log_root(request)
-    reg = request.app["registry"]
+    reg = request.app[REGISTRY]
     files = await asyncio.to_thread(_device_log_listing, root) if root else []
     want = to_int(request.query.get("device"), None)
     if want is not None:

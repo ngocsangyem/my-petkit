@@ -1,11 +1,10 @@
 """Panel handlers must read collaborators under the keys the panel stores them.
 
 `create_panel_app` stores the event hub as `hub` and the HA publisher as
-`ha_publisher` (`web/appkeys.py`). The sound handlers read `event_hub`, and
-device delete reads `publisher` and `event_hub` — keys the panel app never sets,
-so each `.get` is silently None.
+`ha_publisher` (`web/appkeys.py`). The sound handlers once read `event_hub`, and
+device delete `publisher` and `event_hub` — keys the panel app never sets, so
+each `.get` was silently None. These pin the wired behaviour end to end.
 """
-import pytest
 from aiohttp import FormData
 from aiohttp.test_utils import TestClient, TestServer
 
@@ -44,8 +43,6 @@ async def _panel(tmp_path, *, bridge=None, ha_publisher=None):
     return client, reg, dev, hub
 
 
-@pytest.mark.xfail(strict=True, reason="sound play reads app['event_hub'] (unset on the "
-                   "panel) and answers 400 'no event hub'")
 async def test_playing_a_sound_queues_the_command(tmp_path):
     client, reg, dev, hub = await _panel(tmp_path)
     try:
@@ -56,8 +53,6 @@ async def test_playing_a_sound_queues_the_command(tmp_path):
         await client.close()
 
 
-@pytest.mark.xfail(strict=True, reason="sound select reads app['event_hub'] (unset on the "
-                   "panel) and answers 400 'no event hub'")
 async def test_selecting_a_sound_queues_the_command(tmp_path):
     client, reg, dev, hub = await _panel(tmp_path)
     try:
@@ -68,8 +63,6 @@ async def test_selecting_a_sound_queues_the_command(tmp_path):
         await client.close()
 
 
-@pytest.mark.xfail(strict=True, reason="sound upload reads app['event_hub'] (unset on the "
-                   "panel) so the new soundList is never pushed to the device")
 async def test_uploading_a_sound_pushes_the_new_sound_list(tmp_path):
     bridge = _FakeBridge()
     client, reg, dev, hub = await _panel(tmp_path, bridge=bridge)
@@ -86,8 +79,6 @@ async def test_uploading_a_sound_pushes_the_new_sound_list(tmp_path):
         await client.close()
 
 
-@pytest.mark.xfail(strict=True, reason="device delete reads app['publisher'] (unset on "
-                   "the panel) so the device's HA entities are never unpublished")
 async def test_deleting_a_device_unpublishes_its_ha_entities(tmp_path):
     publisher = _FakePublisher()
     client, reg, dev, hub = await _panel(tmp_path, ha_publisher=publisher)
@@ -100,8 +91,6 @@ async def test_deleting_a_device_unpublishes_its_ha_entities(tmp_path):
         await client.close()
 
 
-@pytest.mark.xfail(strict=True, reason="device delete reads app['event_hub'] (unset on "
-                   "the panel) so the device's diagnostics are never cleared")
 async def test_deleting_a_device_clears_its_diagnostics(tmp_path):
     client, reg, dev, hub = await _panel(tmp_path)
     hub.record_http(100, "POST", "/6/t5/dev_state_report", 200)

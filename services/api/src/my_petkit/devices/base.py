@@ -9,6 +9,7 @@ and the per-category seed data those bodies fall back on in
 from __future__ import annotations
 
 import json
+import logging
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -26,6 +27,17 @@ from my_petkit.utils.const import (
 from my_petkit.utils.coerce import to_bool, to_float
 from my_petkit.utils.crypto import generate_device_secret, generate_product_key
 from my_petkit.utils.timeutil import local_offset_hours, offset_hours_for_locale
+
+log = logging.getLogger(__name__)
+
+#: Most commands one device's heartbeat queue holds. A device that stopped
+#: polling (it moved to MQTT, or is off) never drains it, while the panel, HA
+#: and the patchers keep adding: unbounded, that is memory growing for as long
+#: as the process lives, and a burst of stale commands executed in one go if
+#: the device ever comes back. 64 is far above anything one poll interval
+#: produces -- a patcher run queues a handful of steps -- so only a queue that
+#: is genuinely not being collected ever reaches it.
+MAX_QUEUED_COMMANDS = 64
 
 
 class Refused(ValueError):
@@ -368,6 +380,23 @@ class Device:
         when we could not determine our own address at all.
         """
         return real_host or self.aliyun_mqtt_host
+
+    def enqueue_command(self, cmd: Any) -> None:
+        """Queue one command for the device's next heartbeat, newest last.
+
+        The only way anything is added to `command_queue`, so the cap holds
+        everywhere. Past `MAX_QUEUED_COMMANDS` the OLDEST entries are dropped:
+        the newest reflect what was asked for last, and a command that sat
+        uncollected that long is the stale one. Dropping is logged, because a
+        command that vanishes silently looks exactly like one that was sent.
+        """
+        self.command_queue.append(cmd)
+        overflow = len(self.command_queue) - MAX_QUEUED_COMMANDS
+        if overflow > 0:
+            del self.command_queue[:overflow]
+            log.warning("command queue full: device=%s dropped=%d oldest (cap %d); "
+                        "the device is not collecting its heartbeat commands",
+                        self.petkit_id, overflow, MAX_QUEUED_COMMANDS)
 
     def pop_commands(self) -> list[Any]:
         """Drain the queue and return everything in it, oldest first.

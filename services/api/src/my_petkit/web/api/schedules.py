@@ -20,6 +20,7 @@ from my_petkit.ha.commands import PROPERTY_SET_SUFFIX, make_mqtt_property_set
 from my_petkit.http.handlers.feed import _build_latest, _compute_next_tick
 from my_petkit.utils.coerce import to_int
 from my_petkit.web.api._common import _deliver, _device_or_404, _json_body
+from my_petkit.web.appkeys import BRIDGE, HUB, REGISTRY
 
 
 #: Minutes in a day. A schedule range runs 0..1440 inclusive — 1440 is the end
@@ -216,9 +217,9 @@ async def api_save_schedule(request: web.Request) -> web.Response:
     push only saves it the wait. A feeding schedule is stored and NOT pushed:
     no capture shows the cloud writing one, and `dev_feed_get` serves it.
     """
-    reg = request.app["registry"]
-    hub = request.app["hub"]
-    bridge = request.app["bridge"]
+    reg = request.app[REGISTRY]
+    hub = request.app[HUB]
+    bridge = request.app[BRIDGE]
     d = _device_or_404(request)
 
     body = await _json_body(request)
@@ -280,9 +281,9 @@ async def api_deferred_feed(request: web.Request) -> web.Response:
     The device picks this up on its next ``dev_feed_get`` poll, which the
     heartbeat ``feed_get:1`` command triggers immediately.
     """
-    reg = request.app["registry"]
-    hub = request.app["hub"]
-    bridge = request.app["bridge"]
+    reg = request.app[REGISTRY]
+    hub = request.app[HUB]
+    bridge = request.app[BRIDGE]
     d = _device_or_404(request)
 
     feed = d.config.setdefault("feed_schedule", {
@@ -333,5 +334,5 @@ async def api_deferred_feed(request: web.Request) -> web.Response:
 
 def _push_feed_get(d, hub, bridge, feed):
     """Queue feed_get:1 heartbeat + MQTT property.set{feed}."""
-    d.command_queue.append({"msgType": 1, "payload": {"feed_get": "1"},
-                            "timestamp": int(time.time())})
+    d.enqueue_command({"msgType": 1, "payload": {"feed_get": "1"},
+                       "timestamp": int(time.time())})

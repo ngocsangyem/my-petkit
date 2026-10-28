@@ -453,7 +453,12 @@ class AliyunAuthPlugin(BaseAuthPlugin):
         # Compared exactly, a real device fails on every CONNECT — invisible
         # today only because non-strict lets it in anyway, and an instant
         # lockout the moment mqtt_strict_auth is turned on.
-        if password.lower() == expected_sign.lower():
+        # Constant-time, so response timing cannot be used to guess the
+        # signature a byte at a time. Compared as bytes because compare_digest
+        # raises TypeError on a non-ASCII str, and a device-sent password may
+        # contain anything; errors="replace" keeps that from raising either.
+        if hmac.compare_digest(password.lower().encode("utf-8", "replace"),
+                               expected_sign.lower().encode("utf-8", "replace")):
             # keep_alive is logged because it is the whole reaping policy: amqtt
             # uses it verbatim as the read timeout, and 0 means "wait forever",
             # which leaves a rebooted device's socket ESTABLISHED for the life of
@@ -469,15 +474,18 @@ class AliyunAuthPlugin(BaseAuthPlugin):
             return True
 
         self._record(device.petkit_id, client_id, username, signmethod, False)
+        # Neither signature is logged: the expected one is the device's valid
+        # credential for this timestamp, and any prefix of it shrinks the space
+        # an attacker reading the log has to search. pk/dn and the recorded
+        # failed connect are enough to tell which device is misconfigured.
         if self._strict:
-            log.warning("MQTT auth FAILED (strict) for %s: expected=%s got=%s",
-                        dn, expected_sign[:16], password[:16] if password else "empty")
+            log.warning("MQTT auth FAILED (strict): pk=%s dn=%s signmethod=%s",
+                        pk, dn, signmethod)
             return False
 
         # Non-strict: accept like the reference broker, but flag the mismatch.
-        log.warning("MQTT sign mismatch for %s (%s) - allowing (non-strict). "
-                    "expected=%s got=%s", dn, signmethod,
-                    expected_sign[:16], password[:16] if password else "empty")
+        log.warning("MQTT sign mismatch - allowing (non-strict): pk=%s dn=%s signmethod=%s",
+                    pk, dn, signmethod)
         device.online = True
         self._mark_mqtt_connected(device, session)
         return True

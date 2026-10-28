@@ -29,7 +29,8 @@ from typing import TYPE_CHECKING
 from aiohttp import web
 
 from my_petkit.http.middleware import (
-    device_middleware, logging_middleware, never_fail_middleware, proxy_middleware,
+    DEVICE_MAX_BODY, body_middleware, device_middleware, logging_middleware,
+    never_fail_middleware, proxy_middleware,
 )
 from my_petkit.http.handlers.signup import handle_signup
 from my_petkit.http.handlers.iot_device_info import handle_iot_device_info
@@ -90,8 +91,12 @@ def create_app(registry: DeviceRegistry, config: dict) -> web.Application:
     # `device_middleware` must precede the proxy so the device type is resolved
     # before the upstream is chosen, and `logging_middleware` must wrap both so
     # the panel log shows what the device actually received.
-    app = web.Application(middlewares=[
-        never_fail_middleware, logging_middleware, device_middleware, proxy_middleware])
+    # `body_middleware` sits directly inside the logger and reads the body
+    # before anything else does -- see `http/middleware/body.py` for why only
+    # the first read can be trusted, and for how `DEVICE_MAX_BODY` was chosen.
+    app = web.Application(client_max_size=DEVICE_MAX_BODY, middlewares=[
+        never_fail_middleware, logging_middleware, body_middleware, device_middleware,
+        proxy_middleware])
     app["registry"] = registry
     app["config"] = config
 
