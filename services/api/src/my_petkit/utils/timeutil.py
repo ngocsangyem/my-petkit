@@ -19,9 +19,10 @@ dependency or a configured zone name.
 """
 from __future__ import annotations
 
-import time
 from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+from my_petkit.utils import clock
 
 #: The wire format the panel's date picker and `?date=` parameter both use.
 DATE_FORMAT = "%Y-%m-%d"
@@ -48,9 +49,7 @@ def local_offset_hours(when: float | None = None) -> float:
     This is the unit PetKit's own API uses for its `timezone` field, which is
     what we report to a device. Returns 0.0 if the platform will not tell us.
     """
-    moment = datetime.fromtimestamp(when) if when is not None else datetime.now()
-    offset = moment.astimezone().utcoffset()
-    return offset.total_seconds() / 3600 if offset is not None else 0.0
+    return clock.offset_hours(when)
 
 
 def offset_hours_for_locale(locale: str | None,
@@ -115,16 +114,14 @@ def local_day_bounds(date_str: str | None = None,
     """
     day = parse_date(date_str)
     if day is None:
-        moment = datetime.fromtimestamp(now) if now is not None else datetime.now()
-        day = moment.date()
+        day = clock.local_date(now)
 
-    midnight = datetime(day.year, day.month, day.day)
-    start = midnight.astimezone()
-    end = (midnight + timedelta(days=1)).astimezone()
-    return start.timestamp(), end.timestamp(), day.strftime(DATE_FORMAT)
+    start = clock.local_midnight_epoch(day)
+    end = clock.local_midnight_epoch(day + timedelta(days=1))
+    return start, end, day.strftime(DATE_FORMAT)
 
 
 def local_day_start(now: float | None = None) -> float:
     """Epoch of the most recent local midnight -- the "today" of daily counts."""
-    start, _, _ = local_day_bounds(now=now if now is not None else time.time())
+    start, _, _ = local_day_bounds(now=now if now is not None else clock.now())
     return start

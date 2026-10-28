@@ -29,7 +29,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-FIXED_NOW = 1_790_000_000.0  # 2026-09-21T13:33:20Z
+FIXED_NOW = 1_790_000_000.0  # 2026-09-21T14:13:20Z
 
 
 class FrozenDatetime(datetime):

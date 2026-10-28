@@ -18,7 +18,8 @@ from aiohttp import web
 from my_petkit.events import codes, decode, ingest
 from my_petkit.utils.coerce import to_int
 from my_petkit.utils.const import device_display_name
-from my_petkit.utils.timeutil import local_day_bounds, local_offset_hours
+from my_petkit.utils import clock
+from my_petkit.utils.timeutil import local_day_bounds
 from my_petkit.web.api._common import _pet_fields, _pets_by_id
 from my_petkit.web.api.media import _has_media, _session_media_urls
 
@@ -122,7 +123,7 @@ async def api_timeline(request: web.Request) -> web.Response:
         "date": day_label,
         # Seconds east of UTC for the day just returned, so the client's date
         # picker cuts "today" where the server did.
-        "tz_offset": int(round(local_offset_hours(start_ts) * 3600)),
+        "tz_offset": int(round(clock.offset_hours(start_ts) * 3600)),
         "counts": counts,
         "sessions": payload,
     })

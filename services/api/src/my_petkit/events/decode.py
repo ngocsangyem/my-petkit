@@ -27,10 +27,10 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime
 from typing import Any, Callable
 
 from my_petkit.events import codes
+from my_petkit.utils import clock
 from my_petkit.utils.coerce import to_float, to_int
 
 # --- value tables ----------------------------------------------------------
@@ -183,7 +183,7 @@ def _epoch(value: Any) -> tuple[str, str]:
     if number is None or number <= 0:
         return _raw_text(value), UNKNOWN
     try:
-        stamp = datetime.fromtimestamp(number).astimezone()
+        stamp = clock.local_datetime(number)
     except (OSError, OverflowError, ValueError):
         return _raw_text(value), UNKNOWN
     return stamp.strftime("%Y-%m-%d %H:%M:%S %z"), codes.CONFIRMED

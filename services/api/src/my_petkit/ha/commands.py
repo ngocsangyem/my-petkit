@@ -27,6 +27,7 @@ from my_petkit.devices.base import Device, Refused
 from my_petkit.devices.state_parsers import record_consumable_reset
 from my_petkit.events import codes
 from my_petkit.ha.discovery import EntityDef
+from my_petkit.utils import clock
 from my_petkit.utils.coerce import to_bool, to_float, to_int
 from my_petkit.utils.const import DEVICE_TYPES_FEEDER_DUAL, DEVICE_TYPES_FEEDER_NEXT_GEN
 from my_petkit.http.handlers.feed import _build_latest as _feed_latest
@@ -229,7 +230,7 @@ def _feed_id(now: float | None = None) -> str:
     """
     now = time.time() if now is None else now
     n = int(now - local_day_start(now))
-    return f"r_{time.strftime('%Y%m%d', time.localtime(now))}_{n}_{n}-1"
+    return f"r_{clock.local_datetime(now).strftime('%Y%m%d')}_{n}_{n}-1"
 
 
 def _feed(device: Device, amount1: int, amount2: int = 0) -> Command:

@@ -29,6 +29,7 @@ import time
 from aiohttp import web
 
 from my_petkit.http.handlers._common import request_device
+from my_petkit.utils import clock
 
 #: What the cloud returns for ``nextTick`` when ``latest`` is empty — the
 #: constant 86340 (23h59m) in every such capture, never a computed value.
@@ -46,9 +47,7 @@ def _local_midnight(now: float, day_offset: int) -> float:
     Re-localized through ``mktime`` rather than ``+ 86400`` — DST makes days
     23 and 25 hours long.
     """
-    lt = time.localtime(now)
-    return time.mktime((lt.tm_year, lt.tm_mon, lt.tm_mday + day_offset,
-                        0, 0, 0, 0, 0, -1))
+    return clock.local_midnight(now, day_offset)
 
 
 def migrate_minute_schedule(feed: dict) -> bool:
@@ -100,8 +99,9 @@ def _build_latest(feed: dict, now: float) -> list[dict]:
     for day_offset in (0, 1):
         day_start = _local_midnight(now, day_offset)
         # PetKit weekday: Sunday=1 .. Saturday=7; tm_wday: Monday=0.
-        pk_wd = (time.localtime(day_start + 43200).tm_wday + 2) % 7 or 7
-        date_str = time.strftime("%Y%m%d", time.localtime(day_start + 43200))
+        noon = clock.local_datetime(day_start + 43200)
+        pk_wd = (noon.weekday() + 2) % 7 or 7
+        date_str = noon.strftime("%Y%m%d")
         for group in feed.get("schedule") or []:
             days = str(group.get("re", "")).split(",")
             if str(pk_wd) not in (d.strip() for d in days):

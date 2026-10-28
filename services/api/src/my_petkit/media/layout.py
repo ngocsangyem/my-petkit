@@ -20,9 +20,9 @@ consumers, not cosmetics.
 from __future__ import annotations
 
 import os
-from datetime import datetime
 
 from my_petkit.events import codes
+from my_petkit.utils import clock
 from my_petkit.utils.const import device_display_name
 from my_petkit.utils.paths import sanitize_filename
 
@@ -121,7 +121,7 @@ def build_media_path(media_root: str, device_type: str, petkit_id: int, category
     known at upload time (photos stream in), so an "of m" baked into the name
     was wrong for every photo but the last. The true "n / m" is shown at
     display time from the actual group (web/panel.py's carousel/badge)."""
-    dt = datetime.fromtimestamp(when) if when else datetime.now()
+    dt = clock.local_datetime(when if when else None)
     day = dt.strftime("%Y-%m-%d")
     stamp = dt.strftime("%H-%M-%S")
 
