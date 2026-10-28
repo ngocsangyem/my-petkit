@@ -30,13 +30,18 @@ REPO = Path(__file__).resolve().parents[1]
 SCENARIOS = Path(__file__).resolve().parent / "golden_scenarios.py"
 
 
-def emit(src_dir: Path, out: Path, tz: str) -> None:
-    """Run the scenarios against the package under `src_dir` into `out`."""
-    with tempfile.TemporaryDirectory(prefix="golden-data-") as scratch:
-        # Same data-dir path for both runs, so no path differs by checkout.
-        data_dir = Path(tempfile.gettempdir()) / "my-petkit-golden-data"
+def emit(src_dir: Path, out: Path, tz: str, data_dir: Path) -> None:
+    """Run the scenarios against the package under `src_dir` into `out`.
+
+    `data_dir` is private to one invocation of this script (so parallel runs
+    from different checkouts cannot delete each other's database) and is the
+    SAME path for the baseline and the working-tree run inside it, so no
+    recorded path differs by checkout. It is emptied before each run.
+    """
+    with tempfile.TemporaryDirectory(prefix="golden-cwd-") as scratch:
         shutil.rmtree(data_dir, ignore_errors=True)
-        env = {**os.environ, "PYTHONPATH": str(src_dir), "GOLDEN_SRC": str(src_dir), "TZ": tz, "PYTHONHASHSEED": "0"}
+        env = {**os.environ, "PYTHONPATH": str(src_dir), "GOLDEN_SRC": str(src_dir), "TZ": tz,
+               "PYTHONHASHSEED": "0"}
         result = subprocess.run(  # noqa: S603 - argv built from constants and paths
             [sys.executable, str(SCENARIOS), str(out), str(data_dir)],
             cwd=scratch, env=env, capture_output=True, text=True, check=False,
@@ -63,7 +68,8 @@ def main() -> int:
     current_src = REPO / "services" / "api" / "src"
 
     if args.emit:
-        emit(current_src, args.emit, zones[0])
+        with tempfile.TemporaryDirectory(prefix="golden-data-") as data:
+            emit(current_src, args.emit, zones[0], Path(data) / "data")
         return 0
     if not args.against:
         parser.error("--against or --emit is required")
@@ -75,8 +81,8 @@ def main() -> int:
         try:
             for tz in zones:
                 base_out, cur_out = tmpdir / f"base-{tz.replace('/', '_')}.json", tmpdir / "cur.json"
-                emit(base_src, base_out, tz)
-                emit(current_src, cur_out, tz)
+                emit(base_src, base_out, tz, tmpdir / "data")
+                emit(current_src, cur_out, tz, tmpdir / "data")
                 base_lines = base_out.read_text().splitlines(keepends=True)
                 cur_lines = cur_out.read_text().splitlines(keepends=True)
                 if base_lines == cur_lines:
