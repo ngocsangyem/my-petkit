@@ -283,6 +283,13 @@ reviewer can find every place the suite was touched.
 - added: tests/test_repro_mqtt_feed_get_parity.py::test_mqtt_and_http_feed_get_agree_value_for_value_at_the_same_instant
 - added: tests/test_repro_mqtt_feed_get_parity.py::test_mqtt_feed_get_stays_silent_when_no_schedule_is_stored
 
+### The add-on api_url is replaced only for an mDNS host, matched on the parsed host
+
+- added: tests/test_repro_api_url_local_substring.py::test_other_spellings_of_an_mdns_host_are_still_replaced[http://HomeAssistant.LOCAL:8123/6/]
+- added: tests/test_repro_api_url_local_substring.py::test_other_spellings_of_an_mdns_host_are_still_replaced[http://homeassistant.local./6/]
+- added: tests/test_repro_api_url_local_substring.py::test_other_spellings_of_an_mdns_host_are_still_replaced[homeassistant.local/6/]
+- added: tests/test_repro_api_url_local_substring.py::test_an_api_url_that_does_not_parse_is_kept_rather_than_raising
+
 ## Removed
 
 None.
@@ -300,3 +307,4 @@ None.
 | `test_repro_mqtt_feed_get_parity.py` | strict xfail marker removed now MQTT user/get builds dev_feed_get with the HTTP handler's builder; docstring in the past tense; unused `pytest` import dropped | xfail removed | fix |
 | `test_repro_ha_mqtt_host_default.py` | strict xfail markers removed now the standalone `Config` and `HAPublisher` default `ha_mqtt_host` to empty; docstring in the past tense | xfail removed | fix |
 | `test_repro_ha_addon_cli_flags.py` | strict xfail marker removed now `build_config` applies the flags after either config source; docstring in the past tense; unused `pytest` import dropped | xfail removed | fix |
+| `test_repro_api_url_local_substring.py` | strict xfail marker removed now `.local` is matched on the parsed host; docstring in the past tense | xfail removed | fix |
