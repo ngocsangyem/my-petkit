@@ -4,9 +4,11 @@ Split out of `mqtt/bridge.py`; `MQTTBridge._user_get_payload` delegates here.
 """
 from __future__ import annotations
 
+import time
 from typing import TYPE_CHECKING
 
 from my_petkit.devices import payloads
+from my_petkit.http.handlers.feed import build_feed_get_result
 
 if TYPE_CHECKING:
     from my_petkit.devices.base import Device
@@ -38,7 +40,15 @@ def user_get_payload(device: Device, data_type: str, *, ble_registry: BLERegistr
         return {"result": sched} if sched is not None else None
     if data_type == "dev_feed_get":
         feed = device.config.get("feed_schedule")
-        return {"result": feed} if feed is not None else None
+        if feed is None:
+            return None
+        # The same builder the HTTP handler uses, so both answer the
+        # cloud-shaped {schedule, nextTick, latest}: handing back the raw
+        # stored dict gave the feeder no `latest` to dispense from. A minute
+        # migration is left unsaved here (no registry on this path); the next
+        # registry save persists it, and until then it is simply re-derived.
+        feed_result, _migrated = build_feed_get_result(feed, time.time())
+        return {"result": feed_result}
     if data_type == "dev_ble_device":
         # Deliberately identical to `http/handlers/ble_device.py` — the two
         # answer the same question over different transports and have

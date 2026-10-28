@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import json
 import time
+from typing import Any
 
 from aiohttp import web
 
@@ -148,6 +149,47 @@ def _compute_next_tick(latest: list[dict]) -> int:
     return max(entry["t"] for entry in latest)
 
 
+def build_feed_get_result(feed: Any, now: float) -> tuple[Any, bool]:
+    """The ``result`` of ``dev_feed_get`` for a stored schedule, at ``now``.
+
+    Shared by the HTTP handler and MQTT ``user/get``: the feeder dispenses
+    from whichever answer it got last, so the two transports must not differ.
+    Mutates ``feed`` exactly as the HTTP handler always has (the minute-data
+    migration, ``itemJsonString``, pruning expired deferred feeds).
+
+    Returns:
+        ``(result, migrated)``. ``result`` is the cloud-shaped
+        ``{"schedule", "nextTick", "latest"}`` — the empty-but-valid group when
+        nothing is stored, or a non-dict stored value passed through as is.
+        ``migrated`` tells the caller the stored schedule changed and should be
+        saved; re-running the migration on unsaved data is harmless, since it
+        is decided from the stored data alone.
+    """
+    if not feed:
+        return {
+            "schedule": [_EMPTY_GROUP],
+            "nextTick": _EMPTY_TICK,
+            "latest": [],
+        }, False
+
+    if not isinstance(feed, dict):
+        return feed, False
+
+    migrated = migrate_minute_schedule(feed)
+    latest = _build_latest(feed, now)
+    next_tick = _compute_next_tick(latest)
+
+    for group in feed.get("schedule", []):
+        if "it" in group:
+            group["itemJsonString"] = json.dumps(group["it"], **_ITEM_JSON)
+
+    return {
+        "schedule": feed.get("schedule", [_EMPTY_GROUP]),
+        "nextTick": next_tick,
+        "latest": latest,
+    }, migrated
+
+
 async def handle_feed_get(request: web.Request) -> web.Response:
     """Return the device's stored feeding schedule with live countdowns.
 
@@ -156,35 +198,8 @@ async def handle_feed_get(request: web.Request) -> web.Response:
         Structure matches the real cloud's response 1:1.
     """
     device = request_device(request)
-
-    if not device or not device.config.get("feed_schedule"):
-        return web.json_response({
-            "result": {
-                "schedule": [_EMPTY_GROUP],
-                "nextTick": _EMPTY_TICK,
-                "latest": [],
-            }
-        })
-
-    feed = device.config["feed_schedule"]
-    if not isinstance(feed, dict):
-        return web.json_response({"result": feed})
-
-    if migrate_minute_schedule(feed):
+    feed = device.config.get("feed_schedule") if device else None
+    result, migrated = build_feed_get_result(feed, time.time())
+    if migrated:
         request.app["registry"].save()
-
-    now = time.time()
-    latest = _build_latest(feed, now)
-    next_tick = _compute_next_tick(latest)
-
-    for group in feed.get("schedule", []):
-        if "it" in group:
-            group["itemJsonString"] = json.dumps(group["it"], **_ITEM_JSON)
-
-    return web.json_response({
-        "result": {
-            "schedule": feed.get("schedule", [_EMPTY_GROUP]),
-            "nextTick": next_tick,
-            "latest": latest,
-        }
-    })
+    return web.json_response({"result": result})
