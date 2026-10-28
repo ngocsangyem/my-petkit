@@ -489,6 +489,7 @@ async def stitch_episode(store: EventStore, episode: dict, media_root: str, work
     # under a name no input holds, swap the rows in one transaction, and only
     # once that has committed delete the chunks. Every step before the delete
     # can fail without costing footage.
+    preferred_path = final_path
     try:
         final_path, size = await asyncio.to_thread(_move_into_place, tmp_path, final_path)
     except OSError as e:
@@ -544,12 +545,38 @@ async def stitch_episode(store: EventStore, episode: dict, media_root: str, work
     # Committed: the rows now name only the clip, so the sources can go. One
     # thread hop for all of them — an episode can carry a hundred chunks.
     await asyncio.to_thread(_remove_files, paths)
+    final_path = await _settle_name(store, merged_row["file_id"], final_path, preferred_path)
     if excluded_ids:
         # Keep them visible and playable, but flagged so the sweeper doesn't
         # keep reconsidering them every pass.
         await store.mark_stitch_failed(excluded_ids, "excluded-stream-mismatch")
     log.info("Stitched %d chunks -> %s (%.1f MB)", len(chunks), final_path, size / 1048576)
     return final_path
+
+
+async def _settle_name(store: EventStore, file_id: str, current: str, preferred: str) -> str:
+    """Give the committed clip its preferred name once no source holds it.
+
+    The clip was moved in under a free name because the preferred one usually
+    belonged to the first chunk. With the sources deleted that name is free
+    again, and the media browser should show "HH-MM-SS Label.mp4", not a
+    "(2)" copy of a file that no longer exists. Best effort: if the rename or
+    the row update fails, the clip stays playable under the name it has.
+    """
+    if current == preferred or await asyncio.to_thread(os.path.exists, preferred):
+        return current
+    try:
+        await asyncio.to_thread(os.rename, current, preferred)
+    except OSError as e:
+        log.info("Stitch: keeping %s (could not take %s: %s)", current, preferred, e)
+        return current
+    try:
+        await store.upsert_media({"file_id": file_id, "media_path": preferred})
+    except SQLAlchemyError:
+        # The row must name a file that exists; put the clip back.
+        await asyncio.to_thread(os.rename, preferred, current)
+        return current
+    return preferred
 
 
 class EpisodeStitcher:

@@ -129,19 +129,32 @@ def _files_under(root: str) -> set[str]:
     return {os.path.join(d, f) for d, _, files in os.walk(root) for f in files}
 
 
-async def test_successful_stitch_never_overwrites_a_source_and_then_removes_them(tmp_path, fake_ffmpeg):
+async def test_successful_stitch_never_overwrites_a_source_and_then_removes_them(
+        tmp_path, fake_ffmpeg, monkeypatch):
     store = EventStore(tmp_path / "petkit.db")
     try:
         media_root = str(tmp_path / "media")
         episode, paths = await _episode_whose_first_chunk_is_the_final_path(store, media_root)
         joined = b"".join(Path(p).read_bytes() for p in paths)
+        moved_to = []
+        real_move = stitch._move_into_place
+
+        def _spy_move(tmp, final):
+            dest, size = real_move(tmp, final)
+            moved_to.append(dest)
+            return dest, size
+
+        monkeypatch.setattr(stitch, "_move_into_place", _spy_move)
 
         out = await stitch.stitch_episode(
             store, episode, media_root, work_dir=str(tmp_path / "media" / ".raw"),
             device_type=DEVICE_TYPE)
 
-        assert out is not None and out not in paths
-        assert os.path.dirname(out) == os.path.dirname(paths[0])
+        # The clip is moved in under a name no source holds...
+        assert moved_to and moved_to[0] not in paths
+        # ...and takes the preferred name (the first chunk's) only once the
+        # sources are gone, so the browser never shows a "(2)" copy.
+        assert out == paths[0]
         assert Path(out).read_bytes() == joined
         assert _files_under(media_root) == {out}, "sources and temp files must be gone"
         rows = await store.media_for_related_event(EPISODE)
