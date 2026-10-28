@@ -196,6 +196,11 @@ reviewer can find every place the suite was touched.
 - added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[events/store_media.py]
 - added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[events/store_pets.py]
 
+### ha/commands.py and mqtt/bridge.py helpers moved to their own modules (one AST-check ID each)
+
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[ha/command_values.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[mqtt/user_get.py]
+
 ## Removed
 
 None.

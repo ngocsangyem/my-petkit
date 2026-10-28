@@ -30,7 +30,6 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any, AsyncIterable
 
-from my_petkit.devices import payloads
 from my_petkit.devices.registry import DeviceRegistry
 from my_petkit.devices.state_parsers import apply_consumable_state, normalize_property_params
 from my_petkit.ha.categories import get_setting_fields
@@ -41,6 +40,7 @@ from my_petkit.mqtt.ble_relay import BLERelay
 from my_petkit.mqtt.topics import (
     parse_topic, event_reply_topic, is_server_published, service_topic, user_get_topic,
 )
+from my_petkit.mqtt.user_get import user_get_payload
 from my_petkit.utils.capture import capture_record
 from my_petkit.utils.dicts import dig
 from my_petkit.utils.logtext import excerpt, payload_text
@@ -626,34 +626,8 @@ class MQTTBridge:
             the caller then stays silent rather than replying with an empty
             resource the device would take as authoritative.
         """
-        if data_type == "dev_device_info":
-            return payloads.to_device_info(device, self._ble_registry)
-        if data_type == "dev_multi_config":
-            return payloads.to_multi_config(device)
-        if data_type == "dev_serverinfo":
-            return payloads.to_serverinfo(device, self._api_url) if self._api_url else None
-        if data_type == "dev_schedule_get":
-            sched = device.config.get("schedule")
-            return {"result": sched} if sched is not None else None
-        if data_type == "dev_feed_get":
-            feed = device.config.get("feed_schedule")
-            return {"result": feed} if feed is not None else None
-        if data_type == "dev_ble_device":
-            # Deliberately identical to `http/handlers/ble_device.py` — the two
-            # answer the same question over different transports and have
-            # drifted apart once already. Neither sends `list` when it would be
-            # empty: 1.8.1 sent `[]` on both, matching PetKit's own cloud, and
-            # owners reported it crashing devices. See that handler for what is
-            # and is not known about those reports.
-            lst = []
-            if self._ble_registry:
-                for b in self._ble_registry.non_k3_for_parent(device.petkit_id):
-                    lst.append(b.to_ble_list_entry())
-            result: dict = {"nextTick": 3600}
-            if lst:
-                result["list"] = lst
-            return {"result": result}
-        return None
+        return user_get_payload(device, data_type, ble_registry=self._ble_registry,
+                                api_url=self._api_url)
 
     async def publish_to_device(self, device: Device, topic_suffix: str, payload: dict) -> None:
         """Push a command to a device over `thing/service/{topic_suffix}`.
