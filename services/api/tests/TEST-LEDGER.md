@@ -260,6 +260,7 @@ reviewer can find every place the suite was touched.
 
 - added: tests/test_repro_event_identity_across_devices.py::test_a_retried_report_from_the_same_device_still_updates_its_row
 - added: tests/test_repro_event_identity_across_devices.py::test_connect_collapses_duplicate_keys_before_adding_the_unique_index
+- added: tests/test_repro_bare_token_repair_inside_strings.py::test_repair_honours_escaped_quotes_inside_a_string
 
 ## Removed
 
@@ -274,3 +275,4 @@ None.
 | `test_version.py` | `config.yaml` and `CHANGELOG.md` read from the repository-root `addon/`; `pyproject.toml` from `services/api/` | mechanical | import |
 | `test_state_parsers.py` | real-looking SSID/BSSID fixture replaced by `ExampleNet` / `000000000000`; nothing asserts on it | fixture sanitising | import |
 | `test_repro_event_identity_across_devices.py` | strict-xfail markers removed from both tests: event upsert and timeline media pairing are now scoped by device | fix landed | – |
+| `test_repro_bare_token_repair_inside_strings.py` | strict-xfail markers removed from both tests: the bare-token repair skips string literals | fix landed | – |

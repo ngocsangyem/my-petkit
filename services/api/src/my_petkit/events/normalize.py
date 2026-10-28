@@ -133,7 +133,15 @@ def is_detail_event(event_type: str, device_type: str | None = None) -> bool:
 # e.g. `{"related_event":3_10000001_1784741818,"count":1}` (confirmed on a real
 # T5 for event_type 24). `json.loads` rejects it, which silently threw away the
 # whole content — including the parent link that ties the event to its episode.
-_BARE_VALUE = re.compile(r'(:\s*)([A-Za-z_0-9][A-Za-z_0-9.\-]*)(\s*[,}\]])')
+#
+# The first alternative swallows a whole string literal (honouring backslash
+# escapes) so nothing inside one is ever a candidate: a value such as
+# "err: timeout, retry" otherwise had quotes injected into it, the repaired
+# text no longer parsed, and the payload lost everything the repair exists to
+# save. An unterminated string matches nothing here, but then the repaired
+# text cannot parse either and `_as_dict` still returns `{}`.
+_BARE_VALUE = re.compile(r'("(?:[^"\\]|\\.)*")'
+                         r'|(:\s*)([A-Za-z_0-9][A-Za-z_0-9.\-]*)(\s*[,}\]])', re.S)
 # Strict JSON number grammar. NOT `float()`: Python accepts underscore digit
 # separators, so `4_10000001_1784743819` would look like a valid number and
 # the token would be left unquoted — exactly the value that needs quoting.
@@ -145,12 +153,14 @@ def _repair_bare_values(text: str) -> str:
 
     Genuine JSON literals (`true`/`false`/`null`) and strict JSON numbers are
     left alone — only a token that is neither gets quoted, which is exactly the
-    malformed case. The result is still only trusted if it then parses, see
-    `_as_dict`.
+    malformed case. Text inside a quoted string is never touched. The result
+    is still only trusted if it then parses, see `_as_dict`.
     """
     def fix(m: re.Match[str]) -> str:
         """Quote one candidate token, or return the match untouched."""
-        prefix, token, suffix = m.groups()
+        literal, prefix, token, suffix = m.groups()
+        if literal is not None:
+            return literal
         if token in ("true", "false", "null") or _JSON_NUMBER.match(token):
             return m.group(0)
         return f'{prefix}"{token}"{suffix}'
