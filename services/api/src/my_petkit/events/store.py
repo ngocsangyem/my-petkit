@@ -95,14 +95,18 @@ class EventStore(MediaQueries, PetQueries, BlockedAttemptQueries, StoreBase):
             obj = await session.get(Event, event_id)
             return obj.as_dict() if obj else None
 
-    async def all_events(self, limit: int = 100000) -> list[dict[str, Any]]:
-        """Every event row in insert order, oldest first.
+    async def all_events(self, limit: int = 100000,
+                         after_id: int = 0) -> list[dict[str, Any]]:
+        """Event rows in insert order, oldest first, at most `limit` of them.
 
         Unlike `query_timeline` this attaches no media and applies no window;
-        it exists for export/diagnostics, not for the panel.
+        it exists for export/diagnostics, not for the panel. `limit` truncates
+        silently, so a pass that must see every row pages with `after_id`: the
+        id of the last row of the previous page.
         """
         async with self._read() as session:
-            rows = await session.scalars(select(Event).order_by(Event.id).limit(limit))
+            rows = await session.scalars(
+                select(Event).where(Event.id > after_id).order_by(Event.id).limit(limit))
             return [r.as_dict() for r in rows]
 
     async def update_event_fields(self, event_id: int, **fields: Any) -> bool:

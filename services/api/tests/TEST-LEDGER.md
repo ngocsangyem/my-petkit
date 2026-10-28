@@ -278,3 +278,4 @@ None.
 | `test_repro_event_identity_across_devices.py` | strict-xfail markers removed from both tests: event upsert and timeline media pairing are now scoped by device | fix landed | – |
 | `test_repro_bare_token_repair_inside_strings.py` | strict-xfail markers removed from both tests: the bare-token repair skips string literals | fix landed | – |
 | `test_repro_device_registry_string_petkit_id.py` | strict-xfail marker removed; the assertion now requires the string id to be restored as the int, not merely tolerated | fix landed | – |
+| `test_repro_backfill_beyond_first_page.py` | strict-xfail marker removed: the backfill pages through every row by id | fix landed | – |

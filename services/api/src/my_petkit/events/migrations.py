@@ -25,6 +25,10 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
+# Rows read per backfill page: big enough that a large table costs few
+# round-trips, small enough to keep a start-up's memory flat.
+_BACKFILL_PAGE = 5000
+
 
 async def backfill_event_rows(store: EventStore) -> int:
     """Recompute derived fields on already-stored events.
@@ -37,45 +41,53 @@ async def backfill_event_rows(store: EventStore) -> int:
     them in place. Safe to run on every start: it only writes rows whose
     derived values actually change.
 
-    The rewrites go in one `store.transaction()`: every repaired row would
-    otherwise be its own commit, and a start-up interrupted halfway would
-    leave the timeline partly regrouped.
+    Rows are read in pages of `_BACKFILL_PAGE` by ascending id, so every row
+    is reached however large the table is and memory stays bounded at start-up.
+    Each page's rewrites go in one `store.transaction()`: every repaired row
+    would otherwise be its own commit. A start-up interrupted between pages
+    leaves the earlier pages repaired and the rest stale, and the next start
+    finishes the job, because the pass only rewrites what still differs.
     """
-    rows = await store.all_events()
     fixed = 0
+    last_id = 0
+    while True:
+        rows = await store.all_events(limit=_BACKFILL_PAGE, after_id=last_id)
+        if not rows:
+            break
+        last_id = rows[-1]["id"]
+        async with store.transaction():
+            for row in rows:
+                content = _as_dict(row.get("content_json"))
+                updates = {}
 
-    async with store.transaction():
-        for row in rows:
-            content = _as_dict(row.get("content_json"))
-            updates = {}
+                kind = classify_event_kind(row.get("event_type"), content,
+                                           row.get("device_type"))
+                if kind != row.get("event_kind"):
+                    updates["event_kind"] = kind
 
-            kind = classify_event_kind(row.get("event_type"), content,
-                                       row.get("device_type"))
-            if kind != row.get("event_kind"):
-                updates["event_kind"] = kind
+                parent = _parent_event_of(content)
+                if parent and parent != row.get("parent_event"):
+                    updates["parent_event"] = parent
 
-            parent = _parent_event_of(content)
-            if parent and parent != row.get("parent_event"):
-                updates["parent_event"] = parent
+                # Rows from before `event_id` was understood as the session key
+                # stored it only as event_uid; recover it so they group instead of
+                # floating.
+                if not row.get("related_event") and row.get("event_uid"):
+                    uid = str(row["event_uid"])
+                    updates["related_event"] = uid.rsplit(":", 1)[0] if ":" in uid else uid
 
-            # Rows from before `event_id` was understood as the session key
-            # stored it only as event_uid; recover it so they group instead of
-            # floating.
-            if not row.get("related_event") and row.get("event_uid"):
-                uid = str(row["event_uid"])
-                updates["related_event"] = uid.rsplit(":", 1)[0] if ":" in uid else uid
+                # Every row stored before `score_info[].id` was understood carries
+                # the identity in its content and nothing in `pet_ref`. Recovering
+                # it is what makes an existing install's history bindable at all.
+                ref = _extract_pet_ref(content)
+                if ref is not None and ref != row.get("pet_ref"):
+                    updates["pet_ref"] = ref
 
-            # Every row stored before `score_info[].id` was understood carries
-            # the identity in its content and nothing in `pet_ref`. Recovering
-            # it is what makes an existing install's history bindable at all.
-            ref = _extract_pet_ref(content)
-            if ref is not None and ref != row.get("pet_ref"):
-                updates["pet_ref"] = ref
-
-            if updates:
-                await store.update_event_fields(row["id"], **updates)
-                fixed += 1
+                if updates:
+                    await store.update_event_fields(row["id"], **updates)
+                    fixed += 1
 
     if fixed:
         log.info("Backfilled %d event rows (event_kind/parent_event/related_event/pet_ref)", fixed)
     return fixed
+
