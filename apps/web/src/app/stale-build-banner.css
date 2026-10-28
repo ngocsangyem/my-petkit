@@ -1,0 +1,12 @@
+.stale-build {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: var(--gap);
+  padding: 10px 14px;
+  background: var(--pill-warning-bg);
+  color: var(--pill-warning-ink);
+  border-radius: var(--radius-card);
+  font-size: var(--text-small);
+}

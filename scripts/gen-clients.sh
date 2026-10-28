@@ -9,10 +9,10 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SPEC="$ROOT/packages/contracts/openapi.yaml"
-OPENAPI_TYPESCRIPT_VERSION="7.13.0"
 
 cp "$SPEC" "$ROOT/apps/ios/PetkitKit/Sources/PetkitAPI/openapi.yaml"
 
-mkdir -p "$ROOT/apps/web/src/api"
-npx --yes "openapi-typescript@$OPENAPI_TYPESCRIPT_VERSION" "$SPEC" \
+# openapi-typescript is pinned, with its dependencies, by apps/web/pnpm-lock.yaml.
+pnpm -C "$ROOT/apps/web" install --frozen-lockfile --silent
+pnpm -C "$ROOT/apps/web" exec openapi-typescript "$SPEC" \
   --output "$ROOT/apps/web/src/api/schema.d.ts"

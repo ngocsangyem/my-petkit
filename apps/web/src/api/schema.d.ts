@@ -4,3949 +4,3959 @@
  */
 
 export interface paths {
-    "/api/info": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Server-wide facts for the Setup tab */
-        get: operations["getServerInfo"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+  '/api/info': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/settings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Live-editable runtime settings */
-        get: operations["getLiveSettings"];
-        put?: never;
-        /**
-         * Update live runtime settings
-         * @description Keys outside the known set are ignored. The whole batch is validated before any of it is applied. Writing any proxy_* key or capture needs a step-up (R3), other keys are R1; the tier follows the keys named in the body.
-         */
-        post: operations["updateLiveSettings"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Server-wide facts for the Setup tab */
+    get: operations['getServerInfo'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/settings': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/blocked": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** What the real cloud tried to do to a device and was refused */
-        get: operations["listBlockedAttempts"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Live-editable runtime settings */
+    get: operations['getLiveSettings'];
+    put?: never;
+    /**
+     * Update live runtime settings
+     * @description Keys outside the known set are ignored. The whole batch is validated before any of it is applied. Writing any proxy_* key or capture needs a step-up (R3), other keys are R1; the tier follows the keys named in the body.
+     */
+    post: operations['updateLiveSettings'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/blocked': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/retention": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Per-category media and event retention caps */
-        get: operations["getRetention"];
-        put?: never;
-        /**
-         * Merge a partial retention patch and persist it
-         * @description Unknown categories and fields are ignored. A max_mb/max_days value that is not a positive finite number becomes null (no cap).
-         */
-        post: operations["updateRetention"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** What the real cloud tried to do to a device and was refused */
+    get: operations['listBlockedAttempts'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/retention': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/ble": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List paired BLE accessories */
-        get: operations["listBleAccessories"];
-        put?: never;
-        /**
-         * Pair or update a BLE accessory by hand
-         * @description Registers (or updates, when petkit_id/mac match) an accessory and announces it to Home Assistant and its parent device.
-         */
-        post: operations["pairBleAccessory"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Per-category media and event retention caps */
+    get: operations['getRetention'];
+    put?: never;
+    /**
+     * Merge a partial retention patch and persist it
+     * @description Unknown categories and fields are ignored. A max_mb/max_days value that is not a positive finite number becomes null (no cap).
+     */
+    post: operations['updateRetention'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/ble': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/ble/import": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Import the accessories PetKit's cloud lists for a device
-         * @description Queries dev_ble_device, dev_device_info and (litter boxes only) dev_k3_device_info upstream as the device and pairs what it finds.
-         */
-        post: operations["importBleAccessories"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List paired BLE accessories */
+    get: operations['listBleAccessories'];
+    put?: never;
+    /**
+     * Pair or update a BLE accessory by hand
+     * @description Registers (or updates, when petkit_id/mac match) an accessory and announces it to Home Assistant and its parent device.
+     */
+    post: operations['pairBleAccessory'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/ble/import': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/ble/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Unpair a BLE accessory */
-        delete: operations["deleteBleAccessory"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Import the accessories PetKit's cloud lists for a device
+     * @description Queries dev_ble_device, dev_device_info and (litter boxes only) dev_k3_device_info upstream as the device and pairs what it finds.
+     */
+    post: operations['importBleAccessories'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/ble/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/ble/{id}/command": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Set one entity on a BLE accessory via its parent
-         * @description Delivered only while the parent is on MQTT; there is no queueing.
-         */
-        post: operations["sendBleCommand"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Unpair a BLE accessory */
+    delete: operations['deleteBleAccessory'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/ble/{id}/command': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/ble/{id}/poll": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Ask the parent to read the accessory now */
-        post: operations["pollBleAccessory"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Set one entity on a BLE accessory via its parent
+     * @description Delivered only while the parent is on MQTT; there is no queueing.
+     */
+    post: operations['sendBleCommand'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/ble/{id}/poll': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/devices/{id}/patcher": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Per-patcher status for a device */
-        get: operations["getDevicePatcherStatus"];
-        put?: never;
-        /**
-         * Start applying or removing an on-device patcher
-         * @description Accepted means started; the run takes minutes and reports progress as patcher events over the WebSocket. Any action other than "remove" is treated as apply.
-         */
-        post: operations["applyDevicePatcher"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Ask the parent to read the accessory now */
+    post: operations['pollBleAccessory'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/devices/{id}/patcher': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/devices": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List devices */
-        get: operations["listDevices"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Per-patcher status for a device */
+    get: operations['getDevicePatcherStatus'];
+    put?: never;
+    /**
+     * Start applying or removing an on-device patcher
+     * @description Accepted means started; the run takes minutes and reports progress as patcher events over the WebSocket. Any action other than "remove" is treated as apply.
+     */
+    post: operations['applyDevicePatcher'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/devices': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/devices/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Device detail */
-        get: operations["getDevice"];
-        put?: never;
-        post?: never;
-        /** Remove a device from the registry */
-        delete: operations["deleteDevice"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List devices */
+    get: operations['listDevices'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/devices/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/devices/{id}/command": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Send a command to a device */
-        post: operations["sendDeviceCommand"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Device detail */
+    get: operations['getDevice'];
+    put?: never;
+    post?: never;
+    /** Remove a device from the registry */
+    delete: operations['deleteDevice'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/devices/{id}/command': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/devices/{id}/schedule": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Store a schedule and push it to the device */
-        post: operations["saveDeviceSchedule"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Send a command to a device */
+    post: operations['sendDeviceCommand'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/devices/{id}/schedule': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/devices/{id}/deferred-feed": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List pending deferred (one-off) feeds */
-        get: operations["listDeferredFeeds"];
-        put?: never;
-        /** Add a deferred (one-off) feed */
-        post: operations["addDeferredFeed"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Store a schedule and push it to the device */
+    post: operations['saveDeviceSchedule'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/devices/{id}/deferred-feed': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/devices/{id}/deferred-feed/{feed_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Delete a deferred feed */
-        delete: operations["deleteDeferredFeed"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List pending deferred (one-off) feeds */
+    get: operations['listDeferredFeeds'];
+    put?: never;
+    /** Add a deferred (one-off) feed */
+    post: operations['addDeferredFeed'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/devices/{id}/deferred-feed/{feed_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/devices/{id}/capabilities": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get media capability toggles */
-        get: operations["getDeviceCapabilities"];
-        put?: never;
-        /** Set media capability toggles */
-        post: operations["setDeviceCapabilities"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Delete a deferred feed */
+    delete: operations['deleteDeferredFeed'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/devices/{id}/capabilities': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/devices/{id}/timezone": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get timezone offset and sources */
-        get: operations["getDeviceTimezone"];
-        put?: never;
-        /** Set or clear the fixed UTC offset override */
-        post: operations["setDeviceTimezone"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get media capability toggles */
+    get: operations['getDeviceCapabilities'];
+    put?: never;
+    /** Set media capability toggles */
+    post: operations['setDeviceCapabilities'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/devices/{id}/timezone': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/devices/{id}/ai": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get on-device recognition toggle */
-        get: operations["getDeviceAi"];
-        put?: never;
-        /** Set on-device recognition toggle */
-        post: operations["setDeviceAi"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get timezone offset and sources */
+    get: operations['getDeviceTimezone'];
+    put?: never;
+    /** Set or clear the fixed UTC offset override */
+    post: operations['setDeviceTimezone'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/devices/{id}/ai': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/devices/{id}/logs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get debug-log upload setting */
-        get: operations["getDeviceLogSettings"];
-        put?: never;
-        /** Set debug-log upload setting */
-        post: operations["setDeviceLogSettings"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get on-device recognition toggle */
+    get: operations['getDeviceAi'];
+    put?: never;
+    /** Set on-device recognition toggle */
+    post: operations['setDeviceAi'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/devices/{id}/logs': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/devices/{id}/sounds": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List uploaded custom sounds */
-        get: operations["listDeviceSounds"];
-        put?: never;
-        /** Upload a custom sound */
-        post: operations["uploadDeviceSound"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get debug-log upload setting */
+    get: operations['getDeviceLogSettings'];
+    put?: never;
+    /** Set debug-log upload setting */
+    post: operations['setDeviceLogSettings'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/devices/{id}/sounds': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/devices/{id}/sounds/{sound_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Delete a custom sound */
-        delete: operations["deleteDeviceSound"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List uploaded custom sounds */
+    get: operations['listDeviceSounds'];
+    put?: never;
+    /** Upload a custom sound */
+    post: operations['uploadDeviceSound'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/devices/{id}/sounds/{sound_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/devices/{id}/sounds/{sound_id}/play": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Play a sound on the device */
-        post: operations["playDeviceSound"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Delete a custom sound */
+    delete: operations['deleteDeviceSound'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/devices/{id}/sounds/{sound_id}/play': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/devices/{id}/sounds/{sound_id}/select": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Select the active sound */
-        post: operations["selectDeviceSound"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Play a sound on the device */
+    post: operations['playDeviceSound'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/devices/{id}/sounds/{sound_id}/select': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/events": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Recent live-log events from the in-memory hub ring, oldest first
-         * @description Bare JSON array (not an object). The ring holds at most 800 events and is volatile (empty after restart). Every string and credential-keyed field is passed through the client redactor.
-         */
-        get: operations["listHubEvents"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Select the active sound */
+    post: operations['selectDeviceSound'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/events': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/capture": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List capture files (*.jsonl) with size and line count */
-        get: operations["listCaptureFiles"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Recent live-log events from the in-memory hub ring, oldest first
+     * @description Bare JSON array (not an object). The ring holds at most 800 events and is volatile (empty after restart). Every string and credential-keyed field is passed through the client redactor.
+     */
+    get: operations['listHubEvents'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/capture': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/capture/{name}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read the newest records of one capture file
-         * @description Returns the tail of the file. A line that is not valid JSON is returned as {"raw": line}. Name must end in .jsonl and resolve inside the capture directory; otherwise 404.
-         */
-        get: operations["readCaptureFile"];
-        put?: never;
-        post?: never;
-        /** Delete one capture file */
-        delete: operations["deleteCaptureFile"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List capture files (*.jsonl) with size and line count */
+    get: operations['listCaptureFiles'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/capture/{name}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/capture/{name}/download": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Download a capture file as an attachment
-         * @description Served by aiohttp FileResponse, so conditional and Range requests are honoured.
-         */
-        get: operations["downloadCaptureFile"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Read the newest records of one capture file
+     * @description Returns the tail of the file. A line that is not valid JSON is returned as {"raw": line}. Name must end in .jsonl and resolve inside the capture directory; otherwise 404.
+     */
+    get: operations['readCaptureFile'];
+    put?: never;
+    post?: never;
+    /** Delete one capture file */
+    delete: operations['deleteCaptureFile'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/capture/{name}/download': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/devicelogs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List device-uploaded log files, newest first
-         * @description files is capped at 200 entries while total_bytes sums every matching file.
-         */
-        get: operations["listDeviceLogs"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Download a capture file as an attachment
+     * @description Served by aiohttp FileResponse, so conditional and Range requests are honoured.
+     */
+    get: operations['downloadCaptureFile'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/devicelogs': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/devicelogs/{path}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read a filtered window of one device log, or download the raw file
-         * @description With a non-empty `download` query the raw file is returned as text/plain attachment and the request additionally needs a fresh step-up (otherwise 403 step_up_required). Otherwise a JSON window of lines is returned, unmasked except for the client redactor. `path` may contain slashes (relative to the device log root).
-         *
-         *     `{path}` spans several segments (it may contain `/`), which OpenAPI path parameters cannot express: a generated client would percent-encode the slashes. Build the URL by appending the relative path to the base instead.
-         */
-        get: operations["readDeviceLog"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * List device-uploaded log files, newest first
+     * @description files is capped at 200 entries while total_bytes sums every matching file.
+     */
+    get: operations['listDeviceLogs'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/devicelogs/{path}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/timeline": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Grouped visit sessions for one local day, with media slots
-         * @description The day is cut at local midnight (server timezone). An unparseable `date` falls back to today and the response echoes the day used. Reads at most 2000 stored events for the day. `counts` is computed after the device/pet narrowing but before the `filter` chip.
-         */
-        get: operations["getTimeline"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Read a filtered window of one device log, or download the raw file
+     * @description With a non-empty `download` query the raw file is returned as text/plain attachment and the request additionally needs a fresh step-up (otherwise 403 step_up_required). Otherwise a JSON window of lines is returned, unmasked except for the client redactor. `path` may contain slashes (relative to the device log root).
+     *
+     *     `{path}` spans several segments (it may contain `/`), which OpenAPI path parameters cannot express: a generated client would percent-encode the slashes. Build the URL by appending the relative path to the base instead.
+     */
+    get: operations['readDeviceLog'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/timeline': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/timeline/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Everything stored about one event (Debug info) */
-        get: operations["getTimelineEventDetail"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Grouped visit sessions for one local day, with media slots
+     * @description The day is cut at local midnight (server timezone). An unparseable `date` falls back to today and the response echoes the day used. Reads at most 2000 stored events for the day. `counts` is computed after the device/pet narrowing but before the `filter` chip.
+     */
+    get: operations['getTimeline'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/timeline/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/media/thumb/{path}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Thumbnail for a media path (the image itself for stills, cached ffmpeg frame for video)
-         * @description .jpg/.jpeg/.png are served as-is. Anything else gets a cached JPEG frame grab. Every failure (missing, hidden path component, ffmpeg absent, grab failed) is 404 by design. Served by aiohttp FileResponse, so conditional and Range requests are honoured.
-         *
-         *     `{path}` spans several segments (it may contain `/`), which OpenAPI path parameters cannot express: a generated client would percent-encode the slashes. Build the URL by appending the relative path to the base instead.
-         */
-        get: operations["getMediaThumb"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Everything stored about one event (Debug info) */
+    get: operations['getTimelineEventDetail'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/media/thumb/{path}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/media/{path}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Serve one file from the media tree (stills, video, HLS playlists)
-         * @description Path is relative to the media root. Files are served by aiohttp FileResponse (Content-Type guessed from the extension; Range gives 206, bad range 416, conditional gives 304). A .m3u8 playlist is instead read and returned as application/vnd.apple.mpegurl with every segment URI re-signed (no Range support on that branch). Missing, hidden (dot-prefixed component) and path-escape attempts are all 404.
-         *
-         *     `{path}` spans several segments (it may contain `/`), which OpenAPI path parameters cannot express: a generated client would percent-encode the slashes. Build the URL by appending the relative path to the base instead.
-         */
-        get: operations["getMediaFile"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Thumbnail for a media path (the image itself for stills, cached ffmpeg frame for video)
+     * @description .jpg/.jpeg/.png are served as-is. Anything else gets a cached JPEG frame grab. Every failure (missing, hidden path component, ffmpeg absent, grab failed) is 404 by design. Served by aiohttp FileResponse, so conditional and Range requests are honoured.
+     *
+     *     `{path}` spans several segments (it may contain `/`), which OpenAPI path parameters cannot express: a generated client would percent-encode the slashes. Build the URL by appending the relative path to the base instead.
+     */
+    get: operations['getMediaThumb'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/media/{path}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/pets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List pets with their reference faces */
-        get: operations["listPets"];
-        put?: never;
-        /**
-         * Create a pet
-         * @description Unparseable device_ids degrade to an empty list instead of failing. The new pet is published to Home Assistant as a virtual device.
-         */
-        post: operations["createPet"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Serve one file from the media tree (stills, video, HLS playlists)
+     * @description Path is relative to the media root. Files are served by aiohttp FileResponse (Content-Type guessed from the extension; Range gives 206, bad range 416, conditional gives 304). A .m3u8 playlist is instead read and returned as application/vnd.apple.mpegurl with every segment URI re-signed (no Range support on that branch). Missing, hidden (dot-prefixed component) and path-escape attempts are all 404.
+     *
+     *     `{path}` spans several segments (it may contain `/`), which OpenAPI path parameters cannot express: a generated client would percent-encode the slashes. Build the URL by appending the relative path to the base instead.
+     */
+    get: operations['getMediaFile'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/pets': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/pets/unbound": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List device-reported pet identities that match no pet */
-        get: operations["listUnboundPetRefs"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List pets with their reference faces */
+    get: operations['listPets'];
+    put?: never;
+    /**
+     * Create a pet
+     * @description Unparseable device_ids degrade to an empty list instead of failing. The new pet is published to Home Assistant as a virtual device.
+     */
+    post: operations['createPet'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/pets/unbound': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/pets/import": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Import the pets and reference photos PetKit holds for a device
-         * @description Asks the PetKit cloud (dev_discern_pic) once, creates a new local pet per unknown identity with the PetKit id bound as an alias, and downloads its photos.
-         */
-        post: operations["importPetsFromPetkit"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List device-reported pet identities that match no pet */
+    get: operations['listUnboundPetRefs'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/pets/import': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/pets/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Local pet id. Non-numeric yields 400. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        /** Get one pet */
-        get: operations["getPet"];
-        put?: never;
-        /**
-         * Partially update a pet
-         * @description Only keys present are changed. Unparseable device_ids or device_pet_ids are silently skipped. Changing device_pet_ids retroactively rebinds past events and steals the alias from any other pet holding it.
-         */
-        post: operations["updatePet"];
-        /**
-         * Delete a pet and its photos
-         * @description An unknown id answers 200 with ok false, not 404.
-         */
-        delete: operations["deletePet"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Import the pets and reference photos PetKit holds for a device
+     * @description Asks the PetKit cloud (dev_discern_pic) once, creates a new local pet per unknown identity with the PetKit id bound as an alias, and downloads its photos.
+     */
+    post: operations['importPetsFromPetkit'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/pets/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Local pet id. Non-numeric yields 400. */
+        id: number;
+      };
+      cookie?: never;
     };
-    "/api/pets/{id}/faces": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Local pet id. Non-numeric yields 400. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        /** List a pet's reference photos */
-        get: operations["listPetFaces"];
-        put?: never;
-        /**
-         * Add a reference photo (raw JPEG body)
-         * @description The body is the raw image bytes, not multipart. Must start with JPEG magic bytes. At most 6 photos per pet. The image is normalised to the NPU input size.
-         */
-        post: operations["addPetFace"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get one pet */
+    get: operations['getPet'];
+    put?: never;
+    /**
+     * Partially update a pet
+     * @description Only keys present are changed. Unparseable device_ids or device_pet_ids are silently skipped. Changing device_pet_ids retroactively rebinds past events and steals the alias from any other pet holding it.
+     */
+    post: operations['updatePet'];
+    /**
+     * Delete a pet and its photos
+     * @description An unknown id answers 200 with ok false, not 404.
+     */
+    delete: operations['deletePet'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/pets/{id}/faces': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Local pet id. Non-numeric yields 400. */
+        id: number;
+      };
+      cookie?: never;
     };
-    "/api/pets/{id}/faces/{face_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Delete one reference photo
-         * @description Both ids must match; a face owned by another pet, or a non-numeric id, answers 404.
-         */
-        delete: operations["deletePetFace"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List a pet's reference photos */
+    get: operations['listPetFaces'];
+    put?: never;
+    /**
+     * Add a reference photo (raw JPEG body)
+     * @description The body is the raw image bytes, not multipart. Must start with JPEG magic bytes. At most 6 photos per pet. The image is normalised to the NPU input size.
+     */
+    post: operations['addPetFace'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/pets/{id}/faces/{face_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/pets/{id}/faces/{face_id}/photo": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Download one reference photo
-         * @description Served by aiohttp FileResponse, so conditional and Range requests are honoured.
-         */
-        get: operations["getPetFacePhoto"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    post?: never;
+    /**
+     * Delete one reference photo
+     * @description Both ids must match; a face owned by another pet, or a non-numeric id, answers 404.
+     */
+    delete: operations['deletePetFace'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/pets/{id}/faces/{face_id}/photo': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/auth/setup": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create the first admin with the setup token and sign in */
-        post: operations["authSetup"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Download one reference photo
+     * @description Served by aiohttp FileResponse, so conditional and Range requests are honoured.
+     */
+    get: operations['getPetFacePhoto'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/auth/setup': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/auth/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Exchange the admin password for a session cookie */
-        post: operations["authLogin"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Create the first admin with the setup token and sign in */
+    post: operations['authSetup'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/auth/login': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/auth/logout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * End the current session
-         * @description Revokes the session and step-up grant of the caller; a client token is not revoked (use the token revoke route). Also clears the session cookie.
-         */
-        post: operations["authLogout"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Exchange the admin password for a session cookie */
+    post: operations['authLogin'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/auth/logout': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/auth/step-up": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Re-enter the password to unlock R3 routes for 5 minutes */
-        post: operations["authStepUp"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * End the current session
+     * @description Revokes the session and step-up grant of the caller; a client token is not revoked (use the token revoke route). Also clears the session cookie.
+     */
+    post: operations['authLogout'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/auth/step-up': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/auth/pairing": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create a single-use pairing code and QR payload
-         * @description No request body is read.
-         */
-        post: operations["authPairingCreate"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Re-enter the password to unlock R3 routes for 5 minutes */
+    post: operations['authStepUp'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/auth/pairing': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/auth/pairing/redeem": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Trade a pairing code for a client token
-         * @description The raw token is returned only here.
-         */
-        post: operations["authPairingRedeem"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Create a single-use pairing code and QR payload
+     * @description No request body is read.
+     */
+    post: operations['authPairingCreate'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/auth/pairing/redeem': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/auth/tokens": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List live client tokens
-         * @description Never includes the token value. Idle-expired tokens are dropped first.
-         */
-        get: operations["authListTokens"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Trade a pairing code for a client token
+     * @description The raw token is returned only here.
+     */
+    post: operations['authPairingRedeem'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/auth/tokens': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/auth/tokens/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Revoke one client token */
-        delete: operations["authRevokeToken"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * List live client tokens
+     * @description Never includes the token value. Idle-expired tokens are dropped first.
+     */
+    get: operations['authListTokens'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/auth/tokens/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/auth/media-url": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Sign a five-minute URL for a file under /api/media/
-         * @description Sign a five-minute URL for a file under /api/media/
-         *
-         *     The returned `url` is root-absolute (`/api/media/...`). Behind Home Assistant Ingress the client must put its Ingress prefix in front of it.
-         */
-        post: operations["authMediaUrl"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Revoke one client token */
+    delete: operations['authRevokeToken'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/auth/media-url': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    get?: never;
+    put?: never;
+    /**
+     * Sign a five-minute URL for a file under /api/media/
+     * @description Sign a five-minute URL for a file under /api/media/
+     *
+     *     The returned `url` is root-absolute (`/api/media/...`). Behind Home Assistant Ingress the client must put its Ingress prefix in front of it.
+     */
+    post: operations['authMediaUrl'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        AuthMediaUrlRequest: {
-            /** @description File path, with or without the /api/media/ prefix. */
-            path: string;
+  schemas: {
+    AuthMediaUrlRequest: {
+      /** @description File path, with or without the /api/media/ prefix. */
+      path: string;
+    };
+    AuthOk: {
+      ok: boolean;
+    };
+    AuthPasswordRequest: {
+      password: string;
+    };
+    AuthRedeemRequest: {
+      code: string;
+      /**
+       * @description Label for the issued token.
+       * @default client
+       */
+      name: string;
+    };
+    AuthSetupRequest: {
+      /** @description One-time token printed in the server log. */
+      setup_token: string;
+      /** @description Schema accepts 1-1024 characters; setup additionally refuses under 10 with 400 weak_password. */
+      password: string;
+    };
+    AuthTokenInfo: {
+      id: number;
+      name: string;
+      created_at: number;
+      last_used: number;
+    };
+    /** @description One accessory as the panel shows it, after client redaction (secret may be masked). */
+    BleAccessory: {
+      petkit_id: number;
+      /** @enum {string} */
+      ble_type: 'w5' | 'w4' | 'ctw3' | 'ctw2' | 'k3';
+      name: string;
+      parent_name: string;
+      /** @description Parent device type; empty string when no parent. */
+      parent_type: string | number;
+      parent_online: boolean;
+      last_seen: number | null;
+      entities: components['schemas']['BleAccessoryEntity'][];
+      mac: string;
+      /** @description Pairing secret after client redaction. An empty secret is returned as an empty string; any non-empty value is always masked as the literal text [redacted N chars], where N is the length of the stored secret (for example [redacted 16 chars]). The real value is never returned. */
+      secret: string;
+      interval: number;
+      /** @description Parent device id; 0 when unlinked. */
+      link_with: number;
+      serial_number: string;
+      scan_type: number;
+      scan_type_is_guessed: boolean;
+      /** @description Entry handed to the parent in dev_ble_device. Its secret is masked the same way as the top-level secret. */
+      wire_entry: {
+        id: number;
+        secret: string;
+        /** @description Numeric BLE type code */
+        type: number;
+        /** @description MAC in the wire form the device expects */
+        mac: string;
+        interval: number;
+      };
+      /** @description Decoded accessory state document. */
+      state: {
+        [key: string]: unknown;
+      };
+    };
+    BleAccessoryEntity: {
+      /** @description HA component (sensor, switch, select, number, button, ...). */
+      component: string;
+      key: string;
+      name: string;
+      value_path: string | null;
+      unit: string | null;
+      device_class: string | null;
+      icon: string | null;
+      options: unknown[] | null;
+      option_values: unknown[] | null;
+      settable: boolean;
+      entity_category: string | null;
+      min: number | null;
+      max: number | null;
+      step: number | null;
+      /** @description Resolved value from the accessory state; null for buttons or unreported. */
+      value: unknown;
+    };
+    BleAccessoryList: {
+      accessories: components['schemas']['BleAccessory'][];
+    };
+    BleAccessoryPairRequest: {
+      /**
+       * @description Lower-cased and trimmed by the server.
+       * @enum {string}
+       */
+      ble_type: 'w5' | 'w4' | 'ctw3' | 'ctw2' | 'k3';
+      /** @description Omitted or 0 allocates an id from 900001 upward. Must not equal a real device id. */
+      petkit_id?: number;
+      /** @description 12 hex digits, any common separator; must not already be paired to another id. */
+      mac: string;
+      /** @description Parent device id; must exist when non-zero. */
+      link_with?: number;
+      /** @default  */
+      secret: string;
+      /** @default 240 */
+      interval: number;
+      /** @default  */
+      serial_number: string;
+      /**
+       * @description Overrides the type the parent is told to scan for; negatives become 0.
+       * @default 0
+       */
+      scan_type: number;
+    };
+    BleImportResult: {
+      /** @description Present on upstream refusal entries. */
+      endpoint?: string;
+      petkit_id?: number;
+      ble_type?: string | null;
+      mac?: string | null;
+      /** @description imported, updated, unchanged, an upstream refusal message, or a reason the entry was skipped. */
+      outcome: string;
+    };
+    CaptureFile: {
+      name: string;
+      /** @description Bytes. */
+      size: number;
+      lines: number;
+    };
+    CaptureListing: {
+      /** @description Configured capture directory (empty when none) */
+      dir: string;
+      files: components['schemas']['CaptureFile'][];
+      /** @description Whether capture mode is currently on. */
+      enabled: boolean;
+    };
+    CaptureRead: {
+      /** @description One entry per non-blank tail line: the json.loads result (any JSON value), or an object with a single raw key when the line is not valid JSON. */
+      records: unknown[];
+      /** @description Total line count of the file. */
+      total: number;
+    };
+    DeferredFeed: {
+      id: string;
+      a1: number;
+      a2: number;
+      /** @description Unix timestamp */
+      fire_at: number;
+    };
+    DeferredFeedCreateRequest: {
+      /** @description YYYY-MM-DD in the device timezone */
+      date: string;
+      /** @description HH:MM in the device timezone */
+      time: string;
+      /** @default 0 */
+      a1: number;
+      /** @default 0 */
+      a2: number;
+    };
+    DeferredFeedCreateResult: {
+      ok: boolean;
+      feed: components['schemas']['DeferredFeed'];
+    };
+    DeferredFeedList: {
+      deferred: components['schemas']['DeferredFeed'][];
+    };
+    DeviceAction: {
+      key: string;
+      name: string;
+      destructive: boolean;
+    };
+    DeviceAiRequest: {
+      ai_enabled?: boolean;
+    };
+    DeviceAiResult: {
+      ok: boolean;
+      ai_enabled: boolean;
+    };
+    DeviceAiView: {
+      supports_ai: boolean;
+      ai_enabled: boolean;
+    };
+    DeviceBleChild: {
+      id: number;
+      type: string;
+      mac: string;
+    };
+    /** @description Any subset of capability flags; unknown keys are ignored */
+    DeviceCapabilitiesRequest: {
+      fullVideo?: boolean;
+      eventImage?: boolean;
+      highLight?: boolean;
+      dynamicVideo?: boolean;
+    };
+    DeviceCapabilitiesResult: {
+      ok: boolean;
+      capabilities: components['schemas']['DeviceCapabilityFlags'];
+    };
+    DeviceCapabilitiesView: {
+      is_camera: boolean;
+      capabilities: components['schemas']['DeviceCapabilityFlags'];
+    };
+    DeviceCapabilityFlags: {
+      fullVideo: boolean;
+      eventImage: boolean;
+      highLight: boolean;
+      dynamicVideo: boolean;
+    };
+    /** @description One of three forms, checked in order. action wins over entity, entity over suffix+payload. The raw suffix+payload form requires step-up. */
+    DeviceCommandRequest: {
+      /** @description Named button action available on this model */
+      action?: string;
+      /** @description Entity key */
+      entity?: string;
+      /** @description Value for an entity write; stringified before use */
+      value?: unknown;
+      /** @description Raw service suffix */
+      suffix?: string;
+      /** @description Raw envelope published verbatim */
+      payload?: unknown;
+      /**
+       * @description auto uses MQTT when the device has a live MQTT session and the bridge is connected, else the heartbeat queue. mqtt tries MQTT whenever the bridge has a live client (it does not check the device session) and falls back to the heartbeat queue when there is no live bridge or the publish fails. Any other value (for example heartbeat) queues for the next heartbeat. The response `delivered` reports what actually happened.
+       * @default auto
+       */
+      transport: string;
+    };
+    /** @description Either a delivery result or a local-only result */
+    DeviceCommandResult:
+      | components['schemas']['DeviceDeliveryResult']
+      | {
+          ok: boolean;
+          /** @enum {string} */
+          delivered: 'local';
+          /** @description Present for action writes */
+          action?: string;
+          /** @description Present for entity writes */
+          entity?: string;
         };
-        AuthOk: {
-            ok: boolean;
-        };
-        AuthPasswordRequest: {
-            password: string;
-        };
-        AuthRedeemRequest: {
-            code: string;
-            /**
-             * @description Label for the issued token.
-             * @default client
-             */
-            name: string;
-        };
-        AuthSetupRequest: {
-            /** @description One-time token printed in the server log. */
-            setup_token: string;
-            /** @description Schema accepts 1-1024 characters; setup additionally refuses under 10 with 400 weak_password. */
-            password: string;
-        };
-        AuthTokenInfo: {
-            id: number;
-            name: string;
-            created_at: number;
-            last_used: number;
-        };
-        /** @description One accessory as the panel shows it, after client redaction (secret may be masked). */
-        BleAccessory: {
-            petkit_id: number;
-            /** @enum {string} */
-            ble_type: "w5" | "w4" | "ctw3" | "ctw2" | "k3";
-            name: string;
-            parent_name: string;
-            /** @description Parent device type; empty string when no parent. */
-            parent_type: string | number;
-            parent_online: boolean;
-            last_seen: number | null;
-            entities: components["schemas"]["BleAccessoryEntity"][];
-            mac: string;
-            /** @description Pairing secret after client redaction. An empty secret is returned as an empty string; any non-empty value is always masked as the literal text [redacted N chars], where N is the length of the stored secret (for example [redacted 16 chars]). The real value is never returned. */
-            secret: string;
-            interval: number;
-            /** @description Parent device id; 0 when unlinked. */
-            link_with: number;
-            serial_number: string;
-            scan_type: number;
-            scan_type_is_guessed: boolean;
-            /** @description Entry handed to the parent in dev_ble_device. Its secret is masked the same way as the top-level secret. */
-            wire_entry: {
-                id: number;
-                secret: string;
-                /** @description Numeric BLE type code */
-                type: number;
-                /** @description MAC in the wire form the device expects */
-                mac: string;
-                interval: number;
-            };
-            /** @description Decoded accessory state document. */
-            state: {
-                [key: string]: unknown;
-            };
-        };
-        BleAccessoryEntity: {
-            /** @description HA component (sensor, switch, select, number, button, ...). */
-            component: string;
-            key: string;
-            name: string;
-            value_path: string | null;
-            unit: string | null;
-            device_class: string | null;
-            icon: string | null;
-            options: unknown[] | null;
-            option_values: unknown[] | null;
-            settable: boolean;
-            entity_category: string | null;
-            min: number | null;
-            max: number | null;
-            step: number | null;
-            /** @description Resolved value from the accessory state; null for buttons or unreported. */
-            value: unknown;
-        };
-        BleAccessoryList: {
-            accessories: components["schemas"]["BleAccessory"][];
-        };
-        BleAccessoryPairRequest: {
-            /**
-             * @description Lower-cased and trimmed by the server.
-             * @enum {string}
-             */
-            ble_type: "w5" | "w4" | "ctw3" | "ctw2" | "k3";
-            /** @description Omitted or 0 allocates an id from 900001 upward. Must not equal a real device id. */
-            petkit_id?: number;
-            /** @description 12 hex digits, any common separator; must not already be paired to another id. */
-            mac: string;
-            /** @description Parent device id; must exist when non-zero. */
-            link_with?: number;
-            /** @default  */
-            secret: string;
-            /** @default 240 */
-            interval: number;
-            /** @default  */
-            serial_number: string;
-            /**
-             * @description Overrides the type the parent is told to scan for; negatives become 0.
-             * @default 0
-             */
-            scan_type: number;
-        };
-        BleImportResult: {
-            /** @description Present on upstream refusal entries. */
-            endpoint?: string;
-            petkit_id?: number;
-            ble_type?: string | null;
-            mac?: string | null;
-            /** @description imported, updated, unchanged, an upstream refusal message, or a reason the entry was skipped. */
-            outcome: string;
-        };
-        CaptureFile: {
-            name: string;
-            /** @description Bytes. */
-            size: number;
-            lines: number;
-        };
-        CaptureListing: {
-            /** @description Configured capture directory (empty when none) */
-            dir: string;
-            files: components["schemas"]["CaptureFile"][];
-            /** @description Whether capture mode is currently on. */
-            enabled: boolean;
-        };
-        CaptureRead: {
-            /** @description One entry per non-blank tail line: the json.loads result (any JSON value), or an object with a single raw key when the line is not valid JSON. */
-            records: unknown[];
-            /** @description Total line count of the file. */
-            total: number;
-        };
-        DeferredFeed: {
-            id: string;
-            a1: number;
-            a2: number;
-            /** @description Unix timestamp */
-            fire_at: number;
-        };
-        DeferredFeedCreateRequest: {
-            /** @description YYYY-MM-DD in the device timezone */
-            date: string;
-            /** @description HH:MM in the device timezone */
-            time: string;
-            /** @default 0 */
-            a1: number;
-            /** @default 0 */
-            a2: number;
-        };
-        DeferredFeedCreateResult: {
-            ok: boolean;
-            feed: components["schemas"]["DeferredFeed"];
-        };
-        DeferredFeedList: {
-            deferred: components["schemas"]["DeferredFeed"][];
-        };
-        DeviceAction: {
-            key: string;
-            name: string;
-            destructive: boolean;
-        };
-        DeviceAiRequest: {
-            ai_enabled?: boolean;
-        };
-        DeviceAiResult: {
-            ok: boolean;
-            ai_enabled: boolean;
-        };
-        DeviceAiView: {
-            supports_ai: boolean;
-            ai_enabled: boolean;
-        };
-        DeviceBleChild: {
-            id: number;
-            type: string;
-            mac: string;
-        };
-        /** @description Any subset of capability flags; unknown keys are ignored */
-        DeviceCapabilitiesRequest: {
-            fullVideo?: boolean;
-            eventImage?: boolean;
-            highLight?: boolean;
-            dynamicVideo?: boolean;
-        };
-        DeviceCapabilitiesResult: {
-            ok: boolean;
-            capabilities: components["schemas"]["DeviceCapabilityFlags"];
-        };
-        DeviceCapabilitiesView: {
-            is_camera: boolean;
-            capabilities: components["schemas"]["DeviceCapabilityFlags"];
-        };
-        DeviceCapabilityFlags: {
-            fullVideo: boolean;
-            eventImage: boolean;
-            highLight: boolean;
-            dynamicVideo: boolean;
-        };
-        /** @description One of three forms, checked in order. action wins over entity, entity over suffix+payload. The raw suffix+payload form requires step-up. */
-        DeviceCommandRequest: {
-            /** @description Named button action available on this model */
-            action?: string;
-            /** @description Entity key */
-            entity?: string;
-            /** @description Value for an entity write; stringified before use */
-            value?: unknown;
-            /** @description Raw service suffix */
-            suffix?: string;
-            /** @description Raw envelope published verbatim */
-            payload?: unknown;
-            /**
-             * @description auto uses MQTT when the device has a live MQTT session and the bridge is connected, else the heartbeat queue. mqtt tries MQTT whenever the bridge has a live client (it does not check the device session) and falls back to the heartbeat queue when there is no live bridge or the publish fails. Any other value (for example heartbeat) queues for the next heartbeat. The response `delivered` reports what actually happened.
-             * @default auto
-             */
-            transport: string;
-        };
-        /** @description Either a delivery result or a local-only result */
-        DeviceCommandResult: components["schemas"]["DeviceDeliveryResult"] | {
-            ok: boolean;
-            /** @enum {string} */
-            delivered: "local";
-            /** @description Present for action writes */
-            action?: string;
-            /** @description Present for entity writes */
-            entity?: string;
-        };
-        DeviceDeleteResult: {
-            ok: boolean;
-            removed: number;
-            orphaned_accessories: number[];
-            note: string;
-        };
-        DeviceDeliveryResult: {
-            ok: boolean;
-            /** @enum {string} */
-            delivered: "mqtt" | "heartbeat-queue";
-            suffix: string;
-            /** @description Envelope sent to the device */
-            envelope: {
-                [key: string]: unknown;
-            } | string | unknown[] | number | boolean | null;
-        };
-        /** @description Every DeviceSummary key (except that entities is an array here, not a count) plus the detail-only keys. Client-redacted. */
-        DeviceDetail: {
-            id: number;
-            type: string;
-            name: string;
-            sn: string;
-            mac: string;
-            firmware: string;
-            online: boolean;
-            mqtt_connected: boolean;
-            is_camera: boolean;
-            is_feeder: boolean;
-            supports_ai: boolean;
-            /** @description MQTT product key */
-            pk: string;
-            /** @description MQTT device name */
-            dn: string;
-            /** @description Timestamp as stored by the device model */
-            last_heartbeat: number | string | null;
-            /** @description Timestamp as stored by the device model */
-            last_state_report: number | string | null;
-            /** @description Timestamp as stored by the device model */
-            last_seen: number | string | null;
-            /** @description Timestamp as stored by the device model */
-            last_mqtt: number | string | null;
-            mqtt_subscriptions: string[];
-            /** @description What the broker would deliver; null when the broker is not running */
-            mqtt_delivery: {
-                [key: string]: unknown;
-            } | null;
-            /** @description Pending heartbeat commands */
-            queue: number;
-            http_count: number;
-            mqtt_count: number;
-            ble: components["schemas"]["DeviceBleChild"][];
-            /** @description Device-reported state blob; keys vary by model */
-            state: {
-                [key: string]: unknown;
-            } | null;
-            settings: {
-                [key: string]: unknown;
-            };
-            /** @description Stored device config without settings; keys vary */
-            config: {
-                [key: string]: unknown;
-            };
-            /** @description Hub diagnostics: {} for a device never seen, else http_count and mqtt_count plus last_* keys once recorded. */
-            diag: {
-                [key: string]: unknown;
-            };
-            /** @description Stream URLs; empty until a probe confirms the device is serving */
-            streams: {
-                [key: string]: unknown;
-            };
-            schedules: components["schemas"]["DeviceScheduleTarget"][];
-            entities: components["schemas"]["DeviceEntity"][];
-            actions: components["schemas"]["DeviceAction"][];
-            /** @description Null unless the device is a camera */
-            capInfo?: components["schemas"]["DeviceCapabilitiesView"] | null;
-            timezoneInfo: components["schemas"]["DeviceTimezoneView"];
-            logInfo: components["schemas"]["DeviceLogSettings"];
-            /** @description Null unless the device supports AI */
-            aiInfo?: components["schemas"]["DeviceAiView"] | null;
-        };
-        DeviceEntity: {
-            component: string;
-            key: string;
-            name: string;
-            value_path: string;
-            unit: string | null;
-            device_class: string | null;
-            icon: string | null;
-            options: unknown[] | null;
-            option_values: {
-                [key: string]: unknown;
-            } | unknown[] | null;
-            settable: boolean;
-            entity_category: string | null;
-            min: number | null;
-            max: number | null;
-            step: number | null;
-            /** @description Resolved current value, any JSON type */
-            value: unknown;
-        };
-        DeviceLogFile: {
-            /** @description Path relative to the log root (slash-separated) */
-            rel: string;
-            name: string;
-            /** @description First path segment parsed as device id. */
-            device: number | null;
-            size: number;
-            /** @description Epoch seconds. */
-            mtime: number;
-        };
-        DeviceLogListing: {
-            dir: string;
-            /** @description Machine-readable token for why no logs can arrive right now. */
-            reason: string;
-            /** @description Petkit ids with log_upload_enabled. */
-            enabled_devices: number[];
-            files: components["schemas"]["DeviceLogFile"][];
-            total_bytes: number;
-        };
-        DeviceLogRead: {
-            /** @description Pairs of line number (1-based, of the file) and text (cut at 2000 chars). */
-            lines: [
-                number,
-                string
-            ][];
-            /** @description Line count of the whole file. */
-            total: number;
-            /** @description Lines matching q. */
-            matched: number;
-            offset: number;
-            limit: number;
-            /** @description File size in bytes. */
-            size: number;
-        };
-        DeviceLogSettings: {
-            ok: boolean;
-            log_upload_enabled: boolean;
-            /** @description Empty when collection can work, else no_log_root, no_bucket_endpoint or authority_not_splittable */
-            reason: string;
-        };
-        DeviceLogSettingsRequest: {
-            log_upload_enabled?: boolean;
-        };
-        DeviceScheduleTarget: {
-            /** @description Field name accepted by POST /schedule */
-            target: string;
-            name: string;
-            /** @enum {string} */
-            kind: "ranges" | "weekly" | "points" | "feed";
-            /** @description Current effective value; shape depends on kind */
-            value: unknown;
-            /** @description Only present on feed targets: true for dual-hopper feeders (a meal carries a1 and a2 portions) */
-            dual?: boolean;
-        };
-        DeviceSummary: {
-            id: number;
-            type: string;
-            name: string;
-            sn: string;
-            mac: string;
-            firmware: string;
-            online: boolean;
-            mqtt_connected: boolean;
-            is_camera: boolean;
-            is_feeder: boolean;
-            supports_ai: boolean;
-            /** @description MQTT product key */
-            pk: string;
-            /** @description MQTT device name */
-            dn: string;
-            /** @description Timestamp as stored by the device model */
-            last_heartbeat: number | string | null;
-            /** @description Timestamp as stored by the device model */
-            last_state_report: number | string | null;
-            /** @description Timestamp as stored by the device model */
-            last_seen: number | string | null;
-            /** @description Timestamp as stored by the device model */
-            last_mqtt: number | string | null;
-            mqtt_subscriptions: string[];
-            /** @description What the broker would deliver; null when the broker is not running */
-            mqtt_delivery: {
-                [key: string]: unknown;
-            } | null;
-            /** @description Pending heartbeat commands */
-            queue: number;
-            http_count: number;
-            mqtt_count: number;
-            /** @description Entity count */
-            entities: number;
-            ble: components["schemas"]["DeviceBleChild"][];
-        };
-        DeviceTimezoneRequest: {
-            /** @description Offset hours in -12..14. Numeric strings accepted. null or blank string clears the override. Booleans rejected. */
-            timezone: number | string | null;
-        };
-        DeviceTimezoneResult: components["schemas"]["DeviceTimezoneView"] & {
-            ok: boolean;
-            /** @enum {string} */
-            delivered: "mqtt" | "heartbeat-queue";
-        };
-        DeviceTimezoneView: {
-            effective: number;
-            override: number | null;
-            reported: number | null;
-            locale: string;
-            /** @enum {string} */
-            source: "override" | "locale" | "device" | "server";
-        };
-        Error: {
-            error: {
-                /** @description Stable, machine-readable. */
-                code: string;
-                /** @description Human-readable; may change. */
-                message: string;
-                /** @description Present on a 500 (not on 502/503/504); the server log line carries the same id. */
-                correlation_id?: string;
-            };
-        };
-        /** @description One live-log entry as stored in the hub ring (see publish in web/hub.py). */
-        LogsHubEvent: {
-            /** @description Per-process monotonic counter */
-            seq: number;
-            /** @description Epoch seconds (float). */
-            ts: number;
-            /**
-             * @description Event kind.
-             * @example http
-             * @example mqtt
-             * @example connect
-             * @example cmd
-             * @example redact
-             * @example blocked
-             * @example event
-             * @example media
-             * @example devlog
-             * @example patcher
-             */
-            kind: string;
-            /** @description Petkit device id; null/other when unattributed. */
-            device_id: number | string | null;
-            summary: string;
-            /** @description Present only when the publisher supplied one; shape varies by kind (object, usually). */
-            detail?: {
-                [key: string]: unknown;
-            };
-        };
-        OkResult: {
-            ok: boolean;
-        };
-        PatcherEntry: {
-            /** @enum {string} */
-            id: "mqtt" | "cloud" | "cacert" | "camera" | "ssh" | "talk";
-            name: string;
-            description: string;
-            /** @description "applied", "not applied" or "active (MQTT connected)". */
-            status: string;
-            applied: boolean;
-            unavailable: string;
-            greyed: boolean;
-            needs_bytes: number;
-            /** @description Present (true) only for the ssh patcher. */
-            needs_pubkey?: boolean;
-            /** @description Stored public key; present only with needs_pubkey. */
-            ssh_pubkey?: string;
-        };
-        PatcherStatus: {
-            patchers: {
-                [key: string]: components["schemas"]["PatcherEntry"];
-            };
-            device_ip: string;
-            supported: boolean;
-        };
-        /** @description The pets table row verbatim. */
-        Pet: {
-            id: number;
-            name: string;
-            /** @description JSON-encoded array of PetKit device ids, as a string (e.g. "[123]"). */
-            device_ids_json: string | null;
-            /** @description JSON-encoded array of device-reported pet identities bound to this pet, as a string. */
-            device_pet_ids_json: string | null;
-            /** @description Legacy single-photo column, unused. */
-            face_id: string | null;
-            /** @description Legacy single-photo column, unused (may hold a server filesystem path). */
-            photo_path: string | null;
-            weight: number | null;
-            /** @description Unix time. */
-            created_at: number;
-        };
-        PetCreateRequest: {
-            /** @description Stripped; empty yields 400. */
-            name: string;
-            /** @description Unparseable values degrade to an empty list. */
-            device_ids?: number[];
-            /** @description Stored as given, not validated. */
-            weight?: number | null;
-        };
-        PetFace: {
-            id: number;
-            /** @description Relative URL without leading slash, `api/pets/{pet_id}/faces/{id}/photo`. */
-            url: string;
-        };
-        PetImportResult: {
-            pet_ref: number;
-            /** @enum {string} */
-            outcome: "imported" | "already yours";
-            /** @description Present when imported. */
-            pet_id?: number;
-            /** @description Present when imported. */
-            name?: string;
-            /** @description Present when imported. */
-            faces_imported?: number;
-            /** @description Present when imported. */
-            faces_offered?: number;
-            /** @description Present when imported. */
-            bound_events?: number;
-        };
-        PetUnboundRef: {
-            pet_ref: number;
-            count: number;
-            last_ts: number | null;
-        };
-        PetUpdateRequest: {
-            /** @description Stripped; an empty result is accepted. */
-            name?: string;
-            device_ids?: number[];
-            /** @description Foreign PetKit pet identities to bind. */
-            device_pet_ids?: number[];
-            /** @description Stored as given, not validated. */
-            weight?: number | null;
-        };
-        PetWithFaces: components["schemas"]["Pet"] & {
-            faces: components["schemas"]["PetFace"][];
-        };
-        PetsOk: {
-            ok: boolean;
-        };
-        ScheduleSaveRequest: {
-            /** @description A target name from the device schedules list */
-            target: string;
-            /** @description Shape depends on the target kind. ranges: [[start,end]] minutes 0..1440. weekly: [{enable, rpt, time:[[s,e]]}], rpt comma-separated weekdays 1-7 (Sunday 1). points: [{id, repeats, time, type}] with time 0..1439. feed: {schedule:[{re, it:[{id,t,a1,a2}]}]} with t in seconds 0..86399, a1/a2 0..255. */
-            value: unknown;
-        };
-        /** @description A blocked_attempts row (BlockedAttempt.as_dict, every column always present). Passed through the client redactor, except when reveal=1 (then returned as stored). */
-        SetupBlockedAttempt: {
-            id: number;
-            device_id: number | null;
-            /** @description Blocking rule name (rce, ota, secret). */
-            kind: string | null;
-            /** @enum {string|null} */
-            transport: "http" | "mqtt" | null;
-            /** @description Request path or MQTT topic. */
-            endpoint: string | null;
-            /** @description Blocked payload; masked to a 6-char prefix plus length unless reveal=1. */
-            payload_json: string | null;
-            /** @description Which upstream the answer came from, as recorded when the attempt was stored. */
-            upstream: string | null;
-            /** @description Where in the decoded body the blocking rule matched. */
-            field_path: string | null;
-            /** @description Extra detail about the match, stored as a JSON-encoded string. */
-            detail_json: string | null;
-            created_at: number;
-        };
-        /** @description Every live setting, all keys always present. */
-        SetupLiveSettings: {
-            /** @description Forward device traffic to the real cloud. Default false. R3. */
-            proxy_mode: boolean;
-            /** @description Upstream preset key or an allow-listed PetKit/Aliyun IoT URL; empty means default preset. Default "". R3. */
-            proxy_upstream: string;
-            /** @description IPv4 resolver, optional ":port"; hostnames refused. Default "". R3. */
-            proxy_dns: string;
-            /** @description Block cloud shell commands. Default true. R3. */
-            proxy_block_run_cmd: boolean;
-            /** @description Block cloud firmware pushes. Default true. R3. */
-            proxy_block_ota: boolean;
-            /** @description Default true. R3. */
-            proxy_block_log_upload: boolean;
-            /** @description Default false. R3. */
-            proxy_media_real_oss: boolean;
-            /** @description Default false. R3. */
-            proxy_local_cvr_window: boolean;
-            /** @description Default true. R3. */
-            proxy_mqtt_bridge: boolean;
-            /** @description Default "". R3. */
-            proxy_only: string;
-            /** @description Record traffic (including secrets) to disk. Default false. R3. */
-            capture: boolean;
-        };
-        /** @description Any subset of the live settings. Bool keys are coerced with bool(), string keys with str(). Unknown keys ignored. A body with no known key yields 400. */
-        SetupLiveSettingsPatch: {
-            proxy_mode?: boolean;
-            /** @description Empty, a preset key (petkit-eu, petkit-americas, petkit-asia, petkit-cn, petkit-ru) or an allow-listed URL. */
-            proxy_upstream?: string;
-            /** @description Empty or IPv4[:port]. */
-            proxy_dns?: string;
-            proxy_block_run_cmd?: boolean;
-            proxy_block_ota?: boolean;
-            proxy_block_log_upload?: boolean;
-            proxy_media_real_oss?: boolean;
-            proxy_local_cvr_window?: boolean;
-            proxy_mqtt_bridge?: boolean;
-            proxy_only?: string;
-            capture?: boolean;
-        } & {
+    DeviceDeleteResult: {
+      ok: boolean;
+      removed: number;
+      orphaned_accessories: number[];
+      note: string;
+    };
+    DeviceDeliveryResult: {
+      ok: boolean;
+      /** @enum {string} */
+      delivered: 'mqtt' | 'heartbeat-queue';
+      suffix: string;
+      /** @description Envelope sent to the device */
+      envelope:
+        | {
             [key: string]: unknown;
-        };
-        /** @description Caps keyed by category; every category is always present. */
-        SetupRetention: {
-            fullVideo: components["schemas"]["SetupRetentionCap"];
-            eventImage: components["schemas"]["SetupRetentionCap"];
-            highLight: components["schemas"]["SetupRetentionCap"];
-            dynamicVideo: components["schemas"]["SetupRetentionCap"];
-            cloudDouble: components["schemas"]["SetupRetentionCap"];
-            wasteCheck: components["schemas"]["SetupRetentionCap"];
-            healthPic: components["schemas"]["SetupRetentionCap"];
-            events: components["schemas"]["SetupRetentionCap"];
-            blocked: components["schemas"]["SetupRetentionCap"];
-            deviceLog: components["schemas"]["SetupRetentionCap"];
-            rawUpload: components["schemas"]["SetupRetentionCap"];
-            thumbnail: components["schemas"]["SetupRetentionCap"];
-        };
-        SetupRetentionCap: {
-            /** @description Size cap in MB; null means no cap. Absent for events and blocked. */
-            max_mb?: number | null;
-            /** @description Age cap in days; null means no cap. */
-            max_days: number | null;
-        };
-        /** @description Partial retention caps keyed by category; unknown categories and fields are ignored. */
-        SetupRetentionPatch: {
-            [key: string]: {
-                /** @description Size cap in MB. Values that are not a positive finite number become null (no cap). */
-                max_mb?: number | null;
-                /** @description Age cap in days. Values that are not a positive finite number become null (no cap). */
-                max_days?: number | null;
-            };
-        };
-        SetupServerInfo: {
-            /** @description Hash of the panel assets this process serves. */
-            asset_version: string;
-            version: string;
-            api_url: string | null;
-            /** @description Config passthrough, may be null when unset. */
-            mqtt_tls: unknown;
-            mqtt_tls_port: number | null;
-            mqtt_port: number | null;
-            /** @description Config passthrough, may be null when unset. */
-            strict_auth: unknown;
-            cert_exists: boolean;
-            user_tls: {
-                port: number | null;
-                cert_sha256: string;
-            };
-            ha_publishing: boolean;
-            ha_enabled: boolean;
-            device_count: number;
-            settings: components["schemas"]["SetupLiveSettings"];
-            settings_writable: boolean;
-            capture: boolean;
-            ai_device_names: string[];
-            upstreams: components["schemas"]["SetupUpstreamChoice"][];
-            redactions: {
-                [key: string]: number;
-            };
-            /** @description Proxied-call outcome counters (ok, error_<code>, http_<status>). */
-            upstream: {
-                [key: string]: number;
-            };
-        };
-        SetupUpstreamChoice: {
-            key: string;
-            url: string;
-            default: boolean;
-        };
-        Sound: {
-            id: number;
-            name: string;
-            filename: string;
-            size: number;
-            /** @description MD5 hex */
-            digest: string;
-            duration: number;
-            /** @description Unix seconds */
-            uploaded_at: number;
-        };
-        SoundList: {
-            sounds: components["schemas"]["Sound"][];
-        };
-        SoundUploadResult: {
-            ok: boolean;
-            sound: components["schemas"]["Sound"];
-        };
-        TimelineCounts: {
-            all: number;
-            pet: number;
-            toileting: number;
-            drinking: number;
-            feeding: number;
-            cleaning: number;
-            health_alert: number;
-            fault: number;
-        };
-        TimelineDay: {
-            /** @description Local day used (YYYY-MM-DD) */
-            date: string;
-            /** @description Seconds east of UTC for that day. */
-            tz_offset: number;
-            counts: components["schemas"]["TimelineCounts"];
-            sessions: components["schemas"]["TimelineSession"][];
-        };
-        TimelineEventDetail: {
-            event: {
-                id: number;
-                event_uid: string | null;
-                event_type: string | number | null;
-                event_kind: string | null;
-                label: string | null;
-                ts: number | null;
-                created_at: number | null;
-                source: string | null;
-                device_id: number | null;
-                device_type: string | null;
-                pet_id: number | null;
-                /** @description What the device claimed */
-                pet_ref: string | number | null;
-                pet_name: string | null;
-                pet_photo_url: string | null;
-                score: number | null;
-                related_event: string | number | null;
-                parent_event: number | string | null;
-            };
-            /** @description Event-code table entry, null when the type is unknown. */
-            code?: {
-                code: string | number | null;
-                label: string;
-                kind: string;
-                grade: string;
-                role: string;
-                detail: boolean;
-                firmware: string;
-                note: string;
-            } | null;
-            decoded: {
-                key: string;
-                label: string;
-                /** @description Value as the device sent it. */
-                raw: unknown;
-                text: string;
-                grade: string;
-                note: string;
-                /** @description True when raw is an epoch the UI should format itself. */
-                epoch: boolean;
-            }[];
-            /** @description Raw stored content payload. */
-            content: {
-                [key: string]: unknown;
-            };
-            /** @description Raw stored device state snapshot. */
-            state: {
-                [key: string]: unknown;
-            };
-        };
-        /** @description Media files by role (shared/media_slots.py). Every *_url value and every entry of waste and health is a path relative to the media root, not a URL (see _rel_media). A client builds the link by prefixing api/media/ (or api/media/thumb/ for a thumbnail) to the path, relative to its base URL. */
-        TimelineMediaSlots: {
-            highlight_url: string | null;
-            playback_url: string | null;
-            preview_url: string | null;
-            poster_url: string | null;
-            waste: string[];
-            health: string[];
-            snapshot_url: string | null;
-            video_pending: boolean;
-        };
-        TimelineSession: {
-            /** @description Either visit or event. */
-            kind: string;
-            id: number | string | null;
-            related_event: string | number | null;
-            device_id: number | null;
-            /** @description Empty when the device is unregistered. */
-            device_name: string;
-            ts: number | null;
-            /** @description When to show the card (visit entry time). */
-            display_ts: number | null;
-            pet_id: number | null;
-            event_type: string | number | null;
-            pet_name: string | null;
-            pet_photo_url: string | null;
-            /** @description Null for visits. */
-            label: string | null;
-            event_kind: string | null;
-            duration_sec: number | null;
-            weight: number | null;
-            bits: string[];
-            sub_events: components["schemas"]["TimelineSubEvent"][];
-            media: components["schemas"]["TimelineMediaSlots"];
-        };
-        TimelineSubEvent: {
-            id: number | null;
-            event_type: string | number | null;
-            ts: number | null;
-            label: string | null;
-            /** @description Low-level step the UI collapses. */
-            detail: boolean;
-            media?: components["schemas"]["TimelineMediaSlots"] | null;
-        };
+          }
+        | string
+        | unknown[]
+        | number
+        | boolean
+        | null;
     };
-    responses: {
-        /** @description The error envelope. */
-        Error: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["Error"];
-            };
-        };
+    /** @description Every DeviceSummary key (except that entities is an array here, not a count) plus the detail-only keys. Client-redacted. */
+    DeviceDetail: {
+      id: number;
+      type: string;
+      name: string;
+      sn: string;
+      mac: string;
+      firmware: string;
+      online: boolean;
+      mqtt_connected: boolean;
+      is_camera: boolean;
+      is_feeder: boolean;
+      supports_ai: boolean;
+      /** @description MQTT product key */
+      pk: string;
+      /** @description MQTT device name */
+      dn: string;
+      /** @description Timestamp as stored by the device model */
+      last_heartbeat: number | string | null;
+      /** @description Timestamp as stored by the device model */
+      last_state_report: number | string | null;
+      /** @description Timestamp as stored by the device model */
+      last_seen: number | string | null;
+      /** @description Timestamp as stored by the device model */
+      last_mqtt: number | string | null;
+      mqtt_subscriptions: string[];
+      /** @description What the broker would deliver; null when the broker is not running */
+      mqtt_delivery: {
+        [key: string]: unknown;
+      } | null;
+      /** @description Pending heartbeat commands */
+      queue: number;
+      http_count: number;
+      mqtt_count: number;
+      ble: components['schemas']['DeviceBleChild'][];
+      /** @description Device-reported state blob; keys vary by model */
+      state: {
+        [key: string]: unknown;
+      } | null;
+      settings: {
+        [key: string]: unknown;
+      };
+      /** @description Stored device config without settings; keys vary */
+      config: {
+        [key: string]: unknown;
+      };
+      /** @description Hub diagnostics: {} for a device never seen, else http_count and mqtt_count plus last_* keys once recorded. */
+      diag: {
+        [key: string]: unknown;
+      };
+      /** @description Stream URLs; empty until a probe confirms the device is serving */
+      streams: {
+        [key: string]: unknown;
+      };
+      schedules: components['schemas']['DeviceScheduleTarget'][];
+      entities: components['schemas']['DeviceEntity'][];
+      actions: components['schemas']['DeviceAction'][];
+      /** @description Null unless the device is a camera */
+      capInfo?: components['schemas']['DeviceCapabilitiesView'] | null;
+      timezoneInfo: components['schemas']['DeviceTimezoneView'];
+      logInfo: components['schemas']['DeviceLogSettings'];
+      /** @description Null unless the device supports AI */
+      aiInfo?: components['schemas']['DeviceAiView'] | null;
     };
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+    DeviceEntity: {
+      component: string;
+      key: string;
+      name: string;
+      value_path: string;
+      unit: string | null;
+      device_class: string | null;
+      icon: string | null;
+      options: unknown[] | null;
+      option_values:
+        | {
+            [key: string]: unknown;
+          }
+        | unknown[]
+        | null;
+      settable: boolean;
+      entity_category: string | null;
+      min: number | null;
+      max: number | null;
+      step: number | null;
+      /** @description Resolved current value, any JSON type */
+      value: unknown;
+    };
+    DeviceLogFile: {
+      /** @description Path relative to the log root (slash-separated) */
+      rel: string;
+      name: string;
+      /** @description First path segment parsed as device id. */
+      device: number | null;
+      size: number;
+      /** @description Epoch seconds. */
+      mtime: number;
+    };
+    DeviceLogListing: {
+      dir: string;
+      /** @description Machine-readable token for why no logs can arrive right now. */
+      reason: string;
+      /** @description Petkit ids with log_upload_enabled. */
+      enabled_devices: number[];
+      files: components['schemas']['DeviceLogFile'][];
+      total_bytes: number;
+    };
+    DeviceLogRead: {
+      /** @description Pairs of line number (1-based, of the file) and text (cut at 2000 chars). */
+      lines: [number, string][];
+      /** @description Line count of the whole file. */
+      total: number;
+      /** @description Lines matching q. */
+      matched: number;
+      offset: number;
+      limit: number;
+      /** @description File size in bytes. */
+      size: number;
+    };
+    DeviceLogSettings: {
+      ok: boolean;
+      log_upload_enabled: boolean;
+      /** @description Empty when collection can work, else no_log_root, no_bucket_endpoint or authority_not_splittable */
+      reason: string;
+    };
+    DeviceLogSettingsRequest: {
+      log_upload_enabled?: boolean;
+    };
+    DeviceScheduleTarget: {
+      /** @description Field name accepted by POST /schedule */
+      target: string;
+      name: string;
+      /** @enum {string} */
+      kind: 'ranges' | 'weekly' | 'points' | 'feed';
+      /** @description Current effective value; shape depends on kind */
+      value: unknown;
+      /** @description Only present on feed targets: true for dual-hopper feeders (a meal carries a1 and a2 portions) */
+      dual?: boolean;
+    };
+    DeviceSummary: {
+      id: number;
+      type: string;
+      name: string;
+      sn: string;
+      mac: string;
+      firmware: string;
+      online: boolean;
+      mqtt_connected: boolean;
+      is_camera: boolean;
+      is_feeder: boolean;
+      supports_ai: boolean;
+      /** @description MQTT product key */
+      pk: string;
+      /** @description MQTT device name */
+      dn: string;
+      /** @description Timestamp as stored by the device model */
+      last_heartbeat: number | string | null;
+      /** @description Timestamp as stored by the device model */
+      last_state_report: number | string | null;
+      /** @description Timestamp as stored by the device model */
+      last_seen: number | string | null;
+      /** @description Timestamp as stored by the device model */
+      last_mqtt: number | string | null;
+      mqtt_subscriptions: string[];
+      /** @description What the broker would deliver; null when the broker is not running */
+      mqtt_delivery: {
+        [key: string]: unknown;
+      } | null;
+      /** @description Pending heartbeat commands */
+      queue: number;
+      http_count: number;
+      mqtt_count: number;
+      /** @description Entity count */
+      entities: number;
+      ble: components['schemas']['DeviceBleChild'][];
+    };
+    DeviceTimezoneRequest: {
+      /** @description Offset hours in -12..14. Numeric strings accepted. null or blank string clears the override. Booleans rejected. */
+      timezone: number | string | null;
+    };
+    DeviceTimezoneResult: components['schemas']['DeviceTimezoneView'] & {
+      ok: boolean;
+      /** @enum {string} */
+      delivered: 'mqtt' | 'heartbeat-queue';
+    };
+    DeviceTimezoneView: {
+      effective: number;
+      override: number | null;
+      reported: number | null;
+      locale: string;
+      /** @enum {string} */
+      source: 'override' | 'locale' | 'device' | 'server';
+    };
+    Error: {
+      error: {
+        /** @description Stable, machine-readable. */
+        code: string;
+        /** @description Human-readable; may change. */
+        message: string;
+        /** @description Present on a 500 (not on 502/503/504); the server log line carries the same id. */
+        correlation_id?: string;
+      };
+    };
+    /** @description One live-log entry as stored in the hub ring (see publish in web/hub.py). */
+    LogsHubEvent: {
+      /** @description Per-process monotonic counter */
+      seq: number;
+      /** @description Epoch seconds (float). */
+      ts: number;
+      /**
+       * @description Event kind.
+       * @example http
+       * @example mqtt
+       * @example connect
+       * @example cmd
+       * @example redact
+       * @example blocked
+       * @example event
+       * @example media
+       * @example devlog
+       * @example patcher
+       */
+      kind: string;
+      /** @description Petkit device id; null/other when unattributed. */
+      device_id: number | string | null;
+      summary: string;
+      /** @description Present only when the publisher supplied one; shape varies by kind (object, usually). */
+      detail?: {
+        [key: string]: unknown;
+      };
+    };
+    OkResult: {
+      ok: boolean;
+    };
+    PatcherEntry: {
+      /** @enum {string} */
+      id: 'mqtt' | 'cloud' | 'cacert' | 'camera' | 'ssh' | 'talk';
+      name: string;
+      description: string;
+      /** @description "applied", "not applied" or "active (MQTT connected)". */
+      status: string;
+      applied: boolean;
+      unavailable: string;
+      greyed: boolean;
+      needs_bytes: number;
+      /** @description Present (true) only for the ssh patcher. */
+      needs_pubkey?: boolean;
+      /** @description Stored public key; present only with needs_pubkey. */
+      ssh_pubkey?: string;
+    };
+    PatcherStatus: {
+      patchers: {
+        [key: string]: components['schemas']['PatcherEntry'];
+      };
+      device_ip: string;
+      supported: boolean;
+    };
+    /** @description The pets table row verbatim. */
+    Pet: {
+      id: number;
+      name: string;
+      /** @description JSON-encoded array of PetKit device ids, as a string (e.g. "[123]"). */
+      device_ids_json: string | null;
+      /** @description JSON-encoded array of device-reported pet identities bound to this pet, as a string. */
+      device_pet_ids_json: string | null;
+      /** @description Legacy single-photo column, unused. */
+      face_id: string | null;
+      /** @description Legacy single-photo column, unused (may hold a server filesystem path). */
+      photo_path: string | null;
+      weight: number | null;
+      /** @description Unix time. */
+      created_at: number;
+    };
+    PetCreateRequest: {
+      /** @description Stripped; empty yields 400. */
+      name: string;
+      /** @description Unparseable values degrade to an empty list. */
+      device_ids?: number[];
+      /** @description Stored as given, not validated. */
+      weight?: number | null;
+    };
+    PetFace: {
+      id: number;
+      /** @description Relative URL without leading slash, `api/pets/{pet_id}/faces/{id}/photo`. */
+      url: string;
+    };
+    PetImportResult: {
+      pet_ref: number;
+      /** @enum {string} */
+      outcome: 'imported' | 'already yours';
+      /** @description Present when imported. */
+      pet_id?: number;
+      /** @description Present when imported. */
+      name?: string;
+      /** @description Present when imported. */
+      faces_imported?: number;
+      /** @description Present when imported. */
+      faces_offered?: number;
+      /** @description Present when imported. */
+      bound_events?: number;
+    };
+    PetUnboundRef: {
+      pet_ref: number;
+      count: number;
+      last_ts: number | null;
+    };
+    PetUpdateRequest: {
+      /** @description Stripped; an empty result is accepted. */
+      name?: string;
+      device_ids?: number[];
+      /** @description Foreign PetKit pet identities to bind. */
+      device_pet_ids?: number[];
+      /** @description Stored as given, not validated. */
+      weight?: number | null;
+    };
+    PetWithFaces: components['schemas']['Pet'] & {
+      faces: components['schemas']['PetFace'][];
+    };
+    PetsOk: {
+      ok: boolean;
+    };
+    ScheduleSaveRequest: {
+      /** @description A target name from the device schedules list */
+      target: string;
+      /** @description Shape depends on the target kind. ranges: [[start,end]] minutes 0..1440. weekly: [{enable, rpt, time:[[s,e]]}], rpt comma-separated weekdays 1-7 (Sunday 1). points: [{id, repeats, time, type}] with time 0..1439. feed: {schedule:[{re, it:[{id,t,a1,a2}]}]} with t in seconds 0..86399, a1/a2 0..255. */
+      value: unknown;
+    };
+    /** @description A blocked_attempts row (BlockedAttempt.as_dict, every column always present). Passed through the client redactor, except when reveal=1 (then returned as stored). */
+    SetupBlockedAttempt: {
+      id: number;
+      device_id: number | null;
+      /** @description Blocking rule name (rce, ota, secret). */
+      kind: string | null;
+      /** @enum {string|null} */
+      transport: 'http' | 'mqtt' | null;
+      /** @description Request path or MQTT topic. */
+      endpoint: string | null;
+      /** @description Blocked payload; masked to a 6-char prefix plus length unless reveal=1. */
+      payload_json: string | null;
+      /** @description Which upstream the answer came from, as recorded when the attempt was stored. */
+      upstream: string | null;
+      /** @description Where in the decoded body the blocking rule matched. */
+      field_path: string | null;
+      /** @description Extra detail about the match, stored as a JSON-encoded string. */
+      detail_json: string | null;
+      created_at: number;
+    };
+    /** @description Every live setting, all keys always present. */
+    SetupLiveSettings: {
+      /** @description Forward device traffic to the real cloud. Default false. R3. */
+      proxy_mode: boolean;
+      /** @description Upstream preset key or an allow-listed PetKit/Aliyun IoT URL; empty means default preset. Default "". R3. */
+      proxy_upstream: string;
+      /** @description IPv4 resolver, optional ":port"; hostnames refused. Default "". R3. */
+      proxy_dns: string;
+      /** @description Block cloud shell commands. Default true. R3. */
+      proxy_block_run_cmd: boolean;
+      /** @description Block cloud firmware pushes. Default true. R3. */
+      proxy_block_ota: boolean;
+      /** @description Default true. R3. */
+      proxy_block_log_upload: boolean;
+      /** @description Default false. R3. */
+      proxy_media_real_oss: boolean;
+      /** @description Default false. R3. */
+      proxy_local_cvr_window: boolean;
+      /** @description Default true. R3. */
+      proxy_mqtt_bridge: boolean;
+      /** @description Default "". R3. */
+      proxy_only: string;
+      /** @description Record traffic (including secrets) to disk. Default false. R3. */
+      capture: boolean;
+    };
+    /** @description Any subset of the live settings. Bool keys are coerced with bool(), string keys with str(). Unknown keys ignored. A body with no known key yields 400. */
+    SetupLiveSettingsPatch: {
+      proxy_mode?: boolean;
+      /** @description Empty, a preset key (petkit-eu, petkit-americas, petkit-asia, petkit-cn, petkit-ru) or an allow-listed URL. */
+      proxy_upstream?: string;
+      /** @description Empty or IPv4[:port]. */
+      proxy_dns?: string;
+      proxy_block_run_cmd?: boolean;
+      proxy_block_ota?: boolean;
+      proxy_block_log_upload?: boolean;
+      proxy_media_real_oss?: boolean;
+      proxy_local_cvr_window?: boolean;
+      proxy_mqtt_bridge?: boolean;
+      proxy_only?: string;
+      capture?: boolean;
+    } & {
+      [key: string]: unknown;
+    };
+    /** @description Caps keyed by category; every category is always present. */
+    SetupRetention: {
+      fullVideo: components['schemas']['SetupRetentionCap'];
+      eventImage: components['schemas']['SetupRetentionCap'];
+      highLight: components['schemas']['SetupRetentionCap'];
+      dynamicVideo: components['schemas']['SetupRetentionCap'];
+      cloudDouble: components['schemas']['SetupRetentionCap'];
+      wasteCheck: components['schemas']['SetupRetentionCap'];
+      healthPic: components['schemas']['SetupRetentionCap'];
+      events: components['schemas']['SetupRetentionCap'];
+      blocked: components['schemas']['SetupRetentionCap'];
+      deviceLog: components['schemas']['SetupRetentionCap'];
+      rawUpload: components['schemas']['SetupRetentionCap'];
+      thumbnail: components['schemas']['SetupRetentionCap'];
+    };
+    SetupRetentionCap: {
+      /** @description Size cap in MB; null means no cap. Absent for events and blocked. */
+      max_mb?: number | null;
+      /** @description Age cap in days; null means no cap. */
+      max_days: number | null;
+    };
+    /** @description Partial retention caps keyed by category; unknown categories and fields are ignored. */
+    SetupRetentionPatch: {
+      [key: string]: {
+        /** @description Size cap in MB. Values that are not a positive finite number become null (no cap). */
+        max_mb?: number | null;
+        /** @description Age cap in days. Values that are not a positive finite number become null (no cap). */
+        max_days?: number | null;
+      };
+    };
+    SetupServerInfo: {
+      /** @description Hash of the panel assets this process serves. */
+      asset_version: string;
+      version: string;
+      /** @description File name of the web app build's entry script (`index-<hash>.js`), or null when no build is present. A page loaded from an older build sees a different name. */
+      web_entry: string | null;
+      api_url: string | null;
+      /** @description Config passthrough, may be null when unset. */
+      mqtt_tls: unknown;
+      mqtt_tls_port: number | null;
+      mqtt_port: number | null;
+      /** @description Config passthrough, may be null when unset. */
+      strict_auth: unknown;
+      cert_exists: boolean;
+      user_tls: {
+        port: number | null;
+        cert_sha256: string;
+      };
+      ha_publishing: boolean;
+      ha_enabled: boolean;
+      device_count: number;
+      settings: components['schemas']['SetupLiveSettings'];
+      settings_writable: boolean;
+      capture: boolean;
+      ai_device_names: string[];
+      upstreams: components['schemas']['SetupUpstreamChoice'][];
+      redactions: {
+        [key: string]: number;
+      };
+      /** @description Proxied-call outcome counters (ok, error_<code>, http_<status>). */
+      upstream: {
+        [key: string]: number;
+      };
+    };
+    SetupUpstreamChoice: {
+      key: string;
+      url: string;
+      default: boolean;
+    };
+    Sound: {
+      id: number;
+      name: string;
+      filename: string;
+      size: number;
+      /** @description MD5 hex */
+      digest: string;
+      duration: number;
+      /** @description Unix seconds */
+      uploaded_at: number;
+    };
+    SoundList: {
+      sounds: components['schemas']['Sound'][];
+    };
+    SoundUploadResult: {
+      ok: boolean;
+      sound: components['schemas']['Sound'];
+    };
+    TimelineCounts: {
+      all: number;
+      pet: number;
+      toileting: number;
+      drinking: number;
+      feeding: number;
+      cleaning: number;
+      health_alert: number;
+      fault: number;
+    };
+    TimelineDay: {
+      /** @description Local day used (YYYY-MM-DD) */
+      date: string;
+      /** @description Seconds east of UTC for that day. */
+      tz_offset: number;
+      counts: components['schemas']['TimelineCounts'];
+      sessions: components['schemas']['TimelineSession'][];
+    };
+    TimelineEventDetail: {
+      event: {
+        id: number;
+        event_uid: string | null;
+        event_type: string | number | null;
+        event_kind: string | null;
+        label: string | null;
+        ts: number | null;
+        created_at: number | null;
+        source: string | null;
+        device_id: number | null;
+        device_type: string | null;
+        pet_id: number | null;
+        /** @description What the device claimed */
+        pet_ref: string | number | null;
+        pet_name: string | null;
+        pet_photo_url: string | null;
+        score: number | null;
+        related_event: string | number | null;
+        parent_event: number | string | null;
+      };
+      /** @description Event-code table entry, null when the type is unknown. */
+      code?: {
+        code: string | number | null;
+        label: string;
+        kind: string;
+        grade: string;
+        role: string;
+        detail: boolean;
+        firmware: string;
+        note: string;
+      } | null;
+      decoded: {
+        key: string;
+        label: string;
+        /** @description Value as the device sent it. */
+        raw: unknown;
+        text: string;
+        grade: string;
+        note: string;
+        /** @description True when raw is an epoch the UI should format itself. */
+        epoch: boolean;
+      }[];
+      /** @description Raw stored content payload. */
+      content: {
+        [key: string]: unknown;
+      };
+      /** @description Raw stored device state snapshot. */
+      state: {
+        [key: string]: unknown;
+      };
+    };
+    /** @description Media files by role (shared/media_slots.py). Every *_url value and every entry of waste and health is a path relative to the media root, not a URL (see _rel_media). A client builds the link by prefixing api/media/ (or api/media/thumb/ for a thumbnail) to the path, relative to its base URL. */
+    TimelineMediaSlots: {
+      highlight_url: string | null;
+      playback_url: string | null;
+      preview_url: string | null;
+      poster_url: string | null;
+      waste: string[];
+      health: string[];
+      snapshot_url: string | null;
+      video_pending: boolean;
+    };
+    TimelineSession: {
+      /** @description Either visit or event. */
+      kind: string;
+      id: number | string | null;
+      related_event: string | number | null;
+      device_id: number | null;
+      /** @description Empty when the device is unregistered. */
+      device_name: string;
+      ts: number | null;
+      /** @description When to show the card (visit entry time). */
+      display_ts: number | null;
+      pet_id: number | null;
+      event_type: string | number | null;
+      pet_name: string | null;
+      pet_photo_url: string | null;
+      /** @description Null for visits. */
+      label: string | null;
+      event_kind: string | null;
+      duration_sec: number | null;
+      weight: number | null;
+      bits: string[];
+      sub_events: components['schemas']['TimelineSubEvent'][];
+      media: components['schemas']['TimelineMediaSlots'];
+    };
+    TimelineSubEvent: {
+      id: number | null;
+      event_type: string | number | null;
+      ts: number | null;
+      label: string | null;
+      /** @description Low-level step the UI collapses. */
+      detail: boolean;
+      media?: components['schemas']['TimelineMediaSlots'] | null;
+    };
+  };
+  responses: {
+    /** @description The error envelope. */
+    Error: {
+      headers: {
+        [name: string]: unknown;
+      };
+      content: {
+        'application/json': components['schemas']['Error'];
+      };
+    };
+  };
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    getServerInfo: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Server facts, TLS pin, live settings and proxy counters. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SetupServerInfo"];
-                };
-            };
-            401: components["responses"]["Error"];
-        };
-    };
-    getLiveSettings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Current values of every live setting (all keys always present). */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        settings: components["schemas"]["SetupLiveSettings"];
-                        /** @description False when no shared live config is wired (writes then answer 400). */
-                        writable: boolean;
-                    };
-                };
-            };
-            401: components["responses"]["Error"];
-        };
-    };
-    updateLiveSettings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SetupLiveSettingsPatch"];
-            };
-        };
-        responses: {
-            /** @description Settings applied and persisted to the overrides file (persist failure is only logged). */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                        changed: components["schemas"]["SetupLiveSettingsPatch"];
-                        settings: components["schemas"]["SetupLiveSettings"];
-                    };
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-        };
-    };
-    listBlockedAttempts: {
-        parameters: {
-            query?: {
-                /** @description Clamped to 1..1000; junk falls back to the default. */
-                limit?: number;
-                /** @description Filter by device id (non-numeric value is ignored). */
-                device?: number;
-                /** @description Filter by blocking rule name (e.g. rce, ota, secret). */
-                kind?: string;
-                /** @description With "1", payload_json is returned unmasked and the request needs a step-up. */
-                reveal?: "1";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Newest-first blocked attempts plus per-rule redaction counters since start. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        records: components["schemas"]["SetupBlockedAttempt"][];
-                        /** @description Per-rule redaction totals since process start. */
-                        counts: {
-                            [key: string]: number;
-                        };
-                    };
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-        };
-    };
-    getRetention: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Current caps. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        retention: components["schemas"]["SetupRetention"];
-                    };
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-        };
-    };
-    updateRetention: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SetupRetentionPatch"];
-            };
-        };
-        responses: {
-            /** @description Patch applied and saved. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                        retention: components["schemas"]["SetupRetention"];
-                    };
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-        };
-    };
-    listBleAccessories: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description All accessories. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BleAccessoryList"];
-                };
-            };
-            401: components["responses"]["Error"];
-            503: components["responses"]["Error"];
-        };
-    };
-    pairBleAccessory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BleAccessoryPairRequest"];
-            };
-        };
-        responses: {
-            /** @description Full accessory list after the write. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BleAccessoryList"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            409: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-            503: components["responses"]["Error"];
-        };
-    };
-    importBleAccessories: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** @description Registered parent device whose account is asked. */
-                    device_id: number;
-                };
-            };
-        };
-        responses: {
-            /** @description Import outcome per accessory plus the full list. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Count of accessories newly paired or changed. */
-                        imported: number;
-                        results: components["schemas"]["BleImportResult"][];
-                        accessories: components["schemas"]["BleAccessory"][];
-                    };
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-            502: components["responses"]["Error"];
-            503: components["responses"]["Error"];
-        };
-    };
-    deleteBleAccessory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Removed; remaining accessories returned. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                        accessories: components["schemas"]["BleAccessory"][];
-                        /** @description Reminder that Home Assistant keeps the entities. */
-                        note: string;
-                    };
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            503: components["responses"]["Error"];
-        };
-    };
-    sendBleCommand: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** @description Entity key from the accessory's entities list. */
-                    entity: string;
-                    /** @description Stringified by the server. switch: ON/OFF/1/0/TRUE/FALSE; select: one of the entity's option labels; number: decimal; ignored for button. */
-                    value?: string | number | boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description Command published to the parent. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                        /** @enum {string} */
-                        delivered: "ble";
-                        entity: string;
-                        /** @description BLE command code built for the accessory. */
-                        cmd: number;
-                        /** @description Parent device petkit_id that relayed it. */
-                        via: number;
-                    };
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            409: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-            502: components["responses"]["Error"];
-        };
-    };
-    pollBleAccessory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Read request sent. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                        /** @description Parent device petkit_id. */
-                        via: number;
-                    };
-                };
-            };
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            409: components["responses"]["Error"];
-            502: components["responses"]["Error"];
-        };
-    };
-    getDevicePatcherStatus: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Patcher states; supported false (empty patchers) for non-Linux devices. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PatcherStatus"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-        };
-    };
-    applyDevicePatcher: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** @enum {string} */
-                    patcher: "mqtt" | "cloud" | "cacert" | "camera" | "ssh" | "talk";
-                    /**
-                     * @description "remove" removes the patcher; any other value applies it.
-                     * @default apply
-                     */
-                    action?: string;
-                    /** @description SSH public key (ssh-rsa, ecdsa-sha2-*, ssh-ed25519). Required for ssh apply unless one is already stored on the device; persisted on success. */
-                    pubkey?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Run accepted. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                        patcher: string;
-                        action: string;
-                    };
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-            500: components["responses"]["Error"];
-        };
-    };
-    listDevices: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Bare JSON array of device summaries */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceSummary"][];
-                };
-            };
-            401: components["responses"]["Error"];
-        };
-    };
-    getDevice: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Device (petkit) id */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceDetail"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-        };
-    };
-    deleteDevice: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Device (petkit) id */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceDeleteResult"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-        };
-    };
-    sendDeviceCommand: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Device (petkit) id */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DeviceCommandRequest"];
-            };
-        };
-        responses: {
-            /** @description Command accepted (delivered via MQTT or heartbeat queue, or applied locally) */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceCommandResult"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-        };
-    };
-    saveDeviceSchedule: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Device (petkit) id */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ScheduleSaveRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceDeliveryResult"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-        };
-    };
-    listDeferredFeeds: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Device (petkit) id */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeferredFeedList"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-        };
-    };
-    addDeferredFeed: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Device (petkit) id */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DeferredFeedCreateRequest"];
-            };
-        };
-        responses: {
-            /** @description Deferred feed stored */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeferredFeedCreateResult"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-        };
-    };
-    deleteDeferredFeed: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Device (petkit) id */
-                id: number;
-                /** @description Deferred feed id such as d_20260813_61500. Unknown ids are ignored. */
-                feed_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OkResult"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-        };
-    };
-    getDeviceCapabilities: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Device (petkit) id */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceCapabilitiesView"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-        };
-    };
-    setDeviceCapabilities: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Device (petkit) id */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DeviceCapabilitiesRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceCapabilitiesResult"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-        };
-    };
-    getDeviceTimezone: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Device (petkit) id */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceTimezoneView"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-        };
-    };
-    setDeviceTimezone: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Device (petkit) id */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DeviceTimezoneRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceTimezoneResult"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-        };
-    };
-    getDeviceAi: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Device (petkit) id */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceAiView"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-        };
-    };
-    setDeviceAi: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Device (petkit) id */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DeviceAiRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceAiResult"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-        };
-    };
-    getDeviceLogSettings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Device (petkit) id */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceLogSettings"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-        };
-    };
-    setDeviceLogSettings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Device (petkit) id */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DeviceLogSettingsRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceLogSettings"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-        };
-    };
-    listDeviceSounds: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Device (petkit) id */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SoundList"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-        };
-    };
-    uploadDeviceSound: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Device (petkit) id */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": {
-                    /**
-                     * Format: binary
-                     * @description Audio file, max 2 MiB, must be the first multipart field. Extension kept (default .mp3).
-                     */
-                    file: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Sound stored */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SoundUploadResult"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-        };
-    };
-    deleteDeviceSound: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Device (petkit) id */
-                id: number;
-                sound_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OkResult"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-        };
-    };
-    playDeviceSound: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Device (petkit) id */
-                id: number;
-                sound_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceDeliveryResult"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-        };
-    };
-    selectDeviceSound: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Device (petkit) id */
-                id: number;
-                sound_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceDeliveryResult"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-        };
-    };
-    listHubEvents: {
-        parameters: {
-            query?: {
-                /** @description Max events returned; junk ignored, clamped to 1..1000. */
-                limit?: number;
-                /** @description Petkit device id to narrow to. A non-numeric value is silently ignored (no filter). */
-                device?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Events, oldest first. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LogsHubEvent"][];
-                };
-            };
-            401: components["responses"]["Error"];
-        };
-    };
-    listCaptureFiles: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Capture directory listing. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CaptureListing"];
-                };
-            };
-            401: components["responses"]["Error"];
-        };
-    };
-    readCaptureFile: {
-        parameters: {
-            query?: {
-                /** @description Number of tail lines; junk ignored, clamped to 1..5000. */
-                limit?: number;
-            };
-            header?: never;
-            path: {
-                name: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Tail records and total line count. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CaptureRead"];
-                };
-            };
-            401: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            500: components["responses"]["Error"];
-        };
-    };
-    deleteCaptureFile: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                name: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description File unlinked. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                        name: string;
-                    };
-                };
-            };
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            500: components["responses"]["Error"];
-        };
-    };
-    downloadCaptureFile: {
-        parameters: {
-            query?: never;
-            header?: {
-                Range?: string;
-            };
-            path: {
-                name: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Raw JSON-lines file (Content-Disposition attachment; unredacted). */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/octet-stream": string;
-                };
-            };
-            /** @description Partial content for a Range request. */
-            206: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/octet-stream": string;
-                };
-            };
-            /** @description Not modified (conditional request). */
-            304: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            /** @description Unsatisfiable Range; empty body, answered by the file server. */
-            416: {
-                headers: {
-                    /** @description `bytes *\/<size>` */
-                    "Content-Range"?: string;
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    listDeviceLogs: {
-        parameters: {
-            query?: {
-                /** @description Petkit device id; non-numeric ignored. */
-                device?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Listing. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceLogListing"];
-                };
-            };
-            401: components["responses"]["Error"];
-        };
-    };
-    readDeviceLog: {
-        parameters: {
-            query?: {
-                /** @description Any non-empty value switches to raw download (step-up required). */
-                download?: string;
-                /** @description Case-insensitive substring terms (whitespace separated, ANDed). Never a regex. */
-                q?: string;
-                /** @description Lines per window; junk ignored, clamped to 1..2000. */
-                limit?: number;
-                /** @description Index into the matched lines; negative or junk becomes 0. */
-                offset?: number;
-            };
-            header?: {
-                /** @description Only honoured on the download branch (FileResponse); the JSON window ignores it. */
-                Range?: string;
-            };
-            path: {
-                /** @description File path relative to the device log root (the `rel` value from the listing). */
-                path: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description JSON window of lines, or the raw file when `download` is set. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceLogRead"];
-                    "text/plain": string;
-                };
-            };
-            /** @description Partial content for a Range request (download branch only). */
-            206: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/plain": string;
-                };
-            };
-            /** @description Not modified (conditional request; download branch only). */
-            304: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            /** @description Unsatisfiable Range; empty body, answered by the file server. */
-            416: {
-                headers: {
-                    /** @description `bytes *\/<size>` */
-                    "Content-Range"?: string;
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            500: components["responses"]["Error"];
-        };
-    };
-    getTimeline: {
-        parameters: {
-            query?: {
-                /** @description Petkit device id; non-numeric ignored. */
-                device?: number;
-                /** @description Pet id; keeps only sessions attributed to that pet. Non-numeric ignored. */
-                pet?: number;
-                /** @description Filter chip. Unknown values match nothing. */
-                filter?: string;
-                /** @description Local day, YYYY-MM-DD. */
-                date?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The day's sessions. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TimelineDay"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-        };
-    };
-    getTimelineEventDetail: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Event row, code table entry, decoded fields, raw content and state. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TimelineEventDetail"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-        };
-    };
-    getMediaThumb: {
-        parameters: {
-            query?: {
-                /** @description Signed-link expiry (epoch seconds); with sig, replaces a session/token. */
-                exp?: string;
-                /** @description Signed-link signature. */
-                sig?: string;
-            };
-            header?: {
-                Range?: string;
-            };
-            path: {
-                /** @description Path relative to the media root (may contain slashes). */
-                path: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Image bytes. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "image/jpeg": string;
-                    "image/png": string;
-                };
-            };
-            /** @description Partial content for a Range request. */
-            206: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "image/jpeg": string;
-                    "image/png": string;
-                };
-            };
-            /** @description Not modified (conditional request). */
-            304: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            /** @description Unsatisfiable Range; empty body, answered by the file server. */
-            416: {
-                headers: {
-                    /** @description `bytes *\/<size>` */
-                    "Content-Range"?: string;
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getMediaFile: {
-        parameters: {
-            query?: {
-                /** @description Signed-link expiry (epoch seconds); with sig, replaces a session/token. */
-                exp?: string;
-                /** @description Signed-link signature. */
-                sig?: string;
-            };
-            header?: {
-                Range?: string;
-            };
-            path: {
-                /** @description Path relative to the media root (may contain slashes). */
-                path: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description File bytes, or a re-signed HLS playlist. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/vnd.apple.mpegurl": string;
-                    "application/octet-stream": string;
-                    "video/mp4": string;
-                    "image/jpeg": string;
-                };
-            };
-            /** @description Partial content for a Range request. */
-            206: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/octet-stream": string;
-                    "video/mp4": string;
-                };
-            };
-            /** @description Not modified (conditional request). */
-            304: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            /** @description Unsatisfiable Range; empty body, answered by the file server. */
-            416: {
-                headers: {
-                    /** @description `bytes *\/<size>` */
-                    "Content-Range"?: string;
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    listPets: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Every pet ordered by id, each with its faces attached. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        pets: components["schemas"]["PetWithFaces"][];
-                    };
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-        };
-    };
-    createPet: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PetCreateRequest"];
-            };
-        };
-        responses: {
-            /** @description The stored pet row (no faces key). */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        pet: components["schemas"]["Pet"];
-                    };
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-        };
-    };
-    listUnboundPetRefs: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Unresolved pet_ref values, busiest first. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        unbound: components["schemas"]["PetUnboundRef"][];
-                    };
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-        };
-    };
-    importPetsFromPetkit: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** @description PetKit device id. Missing or non-numeric is treated as 0 and yields 404. */
-                    device_id: number;
-                };
-            };
-        };
-        responses: {
-            /** @description Per-identity outcome of the import. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Number of results with outcome "imported". */
-                        imported: number;
-                        results: components["schemas"]["PetImportResult"][];
-                    };
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-            502: components["responses"]["Error"];
-            503: components["responses"]["Error"];
-        };
-    };
-    getPet: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Local pet id. Non-numeric yields 400. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The pet row (no faces key). */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        pet: components["schemas"]["Pet"];
-                    };
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-        };
-    };
-    updatePet: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Local pet id. Non-numeric yields 400. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PetUpdateRequest"];
-            };
-        };
-        responses: {
-            /** @description The updated pet row. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        pet: components["schemas"]["Pet"];
-                        /** @description Events (re)attributed or cleared by the alias change; 0 when device_pet_ids was not sent. */
-                        bound_events: number;
-                    };
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-        };
-    };
-    deletePet: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Local pet id. Non-numeric yields 400. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Whether a pet was deleted. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PetsOk"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-        };
-    };
-    listPetFaces: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Local pet id. Non-numeric yields 400. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Face summaries. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        faces: components["schemas"]["PetFace"][];
-                    };
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-        };
-    };
-    addPetFace: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Local pet id. Non-numeric yields 400. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "image/jpeg": string;
-                "application/octet-stream": string;
-            };
-        };
-        responses: {
-            /** @description The stored face. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        face: components["schemas"]["PetFace"];
-                    };
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-        };
-    };
-    deletePetFace: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-                face_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Whether the face was deleted. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PetsOk"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-        };
-    };
-    getPetFacePhoto: {
-        parameters: {
-            query?: never;
-            header?: {
-                Range?: string;
-            };
-            path: {
-                id: number;
-                face_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The stored JPEG. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "image/jpeg": string;
-                };
-            };
-            /** @description Partial content for a Range request. */
-            206: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "image/jpeg": string;
-                };
-            };
-            /** @description Not modified (conditional request). */
-            304: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: components["responses"]["Error"];
-            /** @description Pet or face unknown, face not owned by that pet, non-numeric id, or the photo file is missing. Plain text body `not found`, not the JSON error envelope. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/plain": string;
-                };
-            };
-            /** @description Unsatisfiable Range; empty body, answered by the file server. */
-            416: {
-                headers: {
-                    /** @description `bytes *\/<size>` */
-                    "Content-Range"?: string;
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    authSetup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AuthSetupRequest"];
-            };
-        };
-        responses: {
-            /** @description Admin created and signed in. Sets the `__Host-mp_session` cookie. */
-            200: {
-                headers: {
-                    /** @description `__Host-mp_session` session cookie (Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=604800). */
-                    "Set-Cookie"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthOk"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            409: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-            429: components["responses"]["Error"];
-            503: components["responses"]["Error"];
-        };
-    };
-    authLogin: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AuthPasswordRequest"];
-            };
-        };
-        responses: {
-            /** @description Signed in. Sets the `__Host-mp_session` cookie. */
-            200: {
-                headers: {
-                    /** @description `__Host-mp_session` session cookie (Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=604800). */
-                    "Set-Cookie"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthOk"];
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            409: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-            429: components["responses"]["Error"];
-            503: components["responses"]["Error"];
-        };
-    };
-    authLogout: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Signed out. Expires the `__Host-mp_session` cookie. */
-            200: {
-                headers: {
-                    /** @description Expires the `__Host-mp_session` cookie (Path=/; Secure; HttpOnly; SameSite=Strict). */
-                    "Set-Cookie"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthOk"];
-                };
-            };
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            503: components["responses"]["Error"];
-        };
-    };
-    authStepUp: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AuthPasswordRequest"];
-            };
-        };
-        responses: {
-            /** @description Step-up granted for the calling principal. No cookie is set. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                        /** @description Seconds the grant lasts (300). */
-                        expires_in: number;
-                    };
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-            429: components["responses"]["Error"];
-            503: components["responses"]["Error"];
-        };
-    };
-    authPairingCreate: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The code and what the QR encodes. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Single-use pairing code. */
-                        code: string;
-                        /** @description Unix time the code expires. */
-                        expires_at: number;
-                        /** @description Code lifetime in seconds (300). */
-                        expires_in: number;
-                        qr: {
-                            /** @description Configured user URL, or https://host:port derived from the request Host. */
-                            url: string;
-                            cert_sha256: string;
-                            code: string;
-                        };
-                    };
-                };
-            };
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            503: components["responses"]["Error"];
-        };
-    };
-    authPairingRedeem: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AuthRedeemRequest"];
-            };
-        };
-        responses: {
-            /** @description Client token issued. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Raw bearer token, shown once. */
-                        token: string;
-                        token_id: number;
-                    };
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-            429: components["responses"]["Error"];
-            503: components["responses"]["Error"];
-        };
-    };
-    authListTokens: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Token metadata. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        tokens: components["schemas"]["AuthTokenInfo"][];
-                    };
-                };
-            };
-            401: components["responses"]["Error"];
-            503: components["responses"]["Error"];
-        };
-    };
-    authRevokeToken: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Token id; non-digit or unknown answers 404. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Revoked. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthOk"];
-                };
-            };
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            404: components["responses"]["Error"];
-            503: components["responses"]["Error"];
-        };
-    };
-    authMediaUrl: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AuthMediaUrlRequest"];
-            };
-        };
-        responses: {
-            /** @description Signed, percent-encoded URL. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description Path under /api/media/ with exp and signature query parameters. */
-                        url: string;
-                        /** @description Lifetime in seconds (300). */
-                        expires_in: number;
-                    };
-                };
-            };
-            400: components["responses"]["Error"];
-            401: components["responses"]["Error"];
-            403: components["responses"]["Error"];
-            413: components["responses"]["Error"];
-            415: components["responses"]["Error"];
-            503: components["responses"]["Error"];
-        };
-    };
+  getServerInfo: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Server facts, TLS pin, live settings and proxy counters. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SetupServerInfo'];
+        };
+      };
+      401: components['responses']['Error'];
+    };
+  };
+  getLiveSettings: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Current values of every live setting (all keys always present). */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            settings: components['schemas']['SetupLiveSettings'];
+            /** @description False when no shared live config is wired (writes then answer 400). */
+            writable: boolean;
+          };
+        };
+      };
+      401: components['responses']['Error'];
+    };
+  };
+  updateLiveSettings: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SetupLiveSettingsPatch'];
+      };
+    };
+    responses: {
+      /** @description Settings applied and persisted to the overrides file (persist failure is only logged). */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            ok: boolean;
+            changed: components['schemas']['SetupLiveSettingsPatch'];
+            settings: components['schemas']['SetupLiveSettings'];
+          };
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+    };
+  };
+  listBlockedAttempts: {
+    parameters: {
+      query?: {
+        /** @description Clamped to 1..1000; junk falls back to the default. */
+        limit?: number;
+        /** @description Filter by device id (non-numeric value is ignored). */
+        device?: number;
+        /** @description Filter by blocking rule name (e.g. rce, ota, secret). */
+        kind?: string;
+        /** @description With "1", payload_json is returned unmasked and the request needs a step-up. */
+        reveal?: '1';
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Newest-first blocked attempts plus per-rule redaction counters since start. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            records: components['schemas']['SetupBlockedAttempt'][];
+            /** @description Per-rule redaction totals since process start. */
+            counts: {
+              [key: string]: number;
+            };
+          };
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+    };
+  };
+  getRetention: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Current caps. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            retention: components['schemas']['SetupRetention'];
+          };
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+    };
+  };
+  updateRetention: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SetupRetentionPatch'];
+      };
+    };
+    responses: {
+      /** @description Patch applied and saved. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            ok: boolean;
+            retention: components['schemas']['SetupRetention'];
+          };
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+    };
+  };
+  listBleAccessories: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description All accessories. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['BleAccessoryList'];
+        };
+      };
+      401: components['responses']['Error'];
+      503: components['responses']['Error'];
+    };
+  };
+  pairBleAccessory: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['BleAccessoryPairRequest'];
+      };
+    };
+    responses: {
+      /** @description Full accessory list after the write. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['BleAccessoryList'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      409: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+      503: components['responses']['Error'];
+    };
+  };
+  importBleAccessories: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @description Registered parent device whose account is asked. */
+          device_id: number;
+        };
+      };
+    };
+    responses: {
+      /** @description Import outcome per accessory plus the full list. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** @description Count of accessories newly paired or changed. */
+            imported: number;
+            results: components['schemas']['BleImportResult'][];
+            accessories: components['schemas']['BleAccessory'][];
+          };
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+      502: components['responses']['Error'];
+      503: components['responses']['Error'];
+    };
+  };
+  deleteBleAccessory: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Removed; remaining accessories returned. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            ok: boolean;
+            accessories: components['schemas']['BleAccessory'][];
+            /** @description Reminder that Home Assistant keeps the entities. */
+            note: string;
+          };
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+      503: components['responses']['Error'];
+    };
+  };
+  sendBleCommand: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @description Entity key from the accessory's entities list. */
+          entity: string;
+          /** @description Stringified by the server. switch: ON/OFF/1/0/TRUE/FALSE; select: one of the entity's option labels; number: decimal; ignored for button. */
+          value?: string | number | boolean;
+        };
+      };
+    };
+    responses: {
+      /** @description Command published to the parent. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            ok: boolean;
+            /** @enum {string} */
+            delivered: 'ble';
+            entity: string;
+            /** @description BLE command code built for the accessory. */
+            cmd: number;
+            /** @description Parent device petkit_id that relayed it. */
+            via: number;
+          };
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+      409: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+      502: components['responses']['Error'];
+    };
+  };
+  pollBleAccessory: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Read request sent. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            ok: boolean;
+            /** @description Parent device petkit_id. */
+            via: number;
+          };
+        };
+      };
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+      409: components['responses']['Error'];
+      502: components['responses']['Error'];
+    };
+  };
+  getDevicePatcherStatus: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Patcher states; supported false (empty patchers) for non-Linux devices. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PatcherStatus'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      404: components['responses']['Error'];
+    };
+  };
+  applyDevicePatcher: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          patcher: 'mqtt' | 'cloud' | 'cacert' | 'camera' | 'ssh' | 'talk';
+          /**
+           * @description "remove" removes the patcher; any other value applies it.
+           * @default apply
+           */
+          action?: string;
+          /** @description SSH public key (ssh-rsa, ecdsa-sha2-*, ssh-ed25519). Required for ssh apply unless one is already stored on the device; persisted on success. */
+          pubkey?: string;
+        };
+      };
+    };
+    responses: {
+      /** @description Run accepted. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            ok: boolean;
+            patcher: string;
+            action: string;
+          };
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+      500: components['responses']['Error'];
+    };
+  };
+  listDevices: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Bare JSON array of device summaries */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DeviceSummary'][];
+        };
+      };
+      401: components['responses']['Error'];
+    };
+  };
+  getDevice: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Device (petkit) id */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DeviceDetail'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      404: components['responses']['Error'];
+    };
+  };
+  deleteDevice: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Device (petkit) id */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DeviceDeleteResult'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+    };
+  };
+  sendDeviceCommand: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Device (petkit) id */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DeviceCommandRequest'];
+      };
+    };
+    responses: {
+      /** @description Command accepted (delivered via MQTT or heartbeat queue, or applied locally) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DeviceCommandResult'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+    };
+  };
+  saveDeviceSchedule: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Device (petkit) id */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ScheduleSaveRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DeviceDeliveryResult'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+    };
+  };
+  listDeferredFeeds: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Device (petkit) id */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DeferredFeedList'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      404: components['responses']['Error'];
+    };
+  };
+  addDeferredFeed: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Device (petkit) id */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DeferredFeedCreateRequest'];
+      };
+    };
+    responses: {
+      /** @description Deferred feed stored */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DeferredFeedCreateResult'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+    };
+  };
+  deleteDeferredFeed: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Device (petkit) id */
+        id: number;
+        /** @description Deferred feed id such as d_20260813_61500. Unknown ids are ignored. */
+        feed_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OkResult'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+    };
+  };
+  getDeviceCapabilities: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Device (petkit) id */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DeviceCapabilitiesView'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      404: components['responses']['Error'];
+    };
+  };
+  setDeviceCapabilities: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Device (petkit) id */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DeviceCapabilitiesRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DeviceCapabilitiesResult'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+    };
+  };
+  getDeviceTimezone: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Device (petkit) id */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DeviceTimezoneView'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      404: components['responses']['Error'];
+    };
+  };
+  setDeviceTimezone: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Device (petkit) id */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DeviceTimezoneRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DeviceTimezoneResult'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+    };
+  };
+  getDeviceAi: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Device (petkit) id */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DeviceAiView'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      404: components['responses']['Error'];
+    };
+  };
+  setDeviceAi: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Device (petkit) id */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DeviceAiRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DeviceAiResult'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+    };
+  };
+  getDeviceLogSettings: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Device (petkit) id */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DeviceLogSettings'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      404: components['responses']['Error'];
+    };
+  };
+  setDeviceLogSettings: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Device (petkit) id */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DeviceLogSettingsRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DeviceLogSettings'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+    };
+  };
+  listDeviceSounds: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Device (petkit) id */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SoundList'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      404: components['responses']['Error'];
+    };
+  };
+  uploadDeviceSound: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Device (petkit) id */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'multipart/form-data': {
+          /**
+           * Format: binary
+           * @description Audio file, max 2 MiB, must be the first multipart field. Extension kept (default .mp3).
+           */
+          file: string;
+        };
+      };
+    };
+    responses: {
+      /** @description Sound stored */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SoundUploadResult'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+      413: components['responses']['Error'];
+    };
+  };
+  deleteDeviceSound: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Device (petkit) id */
+        id: number;
+        sound_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OkResult'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+    };
+  };
+  playDeviceSound: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Device (petkit) id */
+        id: number;
+        sound_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DeviceDeliveryResult'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+    };
+  };
+  selectDeviceSound: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Device (petkit) id */
+        id: number;
+        sound_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DeviceDeliveryResult'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+    };
+  };
+  listHubEvents: {
+    parameters: {
+      query?: {
+        /** @description Max events returned; junk ignored, clamped to 1..1000. */
+        limit?: number;
+        /** @description Petkit device id to narrow to. A non-numeric value is silently ignored (no filter). */
+        device?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Events, oldest first. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LogsHubEvent'][];
+        };
+      };
+      401: components['responses']['Error'];
+    };
+  };
+  listCaptureFiles: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Capture directory listing. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CaptureListing'];
+        };
+      };
+      401: components['responses']['Error'];
+    };
+  };
+  readCaptureFile: {
+    parameters: {
+      query?: {
+        /** @description Number of tail lines; junk ignored, clamped to 1..5000. */
+        limit?: number;
+      };
+      header?: never;
+      path: {
+        name: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Tail records and total line count. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CaptureRead'];
+        };
+      };
+      401: components['responses']['Error'];
+      404: components['responses']['Error'];
+      500: components['responses']['Error'];
+    };
+  };
+  deleteCaptureFile: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        name: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description File unlinked. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            ok: boolean;
+            name: string;
+          };
+        };
+      };
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+      500: components['responses']['Error'];
+    };
+  };
+  downloadCaptureFile: {
+    parameters: {
+      query?: never;
+      header?: {
+        Range?: string;
+      };
+      path: {
+        name: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Raw JSON-lines file (Content-Disposition attachment; unredacted). */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/octet-stream': string;
+        };
+      };
+      /** @description Partial content for a Range request. */
+      206: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/octet-stream': string;
+        };
+      };
+      /** @description Not modified (conditional request). */
+      304: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+      /** @description Unsatisfiable Range; empty body, answered by the file server. */
+      416: {
+        headers: {
+          /** @description `bytes *\/<size>` */
+          'Content-Range'?: string;
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  listDeviceLogs: {
+    parameters: {
+      query?: {
+        /** @description Petkit device id; non-numeric ignored. */
+        device?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Listing. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DeviceLogListing'];
+        };
+      };
+      401: components['responses']['Error'];
+    };
+  };
+  readDeviceLog: {
+    parameters: {
+      query?: {
+        /** @description Any non-empty value switches to raw download (step-up required). */
+        download?: string;
+        /** @description Case-insensitive substring terms (whitespace separated, ANDed). Never a regex. */
+        q?: string;
+        /** @description Lines per window; junk ignored, clamped to 1..2000. */
+        limit?: number;
+        /** @description Index into the matched lines; negative or junk becomes 0. */
+        offset?: number;
+      };
+      header?: {
+        /** @description Only honoured on the download branch (FileResponse); the JSON window ignores it. */
+        Range?: string;
+      };
+      path: {
+        /** @description File path relative to the device log root (the `rel` value from the listing). */
+        path: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description JSON window of lines, or the raw file when `download` is set. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DeviceLogRead'];
+          'text/plain': string;
+        };
+      };
+      /** @description Partial content for a Range request (download branch only). */
+      206: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'text/plain': string;
+        };
+      };
+      /** @description Not modified (conditional request; download branch only). */
+      304: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+      /** @description Unsatisfiable Range; empty body, answered by the file server. */
+      416: {
+        headers: {
+          /** @description `bytes *\/<size>` */
+          'Content-Range'?: string;
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      500: components['responses']['Error'];
+    };
+  };
+  getTimeline: {
+    parameters: {
+      query?: {
+        /** @description Petkit device id; non-numeric ignored. */
+        device?: number;
+        /** @description Pet id; keeps only sessions attributed to that pet. Non-numeric ignored. */
+        pet?: number;
+        /** @description Filter chip. Unknown values match nothing. */
+        filter?: string;
+        /** @description Local day, YYYY-MM-DD. */
+        date?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The day's sessions. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['TimelineDay'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+    };
+  };
+  getTimelineEventDetail: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Event row, code table entry, decoded fields, raw content and state. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['TimelineEventDetail'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      404: components['responses']['Error'];
+    };
+  };
+  getMediaThumb: {
+    parameters: {
+      query?: {
+        /** @description Signed-link expiry (epoch seconds); with sig, replaces a session/token. */
+        exp?: string;
+        /** @description Signed-link signature. */
+        sig?: string;
+      };
+      header?: {
+        Range?: string;
+      };
+      path: {
+        /** @description Path relative to the media root (may contain slashes). */
+        path: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Image bytes. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'image/jpeg': string;
+          'image/png': string;
+        };
+      };
+      /** @description Partial content for a Range request. */
+      206: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'image/jpeg': string;
+          'image/png': string;
+        };
+      };
+      /** @description Not modified (conditional request). */
+      304: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      401: components['responses']['Error'];
+      404: components['responses']['Error'];
+      /** @description Unsatisfiable Range; empty body, answered by the file server. */
+      416: {
+        headers: {
+          /** @description `bytes *\/<size>` */
+          'Content-Range'?: string;
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  getMediaFile: {
+    parameters: {
+      query?: {
+        /** @description Signed-link expiry (epoch seconds); with sig, replaces a session/token. */
+        exp?: string;
+        /** @description Signed-link signature. */
+        sig?: string;
+      };
+      header?: {
+        Range?: string;
+      };
+      path: {
+        /** @description Path relative to the media root (may contain slashes). */
+        path: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description File bytes, or a re-signed HLS playlist. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/vnd.apple.mpegurl': string;
+          'application/octet-stream': string;
+          'video/mp4': string;
+          'image/jpeg': string;
+        };
+      };
+      /** @description Partial content for a Range request. */
+      206: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/octet-stream': string;
+          'video/mp4': string;
+        };
+      };
+      /** @description Not modified (conditional request). */
+      304: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      401: components['responses']['Error'];
+      404: components['responses']['Error'];
+      /** @description Unsatisfiable Range; empty body, answered by the file server. */
+      416: {
+        headers: {
+          /** @description `bytes *\/<size>` */
+          'Content-Range'?: string;
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  listPets: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Every pet ordered by id, each with its faces attached. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            pets: components['schemas']['PetWithFaces'][];
+          };
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+    };
+  };
+  createPet: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PetCreateRequest'];
+      };
+    };
+    responses: {
+      /** @description The stored pet row (no faces key). */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            pet: components['schemas']['Pet'];
+          };
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+    };
+  };
+  listUnboundPetRefs: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Unresolved pet_ref values, busiest first. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            unbound: components['schemas']['PetUnboundRef'][];
+          };
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+    };
+  };
+  importPetsFromPetkit: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @description PetKit device id. Missing or non-numeric is treated as 0 and yields 404. */
+          device_id: number;
+        };
+      };
+    };
+    responses: {
+      /** @description Per-identity outcome of the import. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** @description Number of results with outcome "imported". */
+            imported: number;
+            results: components['schemas']['PetImportResult'][];
+          };
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+      502: components['responses']['Error'];
+      503: components['responses']['Error'];
+    };
+  };
+  getPet: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Local pet id. Non-numeric yields 400. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The pet row (no faces key). */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            pet: components['schemas']['Pet'];
+          };
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      404: components['responses']['Error'];
+    };
+  };
+  updatePet: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Local pet id. Non-numeric yields 400. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PetUpdateRequest'];
+      };
+    };
+    responses: {
+      /** @description The updated pet row. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            pet: components['schemas']['Pet'];
+            /** @description Events (re)attributed or cleared by the alias change; 0 when device_pet_ids was not sent. */
+            bound_events: number;
+          };
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+    };
+  };
+  deletePet: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Local pet id. Non-numeric yields 400. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Whether a pet was deleted. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PetsOk'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+    };
+  };
+  listPetFaces: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Local pet id. Non-numeric yields 400. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Face summaries. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            faces: components['schemas']['PetFace'][];
+          };
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      404: components['responses']['Error'];
+    };
+  };
+  addPetFace: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Local pet id. Non-numeric yields 400. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'image/jpeg': string;
+        'application/octet-stream': string;
+      };
+    };
+    responses: {
+      /** @description The stored face. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            face: components['schemas']['PetFace'];
+          };
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+      413: components['responses']['Error'];
+    };
+  };
+  deletePetFace: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+        face_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Whether the face was deleted. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PetsOk'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+    };
+  };
+  getPetFacePhoto: {
+    parameters: {
+      query?: never;
+      header?: {
+        Range?: string;
+      };
+      path: {
+        id: number;
+        face_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The stored JPEG. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'image/jpeg': string;
+        };
+      };
+      /** @description Partial content for a Range request. */
+      206: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'image/jpeg': string;
+        };
+      };
+      /** @description Not modified (conditional request). */
+      304: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      401: components['responses']['Error'];
+      /** @description Pet or face unknown, face not owned by that pet, non-numeric id, or the photo file is missing. Plain text body `not found`, not the JSON error envelope. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'text/plain': string;
+        };
+      };
+      /** @description Unsatisfiable Range; empty body, answered by the file server. */
+      416: {
+        headers: {
+          /** @description `bytes *\/<size>` */
+          'Content-Range'?: string;
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  authSetup: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AuthSetupRequest'];
+      };
+    };
+    responses: {
+      /** @description Admin created and signed in. Sets the `__Host-mp_session` cookie. */
+      200: {
+        headers: {
+          /** @description `__Host-mp_session` session cookie (Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=604800). */
+          'Set-Cookie'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AuthOk'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      409: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+      429: components['responses']['Error'];
+      503: components['responses']['Error'];
+    };
+  };
+  authLogin: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AuthPasswordRequest'];
+      };
+    };
+    responses: {
+      /** @description Signed in. Sets the `__Host-mp_session` cookie. */
+      200: {
+        headers: {
+          /** @description `__Host-mp_session` session cookie (Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=604800). */
+          'Set-Cookie'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AuthOk'];
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      409: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+      429: components['responses']['Error'];
+      503: components['responses']['Error'];
+    };
+  };
+  authLogout: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Signed out. Expires the `__Host-mp_session` cookie. */
+      200: {
+        headers: {
+          /** @description Expires the `__Host-mp_session` cookie (Path=/; Secure; HttpOnly; SameSite=Strict). */
+          'Set-Cookie'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AuthOk'];
+        };
+      };
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      503: components['responses']['Error'];
+    };
+  };
+  authStepUp: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AuthPasswordRequest'];
+      };
+    };
+    responses: {
+      /** @description Step-up granted for the calling principal. No cookie is set. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            ok: boolean;
+            /** @description Seconds the grant lasts (300). */
+            expires_in: number;
+          };
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+      429: components['responses']['Error'];
+      503: components['responses']['Error'];
+    };
+  };
+  authPairingCreate: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The code and what the QR encodes. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** @description Single-use pairing code. */
+            code: string;
+            /** @description Unix time the code expires. */
+            expires_at: number;
+            /** @description Code lifetime in seconds (300). */
+            expires_in: number;
+            qr: {
+              /** @description Configured user URL, or https://host:port derived from the request Host. */
+              url: string;
+              cert_sha256: string;
+              code: string;
+            };
+          };
+        };
+      };
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      503: components['responses']['Error'];
+    };
+  };
+  authPairingRedeem: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AuthRedeemRequest'];
+      };
+    };
+    responses: {
+      /** @description Client token issued. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** @description Raw bearer token, shown once. */
+            token: string;
+            token_id: number;
+          };
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+      429: components['responses']['Error'];
+      503: components['responses']['Error'];
+    };
+  };
+  authListTokens: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Token metadata. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            tokens: components['schemas']['AuthTokenInfo'][];
+          };
+        };
+      };
+      401: components['responses']['Error'];
+      503: components['responses']['Error'];
+    };
+  };
+  authRevokeToken: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Token id; non-digit or unknown answers 404. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Revoked. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AuthOk'];
+        };
+      };
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      404: components['responses']['Error'];
+      503: components['responses']['Error'];
+    };
+  };
+  authMediaUrl: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AuthMediaUrlRequest'];
+      };
+    };
+    responses: {
+      /** @description Signed, percent-encoded URL. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** @description Path under /api/media/ with exp and signature query parameters. */
+            url: string;
+            /** @description Lifetime in seconds (300). */
+            expires_in: number;
+          };
+        };
+      };
+      400: components['responses']['Error'];
+      401: components['responses']['Error'];
+      403: components['responses']['Error'];
+      413: components['responses']['Error'];
+      415: components['responses']['Error'];
+      503: components['responses']['Error'];
+    };
+  };
 }

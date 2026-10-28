@@ -1,0 +1,18 @@
+.ui-risk {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-card);
+  background: var(--raised);
+}
+
+.ui-risk__icon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--negative);
+}
+
+.ui-risk__text {
+  max-width: 72ch;
+}

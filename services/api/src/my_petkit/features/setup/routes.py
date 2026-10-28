@@ -32,6 +32,7 @@ from my_petkit.shared.appkeys import (
 from my_petkit.shared.redact_client import redact_for_client
 from my_petkit.shared.request_auth import require_step_up
 from my_petkit.shared.tiers import Tier, tier
+from my_petkit.shared.web_build import web_entry
 
 log = logging.getLogger(__name__)
 
@@ -231,6 +232,10 @@ async def api_info(request: web.Request) -> web.Response:
         # The running version. First thing to check when a device reports the
         # entities of a release you thought you had replaced.
         "version": VERSION,
+        # The entry script of the web app build this server would serve now
+        # (`assets/index-<hash>.js`), or null with no build. The web app
+        # compares it with its own to tell it was loaded from an older build.
+        "web_entry": web_entry(),
         "api_url": cfg.get("api_url"),
         "mqtt_tls": cfg.get("mqtt_tls"),
         "mqtt_tls_port": cfg.get("mqtt_tls_port"),

@@ -47,6 +47,7 @@ import jinja2
 from aiohttp import web
 
 from my_petkit.utils.paths import UnsafePathError, safe_join
+from my_petkit.web.spa import add_spa_routes
 
 from my_petkit.features.auth.middleware import auth_middleware
 from my_petkit.features.auth.routes import (
@@ -325,6 +326,9 @@ def create_panel_app(registry: DeviceRegistry, ble_registry: BLERegistry | None,
     app.router.add_get("/api/auth/tokens", api_auth_tokens)
     app.router.add_delete("/api/auth/tokens/{id}", api_auth_token_revoke)
     app.router.add_post("/api/auth/media-url", api_auth_media_url)
+
+    # --- the new web app, beside this panel until it reaches parity.
+    add_spa_routes(app)
     return app
 
 

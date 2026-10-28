@@ -1,0 +1,134 @@
+.ui-control {
+  width: 100%;
+  min-width: 0;
+  height: var(--control-height);
+  padding: 0 10px;
+  border: 1px solid var(--control);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-control::placeholder {
+  color: var(--muted);
+}
+
+.ui-control:disabled {
+  background: var(--raised);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.ui-control[aria-invalid='true'] {
+  border-color: var(--negative);
+}
+
+.ui-control--mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+}
+
+.ui-control--end {
+  text-align: right;
+}
+
+.ui-control--large {
+  height: var(--control-height-large);
+}
+
+.ui-control--select {
+  width: auto;
+  padding: 0 8px;
+}
+
+.ui-control--time {
+  width: auto;
+}
+
+.ui-switch {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  accent-color: var(--text);
+  cursor: pointer;
+}
+
+.ui-switch--small {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.ui-switch:disabled {
+  cursor: not-allowed;
+}
+
+.ui-switch-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-small);
+}
+
+.ui-inline-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: var(--text-small);
+}
+
+.ui-stacked-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--text-small);
+  font-weight: 500;
+}
+
+.ui-stacked-field__hint {
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: 400;
+}
+
+.ui-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--control-height);
+  padding: 0 10px;
+  border: 1px solid var(--control);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.ui-search--frame {
+  border-color: var(--border);
+}
+
+.ui-search:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ui-search__input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: var(--text-body);
+}
+
+.ui-search__input.ui-control--mono {
+  font-size: var(--text-small);
+}

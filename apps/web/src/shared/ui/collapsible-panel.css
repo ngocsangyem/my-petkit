@@ -1,0 +1,61 @@
+.ui-collapsible {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.ui-collapsible__heading {
+  font-size: var(--text-section);
+}
+
+.ui-collapsible__toggle {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  padding: 20px;
+  border: 0;
+  border-radius: var(--radius-card);
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+}
+
+.ui-collapsible__title {
+  font-size: var(--text-section);
+  font-weight: 600;
+}
+
+.ui-collapsible__summary {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-small);
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-collapsible__chevron {
+  flex: none;
+  align-self: center;
+  margin-left: auto;
+  color: var(--muted);
+  transform: rotate(-90deg);
+}
+
+.ui-collapsible__toggle[aria-expanded='true'] .ui-collapsible__chevron {
+  transform: none;
+}
+
+.ui-collapsible__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 20px 20px;
+}
+
+.ui-collapsible__body[hidden] {
+  display: none;
+}
