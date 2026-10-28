@@ -390,6 +390,39 @@ reviewer can find every place the suite was touched.
 - added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[shared/media_slots.py]
 - added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[shared/panel_request.py]
 
+### A client without an Aliyun-shaped MQTT id is accepted only from loopback
+
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[127.0.0.1-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[127.0.0.1-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[127.0.0.53-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[127.0.0.53-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[::1-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[::1-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[::ffff:127.0.0.1-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[::ffff:127.0.0.1-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[192.168.1.20-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[192.168.1.20-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[10.0.0.5-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[10.0.0.5-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[203.0.113.9-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[203.0.113.9-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[::ffff:192.168.1.20-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[::ffff:192.168.1.20-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[fe80::1-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[fe80::1-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[0.0.0.0-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[0.0.0.0-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[None-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[None-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[localhost-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[localhost-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[garbage-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[garbage-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_refusal_holds_before_a_registry_is_set
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_an_empty_client_id_from_the_lan_is_refused
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_device_shaped_id_from_the_lan_still_takes_the_device_path
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_is_loopback_peer_strips_an_ipv6_zone
+
 ## Removed
 
 None.
