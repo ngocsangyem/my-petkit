@@ -1,0 +1,47 @@
+name: dependency-audit
+
+# osv-scanner over every lockfile in the repo (Python requirements.lock, pnpm
+# lockfile, Package.resolved). High/critical findings block merge; the
+# language-specific audits (pip-audit, pnpm audit) run in their own workflows.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "41 4 * * *"
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  OSV_SCANNER_VERSION: "2.7.0"
+
+jobs:
+  osv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install osv-scanner (checksum verified)
+        run: |
+          set -euo pipefail
+          base="https://github.com/google/osv-scanner/releases/download/v${OSV_SCANNER_VERSION}"
+          bin="osv-scanner_linux_amd64"
+          curl -fsSLO "${base}/${bin}"
+          curl -fsSLO "${base}/osv-scanner_SHA256SUMS"
+          grep " ${bin}\$" osv-scanner_SHA256SUMS | sha256sum -c -
+          sudo install "${bin}" /usr/local/bin/osv-scanner
+
+      - name: Scan lockfiles
+        # osv-scanner has no severity floor of its own: it exits 1 on any
+        # finding. Its exit code is handed to the gate script, which fails on
+        # a group whose max CVSS is >= 7.0 and on any scanner error.
+        run: |
+          set -uo pipefail
+          rc=0
+          osv-scanner scan source --recursive --format json . > osv.json || rc=$?
+          python3 scripts/osv-severity-gate.py osv.json 7.0 "$rc"

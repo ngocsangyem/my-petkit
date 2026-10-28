@@ -1,0 +1,77 @@
+# Project-specific semgrep rules. Each rule has fixtures in .semgrep/rules.py
+# and .semgrep/rules.tsx; `cd .semgrep && semgrep --test .` proves every rule catches
+# what it is meant to catch.
+rules:
+  - id: no-shell-true
+    languages: [python]
+    severity: ERROR
+    message: >-
+      subprocess with shell=True runs the string through /bin/sh; any device- or
+      user-supplied fragment becomes a command. Pass an argv list instead.
+    pattern-either:
+      - pattern: subprocess.$FN(..., shell=True, ...)
+      - pattern: asyncio.create_subprocess_shell(...)
+
+  - id: no-os-system
+    languages: [python]
+    severity: ERROR
+    message: os.system/os.popen run through the shell. Use subprocess with an argv list.
+    pattern-either:
+      - pattern: os.system(...)
+      - pattern: os.popen(...)
+
+  - id: no-pickle
+    languages: [python]
+    severity: ERROR
+    message: pickle deserialisation executes arbitrary code. Use JSON.
+    pattern-either:
+      - pattern: pickle.load(...)
+      - pattern: pickle.loads(...)
+      - pattern: pickle.Unpickler(...)
+
+  - id: no-yaml-load
+    languages: [python]
+    severity: ERROR
+    message: yaml.load without SafeLoader can construct arbitrary objects. Use yaml.safe_load.
+    patterns:
+      - pattern: yaml.load(...)
+      - pattern-not: yaml.load(..., Loader=yaml.SafeLoader, ...)
+      - pattern-not: yaml.load(..., Loader=SafeLoader, ...)
+
+  - id: no-eval-exec
+    languages: [python]
+    severity: ERROR
+    message: eval/exec on any runtime value is code execution.
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: exec(...)
+
+  - id: no-bare-string-app-key-in-features
+    languages: [python]
+    severity: ERROR
+    message: >-
+      Feature code reads application state through the typed keys in
+      web/appkeys.py, never app["..."]: a typo in a bare string key is a
+      KeyError at request time, and the same name can mean different objects
+      on the device app and the panel app.
+    paths:
+      include:
+        - "services/api/src/my_petkit/features/**"
+        - ".semgrep/rules.py"
+    pattern-either:
+      - pattern: $APP["$KEY"]
+      - pattern: $APP.get("$KEY", ...)
+    metavariable-regex:
+      metavariable: $APP
+      regex: ^(app|request\.app|req\.app|request\.config_dict)$
+
+  - id: no-dangerously-set-inner-html
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      Every string that reaches the UI may come from a device and is untrusted.
+      Render it as text through React; never inject raw HTML.
+    pattern-either:
+      - pattern: <$EL dangerouslySetInnerHTML={...} />
+      - pattern: <$EL dangerouslySetInnerHTML={...}>...</$EL>
+      - pattern: "{dangerouslySetInnerHTML: ...}"

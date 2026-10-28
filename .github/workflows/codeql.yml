@@ -1,0 +1,62 @@
+name: codeql
+
+# Third-party actions are pinned to a commit SHA. To update one, resolve the
+# tag yourself: gh api repos/<owner>/<repo>/commits/<tag> --jq .sha
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: analyze (${{ matrix.language }})
+    runs-on: ${{ matrix.language == 'swift' && 'macos-15' || 'ubuntu-latest' }}
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: python
+            build-mode: none
+          - language: javascript-typescript
+            build-mode: none
+          - language: swift
+            build-mode: autobuild
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Swift is analysed only once the iOS package exists; until then the job
+      # would fail on "no source code seen".
+      - name: Detect Swift sources
+        id: swift
+        if: matrix.language == 'swift'
+        run: |
+          if [ -f apps/ios/PetkitKit/Package.swift ]; then echo "present=true" >> "$GITHUB_OUTPUT"
+          else echo "present=false" >> "$GITHUB_OUTPUT"; fi
+
+      - uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        if: matrix.language != 'swift' || steps.swift.outputs.present == 'true'
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          queries: security-extended
+
+      - name: Build Swift package
+        if: matrix.language == 'swift' && steps.swift.outputs.present == 'true'
+        run: swift build --package-path apps/ios/PetkitKit
+
+      - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        if: matrix.language != 'swift' || steps.swift.outputs.present == 'true'
+        with:
+          category: /language:${{ matrix.language }}

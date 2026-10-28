@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sign in · my-petkit</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2f6f5}
+a{color:#0f6e66;text-decoration:none}a:hover{text-decoration:underline}
+.btn1:hover{background:#2a2c2f}
+.btn2:hover{background:#f5f7f7}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #0f6e66;outline-offset:2px}
+@media (max-width: 480px){ .lsheet{padding:20px !important} }
+</style>
+</helmet>
+<div style="min-height: 1000px; box-sizing: border-box; padding: 48px 16px; background: #f2f6f5; color: #131416; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 14px; line-height: 1.45; display: flex; align-items: center; justify-content: center">
+  <div style="width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="none" stroke="#0f6e66" stroke-width="2"></circle><path d="M3.2 13.2 A8 8 0 0 0 16.8 13.2 Z" fill="#0f6e66"></path></svg>
+      <span style="font-size: 15px; font-weight: 600">my-petkit</span>
+    </div>
+
+    <main class="lsheet" style="display: flex; flex-direction: column; gap: 20px; padding: 32px; background: #ffffff; border: 1px solid #e3e8e7; border-radius: 16px">
+      <div role="tablist" aria-label="Screen" style="display: flex; gap: 20px; border-bottom: 1px solid #e3e8e7; overflow-x: auto">
+        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
+          <button type="button" role="tab" aria-selected="{{t.sel}}" onClick="{{t.pick}}" style="flex: none; height: 32px; margin-bottom: -1px; padding: 0; border: 0; border-bottom: 2px solid {{t.line}}; background: transparent; color: {{t.ink}}; font: {{t.weight}} 14px 'IBM Plex Sans', sans-serif; white-space: nowrap">{{t.label}}</button>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{showSign}}" hint-placeholder-val="{{true}}">
+        <form style="display: flex; flex-direction: column; gap: 16px">
+          <h1 style="margin: 0; font-size: 22px; font-weight: 600">Sign in</h1>
+          <div style="display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; background: #f5f7f7; border-radius: 8px">
+          <span style="font-size: 12px; color: #5d6262">Is this your server? Check its certificate fingerprint</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px">192.168.1.20:8443</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; line-height: 1.6; word-spacing: 4px; font-variant-numeric: tabular-nums">4F9A 2C71 B8E0 6D13<br>A5C4 90F7 3E2B 51D0</span>
+        </div>
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 500">Username<input type="text" value="admin" autocomplete="username" style="box-sizing: border-box; width: 100%; height: 36px; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 14px 'IBM Plex Sans', sans-serif; color: #131416"></label>
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 500">Password<input type="password" autocomplete="current-password" style="box-sizing: border-box; width: 100%; height: 36px; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 14px 'IBM Plex Sans', sans-serif; color: #131416"></label>
+          <button type="button" class="btn1" style="height: 36px; width: 100%; border: 0; border-radius: 6px; background: #131416; font: 500 14px 'IBM Plex Sans', sans-serif; color: #ffffff">Sign in</button>
+          <p style="margin: 0; font-size: 13px; color: #5d6262">Forgot it? Run <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #131416">my-petkit admin set-password</span> on the server.</p>
+        </form>
+      </sc-if>
+
+      <sc-if value="{{showSetup}}" hint-placeholder-val="{{false}}">
+        <form style="display: flex; flex-direction: column; gap: 16px">
+          <h1 style="margin: 0; font-size: 22px; font-weight: 600">Set up the admin</h1>
+          <p style="margin: 0; color: #5d6262">The server printed a one-time setup token in its log when it started. It works once and expires after 30 minutes.</p>
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 500">Setup token<input type="text" placeholder="paste from the server log" autocomplete="off" style="box-sizing: border-box; width: 100%; height: 36px; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 13px 'IBM Plex Mono', monospace; color: #131416"></label>
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 500">New password<input type="password" autocomplete="new-password" style="box-sizing: border-box; width: 100%; height: 36px; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 14px 'IBM Plex Sans', sans-serif; color: #131416"></label>
+          <button type="button" class="btn1" style="height: 36px; width: 100%; border: 0; border-radius: 6px; background: #131416; font: 500 14px 'IBM Plex Sans', sans-serif; color: #ffffff">Create admin</button>
+        </form>
+      </sc-if>
+
+      <sc-if value="{{showPair}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-direction: column; gap: 16px">
+          <h1 style="margin: 0; font-size: 22px; font-weight: 600">Pair the iOS app</h1>
+          <p style="margin: 0; color: #5d6262">Scan this code in the app. It carries this server's address and certificate fingerprint, so the app trusts this server only.</p>
+          <div style="display: flex; justify-content: center; padding: 16px; background: #f5f7f7; border-radius: 8px">
+            <svg viewBox="-2 -2 29 29" width="196" height="196" role="img" aria-label="QR code for pairing the iOS app" shape-rendering="crispEdges"><rect x="-2" y="-2" width="29" height="29" fill="#ffffff"></rect><path d="{{qrPath}}" fill="#131416"></path></svg>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <span style="font-size: 12px; color: #5d6262">Server and certificate fingerprint</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px">192.168.1.20:8443</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; line-height: 1.6; word-spacing: 4px; font-variant-numeric: tabular-nums">4F9A 2C71 B8E0 6D13 A5C4 90F7 3E2B 51D0</span>
+          </div>
+          <p style="margin: 0; font-size: 13px; color: #5d6262">The app shows the same fingerprint before it connects. If they differ, do not continue.</p>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{showStep}}" hint-placeholder-val="{{false}}">
+        <div role="dialog" aria-modal="true" aria-labelledby="step-h" style="display: flex; flex-direction: column; gap: 16px; padding: 24px; background: #ffffff; border: 1px solid #e3e8e7; border-radius: 12px; box-shadow: 0 8px 24px rgba(19,20,22,0.12)">
+          <h1 id="step-h" style="margin: 0; font-size: 18px; font-weight: 600">Confirm it's you to open Patchers?</h1>
+          <p style="margin: 0; color: #5d6262">Capture and Patchers can expose secrets and change devices. Enter your password again to continue.</p>
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 500">Password<input type="password" autocomplete="current-password" style="box-sizing: border-box; width: 100%; height: 36px; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 14px 'IBM Plex Sans', sans-serif; color: #131416"></label>
+          <div style="display: flex; justify-content: flex-end; gap: 8px">
+            <button type="button" class="btn2" style="height: 36px; padding: 0 14px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 500 14px 'IBM Plex Sans', sans-serif; color: #131416">Cancel</button>
+            <button type="button" class="btn1" style="height: 36px; padding: 0 14px; border: 0; border-radius: 6px; background: #131416; font: 500 14px 'IBM Plex Sans', sans-serif; color: #ffffff">Continue</button>
+          </div>
+        </div>
+      </sc-if>
+    </main>
+
+    <p style="margin: 0; font-size: 12px; color: #5d6262">Your browser warns once about this server's certificate because the server made it itself. Check that the fingerprint above matches the one in the server log before you continue.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mode: 'sign' };
+  }
+  renderVals() {
+    const m = this.state.mode;
+    const defs = [['sign', 'Sign in'], ['setup', 'First run'], ['pair', 'Pair the app'], ['step', 'Step-up']];
+    // Placeholder QR drawn in the product's place: three finder squares plus pseudo-random modules.
+    const N = 25;
+    let seed = 20261028;
+    const rnd = () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
+    const finder = (x, y) => (x < 7 && y < 7) || (x > 17 && y < 7) || (x < 7 && y > 17);
+    const finderOn = (x, y) => {
+      const fx = x > 17 ? x - 18 : x, fy = y > 17 ? y - 18 : y;
+      const edge = fx === 0 || fx === 6 || fy === 0 || fy === 6;
+      const core = fx >= 2 && fx <= 4 && fy >= 2 && fy <= 4;
+      return edge || core;
+    };
+    let path = '';
+    for (let y = 0; y < N; y++) {
+      for (let x = 0; x < N; x++) {
+        const on = finder(x, y) ? finderOn(x, y) : ((x < 8 && y < 8) || (x > 16 && y < 8) || (x < 8 && y > 16) ? false : rnd() > 0.52);
+        if (on) path += 'M' + x + ' ' + y + 'h1v1h-1z';
+      }
+    }
+    return {
+      tabs: defs.map((d) => ({
+        label: d[1], sel: m === d[0] ? 'true' : 'false',
+        line: m === d[0] ? '#0f6e66' : 'transparent',
+        ink: m === d[0] ? '#131416' : '#5d6262',
+        weight: m === d[0] ? 500 : 400,
+        pick: () => this.setState({ mode: d[0] })
+      })),
+      showSign: m === 'sign', showSetup: m === 'setup', showPair: m === 'pair', showStep: m === 'step',
+      qrPath: path
+    };
+  }
+}
+</script>
+</body>
+</html>

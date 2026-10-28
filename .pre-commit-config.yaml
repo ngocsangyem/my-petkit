@@ -1,0 +1,25 @@
+# Every hook is pinned to a commit SHA, not a tag: a tag can be moved to new
+# code by whoever controls the hook repository, and that code then runs on a
+# contributor's machine. To update, resolve the tag yourself:
+#   gh api repos/<owner>/<repo>/commits/<tag> --jq .sha
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: 83d9cd684c87d95d656c1458ef04895a7f1cbd8e # v8.30.1
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: 25bcf95026b96e2dd3c0aec3090c3d6ef6ca2e6c # v0.17.3
+    hooks:
+      # Lint only. Ported protocol code is never reformatted (it must stay
+      # diffable against upstream); new code is formatted by `ruff format` in
+      # its own CI step, scoped to the new-code directories.
+      - id: ruff-check
+        args: [--config, services/api/pyproject.toml]
+        files: ^services/api/
+
+  - repo: https://github.com/rbubley/mirrors-prettier
+    rev: 331f33fa4dfbcbca7c3da3620c137fde0faab273 # v3.9.10
+    hooks:
+      - id: prettier
+        files: ^apps/web/src/.*\.(ts|tsx|css|json)$

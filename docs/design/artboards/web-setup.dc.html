@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>my-petkit · Setup</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2f6f5}
+a{color:#131416;text-decoration:none}a:hover{color:#0f6e66}
+.nav a:hover{background:#e8eded}
+.row:hover{background:#f5f7f7}
+.btn2:hover{background:#f5f7f7}
+.btn1:hover{background:#2a2c2f}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #0f6e66;outline-offset:2px}
+.phonebar{display:none !important}
+@media (max-width: 900px){
+  .shell{grid-template-columns:minmax(0,1fr) !important;grid-template-rows:auto 1fr !important}
+  .side,.topbar{display:none !important}
+  .phonebar{display:flex !important}
+  .sheet{margin:0 !important;overflow-wrap:anywhere;min-width:0 !important;border-radius:0 !important;border-left:0 !important;border-right:0 !important;padding:16px !important}
+  .two{grid-template-columns:1fr !important}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+  .hide-sm{display:none !important}
+}
+</style>
+</helmet>
+<div class="shell" style="min-height: 1000px; display: grid; grid-template-columns: 228px minmax(0, 1fr); grid-template-rows: 48px minmax(0, 1fr); background: #f2f6f5; color: #131416; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 14px; line-height: 1.45">
+
+  <aside class="side" style="grid-row: 1 / 3; display: flex; flex-direction: column; gap: 20px; padding: 14px 12px 16px">
+    <div style="display: flex; align-items: center; gap: 10px; height: 20px; padding: 0 8px">
+      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="none" stroke="#0f6e66" stroke-width="2"></circle><path d="M3.2 13.2 A8 8 0 0 0 16.8 13.2 Z" fill="#0f6e66"></path></svg>
+      <span style="font-size: 15px; font-weight: 600">my-petkit</span>
+    </div>
+    <div style="padding: 0 8px; font-size: 12px; color: #5d6262">Home server · v2.1.0</div>
+    <nav class="nav" aria-label="Sections" style="display: flex; flex-direction: column; gap: 2px">
+      <a href="web-devices.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M5 15h14"></path></svg>Devices</a>
+      <a href="web-timeline.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12h16M8 8v8M14 6v12"></path></svg>Timeline</a>
+      <a href="web-pets.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="13" r="6"></circle><path d="M7 8 6 3l4 3M17 8l1-5-4 3"></path></svg>Pets</a>
+    </nav>
+    <nav class="nav" aria-label="Tools" style="display: flex; flex-direction: column; gap: 2px">
+      <span style="padding: 0 8px 4px; font-size: 12px; color: #5d6262">Tools</span>
+      <a href="web-provision.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m7 7 10 10-5 5V2l5 5L7 17"></path></svg>Provision</a>
+      <a href="web-log.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13"></path></svg>Log</a>
+      <a href="web-setup.dc.html" aria-current="page" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; background: #e8eded; font-weight: 500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#131416" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 3v3M12 18v3M3 12h3M18 12h3"></path></svg>Setup</a>
+    </nav>
+    <nav class="nav" aria-label="Advanced" style="display: flex; flex-direction: column; gap: 2px">
+      <span style="padding: 0 8px 4px; font-size: 12px; color: #5d6262">Advanced · needs step-up</span>
+      <a href="web-capture.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M8 10h8M8 14h5"></path></svg>Capture</a>
+      <a href="web-patchers.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 4l6 6-10 10H4v-6z"></path></svg>Patchers</a>
+    </nav>
+    <div style="flex: 1"></div>
+    <a href="web-login.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 0 8px; font-size: 13px; color: #5d6262">Signed in as admin</a>
+  </aside>
+
+  <header class="topbar" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 16px 0 0">
+    <label style="display: flex; align-items: center; gap: 8px; width: 420px; height: 32px; padding: 0 10px; box-sizing: border-box; background: #ffffff; border: 1px solid #e3e8e7; border-radius: 6px; color: #5d6262">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+      <input type="search" aria-label="Search devices, cats and events" placeholder="Search devices, cats, events" style="flex: 1; border: 0; outline: 0; background: transparent; font: 14px 'IBM Plex Sans', sans-serif; color: #131416">
+    </label>
+    <div style="display: flex; align-items: center; gap: 16px; font-size: 13px; color: #5d6262">
+      <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 8px; height: 8px; border-radius: 50%; background: #1e7b4f"></span>Live</span>
+      <span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px">192.168.1.20:8443</span> · TLS pinned</span>
+    </div>
+  </header>
+
+  <main class="sheet" style="margin: 0 8px 8px 0; min-width: 0; background: #ffffff; border: 1px solid #e3e8e7; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 24px">
+
+    <div class="phonebar" style="align-items: center; justify-content: space-between; height: 48px; margin: -16px -16px 0; padding: 0 16px; background: #f2f6f5">
+      <button type="button" aria-label="Open menu" style="width: 44px; height: 44px; border: 0; background: transparent; padding: 0; display: flex; align-items: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#131416" stroke-width="2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></button>
+      <span style="font-weight: 600">Setup</span>
+      <span style="width: 44px"></span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap">
+        <h1 style="margin: 0; font-size: 22px; font-weight: 600">Setup</h1>
+        <span style="font-size: 14px; color: #5d6262"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px">192.168.1.20:8443</span> · local TLS, certificate pinned · version 2.1.0</span>
+      </div>
+      <p style="margin: 0; font-size: 14px">Cloud guards are on. <span style="font-weight: 500">Proxying to PetKit's cloud is off</span>, and 2 attempts were blocked this week.</p>
+    </div>
+
+    <section aria-labelledby="guards-h" class="two" style="display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 32px; align-items: start">
+      <div style="display: flex; flex-direction: column; gap: 4px; max-width: 360px"><h2 id="guards-h" style="margin: 0; font-size: 16px; font-weight: 500">Cloud guards</h2><p style="margin: 0; font-size: 14px; color: #5d6262">What this server refuses to pass on from PetKit's cloud. Turning the proxy on needs step-up.</p></div>
+      <div style="min-width: 0; background: #f5f7f7; border-radius: 16px; padding: 16px"><label style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 12px 0; cursor: pointer">
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span style="font-weight: 500">Proxy to PetKit's cloud</span><span style="display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; background: #ffedea; color: #831c1e; font-size: 12px; font-weight: 500">Step-up</span></span><span style="font-size: 13px; color: #5d6262">Off. Only for adding a model nobody has captured yet.</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5d6262">proxy_mode</span></span>
+            <input type="checkbox" style="width: 20px; height: 20px; flex: none; margin: 2px 0 0; accent-color: #131416">
+          </label><label style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 12px 0; border-top: 1px solid #e3e8e7; cursor: pointer">
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span style="font-weight: 500">Block remote shell commands</span></span><span style="font-size: 13px; color: #5d6262">Strips run_cmd from anything the cloud sends.</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5d6262">proxy_block_run_cmd</span></span>
+            <input type="checkbox" checked style="width: 20px; height: 20px; flex: none; margin: 2px 0 0; accent-color: #131416">
+          </label><label style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 12px 0; border-top: 1px solid #e3e8e7; cursor: pointer">
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span style="font-weight: 500">Block firmware updates</span></span><span style="font-size: 13px; color: #5d6262">Stops the cloud pushing new firmware.</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5d6262">proxy_block_ota</span></span>
+            <input type="checkbox" checked style="width: 20px; height: 20px; flex: none; margin: 2px 0 0; accent-color: #131416">
+          </label><label style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 12px 0; border-top: 1px solid #e3e8e7; cursor: pointer">
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span style="font-weight: 500">Block log uploads</span></span><span style="font-size: 13px; color: #5d6262">Device logs stay on this server.</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5d6262">proxy_block_log_upload</span></span>
+            <input type="checkbox" checked style="width: 20px; height: 20px; flex: none; margin: 2px 0 0; accent-color: #131416">
+          </label></div>
+    </section>
+    <section aria-labelledby="upstream-h" class="two" style="margin-top: 8px; padding-top: 32px; border-top: 1px solid #eef1f1; display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 32px; align-items: start">
+      <div style="display: flex; flex-direction: column; gap: 4px; max-width: 360px"><h2 id="upstream-h" style="margin: 0; font-size: 16px; font-weight: 500">Upstream and capture</h2><p style="margin: 0; font-size: 14px; color: #5d6262">Where proxied requests go, and whether they are saved. Only used while the proxy is on.</p></div>
+      <div style="min-width: 0; background: #f5f7f7; border-radius: 16px; padding: 16px"><label style="display: grid; grid-template-columns: minmax(0, 1fr) 180px; gap: 16px; align-items: center; padding: 12px 0; border-top: 1px solid #e3e8e7">
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span style="font-weight: 500">Upstream host</span><span style="display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; background: #ffedea; color: #831c1e; font-size: 12px; font-weight: 500">Step-up</span></span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5d6262">proxy_upstream</span></span>
+            <input type="text" value="https://api.petkt.example" style="height: 32px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 13px 'IBM Plex Mono', monospace; color: #131416; text-align: right">
+          </label><label style="display: grid; grid-template-columns: minmax(0, 1fr) 180px; gap: 16px; align-items: center; padding: 12px 0; border-top: 1px solid #e3e8e7">
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span style="font-weight: 500">Upstream resolver</span><span style="display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; background: #ffedea; color: #831c1e; font-size: 12px; font-weight: 500">Step-up</span></span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5d6262">proxy_dns</span></span>
+            <input type="text" value="1.1.1.1" style="height: 32px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 13px 'IBM Plex Mono', monospace; color: #131416; text-align: right">
+          </label><label style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 12px 0; border-top: 1px solid #e3e8e7; cursor: pointer">
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span style="font-weight: 500">Save proxied traffic</span><span style="display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; background: #ffedea; color: #831c1e; font-size: 12px; font-weight: 500">Step-up</span></span><span style="font-size: 13px; color: #5d6262">Writes each request and reply to disk so a new model can be read later.</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5d6262">capture</span></span>
+            <input type="checkbox" style="width: 20px; height: 20px; flex: none; margin: 2px 0 0; accent-color: #131416">
+          </label></div>
+    </section>
+    <section aria-labelledby="dns-h" class="two" style="margin-top: 8px; padding-top: 32px; border-top: 1px solid #eef1f1; display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 32px; align-items: start">
+      <div style="display: flex; flex-direction: column; gap: 4px; max-width: 360px"><h2 id="dns-h" style="margin: 0; font-size: 16px; font-weight: 500">Local DNS</h2><p style="margin: 0; font-size: 14px; color: #5d6262">Points devices at this server instead of PetKit's.</p></div>
+      <div style="min-width: 0; background: #f5f7f7; border-radius: 16px; padding: 16px"><label style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 12px 0; cursor: pointer">
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span style="font-weight: 500">Answer device lookups</span></span><span style="font-size: 13px; color: #5d6262">Devices that ask for PetKit's hostnames get this server instead.</span></span>
+            <input type="checkbox" checked style="width: 20px; height: 20px; flex: none; margin: 2px 0 0; accent-color: #131416">
+          </label><label style="display: grid; grid-template-columns: minmax(0, 1fr) 180px; gap: 16px; align-items: center; padding: 12px 0; border-top: 1px solid #e3e8e7">
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span style="font-weight: 500">Answer with</span></span></span>
+            <input type="text" value="192.168.1.20" style="height: 32px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 13px 'IBM Plex Mono', monospace; color: #131416; text-align: right">
+          </label><label style="display: grid; grid-template-columns: minmax(0, 1fr) 180px; gap: 16px; align-items: center; padding: 12px 0; border-top: 1px solid #e3e8e7">
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span style="font-weight: 500">Listen on</span></span></span>
+            <input type="text" value="0.0.0.0:53" style="height: 32px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 13px 'IBM Plex Mono', monospace; color: #131416; text-align: right">
+          </label></div>
+    </section>
+    <section aria-labelledby="ret-h" class="two" style="margin-top: 8px; padding-top: 32px; border-top: 1px solid #eef1f1; display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 32px; align-items: start">
+      <div style="display: flex; flex-direction: column; gap: 4px; max-width: 360px"><h2 id="ret-h" style="margin: 0; font-size: 16px; font-weight: 500">Retention</h2><p style="margin: 0; font-size: 14px; color: #5d6262">How long blocked attempts stay in the table below. Secrets are masked; revealing one asks for your password.</p></div>
+      <div style="min-width: 0; background: #f5f7f7; border-radius: 16px; padding: 16px"><label style="display: grid; grid-template-columns: minmax(0, 1fr) 180px; gap: 16px; align-items: center; padding: 12px 0; border-top: 1px solid #e3e8e7">
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span style="font-weight: 500">Keep blocked attempts</span></span></span>
+            <input type="text" value="365" style="height: 32px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 13px 'IBM Plex Mono', monospace; color: #131416; text-align: right">
+          </label><div style="padding-top: 8px; font-size: 13px; color: #5d6262">days. Older rows are removed at midnight.</div></div>
+    </section>
+    <section aria-labelledby="blocked-h" class="two" style="margin-top: 8px; padding-top: 32px; border-top: 1px solid #eef1f1; display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 32px; align-items: start">
+      <div style="display: flex; flex-direction: column; gap: 4px; max-width: 360px"><h2 id="blocked-h" style="margin: 0; font-size: 16px; font-weight: 500">Blocked attempts</h2><p style="margin: 0; font-size: 14px; color: #5d6262">What the cloud tried to do and was stopped.</p></div>
+      <div style="min-width: 0; background: #f5f7f7; border-radius: 16px; padding: 16px"><div style="overflow-x: auto">
+        <table style="width: 100%; min-width: 560px; border-collapse: collapse; font-variant-numeric: tabular-nums">
+          <thead><tr style="text-align: left; font-size: 12px; color: #5d6262"><th scope="col" style="padding: 0 12px 8px 0; font-weight: 500">When</th><th scope="col" style="padding: 0 12px 8px 0; font-weight: 500">Device</th><th scope="col" style="padding: 0 12px 8px 0; font-weight: 500">What the cloud tried</th><th scope="col" style="padding: 0 0 8px; font-weight: 500">Payload</th></tr></thead>
+          <tbody>
+            <tr style="border-top: 1px solid #e3e8e7; height: 44px"><td style="padding: 6px 12px 6px 0">27 Oct 21:04</td><td style="padding: 6px 12px 6px 0">Litter box</td><td style="padding: 6px 12px 6px 0">Firmware update <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px">1.2.91</span></td><td style="padding: 6px 0; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #5d6262">url: ••••••••</td></tr>
+            <tr style="border-top: 1px solid #e3e8e7; height: 44px"><td style="padding: 6px 12px 6px 0">25 Oct 09:12</td><td style="padding: 6px 12px 6px 0">Kitchen feeder</td><td style="padding: 6px 12px 6px 0">Log upload</td><td style="padding: 6px 0; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #5d6262">token: ••••••••</td></tr>
+          </tbody>
+        </table>
+      </div></div>
+    </section>
+    <section aria-labelledby="tokens-h" class="two" style="margin-top: 8px; padding-top: 32px; border-top: 1px solid #eef1f1; display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 32px; align-items: start">
+      <div style="display: flex; flex-direction: column; gap: 4px; max-width: 360px"><h2 id="tokens-h" style="margin: 0; font-size: 16px; font-weight: 500">Client tokens</h2><p style="margin: 0; font-size: 14px; color: #5d6262">Phones and browsers allowed to talk to this server.</p></div>
+      <div style="min-width: 0; background: #f5f7f7; border-radius: 16px; padding: 16px"><div style="display: flex; flex-direction: column">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-bottom: 12px"><span style="display: flex; flex-direction: column"><span style="font-weight: 500">iPhone 16 · Sang</span><span style="font-size: 13px; color: #5d6262">Last used 2 min ago · expires after 90 idle days</span></span><button type="button" class="btn2" style="height: 32px; padding: 0 12px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 500 14px 'IBM Plex Sans', sans-serif; color: #131416; cursor: pointer; color: #c4242a">Revoke</button></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid #e3e8e7"><span style="display: flex; flex-direction: column"><span style="font-weight: 500">This browser</span><span style="font-size: 13px; color: #5d6262">Session · ends 4 Nov</span></span><button type="button" class="btn2" style="height: 32px; padding: 0 12px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 500 14px 'IBM Plex Sans', sans-serif; color: #131416; cursor: pointer">Sign out</button></div>
+        <div style="padding-top: 12px; border-top: 1px solid #e3e8e7; font-size: 13px; color: #5d6262">Certificate SHA-256 <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #131416">4F:9A:21:C0 … 51:0D</span></div>
+        <div style="padding-top: 12px"><button type="button" class="btn1" style="height: 32px; padding: 0 12px; border: 0; border-radius: 6px; background: #131416; color: #ffffff; font: 500 14px 'IBM Plex Sans', sans-serif; cursor: pointer">Pair a phone</button></div>
+      </div></div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

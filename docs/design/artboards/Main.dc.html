@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>my-petkit design system</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0f6e66;text-decoration:none}a:hover{color:#0a4f4a}
+</style>
+</helmet>
+<div style="width: 1280px; height: 1180px; box-sizing: border-box; background: #f2f6f5; padding: 0 8px 8px 0; color: #131416; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 14px; line-height: 1.45; display: grid; grid-template-columns: 228px minmax(0, 1fr); grid-template-rows: 48px minmax(0, 1fr)">
+
+  <div style="grid-row: 1 / 3; padding: 14px 20px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="none" stroke="#0f6e66" stroke-width="2"></circle><path d="M3.2 13.2 A8 8 0 0 0 16.8 13.2 Z" fill="#0f6e66"></path></svg>
+      <span style="font-size: 15px; font-weight: 600">my-petkit</span>
+    </div>
+    <p style="margin: 0; font-size: 13px; color: #5d6262">The frame is the tinted L. Work sits on a white sheet inset 8px, 1px edge, 16px corners, no shadow. On the phone the sheet is the screen and the tint stays on the bars.</p>
+    <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 8px">
+      <span style="font-size: 12px; color: #5d6262">The mark</span>
+      <div style="display: flex; align-items: center; gap: 16px">
+        <svg width="56" height="56" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="none" stroke="#0f6e66" stroke-width="1.6"></circle><path d="M3.2 13.2 A8 8 0 0 0 16.8 13.2 Z" fill="#0f6e66"></path></svg>
+        <span style="font-size: 13px; color: #5d6262">The litter-box drum, with its lower third full.</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: center; font-size: 13px; color: #5d6262">Design system · framed sheet · teal on data only</div>
+
+  <div style="background: #ffffff; border: 1px solid #e3e8e7; border-radius: 16px; padding: 32px; display: flex; flex-direction: column; gap: 32px; min-height: 0; overflow: hidden">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <h1 style="margin: 0; font-size: 22px; font-weight: 600">my-petkit design system</h1>
+      <p style="margin: 0; color: #5d6262; max-width: 720px">Colour goes on data, not chrome. The pets appear as themselves. Mono has one job: IDs, firmware, URLs and log lines.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px">
+      <section style="display: flex; flex-direction: column; gap: 12px">
+        <h2 style="margin: 0; font-size: 16px; font-weight: 600">Surfaces and ink</h2>
+        <div style="display: flex; flex-direction: column">
+          <sc-for list="{{neutrals}}" as="c" hint-placeholder-count="7">
+            <div style="display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 6px 0; border-top: 1px solid #eef1f1">
+              <span style="width: 40px; height: 24px; border-radius: 4px; background: {{c.hex}}; box-shadow: inset 0 0 0 1px rgba(19,20,22,0.08)"></span>
+              <span>{{c.role}}</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5d6262">{{c.hex}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <section style="display: flex; flex-direction: column; gap: 12px">
+        <h2 style="margin: 0; font-size: 16px; font-weight: 600">Data and status</h2>
+        <div style="display: flex; flex-direction: column">
+          <sc-for list="{{hues}}" as="c" hint-placeholder-count="6">
+            <div style="display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 6px 0; border-top: 1px solid #eef1f1">
+              <span style="width: 40px; height: 24px; border-radius: 4px; background: {{c.hex}}"></span>
+              <span>{{c.role}}</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5d6262">{{c.hex}}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; padding-top: 4px; font-size: 13px">
+          <span style="display: inline-flex; align-items: center; gap: 6px; color: #1e7b4f"><span style="width: 8px; height: 8px; border-radius: 50%; background: #1e7b4f"></span>Online · MQTT</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px; color: #2f70bb"><span style="width: 8px; height: 8px; border-radius: 50%; background: #2f70bb"></span>Polling · heartbeat</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px; color: #c4242a"><span style="width: 8px; height: 8px; border-radius: 50%; background: #c4242a"></span>Offline</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px; color: #5d6262"><span style="width: 8px; height: 8px; border-radius: 50%; box-sizing: border-box; border: 1.5px solid #5d6262"></span>Unknown</span>
+        </div>
+      </section>
+
+      <section style="display: flex; flex-direction: column; gap: 12px">
+        <h2 style="margin: 0; font-size: 16px; font-weight: 600">The cats</h2>
+        <p style="margin: 0; font-size: 13px; color: #5d6262">Each cat keeps its photo and a pale identity tint. Tints never enter a chart legend.</p>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: #e4edf8; border-radius: 8px">
+            <img src="/_blob/38e9ae33b4e603f8aa6a989a45ef55a8" alt="Miso, a tabby" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover">
+            <div style="display: flex; flex-direction: column"><span style="font-weight: 600; color: #24548f">Miso</span><span style="font-size: 13px; color: #24548f; font-variant-numeric: tabular-nums">5.42 kg · 3 visits today</span></div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: #f8eedb; border-radius: 8px">
+            <img src="/_blob/04acdb0fd9daefc6a525576e97df95d6" alt="Mochi, a calico" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; object-position: 50% 20%">
+            <div style="display: flex; flex-direction: column"><span style="font-weight: 600; color: #7a4f08">Mochi</span><span style="font-size: 13px; color: #7a4f08; font-variant-numeric: tabular-nums">3.86 kg · 2 visits today</span></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px">
+      <section style="display: flex; flex-direction: column; gap: 10px">
+        <h2 style="margin: 0; font-size: 16px; font-weight: 600">Type · IBM Plex Sans</h2>
+        <div style="font-size: 22px; font-weight: 600">Title 22 / 600 (iOS 24)</div>
+        <div style="font-size: 16px; font-weight: 600">Section 16 / 600</div>
+        <div style="font-size: 28px; font-variant-numeric: tabular-nums">5.42<span style="font-size: 14px; color: #5d6262"> kg</span></div>
+        <div>Body 14 / 400, full ink. Plain words of the trade: “Miso used the box”.</div>
+        <div style="font-size: 12px; color: #5d6262">Small 12 / 400 grey, sentence case</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px">100234567 · fw 1.2.86 · rtsp://192.168.1.20:8554/litter</div>
+      </section>
+
+      <section style="display: flex; flex-direction: column; gap: 10px">
+        <h2 style="margin: 0; font-size: 16px; font-weight: 600">Figures in one container</h2>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: #f5f7f7; border-radius: 8px; font-variant-numeric: tabular-nums">
+          <div style="display: flex; flex-direction: column; gap: 4px; padding: 14px 16px"><span style="font-size: 12px; font-weight: 500; color: #5d6262">Bags left</span><span style="font-size: 28px">14</span></div>
+          <div style="display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-left: 1px solid #e3e8e7"><span style="font-size: 12px; font-weight: 500; color: #5d6262">Litter</span><span style="font-size: 28px">62<span style="font-size: 14px; color: #5d6262"> %</span></span></div>
+          <div style="display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-left: 1px solid #e3e8e7"><span style="font-size: 12px; font-weight: 500; color: #5d6262">Bin</span><span style="font-size: 14px; color: #5d6262; padding-top: 10px">Not reported</span></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 120px minmax(0, 1fr) 56px; gap: 12px; align-items: center; font-variant-numeric: tabular-nums">
+          <span>N60 deodorizer</span><span style="height: 6px; background: #eef1f1; border-radius: 3px; overflow: hidden"><span style="display: block; width: 10%; height: 6px; background: #92400e"></span></span><span style="text-align: right; color: #92400e">3 days</span>
+          <span>N50 deodorant</span><span style="height: 6px; background: #eef1f1; border-radius: 3px; overflow: hidden"><span style="display: block; width: 63%; height: 6px; background: #0f6e66"></span></span><span style="text-align: right">19 days</span>
+        </div>
+      </section>
+
+      <section style="display: flex; flex-direction: column; gap: 10px">
+        <h2 style="margin: 0; font-size: 16px; font-weight: 600">Actions and risk</h2>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap">
+          <button type="button" style="height: 32px; padding: 0 12px; border: 0; border-radius: 6px; background: #131416; color: #ffffff; font: 500 14px 'IBM Plex Sans', sans-serif">Add a device</button>
+          <button type="button" style="height: 32px; padding: 0 12px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 500 14px 'IBM Plex Sans', sans-serif">Clean now</button>
+          <button type="button" style="height: 32px; padding: 0 4px; border: 0; background: transparent; color: #c4242a; font: 500 14px 'IBM Plex Sans', sans-serif">Delete capture</button>
+        </div>
+        <p style="margin: 0; font-size: 12px; color: #5d6262">Device commands are secondary buttons. Each asks before it runs; the question sheet carries the risk.</p>
+        <div style="display: flex; align-items: center; gap: 10px; padding-top: 6px">
+          <span style="font-weight: 600">Patchers</span>
+          <span style="display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; background: #ffedea; color: #831c1e; font-size: 12px; font-weight: 500">Step-up required</span>
+        </div>
+        <div style="display: flex; gap: 10px; padding: 12px; background: #f5f7f7; border-radius: 8px; font-size: 13px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c4242a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 2px"><path d="M12 3 2 21h20L12 3z"></path><path d="M12 10v5"></path><path d="M12 18h.01"></path></svg>
+          <span>Rewrites code on the device as root. It can stop the device from booting. Undo removes the file and reboots.</span>
+        </div>
+        <button type="button" style="align-self: flex-start; height: 32px; padding: 0 12px; border: 0; border-radius: 6px; background: #c4242a; color: #ffffff; font: 500 14px 'IBM Plex Sans', sans-serif">Apply patch</button>
+      </section>
+    </div>
+
+    <section style="display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; align-items: baseline; gap: 12px">
+        <h2 style="margin: 0; font-size: 16px; font-weight: 600">The household day strip</h2>
+        <span style="font-size: 13px; color: #5d6262">Only this product has it: every cat, meal and drink on one 24-hour line. The now line is the one teal mark.</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 120px minmax(0, 1fr); row-gap: 6px; column-gap: 12px; align-items: center">
+        <span></span>
+        <div style="position: relative; height: 18px; font-size: 12px; color: #5d6262; font-variant-numeric: tabular-nums">
+          <span style="position: absolute; left: 0">00</span><span style="position: absolute; left: 25%; transform: translateX(-50%)">06</span><span style="position: absolute; left: 50%; transform: translateX(-50%)">12</span><span style="position: absolute; left: 75%; transform: translateX(-50%)">18</span><span style="position: absolute; right: 0">24</span>
+          <span style="position: absolute; left: 61.6%; transform: translateX(-50%); padding: 0 4px; background: #ffffff; color: #0f6e66; font-weight: 600">14:47</span>
+        </div>
+        <span style="display: flex; align-items: center; gap: 8px; font-weight: 500"><img src="/_blob/38e9ae33b4e603f8aa6a989a45ef55a8" alt="" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover">Miso</span>
+        <div style="position: relative; height: 28px; background: #f5f7f7; border-radius: 4px">
+          <sc-for list="{{miso}}" as="v" hint-placeholder-count="3"><span style="position: absolute; top: 6px; left: {{v.left}}; width: 3px; height: 16px; background: #24548f"></span></sc-for>
+          <span style="position: absolute; top: 0; bottom: 0; left: 61.6%; width: 1px; background: #0f6e66"></span>
+        </div>
+        <span style="display: flex; align-items: center; gap: 8px; font-weight: 500"><img src="/_blob/04acdb0fd9daefc6a525576e97df95d6" alt="" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; object-position: 50% 20%">Mochi</span>
+        <div style="position: relative; height: 28px; background: #f5f7f7; border-radius: 4px">
+          <sc-for list="{{mochi}}" as="v" hint-placeholder-count="2"><span style="position: absolute; top: 6px; left: {{v.left}}; width: 3px; height: 16px; background: #7a4f08"></span></sc-for>
+          <span style="position: absolute; top: 0; bottom: 0; left: 61.6%; width: 1px; background: #0f6e66"></span>
+        </div>
+        <span style="color: #5d6262">Water fountain</span>
+        <div style="position: relative; height: 28px; background: #f5f7f7; border-radius: 4px; overflow: hidden">
+          <span style="position: absolute; top: 8px; height: 12px; left: 0; width: 25.7%; background: #cfe5e2"></span>
+          <svg style="position: absolute; top: 8px; left: 25.7%; width: 35.9%; height: 12px" aria-hidden="true"><defs><pattern id="hm" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="1" height="5" fill="#c4242a"></rect></pattern></defs><rect width="100%" height="12" fill="url(#hm)"></rect></svg>
+          <span style="position: absolute; top: 0; bottom: 0; left: 61.6%; width: 1px; background: #0f6e66"></span>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const at = (h, m) => ((h * 60 + m) / 1440 * 100).toFixed(1) + '%';
+    return {
+      neutrals: [
+        { role: 'Frame (sidebar, bars)', hex: '#f2f6f5' },
+        { role: 'Sheet', hex: '#ffffff' },
+        { role: 'Raised panel', hex: '#f5f7f7' },
+        { role: 'Active nav, pressed', hex: '#e8eded' },
+        { role: 'Edge and card border', hex: '#e3e8e7' },
+        { role: 'Muted text', hex: '#5d6262' },
+        { role: 'Ink', hex: '#131416' }
+      ],
+      hues: [
+        { role: 'Data, now line, links', hex: '#0f6e66' },
+        { role: 'Second series, polling', hex: '#2f70bb' },
+        { role: 'Third series', hex: '#a86f0c' },
+        { role: 'Positive, online', hex: '#1e7b4f' },
+        { role: 'Warning, running low', hex: '#92400e' },
+        { role: 'Negative, offline, R3', hex: '#c4242a' }
+      ],
+      miso: [{ left: at(1, 12) }, { left: at(8, 31) }, { left: at(13, 58) }],
+      mochi: [{ left: at(3, 47) }, { left: at(11, 5) }]
+    };
+  }
+}
+</script>
+</body>
+</html>

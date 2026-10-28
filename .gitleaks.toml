@@ -1,0 +1,56 @@
+# gitleaks configuration for my-petkit.
+#
+# The repository is public and the protocol it speaks is full of fields named
+# "secret": the device signing secret, the Aliyun MQTT device secret, the media
+# AES key. Real values of those come from a live device or a capture and must
+# never be committed. The default ruleset does not know these field names, so
+# the rule below adds them.
+#
+# Every allowlist entry is scoped to a path AND states why the match is safe.
+# Never widen an allowlist to a whole directory to silence a new hit: read the
+# value first.
+
+title = "my-petkit"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "petkit-device-secret"
+description = "PetKit/Aliyun device credential with a non-trivial value"
+regex = '''(?i)["']?\b(deviceSecret|packageSecret|api_secret|mqtt_device_secret|aesKey|aes_key)\b["']?\s*[:=]\s*["']([^"'\s]{9,})["']'''
+secretGroup = 2
+keywords = ["devicesecret", "packagesecret", "api_secret", "mqtt_device_secret", "aeskey", "aes_key"]
+
+# Placeholder secrets used across the test suite. "0123456789abcdef" is the
+# canonical fake 16-byte key: it exercises the AES and signing paths without
+# being anyone's credential.
+[[allowlists]]
+description = "Canonical fake 16-byte key used by tests"
+paths = ['''^services/api/tests/''']
+regexTarget = "secret"
+regexes = ['''^0123456789abcdef$''']
+
+# Truncated STS token fragments in the redaction tests. Real Aliyun STS tokens
+# start with "CAIS" and run to several hundred characters; these are prefixes
+# only, kept so the redactor's "looks like an STS token" heuristic is tested.
+[[allowlists]]
+description = "Truncated fake STS token prefixes in redaction tests"
+paths = ['''^services/api/tests/test_redact\.py$''']
+regexTarget = "secret"
+regexes = ['''^CAISkgN1q6Ft5B2''']
+
+# MQTT signing tests read the secret from a fixture device object; the match is
+# the attribute name, not a literal value.
+[[allowlists]]
+description = "Signing tests pass the fixture device's secret attribute"
+paths = ['''^services/api/tests/test_auth\.py$''']
+regexes = ['''compute_aliyun_sign\(dev\.mqtt_device_secret''']
+
+# HA entity definitions: `key="ctw3_energy_interval"` and friends are entity
+# keys (user-visible state identifiers), which the generic-api-key rule
+# mistakes for credentials.
+[[allowlists]]
+description = "Home Assistant EntityDef keys are identifiers, not credentials"
+paths = ['''^services/api/src/my_petkit/ha/entities/[a-z_]+\.py$''']
+regexes = ['''EntityDef\(component="[a-z_]+", key="[a-z0-9_]+"''']
