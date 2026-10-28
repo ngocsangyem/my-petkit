@@ -239,7 +239,7 @@ async def api_save_schedule(request: web.Request) -> web.Response:
         reg.save()
         _push_feed_get(d, hub, bridge, feed)
         now = time.time()
-        latest = _build_latest(feed, now)
+        latest = _build_latest(feed, now, d)
         wire_groups = []
         for g in feed.get("schedule", []):
             wire_groups.append({"re": g.get("re", ""), "it": g.get("it", [])})

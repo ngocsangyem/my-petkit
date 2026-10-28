@@ -49,8 +49,10 @@ These are plain strings rather than `web.AppKey`s. An `AppKey` is a distinct
 object, not the string, so adopting one would change the identity of every key —
 including the two written from `main/lifecycle.py` and the ones every test's own
 app is built with — for a type-checking benefit this codebase does not collect.
-The values below are therefore the literal spellings already in use, and reads
-spell them out as they always have.
+The values below are therefore the literal spellings already in use. Reads go
+through these constants, never a bare string (a test enforces it in
+`web/api/`): a misspelt bare key read `"event_hub"` where the panel stores
+`"hub"`, and sound play/select answered 400 for as long as it went unnoticed.
 """
 from __future__ import annotations
 

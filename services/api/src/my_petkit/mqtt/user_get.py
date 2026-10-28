@@ -47,7 +47,7 @@ def user_get_payload(device: Device, data_type: str, *, ble_registry: BLERegistr
         # stored dict gave the feeder no `latest` to dispense from. A minute
         # migration is left unsaved here (no registry on this path); the next
         # registry save persists it, and until then it is simply re-derived.
-        feed_result, _migrated = build_feed_get_result(feed, time.time())
+        feed_result, _migrated = build_feed_get_result(feed, time.time(), device)
         return {"result": feed_result}
     if data_type == "dev_ble_device":
         # Deliberately identical to `http/handlers/ble_device.py` — the two

@@ -8,6 +8,7 @@ import time
 import pytest
 from aiohttp.test_utils import TestClient, TestServer
 
+from my_petkit.utils import clock
 from my_petkit.devices.registry import DeviceRegistry
 from my_petkit.http.handlers.feed import (
     _build_latest,
@@ -24,7 +25,9 @@ def warsaw_tz():
     old = os.environ.get("TZ")
     os.environ["TZ"] = "Europe/Warsaw"
     time.tzset()
+    clock.configure("Europe/Warsaw")
     yield
+    clock.configure("")
     if old is None:
         os.environ.pop("TZ", None)
     else:
@@ -121,8 +124,9 @@ async def test_recurring_meal_appears_with_live_countdown():
     app, reg = _app()
     d = reg.get(1)
     now = time.time()
-    lt = time.localtime(now)
-    secs_since_midnight = lt.tm_hour * 3600 + lt.tm_min * 60 + lt.tm_sec
+    # The device's own calendar (configured zone, else its locale, else UTC).
+    lt = clock.local_datetime(now, d)
+    secs_since_midnight = lt.hour * 3600 + lt.minute * 60 + lt.second
     future_t = (secs_since_midnight + 7200) % 86400
     d.config["feed_schedule"] = {
         "schedule": [{"re": "1,2,3,4,5,6,7", "it": [

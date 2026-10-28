@@ -97,7 +97,6 @@ def _process_tz(name):
         time.tzset()
 
 
-@pytest.mark.xfail(strict=True, reason="local dates follow the host TZ, not the device's zone")
 def test_the_daily_feed_record_id_uses_the_device_zone_not_the_host_zone(monkeypatch):
     """At 2026-09-21T14:13:20Z it is the 21st in Saigon and the 22nd in Kiritimati."""
     from my_petkit.ha import commands

@@ -32,6 +32,7 @@ from my_petkit.mqtt.upstream import (
     CREDENTIALS_FILENAME, UpstreamCredentials, UpstreamMQTT,
 )
 from my_petkit.web.hub import EventHub
+from my_petkit.utils import clock
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
     import argparse
@@ -159,6 +160,9 @@ async def _on_device_seen(ha_publisher: HAPublisher | None, device: Device) -> N
 
 def build_services(config: Config, args: argparse.Namespace) -> Services:
     """Build the device-facing app and everything that outlives a request."""
+    # First, before anything reads local time: the zone every calendar
+    # decision (feed days, record ids, file names, daily counts) is made in.
+    clock.configure(config.timezone)
     registry = DeviceRegistry(persist_path=f"{config.data_dir}/devices.json")
     ble_registry = BLERegistry(persist_path=f"{config.data_dir}/ble_devices.json")
     hub = EventHub()

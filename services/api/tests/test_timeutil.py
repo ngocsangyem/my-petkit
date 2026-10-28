@@ -11,6 +11,7 @@ import time
 
 import pytest
 
+from my_petkit.utils import clock
 from my_petkit.utils.timeutil import (
     local_day_bounds, local_day_start, local_offset_hours,
     offset_hours_for_locale, parse_date,
@@ -21,14 +22,17 @@ DAY = 86400
 
 @pytest.fixture
 def tz():
-    """Pin the process timezone, restoring whatever the developer had."""
+    """Pin the configured zone (and the process one, which must not matter),
+    restoring both afterwards."""
     original = os.environ.get("TZ")
 
     def _set(name):
         os.environ["TZ"] = name
         time.tzset()
+        clock.configure(name)
 
     yield _set
+    clock.configure("")
     if original is None:
         os.environ.pop("TZ", None)
     else:

@@ -158,10 +158,11 @@ Two rules about placement that the map does not make obvious:
 
 ## my-petkit invariants (in addition to the upstream ones above)
 
-- **Local time comes from `utils/clock.py` only.** `time.localtime`, `mktime`, a naive
-  `datetime.fromtimestamp`, a bare `.astimezone()` anywhere else fails
-  `tests/test_no_naive_calendar_calls.py`. `clock.zone_for(device)` is the single seam that decides
-  which zone a device's calendar is read in.
+- **Local time comes from `utils/clock.py` only, and never from the host.** `time.localtime`,
+  `mktime`, a naive `datetime.fromtimestamp`, a bare `.astimezone()` anywhere else fails
+  `tests/test_no_naive_calendar_calls.py`. `clock.zone_for(device)` decides the zone: the
+  configured `timezone`, else the device's IANA `locale`, else UTC with a warning. Pass the device
+  wherever one is in hand (feed days, the feeder's record id, the offset reported to a device).
 - **Every listener binds its own setting** (`device_bind_host`, `mqtt_plain_bind`,
   `user_bind_host`, `rtsp_bind`), validated as an IP literal before anything binds. No literal
   `0.0.0.0` in `main/`. The plain MQTT listener must include loopback: the internal bridge dials
@@ -177,7 +178,7 @@ Two rules about placement that the map does not make obvious:
   | go2rtc RTSP (8554) | `rtsp_bind` | `:8554` |
   | go2rtc API (1984) | fixed | `127.0.0.1` |
 - **Device-facing output is pinned by the golden check.** `scripts/golden_device_responses.py
-  --against phase-02-baseline` replays every device endpoint, MQTT reply, HA publish and patcher
+  --against phase-04-approved` replays every device endpoint, MQTT reply, HA publish and patcher
   script through the real wiring with time and randomness frozen. A refactor must leave it
   identical; an approved behaviour change moves the baseline in the same PR, with the reason.
 - **The test suite is pinned by ID.** `tests/baseline-test-ids.txt` + `tests/TEST-LEDGER.md`: add,
@@ -190,7 +191,8 @@ Two rules about placement that the map does not make obvious:
 cd services/api && pytest              # the whole suite, no device or broker needed
 cd services/api && pytest --firmware   # also the patcher tests, if tests/firmware/ is populated
 python ../../scripts/lint-baseline-gate.py ruff ruff ruff-baseline.txt src tests   # from services/api
-python scripts/golden_device_responses.py --against phase-02-baseline                # device bytes unchanged
+python scripts/golden_device_responses.py --against phase-04-approved                # device bytes unchanged
+python scripts/golden_device_responses.py --against-self --tz UTC --tz Pacific/Kiritimati   # host zone irrelevant
 HYPOTHESIS_PROFILE=nightly pytest services/api/tests/fuzz                            # long fuzz run
 gitleaks git --config .gitleaks.toml --redact .   # before every push; CI scans full history too
 cd .semgrep && semgrep --test .        # project semgrep rules still catch their fixtures
@@ -223,9 +225,8 @@ BuildKit's own `TARGETARCH` (which is what the 32-bit-ARM glibc base does).
 - **MQTT-side, a real T5 has now connected — the transport is confirmed, the semantics are not.**
   Settled on hardware: TLS CONNECT with the `mqtt` patcher applied, `keep_alive=62s`, and an
   HMAC-SHA256 signature that matches ours exactly except that the device sends it in UPPERCASE hex.
-  The comparison is already case-insensitive (`mqtt/auth.py`, `password.lower() ==
-  expected_sign.lower()`), so this no longer locks a device out under `mqtt_strict_auth`; the
-  constant-time comparison is tracked as a hardening item. `property` events arrive and round-trip. Still unconfirmed: the semantic event types
+  `mqtt/auth.py` compares the lowercased values with `hmac.compare_digest` and never logs either
+  signature. `property` events arrive and round-trip. Still unconfirmed: the semantic event types
   (`pet_in`, `clean_over`, …) `mqtt/bridge.py` and `ingest.from_mqtt` dispatch on — a wrong guess
   degrades to `event_kind="other"`. The device offers only RSA and PSK cipher suites, so the broker
   sets `DEFAULT:@SECLEVEL=0` (`mqtt/broker.py`) — Python 3.12's default context drops plain RSA and

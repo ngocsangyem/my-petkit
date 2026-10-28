@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **Local time no longer follows the server's own timezone.** Feed-schedule
+  days, the feeder's daily record id, media file names and daily counts are
+  read in the `timezone` option if set, otherwise in the device's own
+  `locale`, otherwise in UTC with a warning in the log. The container's or
+  host's timezone is never used: it says where the server runs, not where the
+  device is. Set `timezone` (e.g. `Europe/Amsterdam`) if your devices report
+  no locale.
+
 - **A standalone run no longer publishes to a Home Assistant broker on
   `localhost` unless asked to.** The standalone default for the HA broker host
   was `localhost`, so a run with no broker configured retried a connection

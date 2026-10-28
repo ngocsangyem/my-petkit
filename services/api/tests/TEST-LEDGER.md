@@ -52,12 +52,10 @@ reviewer can find every place the suite was touched.
 ### Local time through one clock (process zone, DST-aware; no naive calendar call outside it)
 
 - added: tests/test_clock.py::test_frozen_pins_now_and_restores_it
-- added: tests/test_clock.py::test_local_datetime_matches_localtime_in_the_process_zone
 - added: tests/test_clock.py::test_the_spring_forward_day_is_23_hours_long
 - added: tests/test_clock.py::test_the_fall_back_day_is_25_hours_long
 - added: tests/test_clock.py::test_offset_hours_follows_dst
 - added: tests/test_clock.py::test_the_repeated_hour_keeps_its_offset
-- added: tests/test_clock.py::test_zone_for_is_the_process_zone_today
 - added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[__init__.py]
 - added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[ai/__init__.py]
 - added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[ai/pets.py]
@@ -343,6 +341,14 @@ reviewer can find every place the suite was touched.
 - added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[http/middleware/body.py]
   — the new `http/middleware/body.py` gains the per-module clock check's ID.
 
+### Local time from the configured zone, then the device locale, then UTC
+
+- added: tests/test_clock.py::test_local_datetime_reads_the_configured_zone
+- added: tests/test_clock.py::test_the_configured_zone_wins_over_the_device_locale_and_the_host
+- added: tests/test_clock.py::test_without_configuration_the_device_locale_is_used
+- added: tests/test_clock.py::test_without_configuration_or_locale_local_time_is_utc_with_a_warning
+- added: tests/test_clock.py::test_an_unknown_configured_zone_is_refused
+
 ## Removed
 
 None.
@@ -367,6 +373,9 @@ None.
 | `test_repro_panel_media_raw_dir.py` | strict xfail removed: the panel media routes refuse any dot-prefixed component of the resolved path, so the reproduction is a regular test | repro promoted to regular test | bugfix |
 | `test_repro_stitch_failure_keeps_chunks.py::test_successful_stitch_never_overwrites_a_source_and_then_removes_them` | asserts the move-in name is free of every source, and that the clip then takes the first chunk's (preferred) name once the sources are deleted | behaviour refined per the approved fix | 04 |
 | `test_media_stitch.py` (3 tests: end-to-end, late-chunk real ffmpeg, mismatched chunk) | expected stitched `file_id` now carries the device id (`stitched:1:<session>:<category>`) | behaviour change per the approved per-device identity fix | 04 |
+| `test_timeutil.py`, `test_feed_get.py`, `test_clock.py` (zone helpers) | the fixtures that pinned the process TZ now also configure the clock with that zone, since the host zone is no longer read; the DST assertions are unchanged | behaviour change per the approved zone order | 04 |
+| `test_feed_get.py::test_recurring_meal_appears_with_live_countdown` | computes "now" on the device's calendar via `clock.local_datetime` instead of `time.localtime` | same | 04 |
+| `test_repro_device_scoped_commands_and_zones.py::test_the_daily_feed_record_id_uses_the_device_zone_not_the_host_zone` | strict xfail removed: the feeder record id uses the device's zone | fix landed | 04 |
 | `test_repro_media_file_info_resend.py` | strict xfail removed: a replayed file_info no longer moves a ready row with its file on disk out of `ready`, so the reproduction is a regular test | repro promoted to regular test | bugfix |
 | `test_repro_panel_app_key_reads.py` | strict xfail markers removed now the sound and device-delete handlers read `hub`/`ha_publisher` through `web/appkeys.py`; docstring now describes the wired behaviour; unused `pytest` import dropped | xfail removed | fix |
 | `test_repro_mqtt_auth_signature_log.py` | strict xfail marker removed now a sign mismatch logs pk/dn/signmethod and no signature; docstring in the past tense | xfail removed | fix |

@@ -125,9 +125,11 @@ class Device:
 
     Created on `dev_signup` and persisted to `devices.json` by `DeviceRegistry`.
     Only identity, credentials and `config` survive a restart (`to_dict`);
-    `state`, `command_queue` and the liveness timestamps are rebuilt from the
-    device's next contact, so nothing transient may become the only copy of
-    something we cannot re-derive.
+    `state`, `command_queue` and the liveness timestamps are rebuilt: telemetry
+    from the device's next contact, and the event-derived values (last clean,
+    last visit, feed totals) from the event store at start-up
+    (`events/derived_state_replay.py`). Nothing transient may become the only
+    copy of something we cannot re-derive.
 
     The MQTT triple (`mqtt_product_key`, `mqtt_device_name`,
     `mqtt_device_secret`) is the exception: it is minted here exactly once and
@@ -358,7 +360,7 @@ class Device:
         reported = to_float(self.config.get("reported_timezone"), None)
         if reported is not None:
             return reported
-        return local_offset_hours()
+        return local_offset_hours(device=self)
 
     @property
     def aliyun_mqtt_host(self) -> str:
@@ -414,8 +416,8 @@ class Device:
 
         Live state (`state`, `command_queue`, the liveness timestamps and flags)
         is deliberately excluded — it is re-derived from the device's next
-        contact, and persisting it would resurrect a stale "online" after a
-        restart.
+        contact and the event store's start-up replay, and persisting it would
+        resurrect a stale "online" after a restart.
         """
         return {
             "device_type": self.device_type,

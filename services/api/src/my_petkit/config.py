@@ -22,6 +22,7 @@ from urllib.parse import urlparse
 
 from my_petkit.utils.coerce import to_bool, to_int
 from my_petkit.utils.jsonio import atomic_write_json, read_json
+from my_petkit.utils import clock
 
 log = logging.getLogger(__name__)
 
@@ -387,6 +388,8 @@ class Config:
                 ipaddress.ip_address(value)
             except ValueError:
                 raise ValueError(f"{name}={value!r} is not an IP address") from None
+        if self.timezone and clock.parse_zone(self.timezone) is None:
+            raise ValueError(f"timezone={self.timezone!r} is not a known IANA zone")
         host, sep, port = self.rtsp_bind.rpartition(":")
         if not sep or not port.isdigit() or not 0 < int(port) < 65536:
             raise ValueError(f"rtsp_bind={self.rtsp_bind!r} is not host:port or :port")

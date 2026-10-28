@@ -219,7 +219,7 @@ LITTER_ACTIONS = {
 }
 
 
-def _feed_id(now: float | None = None) -> str:
+def _feed_id(now: float | None = None, device: Device | None = None) -> str:
     """The feed's own identifier, which is not the envelope id.
 
     Shape `r_{yyyymmdd}_{n}_{n}-1`, and the number appears TWICE:
@@ -238,8 +238,8 @@ def _feed_id(now: float | None = None) -> str:
     world.
     """
     now = time.time() if now is None else now
-    n = int(now - local_day_start(now))
-    return f"r_{clock.local_datetime(now).strftime('%Y%m%d')}_{n}_{n}-1"
+    n = int(now - local_day_start(now, device))
+    return f"r_{clock.local_datetime(now, device).strftime('%Y%m%d')}_{n}_{n}-1"
 
 
 def _feed(device: Device, amount1: int, amount2: int = 0) -> Command:
@@ -267,7 +267,7 @@ def _feed(device: Device, amount1: int, amount2: int = 0) -> Command:
         params = {"amount1": _clamp_byte(amount1), "amount2": _clamp_byte(amount2)}
     else:
         params = {"amount": _clamp_byte(amount1)}
-    feed_id = _feed_id()
+    feed_id = _feed_id(device=device)
     # Remembered so `feed_realtime_cancel` has something to name. Nothing else
     # knows it: the device echoes it back in `feed_start`/`feed_over`, but a
     # cancel is wanted precisely when neither has arrived yet.
@@ -313,9 +313,9 @@ def _cancel_feed(device: Device) -> Command:
     if device.device_type.lower() not in DEVICE_TYPES_FEEDER_NEXT_GEN:
         return ("feed_realtime", _envelope("thing.service.feed_realtime", {
             "amount": 0,
-            "id": _feed_id(),
+            "id": _feed_id(device=device),
         }))
-    last = (device.config.get("local") or {}).get("lastFeedId") or _feed_id()
+    last = (device.config.get("local") or {}).get("lastFeedId") or _feed_id(device=device)
     return ("feed_realtime_cancel", _envelope("thing.service.feed_realtime_cancel", {
         "id": last,
         "amount1": 0,
@@ -467,7 +467,7 @@ def handle_ha_command(device: Device, entity: EntityDef, payload: str) -> Comman
             device.enqueue_command({"msgType": 1,
                                     "payload": {"feed_get": "1"},
                                     "timestamp": int(time.time())})
-            latest = _feed_latest(parsed, time.time())
+            latest = _feed_latest(parsed, time.time(), device)
             wire_groups = [{"re": g.get("re", ""), "it": g.get("it", [])}
                            for g in parsed.get("schedule", [])]
             wire = {

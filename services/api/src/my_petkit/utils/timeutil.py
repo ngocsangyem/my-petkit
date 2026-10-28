@@ -20,6 +20,7 @@ dependency or a configured zone name.
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta, timezone
+from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from my_petkit.utils import clock
@@ -43,13 +44,13 @@ def cloud_timestamp(when: float | None = None) -> str:
             + now.strftime("%z"))
 
 
-def local_offset_hours(when: float | None = None) -> float:
+def local_offset_hours(when: float | None = None, device: Any = None) -> float:
     """Hours east of UTC in force locally, e.g. 2.0 for Warsaw in summer.
 
     This is the unit PetKit's own API uses for its `timezone` field, which is
     what we report to a device. Returns 0.0 if the platform will not tell us.
     """
-    return clock.offset_hours(when)
+    return clock.offset_hours(when, device)
 
 
 def offset_hours_for_locale(locale: str | None,
@@ -94,8 +95,8 @@ def parse_date(date_str: str | None) -> date | None:
         return None
 
 
-def local_day_bounds(date_str: str | None = None,
-                     now: float | None = None) -> tuple[float, float, str]:
+def local_day_bounds(date_str: str | None = None, now: float | None = None,
+                     device: Any = None) -> tuple[float, float, str]:
     """The UTC epoch span of one LOCAL calendar day.
 
     Args:
@@ -114,14 +115,14 @@ def local_day_bounds(date_str: str | None = None,
     """
     day = parse_date(date_str)
     if day is None:
-        day = clock.local_date(now)
+        day = clock.local_date(now, device)
 
-    start = clock.local_midnight_epoch(day)
-    end = clock.local_midnight_epoch(day + timedelta(days=1))
+    start = clock.local_midnight_epoch(day, device)
+    end = clock.local_midnight_epoch(day + timedelta(days=1), device)
     return start, end, day.strftime(DATE_FORMAT)
 
 
-def local_day_start(now: float | None = None) -> float:
+def local_day_start(now: float | None = None, device: Any = None) -> float:
     """Epoch of the most recent local midnight -- the "today" of daily counts."""
-    start, _, _ = local_day_bounds(now=now if now is not None else clock.now())
+    start, _, _ = local_day_bounds(now=now if now is not None else clock.now(), device=device)
     return start

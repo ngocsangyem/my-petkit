@@ -42,13 +42,12 @@ _EMPTY_GROUP = {"re": "1,2,3,4,5,6,7", "it": [], "itemJsonString": "[]"}
 _ITEM_JSON = dict(separators=(",", ":"), sort_keys=True)
 
 
-def _local_midnight(now: float, day_offset: int) -> float:
-    """Local midnight ``day_offset`` days after the day containing ``now``.
-
-    Re-localized through ``mktime`` rather than ``+ 86400`` — DST makes days
-    23 and 25 hours long.
+def _local_midnight(now: float, day_offset: int, device: Any = None) -> float:
+    """Local midnight ``day_offset`` days after the day containing ``now``, in
+    the device's zone. Re-localized per day rather than ``+ 86400`` — DST
+    makes days 23 and 25 hours long.
     """
-    return clock.local_midnight(now, day_offset)
+    return clock.local_midnight(now, day_offset, device)
 
 
 def migrate_minute_schedule(feed: dict) -> bool:
@@ -79,7 +78,7 @@ def migrate_minute_schedule(feed: dict) -> bool:
     return True
 
 
-def _build_latest(feed: dict, now: float) -> list[dict]:
+def _build_latest(feed: dict, now: float, device: Any = None) -> list[dict]:
     """Compute ``latest[]``: every feed firing today or tomorrow, local days.
 
     Both kinds land here — ``s_`` instances of recurring meals and ``d_``
@@ -95,12 +94,12 @@ def _build_latest(feed: dict, now: float) -> list[dict]:
     Expired deferred feeds are pruned from ``feed`` as a side effect.
     """
     result = []
-    cutoff = _local_midnight(now, 2)  # end of tomorrow
+    cutoff = _local_midnight(now, 2, device)  # end of tomorrow
 
     for day_offset in (0, 1):
-        day_start = _local_midnight(now, day_offset)
+        day_start = _local_midnight(now, day_offset, device)
         # PetKit weekday: Sunday=1 .. Saturday=7; tm_wday: Monday=0.
-        noon = clock.local_datetime(day_start + 43200)
+        noon = clock.local_datetime(day_start + 43200, device)
         pk_wd = (noon.weekday() + 2) % 7 or 7
         date_str = noon.strftime("%Y%m%d")
         for group in feed.get("schedule") or []:
@@ -149,7 +148,7 @@ def _compute_next_tick(latest: list[dict]) -> int:
     return max(entry["t"] for entry in latest)
 
 
-def build_feed_get_result(feed: Any, now: float) -> tuple[Any, bool]:
+def build_feed_get_result(feed: Any, now: float, device: Any = None) -> tuple[Any, bool]:
     """The ``result`` of ``dev_feed_get`` for a stored schedule, at ``now``.
 
     Shared by the HTTP handler and MQTT ``user/get``: the feeder dispenses
@@ -176,7 +175,7 @@ def build_feed_get_result(feed: Any, now: float) -> tuple[Any, bool]:
         return feed, False
 
     migrated = migrate_minute_schedule(feed)
-    latest = _build_latest(feed, now)
+    latest = _build_latest(feed, now, device)
     next_tick = _compute_next_tick(latest)
 
     for group in feed.get("schedule", []):
@@ -199,7 +198,7 @@ async def handle_feed_get(request: web.Request) -> web.Response:
     """
     device = request_device(request)
     feed = device.config.get("feed_schedule") if device else None
-    result, migrated = build_feed_get_result(feed, time.time())
+    result, migrated = build_feed_get_result(feed, time.time(), device)
     if migrated:
         request.app["registry"].save()
     return web.json_response({"result": result})

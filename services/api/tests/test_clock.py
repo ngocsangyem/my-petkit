@@ -13,9 +13,11 @@ def _tz(name):
     original = os.environ.get("TZ")
     os.environ["TZ"] = name
     time.tzset()
+    clock.configure(name)
     try:
         yield
     finally:
+        clock.configure("")
         if original is None:
             os.environ.pop("TZ", None)
         else:
@@ -32,7 +34,7 @@ def test_frozen_pins_now_and_restores_it():
     assert abs(clock.now() - time.time()) < 5
 
 
-def test_local_datetime_matches_localtime_in_the_process_zone():
+def test_local_datetime_reads_the_configured_zone():
     with _tz("Asia/Saigon"):
         moment = clock.local_datetime(1_790_000_000)
         assert moment.utcoffset().total_seconds() == 7 * 3600
@@ -70,6 +72,39 @@ def test_the_repeated_hour_keeps_its_offset():
         assert (a.utcoffset().total_seconds(), b.utcoffset().total_seconds()) == (-4 * 3600, -5 * 3600)
 
 
-def test_zone_for_is_the_process_zone_today():
-    assert clock.zone_for() is clock.PROCESS_LOCAL
-    assert clock.zone_for(object()) is clock.PROCESS_LOCAL
+class _Device:
+    def __init__(self, locale=None, petkit_id=1):
+        self.config = {"locale": locale} if locale else {}
+        self.petkit_id = petkit_id
+
+
+def test_the_configured_zone_wins_over_the_device_locale_and_the_host():
+    with _tz("Pacific/Kiritimati"):
+        clock.configure("Asia/Saigon")
+        assert clock.offset_hours(1_790_000_000, _Device("Europe/Warsaw")) == 7.0
+
+
+def test_without_configuration_the_device_locale_is_used():
+    assert clock.offset_hours(1_790_000_000, _Device("Asia/Kolkata")) == 5.5
+
+
+def test_without_configuration_or_locale_local_time_is_utc_with_a_warning(caplog):
+    original = os.environ.get("TZ")
+    os.environ["TZ"] = "Pacific/Kiritimati"
+    time.tzset()
+    try:
+        assert clock.offset_hours(1_790_000_000, _Device(petkit_id=999)) == 0.0
+    finally:
+        if original is None:
+            os.environ.pop("TZ", None)
+        else:
+            os.environ["TZ"] = original
+        time.tzset()
+    assert any("UTC" in r.getMessage() for r in caplog.records)
+
+
+def test_an_unknown_configured_zone_is_refused():
+    import pytest
+
+    with pytest.raises(ValueError, match="timezone"):
+        clock.configure("Mars/Olympus_Mons")
