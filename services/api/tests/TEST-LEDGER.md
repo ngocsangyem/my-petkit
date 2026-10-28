@@ -16,7 +16,12 @@ reviewer can find every place the suite was touched.
 
 ### Listener bind addresses (each listener binds its own configured address)
 
-- added: tests/test_listener_bind_addresses.py::test_defaults_bind_what_upstream_bound
+- added: tests/test_listener_bind_addresses.py::test_defaults_bind_what_upstream_bound_except_plain_mqtt_on_loopback
+  — renamed from `test_defaults_bind_what_upstream_bound` when plain MQTT moved to loopback.
+- added: tests/test_listener_bind_addresses.py::test_mqtt_plain_expose_restores_every_interface
+- added: tests/test_listener_bind_addresses.py::test_mqtt_plain_expose_flag_and_addon_option
+- added: tests/test_listener_bind_addresses.py::test_the_addon_schema_offers_mqtt_plain_expose
+- added: tests/test_listener_bind_addresses.py::test_the_broker_binds_plain_mqtt_to_loopback_by_default
 - added: tests/test_listener_bind_addresses.py::test_a_bind_host_that_is_not_an_ip_literal_is_refused[localhost-device_bind_host]
 - added: tests/test_listener_bind_addresses.py::test_a_bind_host_that_is_not_an_ip_literal_is_refused[localhost-mqtt_plain_bind]
 - added: tests/test_listener_bind_addresses.py::test_a_bind_host_that_is_not_an_ip_literal_is_refused[localhost-user_bind_host]
@@ -539,12 +544,12 @@ reviewer can find every place the suite was touched.
 
 ### Auth database, per-install keys and user-plane TLS material are private
 
-- added: tests/test_data_file_permissions.py::test_a_loose_existing_file_is_tightened
-- added: tests/test_data_file_permissions.py::test_auth_db_and_keys_are_created_private
-- added: tests/test_data_file_permissions.py::test_keys_are_per_install_and_stable_across_restarts
-- added: tests/test_data_file_permissions.py::test_the_certificate_is_kept_so_its_pinned_fingerprint_holds
-- added: tests/test_data_file_permissions.py::test_two_installs_never_share_a_certificate
-- added: tests/test_data_file_permissions.py::test_user_tls_certificate_and_key_are_private
+- added: tests/test_auth_data_file_permissions.py::test_a_loose_existing_file_is_tightened
+- added: tests/test_auth_data_file_permissions.py::test_auth_db_and_keys_are_created_private
+- added: tests/test_auth_data_file_permissions.py::test_keys_are_per_install_and_stable_across_restarts
+- added: tests/test_auth_data_file_permissions.py::test_the_certificate_is_kept_so_its_pinned_fingerprint_holds
+- added: tests/test_auth_data_file_permissions.py::test_two_installs_never_share_a_certificate
+- added: tests/test_auth_data_file_permissions.py::test_user_tls_certificate_and_key_are_private
 
 ### Error envelope, JSON-only bodies, security headers, no CORS
 
@@ -607,6 +612,152 @@ reviewer can find every place the suite was touched.
 - added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[shared/request_auth.py]
 - added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[shared/tiers.py]
 
+### A client without an Aliyun-shaped MQTT id is accepted only from loopback
+
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[127.0.0.1-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[127.0.0.1-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[127.0.0.53-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[127.0.0.53-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[::1-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[::1-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[::ffff:127.0.0.1-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_internal_bridge_on_loopback_is_accepted[::ffff:127.0.0.1-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[192.168.1.20-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[192.168.1.20-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[10.0.0.5-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[10.0.0.5-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[203.0.113.9-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[203.0.113.9-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[::ffff:192.168.1.20-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[::ffff:192.168.1.20-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[fe80::1-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[fe80::1-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[0.0.0.0-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[0.0.0.0-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[None-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[None-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[localhost-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[localhost-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[garbage-False]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_non_aliyun_client_from_anywhere_else_is_refused[garbage-True]
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_the_refusal_holds_before_a_registry_is_set
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_an_empty_client_id_from_the_lan_is_refused
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_device_shaped_id_from_the_lan_still_takes_the_device_path
+- added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_is_loopback_peer_strips_an_ipv6_zone
+
+### Every connection the server opens to a device goes through utils/outbound_guard.py
+
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[utils/outbound_guard.py]
+  — the per-module clock check covers the new module.
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[8.8.8.8]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[203.0.113.7]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[127.0.0.1]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[::1]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[169.254.169.254]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[fe80::1]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[0.0.0.0]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[224.0.0.1]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[::ffff:127.0.0.1]
+- added: tests/test_outbound_guard_ssrf.py::test_a_private_address_no_device_reported_is_refused
+- added: tests/test_outbound_guard_ssrf.py::test_anything_but_an_ip_literal_is_refused[]
+- added: tests/test_outbound_guard_ssrf.py::test_anything_but_an_ip_literal_is_refused[device.local]
+- added: tests/test_outbound_guard_ssrf.py::test_anything_but_an_ip_literal_is_refused[192.168.1.50:8888]
+- added: tests/test_outbound_guard_ssrf.py::test_anything_but_an_ip_literal_is_refused[http://192.168.1.50]
+- added: tests/test_outbound_guard_ssrf.py::test_anything_but_an_ip_literal_is_refused[192.168.1.050]
+- added: tests/test_outbound_guard_ssrf.py::test_anything_but_an_ip_literal_is_refused[None]
+- added: tests/test_outbound_guard_ssrf.py::test_a_reported_address_on_a_device_network_is_allowed[10.1.2.3]
+- added: tests/test_outbound_guard_ssrf.py::test_a_reported_address_on_a_device_network_is_allowed[172.16.0.9]
+- added: tests/test_outbound_guard_ssrf.py::test_a_reported_address_on_a_device_network_is_allowed[172.31.255.1]
+- added: tests/test_outbound_guard_ssrf.py::test_a_reported_address_on_a_device_network_is_allowed[192.168.1.50]
+- added: tests/test_outbound_guard_ssrf.py::test_a_reported_address_on_a_device_network_is_allowed[fd00::42]
+- added: tests/test_outbound_guard_ssrf.py::test_a_mapped_ipv4_device_address_is_canonicalised
+- added: tests/test_outbound_guard_ssrf.py::test_a_configured_wireguard_subnet_is_a_device_network
+- added: tests/test_outbound_guard_ssrf.py::test_a_wireguard_subnet_cannot_reopen_loopback_or_metadata
+- added: tests/test_outbound_guard_ssrf.py::test_with_no_guard_installed_everything_is_refused
+- added: tests/test_outbound_guard_ssrf.py::test_a_failing_device_list_fails_closed
+- added: tests/test_outbound_guard_ssrf.py::test_the_guard_follows_the_registry_live
+- added: tests/test_outbound_guard_ssrf.py::test_an_ipv6_target_is_bracketed_in_a_url
+- added: tests/test_outbound_guard_ssrf.py::test_wireguard_subnets_config_accepts_cidrs[value0]
+- added: tests/test_outbound_guard_ssrf.py::test_wireguard_subnets_config_accepts_cidrs[value1]
+- added: tests/test_outbound_guard_ssrf.py::test_wireguard_subnets_config_refuses_anything_else[value0]
+- added: tests/test_outbound_guard_ssrf.py::test_wireguard_subnets_config_refuses_anything_else[value1]
+- added: tests/test_outbound_guard_ssrf.py::test_wireguard_subnets_config_refuses_anything_else[10.0.0.0/8]
+- added: tests/test_outbound_guard_ssrf.py::test_go2rtc_serves_no_stream_for_a_refused_address[8.8.8.8]
+- added: tests/test_outbound_guard_ssrf.py::test_go2rtc_serves_no_stream_for_a_refused_address[127.0.0.1]
+- added: tests/test_outbound_guard_ssrf.py::test_go2rtc_serves_no_stream_for_a_refused_address[169.254.169.254]
+- added: tests/test_outbound_guard_ssrf.py::test_go2rtc_serves_no_stream_for_a_refused_address[192.168.1.99]
+- added: tests/test_outbound_guard_ssrf.py::test_the_go2rtc_probe_never_dials_a_refused_address
+- added: tests/test_outbound_guard_ssrf.py::test_the_patcher_read_back_refuses_before_connecting[8.8.8.8]
+- added: tests/test_outbound_guard_ssrf.py::test_the_patcher_read_back_refuses_before_connecting[127.0.0.1]
+- added: tests/test_outbound_guard_ssrf.py::test_the_patcher_read_back_refuses_before_connecting[169.254.169.254]
+- added: tests/test_outbound_guard_ssrf.py::test_the_patcher_read_back_refuses_before_connecting[192.168.1.99]
+- added: tests/test_outbound_guard_ssrf.py::test_run_cmd_capture_sends_nothing_to_a_refused_device
+- added: tests/test_outbound_guard_ssrf.py::test_device_reads_do_not_follow_redirects
+- added: tests/test_outbound_guard_ssrf.py::test_talk_refuses_a_device_address_the_guard_refuses
+
+### proxy_upstream and proxy_dns reach only PetKit and Aliyun IoT hosts
+
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[http/upstream_allowlist.py]
+  — the per-module clock check covers the new module.
+- added: tests/test_proxy_upstream_allowlist.py::test_every_preset_is_on_the_allowlist
+- added: tests/test_proxy_upstream_allowlist.py::test_every_region_has_its_api_host_and_the_presets_cover_every_region
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://api-eu.petkt.com/6/]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://api.eu-pet.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://api.petkt.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://api.petktasia.com/6/]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://api.petkit.cn]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://API-RU.PETKIT.CN/6/]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[http://api-eu.petkt.com:80]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://a1PK.iot-as-mqtt.eu-central-1.aliyuncs.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_petkit_and_aliyun_hosts_are_allowed[https://iot-600a5gmp.mqtt.iothub.aliyuncs.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[http://127.0.0.1:8080]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[http://169.254.169.254/latest/meta-data/]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[http://192.168.1.10/6/]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://evil.example]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://api-eu.petkt.com.evil.example]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://evilapi-eu.petkt.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://user:pw@api-eu.petkt.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[ftp://api-eu.petkt.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[file:///etc/passwd]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://a1PK.iot-as-mqtt.mars-1.aliyuncs.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://bucket.oss-eu-central-1.aliyuncs.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[https://api-eu.petkt.com:99999]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[api-eu.petkt.com]
+- added: tests/test_proxy_upstream_allowlist.py::test_anything_else_is_refused_where_the_setting_is_written[]
+- added: tests/test_proxy_upstream_allowlist.py::test_preset_keys_are_still_valid_settings
+- added: tests/test_proxy_upstream_allowlist.py::test_forward_never_contacts_a_refused_upstream
+- added: tests/test_proxy_upstream_allowlist.py::test_cloud_fetch_never_contacts_a_refused_upstream
+- added: tests/test_proxy_upstream_allowlist.py::test_the_proxy_dns_resolver_resolves_only_allowlisted_names
+- added: tests/test_proxy_upstream_allowlist.py::test_forward_does_not_follow_redirects
+
+### ffmpeg runs with -nostdin, a file/pipe protocol whitelist and input size and duration caps; output unchanged
+
+- added: tests/test_ffmpeg_hardening.py::test_every_ffmpeg_input_gets_the_whitelist_and_the_duration_cap
+- added: tests/test_ffmpeg_hardening.py::test_ffprobe_gets_the_whitelist_and_other_binaries_are_untouched
+- added: tests/test_ffmpeg_hardening.py::test_run_ffmpeg_always_runs_the_hardened_argv
+- added: tests/test_ffmpeg_hardening.py::test_an_input_over_the_size_cap_is_never_handed_to_ffmpeg
+- added: tests/test_ffmpeg_hardening.py::test_a_stitch_over_the_size_cap_is_refused
+- added: tests/test_ffmpeg_hardening.py::test_a_remux_is_byte_identical_to_the_unhardened_command
+- added: tests/test_ffmpeg_hardening.py::test_a_stitch_is_byte_identical_to_the_unhardened_command
+- added: tests/test_ffmpeg_hardening.py::test_the_probe_and_face_resize_still_work
+- added: tests/test_ffmpeg_hardening.py::test_a_device_file_cannot_make_ffmpeg_open_the_network
+- added: tests/test_ffmpeg_hardening.py::test_the_duration_cap_bounds_what_ffmpeg_reads
+- added: tests/test_ffmpeg_hardening.py::test_talk_runs_ffmpeg_with_stdin_off_and_per_file_whitelists
+- added: tests/test_ffmpeg_hardening.py::test_the_cap_constants_are_sane
+
+### Files this process writes are owner-only (umask 077, data dir 0700)
+
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[main/data_permissions.py]
+  — the per-module clock check covers the new module.
+- added: tests/test_data_file_permissions.py::test_the_data_dir_is_tightened_and_the_umask_set
+- added: tests/test_data_file_permissions.py::test_a_missing_data_dir_is_created_owner_only
+- added: tests/test_data_file_permissions.py::test_an_unchmoddable_data_dir_is_logged_not_fatal
+- added: tests/test_data_file_permissions.py::test_devices_json_is_owner_only
+- added: tests/test_data_file_permissions.py::test_the_event_database_is_owner_only
+- added: tests/test_data_file_permissions.py::test_the_broker_certificate_and_key_are_owner_only
+- added: tests/test_data_file_permissions.py::test_a_device_sound_list_is_owner_only
+- added: tests/test_data_file_permissions.py::test_main_secures_the_data_dir_before_anything_is_written
+
 ## Removed
 
 None.
@@ -635,6 +786,10 @@ None.
 | `test_feed_get.py::test_recurring_meal_appears_with_live_countdown` | computes "now" on the device's calendar via `clock.local_datetime` instead of `time.localtime` | same | 04 |
 | `test_repro_device_scoped_commands_and_zones.py::test_the_daily_feed_record_id_uses_the_device_zone_not_the_host_zone` | strict xfail removed: the feeder record id uses the device's zone | fix landed | 04 |
 | `test_panel.py::test_action_and_entity_forms_have_the_same_side_effects` | pins `time.time` so the two requests' feed record ids (seconds since midnight) cannot straddle a second boundary; it failed about once in ten runs | flaky test fixed, assertion unchanged | 04 |
+| `test_listener_bind_addresses.py` | module docstring: plain MQTT is the one listener whose default moved off upstream's (loopback); the defaults test was renamed (see Added) | behaviour change: plain MQTT on loopback | 05 |
+| `test_go2rtc.py`, `test_patcher_space.py` | autouse fixture admits the TEST-NET and loopback test-server addresses through the outbound guard, which now gates the probe, the stream sources and the patcher read-back; assertions unchanged (the guard itself is tested in `test_outbound_guard_ssrf.py`) | fixture for the outbound guard | 05 |
+| `conftest.py` (every test) | autouse fixture admits `127.0.0.1`/`localhost` as a proxy upstream, so the proxy, cloud-fetch and panel tests keep forwarding to their local stand-in for PetKit; no test body changed (the allowlist itself is tested unpatched in `test_proxy_upstream_allowlist.py`) | fixture for the upstream allowlist | 05 |
+| `test_panel.py::test_a_custom_upstream_url_is_accepted` | the typed URL is now a PetKit host (`https://api.eu-pet.com/6/`); an arbitrary mirror (`https://my.mirror/6/`) is asserted refused with 400 and nothing changed | behaviour change: proxy upstream allowlist | 05 |
 | `test_repro_media_file_info_resend.py` | strict xfail removed: a replayed file_info no longer moves a ready row with its file on disk out of `ready`, so the reproduction is a regular test | repro promoted to regular test | bugfix |
 | `test_repro_panel_app_key_reads.py` | strict xfail markers removed now the sound and device-delete handlers read `hub`/`ha_publisher` through `web/appkeys.py`; docstring now describes the wired behaviour; unused `pytest` import dropped | xfail removed | fix |
 | `test_repro_mqtt_auth_signature_log.py` | strict xfail marker removed now a sign mismatch logs pk/dn/signmethod and no signature; docstring in the past tense | xfail removed | fix |

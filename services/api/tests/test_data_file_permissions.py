@@ -1,65 +1,114 @@
-"""Auth data and the user-plane TLS material are private to the process user."""
+"""Everything this process writes under its data directory is owner-only.
 
-from __future__ import annotations
+`main()` applies `umask 077` and tightens the data directory to 0700 before
+anything is written. These tests run the real writers -- the device registry,
+the event store, the broker certificate, a device's sound list -- under that
+setting and read back the modes they produced.
+"""
 
 import os
 import stat
 
-from my_petkit.features.auth.install_secrets import (
-    MEDIA_URL_KEY_FILE,
-    SECRETS_DIRNAME,
-    SESSION_KEY_FILE,
-    load_or_create_key,
-)
-from my_petkit.features.auth.service import AuthService
-from my_petkit.features.auth.store import AUTH_DB_FILENAME
-from my_petkit.utils.user_tls import ensure_user_cert, fingerprint_sha256
+import pytest
+
+from my_petkit.devices.registry import DeviceRegistry
+from my_petkit.devices.sound_store import save_sounds, sounds_dir
+from my_petkit.events.store import EventStore
+from my_petkit.main import data_permissions
+from my_petkit.mqtt.broker import ensure_self_signed
+
+pytestmark = pytest.mark.skipif(os.name != "posix", reason="POSIX permission bits")
 
 
 def _mode(path) -> int:
     return stat.S_IMODE(os.stat(path).st_mode)
 
 
-def test_auth_db_and_keys_are_created_private(tmp_path):
-    AuthService(tmp_path).close()
-    assert _mode(tmp_path / AUTH_DB_FILENAME) == 0o600
-    assert _mode(tmp_path / SECRETS_DIRNAME) == 0o700
-    for name in (SESSION_KEY_FILE, MEDIA_URL_KEY_FILE):
-        assert _mode(tmp_path / SECRETS_DIRNAME / name) == 0o600
+@pytest.fixture
+def data_dir(tmp_path):
+    """A data dir created world-readable, as the Supervisor or an older version
+    would have left it, with the process umask restored afterwards."""
+    data = tmp_path / "data"
+    data.mkdir()
+    os.chmod(data, 0o755)  # noqa: S103 - the loose starting state under test
+    previous = os.umask(0o022)
+    try:
+        data_permissions.secure_data_dir(str(data))
+        yield data
+    finally:
+        os.umask(previous)
 
 
-def test_keys_are_per_install_and_stable_across_restarts(tmp_path):
-    a = load_or_create_key(tmp_path / "one" / "k")
-    assert a == load_or_create_key(tmp_path / "one" / "k")
-    assert a != load_or_create_key(tmp_path / "two" / "k")
-    assert len(a) == 32
+def test_the_data_dir_is_tightened_and_the_umask_set(data_dir):
+    assert _mode(data_dir) == 0o700
+    current = os.umask(0o077)
+    assert current == 0o077
 
 
-def test_a_loose_existing_file_is_tightened(tmp_path):
-    AuthService(tmp_path).close()
-    os.chmod(tmp_path / AUTH_DB_FILENAME, 0o644)
-    os.chmod(tmp_path / SECRETS_DIRNAME / SESSION_KEY_FILE, 0o644)
-    AuthService(tmp_path).close()
-    assert _mode(tmp_path / AUTH_DB_FILENAME) == 0o600
-    assert _mode(tmp_path / SECRETS_DIRNAME / SESSION_KEY_FILE) == 0o600
+def test_a_missing_data_dir_is_created_owner_only(tmp_path):
+    previous = os.umask(0o022)
+    try:
+        data_permissions.secure_data_dir(str(tmp_path / "fresh" / "data"))
+        assert _mode(tmp_path / "fresh" / "data") == 0o700
+    finally:
+        os.umask(previous)
 
 
-def test_user_tls_certificate_and_key_are_private(tmp_path):
-    cert, key, fp = ensure_user_cert(tmp_path / "certs", ["192.168.1.10", "petkit.example"])
-    assert _mode(tmp_path / "certs") == 0o700
+def test_an_unchmoddable_data_dir_is_logged_not_fatal(tmp_path, monkeypatch, caplog):
+    def refuse(*args, **kwargs):
+        raise PermissionError("not yours")
+
+    previous = os.umask(0o022)
+    monkeypatch.setattr(data_permissions.os, "chmod", refuse)
+    try:
+        data_permissions.secure_data_dir(str(tmp_path))
+    finally:
+        os.umask(previous)
+    assert "Could not restrict data directory" in caplog.text
+
+
+async def test_devices_json_is_owner_only(data_dir):
+    reg = DeviceRegistry(persist_path=str(data_dir / "devices.json"))
+    reg.get_or_create(1, "t5", serial_number="SN1")
+    reg.save()
+    assert _mode(data_dir / "devices.json") == 0o600
+
+
+async def test_the_event_database_is_owner_only(data_dir):
+    store = EventStore(data_dir / "petkit.db")
+    await store.connect()
+    try:
+        created = [p for p in data_dir.iterdir() if p.name.startswith("petkit.db")]
+        assert created
+        for p in created:
+            assert _mode(p) == 0o600, p.name
+    finally:
+        await store.close()
+
+
+def test_the_broker_certificate_and_key_are_owner_only(data_dir):
+    cert, key = data_dir / "certs" / "broker.crt", data_dir / "certs" / "broker.key"
+    assert ensure_self_signed(str(cert), str(key))
+    assert _mode(data_dir / "certs") == 0o700
     assert _mode(cert) == 0o600
     assert _mode(key) == 0o600
-    assert fp == fingerprint_sha256(cert)
-    assert len(fp) == 64
 
 
-def test_the_certificate_is_kept_so_its_pinned_fingerprint_holds(tmp_path):
-    _c, _k, first = ensure_user_cert(tmp_path / "certs", ["192.168.1.10"])
-    _c, _k, second = ensure_user_cert(tmp_path / "certs", ["10.0.0.9"])
-    assert first == second
+def test_a_device_sound_list_is_owner_only(data_dir):
+    save_sounds(str(data_dir), 1, [{"id": 1, "name": "hello.mp3"}])
+    assert _mode(data_dir / "sounds") == 0o700
+    assert _mode(sounds_dir(str(data_dir), 1)) == 0o700
+    assert _mode(os.path.join(sounds_dir(str(data_dir), 1), "sounds.json")) == 0o600
 
 
-def test_two_installs_never_share_a_certificate(tmp_path):
-    _c, _k, a = ensure_user_cert(tmp_path / "a", [])
-    _c, _k, b = ensure_user_cert(tmp_path / "b", [])
-    assert a != b
+def test_main_secures_the_data_dir_before_anything_is_written():
+    """Ordering is the point: after logging (so a warning is visible), before
+    the sidebar flag file and before any service is built."""
+    import inspect
+
+    from my_petkit import main as main_module
+
+    src = inspect.getsource(main_module.main)
+    assert src.index("secure_data_dir(config.data_dir)") < src.index("show_in_sidebar_once")
+    assert src.index("secure_data_dir(config.data_dir)") < src.index("build_services(")
+    assert src.index("logging.basicConfig") < src.index("secure_data_dir(config.data_dir)")

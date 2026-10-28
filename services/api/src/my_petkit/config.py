@@ -15,7 +15,7 @@ import json
 import logging
 import os
 import urllib.request
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -23,6 +23,7 @@ from urllib.parse import urlparse
 from my_petkit.utils.coerce import to_bool, to_int
 from my_petkit.utils.jsonio import atomic_write_json, read_json
 from my_petkit.utils import clock
+from my_petkit.utils.outbound_guard import parse_subnets
 
 log = logging.getLogger(__name__)
 
@@ -365,8 +366,12 @@ class Config:
     #: Device plane: device HTTP API, media bucket and the MQTT TLS listener.
     device_bind_host: str = "0.0.0.0"  # noqa: S104 - the device plane serves the LAN
     #: The plain MQTT listener. The internal bridge dials `localhost` on it, so
-    #: whatever this is must include loopback (`0.0.0.0` or `127.0.0.1`).
-    mqtt_plain_bind: str = "0.0.0.0"  # noqa: S104
+    #: whatever this is must include loopback. Loopback only by default: devices
+    #: speak MQTT over TLS, and a plaintext listener on the LAN is one more door.
+    mqtt_plain_bind: str = "127.0.0.1"
+    #: Serve the plain MQTT listener on every interface, as upstream did, for a
+    #: device that speaks plaintext MQTT. Overrides `mqtt_plain_bind`.
+    mqtt_plain_expose: bool = False
     #: The user plane (web panel / API).
     user_bind_host: str = "0.0.0.0"  # noqa: S104
     #: The user plane over TLS (self-signed, `utils/user_tls.py`), bound on
@@ -382,6 +387,19 @@ class Config:
     rtsp_bind: str = ":8554"
     #: IANA zone the server reads local time in. Empty means the process zone.
     timezone: str = ""
+    #: CIDR networks, beyond RFC 1918 and IPv6 ULA, where a device may be when
+    #: it reaches us over WireGuard. The server only ever connects to a device
+    #: address inside one of these (`utils/outbound_guard.py`).
+    wireguard_subnets: list[str] = field(default_factory=list)
+
+    @property
+    def mqtt_plain_listen_host(self) -> str:
+        """The address the plain MQTT listener actually binds.
+
+        Every interface when `mqtt_plain_expose` is set (which still includes
+        the loopback address the internal bridge dials), else `mqtt_plain_bind`.
+        """
+        return "0.0.0.0" if self.mqtt_plain_expose else self.mqtt_plain_bind  # noqa: S104
 
     def validate_bind_addresses(self) -> None:
         """Refuse a bind address that is not an IP literal, before anything binds.
@@ -408,6 +426,12 @@ class Config:
                 ipaddress.ip_address(host.strip("[]"))
             except ValueError:
                 raise ValueError(f"rtsp_bind={self.rtsp_bind!r} host is not an IP address") from None
+
+    def validate_wireguard_subnets(self) -> None:
+        """Refuse a `wireguard_subnets` entry that is not a CIDR network."""
+        if not isinstance(self.wireguard_subnets, list):
+            raise ValueError("wireguard_subnets must be a list of CIDR networks")
+        parse_subnets(self.wireguard_subnets)
 
     @property
     def capture_dir(self) -> str:
@@ -598,6 +622,7 @@ class Config:
         c.mqtt_strict_auth = _opt_bool(opts, "mqtt_strict_auth", c.mqtt_strict_auth)
         c.user_port = _opt_int(opts, "user_port", c.user_port)
         c.user_hosts = str(opts.get("user_hosts") or "").strip()
+        c.mqtt_plain_expose = _opt_bool(opts, "mqtt_plain_expose", c.mqtt_plain_expose)
         for key in ("device_bind_host", "mqtt_plain_bind", "user_bind_host", "rtsp_bind",
                     "timezone"):
             value = str(opts.get(key) or "").strip()

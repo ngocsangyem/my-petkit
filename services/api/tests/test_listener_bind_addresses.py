@@ -3,7 +3,9 @@
 A listener hard-wired to 0.0.0.0 is reachable from every network the host is
 on, and a deployment that puts the user plane behind a tunnel or a reverse
 proxy has to be able to say "loopback only" per listener. The defaults stay
-what upstream bound, so nothing changes for an install that sets nothing.
+what upstream bound, except plain MQTT: devices speak MQTT over TLS, so the
+plaintext listener serves only the internal bridge on loopback unless
+`mqtt_plain_expose` asks for every interface again.
 """
 
 import pathlib
@@ -21,11 +23,52 @@ from my_petkit.mqtt.broker import _bind
 MAIN = pathlib.Path(__file__).resolve().parents[1] / "src" / "my_petkit" / "main"
 
 
-def test_defaults_bind_what_upstream_bound():
+def test_defaults_bind_what_upstream_bound_except_plain_mqtt_on_loopback():
     c = Config()
-    assert (c.device_bind_host, c.mqtt_plain_bind, c.user_bind_host) == ("0.0.0.0",) * 3  # noqa: S104
+    assert (c.device_bind_host, c.user_bind_host) == ("0.0.0.0",) * 2  # noqa: S104
+    assert c.mqtt_plain_bind == "127.0.0.1"
+    assert c.mqtt_plain_expose is False
+    assert c.mqtt_plain_listen_host == "127.0.0.1"
     assert c.rtsp_bind == ":8554"
     c.validate_bind_addresses()
+
+
+def test_mqtt_plain_expose_restores_every_interface():
+    """Every interface still includes the loopback address the bridge dials."""
+    c = Config(mqtt_plain_expose=True)
+    assert c.mqtt_plain_listen_host == "0.0.0.0"  # noqa: S104
+    c.validate_bind_addresses()
+    assert Config(mqtt_plain_bind="::1").mqtt_plain_listen_host == "::1"
+
+
+def test_mqtt_plain_expose_flag_and_addon_option(tmp_path, monkeypatch):
+    args = parse_args(["--config", str(tmp_path / "absent.json"), "--data-dir", str(tmp_path),
+                       "--mqtt-plain-expose"])
+    assert build_config(args).mqtt_plain_listen_host == "0.0.0.0"  # noqa: S104
+    args = parse_args(["--config", str(tmp_path / "absent.json"), "--data-dir", str(tmp_path)])
+    assert build_config(args).mqtt_plain_listen_host == "127.0.0.1"
+
+    options = {"mqtt_plain_expose": True}
+    monkeypatch.setattr(config_module, "read_json",
+                        lambda path, default: options if str(path).endswith("options.json") else default)
+    monkeypatch.setattr(config_module, "_supervisor_host_ip", lambda: None)
+    monkeypatch.setattr(config_module, "_supervisor_port_map", lambda: {})
+    assert Config.from_ha_addon().mqtt_plain_expose is True
+    options["mqtt_plain_expose"] = "not a bool"
+    assert Config.from_ha_addon().mqtt_plain_expose is False
+
+
+def test_the_addon_schema_offers_mqtt_plain_expose():
+    addon = (pathlib.Path(__file__).resolve().parents[3] / "addon" / "config.yaml").read_text()
+    assert "  mqtt_plain_expose: bool?" in addon
+
+
+def test_the_broker_binds_plain_mqtt_to_loopback_by_default():
+    import inspect
+
+    from my_petkit.mqtt.broker import start_broker
+
+    assert inspect.signature(start_broker).parameters["plain_bind"].default == "127.0.0.1"
 
 
 @pytest.mark.parametrize("setting", ["device_bind_host", "mqtt_plain_bind", "user_bind_host"])

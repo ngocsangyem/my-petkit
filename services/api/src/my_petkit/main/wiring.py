@@ -32,7 +32,7 @@ from my_petkit.mqtt.upstream import (
     CREDENTIALS_FILENAME, UpstreamCredentials, UpstreamMQTT,
 )
 from my_petkit.web.hub import EventHub
-from my_petkit.utils import clock
+from my_petkit.utils import clock, outbound_guard
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
     import argparse
@@ -164,6 +164,12 @@ def build_services(config: Config, args: argparse.Namespace) -> Services:
     # decision (feed days, record ids, file names, daily counts) is made in.
     clock.configure(config.timezone)
     registry = DeviceRegistry(persist_path=f"{config.data_dir}/devices.json")
+    # Every connection the server opens to a device (go2rtc, patcher read-back,
+    # talk) is checked against the addresses registered devices last reported.
+    outbound_guard.configure(outbound_guard.OutboundGuard(
+        lambda: [(d.state or {}).get("ip") for d in registry.all()],
+        config.wireguard_subnets,
+    ))
     ble_registry = BLERegistry(persist_path=f"{config.data_dir}/ble_devices.json")
     hub = EventHub()
 

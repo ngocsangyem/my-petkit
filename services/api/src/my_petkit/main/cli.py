@@ -46,7 +46,9 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--device-bind-host", default=None,
                         help="IP the device API, bucket and MQTT TLS listeners bind (default 0.0.0.0)")
     parser.add_argument("--mqtt-plain-bind", default=None,
-                        help="IP the plain MQTT listener binds; must include loopback (default 0.0.0.0)")
+                        help="IP the plain MQTT listener binds; must include loopback (default 127.0.0.1)")
+    parser.add_argument("--mqtt-plain-expose", action="store_true",
+                        help="Serve plain MQTT on every interface, for a device that speaks plaintext")
     parser.add_argument("--user-bind-host", default=None,
                         help="IP the web panel binds (default 0.0.0.0)")
     parser.add_argument("--user-port", type=int, default=None,
@@ -101,6 +103,8 @@ def _apply_flags(config: Config, args: argparse.Namespace) -> None:
         config.mqtt_key = args.mqtt_key
     if args.mqtt_strict_auth:
         config.mqtt_strict_auth = True
+    if args.mqtt_plain_expose:
+        config.mqtt_plain_expose = True
     if args.web_port is not None:
         config.web_port = args.web_port
     if args.bucket_port is not None:
@@ -146,4 +150,5 @@ def build_config(args: argparse.Namespace) -> Config:
     # Last, after every source has had its say: a bad bind address stops the
     # process here with the setting's name, before anything has bound.
     config.validate_bind_addresses()
+    config.validate_wireguard_subnets()
     return config
