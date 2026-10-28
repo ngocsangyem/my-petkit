@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **Uploaded sounds reach the device again.** `dev_sound_get` crashed on every
+  call and answered `{"result": {}}`, so a sound uploaded in the panel was
+  never offered to the feeder. It now lists the uploaded sounds, and answers
+  an empty list (`[]`, the shape the firmware iterates) when there are none.
+
 - **Local time no longer follows the server's own timezone.** Feed-schedule
   days, the feeder's daily record id, media file names and daily counts are
   read in the `timezone` option if set, otherwise in the device's own

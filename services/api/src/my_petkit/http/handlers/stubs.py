@@ -250,11 +250,7 @@ async def handle_sound_get(request: web.Request) -> web.Response:
     bucket_endpoint = config.get("bucket_endpoint", "")
     device = request_device(request)
     if device and bucket_endpoint:
-        # Reads the PANEL app's "cfg" key on the DEVICE app, which has none, so
-        # this raises and `never_fail_middleware` answers an empty list: no
-        # uploaded sound ever reaches a device. Kept as is until the fix is
-        # approved, because the device would then receive different bytes.
-        data_dir = request.app["cfg"].get("data_dir", "/data")
+        data_dir = config.get("data_dir", "/data")
         sounds = sound_list_for_device(data_dir, device.petkit_id, bucket_endpoint)
         if sounds:
             return web.json_response({"result": sounds})
