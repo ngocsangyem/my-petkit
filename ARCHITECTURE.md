@@ -27,7 +27,7 @@ my_petkit/
 │   ├── middleware/    device identity, proxy forwarding, request logging
 │   ├── redact/        what a cloud reply is allowed to contain
 │   ├── proxy.py       upstream session + forward()
-│   ├── bucket.py      unauthenticated OSS sink, listening on 0.0.0.0
+│   ├── bucket.py      unauthenticated OSS sink, bound to `device_bind_host`
 │   ├── dns.py         resolver for upstream lookups only
 │   └── cloud_fetch.py signs as the device to ask PetKit something directly
 ├── mqtt/          broker.py (amqtt) · auth.py (Aliyun HMAC) · topics.py
@@ -43,14 +43,14 @@ my_petkit/
 │                  entities/ one module per component
 ├── events/        codes.py THE protocol tables · decode.py renders values for humans
 │                  normalize.py transport -> row · sessions.py rows -> visits
-│                  store.py SQLAlchemy async · models.py · migrations.py
+│                  store.py SQLAlchemy async (+ store_base/media/pets/blocked_attempts) · models.py · migrations.py
 ├── media/         pipeline.py decrypt -> remux -> path -> row · stitch.py joins ~4s chunks
 │                  crypto · transcode · layout · retention · go2rtc
 ├── web/           panel.py the application + the whole route table · api/ the JSON handlers
 │                  appkeys.py the app[...] contract · hub.py event ring/WS · static/ · templates/
 ├── patchers/      on-device patches: cacert · mqtt · cloud · camera · ssh
 ├── ai/pets.py     pet CRUD + the face photos the device's NPU matches against
-└── utils/         const · crypto · capture · jsonio · paths · coerce · dicts · timeutil
+└── utils/         const · crypto · capture · jsonio · paths · coerce · dicts · timeutil · clock
 ```
 
 **Layering.** `devices` depends only on `events` and `utils` — it does not know Home Assistant

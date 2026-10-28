@@ -156,12 +156,42 @@ Two rules about placement that the map does not make obvious:
 - **Device input never raises.** Untrusted scalars go through `utils/coerce`, untrusted path
   components through `utils/paths.safe_join` — `http/bucket.py` listens unauthenticated on 0.0.0.0.
 
+## my-petkit invariants (in addition to the upstream ones above)
+
+- **Local time comes from `utils/clock.py` only.** `time.localtime`, `mktime`, a naive
+  `datetime.fromtimestamp`, a bare `.astimezone()` anywhere else fails
+  `tests/test_no_naive_calendar_calls.py`. `clock.zone_for(device)` is the single seam that decides
+  which zone a device's calendar is read in.
+- **Every listener binds its own setting** (`device_bind_host`, `mqtt_plain_bind`,
+  `user_bind_host`, `rtsp_bind`), validated as an IP literal before anything binds. No literal
+  `0.0.0.0` in `main/`. The plain MQTT listener must include loopback: the internal bridge dials
+  `localhost`.
+
+  | Listener | Setting | Default |
+  |---|---|---|
+  | Device HTTP API (80) | `device_bind_host` | `0.0.0.0` |
+  | Media bucket (9000) | `device_bind_host` | `0.0.0.0` |
+  | MQTT TLS (443) | `device_bind_host` | `0.0.0.0` |
+  | MQTT plain (1883) | `mqtt_plain_bind` | `0.0.0.0` |
+  | Web panel / user plane (8099) | `user_bind_host` | `0.0.0.0` |
+  | go2rtc RTSP (8554) | `rtsp_bind` | `:8554` |
+  | go2rtc API (1984) | fixed | `127.0.0.1` |
+- **Device-facing output is pinned by the golden check.** `scripts/golden_device_responses.py
+  --against phase-02-baseline` replays every device endpoint, MQTT reply, HA publish and patcher
+  script through the real wiring with time and randomness frozen. A refactor must leave it
+  identical; an approved behaviour change moves the baseline in the same PR, with the reason.
+- **The test suite is pinned by ID.** `tests/baseline-test-ids.txt` + `tests/TEST-LEDGER.md`: add,
+  remove or rewrite a test and declare it in the ledger, or `test_collected_ids_match_baseline`
+  fails.
+
 ## Dev commands
 
 ```sh
 cd services/api && pytest              # the whole suite, no device or broker needed
 cd services/api && pytest --firmware   # also the patcher tests, if tests/firmware/ is populated
-cd services/api && ruff check src tests
+python ../../scripts/lint-baseline-gate.py ruff ruff ruff-baseline.txt src tests   # from services/api
+python scripts/golden_device_responses.py --against phase-02-baseline                # device bytes unchanged
+HYPOTHESIS_PROFILE=nightly pytest services/api/tests/fuzz                            # long fuzz run
 gitleaks git --config .gitleaks.toml --redact .   # before every push; CI scans full history too
 cd .semgrep && semgrep --test .        # project semgrep rules still catch their fixtures
 ```
