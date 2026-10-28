@@ -41,7 +41,7 @@ Nguồn: tài liệu quy ước của plan rebuild (phần C), chép vào repo �
   - pin phiên bản ffmpeg trong image, quét CVE theo image.
 
 ### C3. SSRF và kết nối ra ngoài
-- **Đích là thiết bị**: mọi kết nối server tự khởi tạo tới thiết bị (go2rtc, đọc ngược của patcher, talk 9010) đi qua một module `shared/outbound_guard.py` duy nhất. Chỉ cho phép khi đủ hai điều kiện:
+- **Đích là thiết bị**: mọi kết nối server tự khởi tạo tới thiết bị (go2rtc, đọc ngược của patcher, talk 9010) đi qua một module `utils/outbound_guard.py` duy nhất. Module nằm ở `utils/outbound_guard.py` (không phải `shared/`): protocol core (`media/`, `patchers/`) không được import `shared/` theo contract import-linter, còn feature thì import được `utils/`. Chỉ cho phép khi đủ hai điều kiện:
   - IP thuộc dải private, ULA hoặc subnet WireGuard đã cấu hình;
   - IP thuộc về thiết bị đã đăng ký.
 

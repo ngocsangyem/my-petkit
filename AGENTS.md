@@ -178,6 +178,11 @@ Two rules about placement that the map does not make obvious:
   | Web panel / user plane (8099) | `user_bind_host` | `0.0.0.0` |
   | go2rtc RTSP (8554) | `rtsp_bind` | `:8554` |
   | go2rtc API (1984) | fixed | `127.0.0.1` |
+- **Every connection the server opens to a device goes through `utils/outbound_guard.py`** — go2rtc
+  sources and probe, the patchers' read-back (8888/8889), talk (9010). Only an IP literal on a device
+  network (RFC 1918, ULA, `wireguard_subnets`) that a registered device reported is dialled, never a
+  hostname, and redirects are not followed. It lives in `utils/` because the protocol core may not
+  import `shared/`.
 - **Device-facing output is pinned by the golden check.** `scripts/golden_device_responses.py
   --against phase-04-approved` replays every device endpoint, MQTT reply, HA publish and patcher
   script through the real wiring with time and randomness frozen. A refactor must leave it

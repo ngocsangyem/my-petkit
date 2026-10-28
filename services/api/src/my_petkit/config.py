@@ -15,7 +15,7 @@ import json
 import logging
 import os
 import urllib.request
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -23,6 +23,7 @@ from urllib.parse import urlparse
 from my_petkit.utils.coerce import to_bool, to_int
 from my_petkit.utils.jsonio import atomic_write_json, read_json
 from my_petkit.utils import clock
+from my_petkit.utils.outbound_guard import parse_subnets
 
 log = logging.getLogger(__name__)
 
@@ -378,6 +379,10 @@ class Config:
     rtsp_bind: str = ":8554"
     #: IANA zone the server reads local time in. Empty means the process zone.
     timezone: str = ""
+    #: CIDR networks, beyond RFC 1918 and IPv6 ULA, where a device may be when
+    #: it reaches us over WireGuard. The server only ever connects to a device
+    #: address inside one of these (`utils/outbound_guard.py`).
+    wireguard_subnets: list[str] = field(default_factory=list)
 
     @property
     def mqtt_plain_listen_host(self) -> str:
@@ -411,6 +416,12 @@ class Config:
                 ipaddress.ip_address(host.strip("[]"))
             except ValueError:
                 raise ValueError(f"rtsp_bind={self.rtsp_bind!r} host is not an IP address") from None
+
+    def validate_wireguard_subnets(self) -> None:
+        """Refuse a `wireguard_subnets` entry that is not a CIDR network."""
+        if not isinstance(self.wireguard_subnets, list):
+            raise ValueError("wireguard_subnets must be a list of CIDR networks")
+        parse_subnets(self.wireguard_subnets)
 
     @property
     def capture_dir(self) -> str:

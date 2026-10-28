@@ -423,6 +423,56 @@ reviewer can find every place the suite was touched.
 - added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_a_device_shaped_id_from_the_lan_still_takes_the_device_path
 - added: tests/test_mqtt_non_aliyun_requires_loopback.py::test_is_loopback_peer_strips_an_ipv6_zone
 
+### Every connection the server opens to a device goes through utils/outbound_guard.py
+
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[utils/outbound_guard.py]
+  — the per-module clock check covers the new module.
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[8.8.8.8]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[203.0.113.7]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[127.0.0.1]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[::1]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[169.254.169.254]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[fe80::1]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[0.0.0.0]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[224.0.0.1]
+- added: tests/test_outbound_guard_ssrf.py::test_a_registered_device_reporting_a_forbidden_address_is_refused[::ffff:127.0.0.1]
+- added: tests/test_outbound_guard_ssrf.py::test_a_private_address_no_device_reported_is_refused
+- added: tests/test_outbound_guard_ssrf.py::test_anything_but_an_ip_literal_is_refused[]
+- added: tests/test_outbound_guard_ssrf.py::test_anything_but_an_ip_literal_is_refused[device.local]
+- added: tests/test_outbound_guard_ssrf.py::test_anything_but_an_ip_literal_is_refused[192.168.1.50:8888]
+- added: tests/test_outbound_guard_ssrf.py::test_anything_but_an_ip_literal_is_refused[http://192.168.1.50]
+- added: tests/test_outbound_guard_ssrf.py::test_anything_but_an_ip_literal_is_refused[192.168.1.050]
+- added: tests/test_outbound_guard_ssrf.py::test_anything_but_an_ip_literal_is_refused[None]
+- added: tests/test_outbound_guard_ssrf.py::test_a_reported_address_on_a_device_network_is_allowed[10.1.2.3]
+- added: tests/test_outbound_guard_ssrf.py::test_a_reported_address_on_a_device_network_is_allowed[172.16.0.9]
+- added: tests/test_outbound_guard_ssrf.py::test_a_reported_address_on_a_device_network_is_allowed[172.31.255.1]
+- added: tests/test_outbound_guard_ssrf.py::test_a_reported_address_on_a_device_network_is_allowed[192.168.1.50]
+- added: tests/test_outbound_guard_ssrf.py::test_a_reported_address_on_a_device_network_is_allowed[fd00::42]
+- added: tests/test_outbound_guard_ssrf.py::test_a_mapped_ipv4_device_address_is_canonicalised
+- added: tests/test_outbound_guard_ssrf.py::test_a_configured_wireguard_subnet_is_a_device_network
+- added: tests/test_outbound_guard_ssrf.py::test_a_wireguard_subnet_cannot_reopen_loopback_or_metadata
+- added: tests/test_outbound_guard_ssrf.py::test_with_no_guard_installed_everything_is_refused
+- added: tests/test_outbound_guard_ssrf.py::test_a_failing_device_list_fails_closed
+- added: tests/test_outbound_guard_ssrf.py::test_the_guard_follows_the_registry_live
+- added: tests/test_outbound_guard_ssrf.py::test_an_ipv6_target_is_bracketed_in_a_url
+- added: tests/test_outbound_guard_ssrf.py::test_wireguard_subnets_config_accepts_cidrs[value0]
+- added: tests/test_outbound_guard_ssrf.py::test_wireguard_subnets_config_accepts_cidrs[value1]
+- added: tests/test_outbound_guard_ssrf.py::test_wireguard_subnets_config_refuses_anything_else[value0]
+- added: tests/test_outbound_guard_ssrf.py::test_wireguard_subnets_config_refuses_anything_else[value1]
+- added: tests/test_outbound_guard_ssrf.py::test_wireguard_subnets_config_refuses_anything_else[10.0.0.0/8]
+- added: tests/test_outbound_guard_ssrf.py::test_go2rtc_serves_no_stream_for_a_refused_address[8.8.8.8]
+- added: tests/test_outbound_guard_ssrf.py::test_go2rtc_serves_no_stream_for_a_refused_address[127.0.0.1]
+- added: tests/test_outbound_guard_ssrf.py::test_go2rtc_serves_no_stream_for_a_refused_address[169.254.169.254]
+- added: tests/test_outbound_guard_ssrf.py::test_go2rtc_serves_no_stream_for_a_refused_address[192.168.1.99]
+- added: tests/test_outbound_guard_ssrf.py::test_the_go2rtc_probe_never_dials_a_refused_address
+- added: tests/test_outbound_guard_ssrf.py::test_the_patcher_read_back_refuses_before_connecting[8.8.8.8]
+- added: tests/test_outbound_guard_ssrf.py::test_the_patcher_read_back_refuses_before_connecting[127.0.0.1]
+- added: tests/test_outbound_guard_ssrf.py::test_the_patcher_read_back_refuses_before_connecting[169.254.169.254]
+- added: tests/test_outbound_guard_ssrf.py::test_the_patcher_read_back_refuses_before_connecting[192.168.1.99]
+- added: tests/test_outbound_guard_ssrf.py::test_run_cmd_capture_sends_nothing_to_a_refused_device
+- added: tests/test_outbound_guard_ssrf.py::test_device_reads_do_not_follow_redirects
+- added: tests/test_outbound_guard_ssrf.py::test_talk_refuses_a_device_address_the_guard_refuses
+
 ## Removed
 
 None.
@@ -452,6 +502,7 @@ None.
 | `test_repro_device_scoped_commands_and_zones.py::test_the_daily_feed_record_id_uses_the_device_zone_not_the_host_zone` | strict xfail removed: the feeder record id uses the device's zone | fix landed | 04 |
 | `test_panel.py::test_action_and_entity_forms_have_the_same_side_effects` | pins `time.time` so the two requests' feed record ids (seconds since midnight) cannot straddle a second boundary; it failed about once in ten runs | flaky test fixed, assertion unchanged | 04 |
 | `test_listener_bind_addresses.py` | module docstring: plain MQTT is the one listener whose default moved off upstream's (loopback); the defaults test was renamed (see Added) | behaviour change: plain MQTT on loopback | 05 |
+| `test_go2rtc.py`, `test_patcher_space.py` | autouse fixture admits the TEST-NET and loopback test-server addresses through the outbound guard, which now gates the probe, the stream sources and the patcher read-back; assertions unchanged (the guard itself is tested in `test_outbound_guard_ssrf.py`) | fixture for the outbound guard | 05 |
 | `test_repro_media_file_info_resend.py` | strict xfail removed: a replayed file_info no longer moves a ready row with its file on disk out of `ready`, so the reproduction is a regular test | repro promoted to regular test | bugfix |
 | `test_repro_panel_app_key_reads.py` | strict xfail markers removed now the sound and device-delete handlers read `hub`/`ha_publisher` through `web/appkeys.py`; docstring now describes the wired behaviour; unused `pytest` import dropped | xfail removed | fix |
 | `test_repro_mqtt_auth_signature_log.py` | strict xfail marker removed now a sign mismatch logs pk/dn/signmethod and no signature; docstring in the past tense | xfail removed | fix |

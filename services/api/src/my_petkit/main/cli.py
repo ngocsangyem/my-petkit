@@ -143,4 +143,5 @@ def build_config(args: argparse.Namespace) -> Config:
     # Last, after every source has had its say: a bad bind address stops the
     # process here with the setting's name, before anything has bound.
     config.validate_bind_addresses()
+    config.validate_wireguard_subnets()
     return config

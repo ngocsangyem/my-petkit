@@ -49,6 +49,7 @@ from typing import TYPE_CHECKING, Any
 import aiohttp
 
 from my_petkit.patchers.camera import STREAM_PATHS, stream_urls
+from my_petkit.utils import outbound_guard
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
     from my_petkit.devices.base import Device
@@ -146,14 +147,22 @@ async def probe_stream(ip: str, timeout: float = PROBE_TIMEOUT) -> bool:
     about — it reads as a broken camera rather than an unapplied patch.
 
     An open port is not enough, so this requires the FLV signature. Never raises:
-    every failure is "no stream", which is the safe answer.
+    every failure is "no stream", which is the safe answer — including a target
+    `utils/outbound_guard.py` refuses. Redirects are not followed: they would let
+    the device pick a second target the guard never saw.
     """
     if not ip:
         return False
-    url = f"http://{ip}/{STREAM_PATHS['flv']}"
+    try:
+        target = outbound_guard.check_device_target(ip)
+    except outbound_guard.OutboundRefused as e:
+        log.debug("go2rtc: not probing: %s", e)
+        return False
+    url = f"http://{outbound_guard.authority(target)}/{STREAM_PATHS['flv']}"
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=timeout)) as resp:
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=timeout),
+                                   allow_redirects=False) as resp:
                 if resp.status != 200:
                     return False
                 head = await resp.content.readexactly(len(FLV_SIGNATURE))
@@ -242,12 +251,23 @@ class Go2rtc:
         return rtsp_url(device, host) if host else ""
 
     def desired_streams(self) -> dict[str, str]:
-        """`{stream name: device FLV url}` for every confirmed camera."""
+        """`{stream name: device FLV url}` for every confirmed camera.
+
+        A camera whose reported address `utils/outbound_guard.py` refuses gets
+        no stream: go2rtc would dial it on the first viewer's behalf.
+        """
         streams = {}
         for device in self._registry.all():
             ip = (device.state or {}).get("ip", "")
-            if ip and device.state.get(STREAM_AVAILABLE):
-                streams[stream_name(device)] = f"http://{ip}/{STREAM_PATHS['flv']}"
+            if not ip or not device.state.get(STREAM_AVAILABLE):
+                continue
+            try:
+                target = outbound_guard.check_device_target(ip)
+            except outbound_guard.OutboundRefused as e:
+                log.debug("go2rtc: no stream for device %s: %s", device.petkit_id, e)
+                continue
+            streams[stream_name(device)] = (
+                f"http://{outbound_guard.authority(target)}/{STREAM_PATHS['flv']}")
         return streams
 
     def wanted(self) -> bool:

@@ -17,6 +17,15 @@ from my_petkit.patchers.common import (
     required_free_bytes, run_cmd_capture,
 )
 from my_petkit.features.patchers.routes import ALL_PATCHERS
+from my_petkit.utils import outbound_guard
+
+
+@pytest.fixture(autouse=True)
+def _guard_admits_the_test_servers(monkeypatch):
+    """These tests are about reading output back, not the outbound guard
+    (`test_outbound_guard_ssrf.py`): admit the loopback test server as if a
+    registered device had reported it."""
+    monkeypatch.setattr(outbound_guard, "check_device_target", lambda host: str(host))
 
 
 def _device() -> Device:
