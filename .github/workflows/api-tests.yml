@@ -1,0 +1,64 @@
+name: api-tests
+
+# Reusable: other workflows (publish) call this one with `uses:` instead of
+# `needs:`, which cannot reach a job in another file.
+#
+# Node is REQUIRED, not optional: the panel/provisioning JS tests skip without
+# it, and a skipped test would silently pass the baseline-ID gate's count.
+#
+# Third-party actions are pinned to a commit SHA. To update one, resolve the
+# tag yourself: gh api repos/<owner>/<repo>/commits/<tag> --jq .sha
+
+on:
+  push:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: services/api
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ matrix.python }}
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "20"
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
+      - name: Install (hash-locked)
+        run: |
+          python -m pip install --require-hashes -r requirements-dev.lock
+          python -m pip install --no-deps -e .
+
+      - name: pytest
+        run: python -m pytest -q
+
+      - name: ruff (baseline gate)
+        run: python ../../scripts/lint-baseline-gate.py ruff ruff ruff-baseline.txt src tests
+
+      - name: mypy (baseline gate)
+        run: python ../../scripts/lint-baseline-gate.py mypy mypy mypy-baseline.txt src/my_petkit
+
+      - name: pip-audit (runtime lock)
+        # pip-audit exits non-zero on any known vulnerability in the shipped
+        # dependency set.
+        run: pip-audit -r requirements.lock --require-hashes --disable-pip

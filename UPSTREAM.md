@@ -38,4 +38,43 @@ the touched files. Bump the synced commit in the table above in the same commit.
 
 ## Rename table
 
-Filled by `scripts/rename-from-upstream.sh` when the code is imported.
+Applied by `scripts/rename-from-upstream.sh` (text files only; binaries are left byte-identical).
+
+| Upstream | my-petkit | Occurrences at `9f86e22` |
+|---|---|---|
+| `petkit_local` | `my_petkit` | 864 |
+| `petkit-local` | `my-petkit` | 97 |
+| `PetKit Local` | `My PetKit` | 8 |
+| `petkitlocal` | `mypetkit` | 3 |
+| `PetKit-Local` | `My-PetKit` | 1 |
+
+### Internal (only this software and Home Assistant see it)
+
+Package and import paths, CLI entry point, add-on slug (`mypetkit`) and name, HA MQTT topic prefix
+(`my-petkit/{id}/…`), entity `unique_id` prefixes, logger names, the go2rtc config header, panel
+title, docstrings and comments.
+
+Changing the HA topic prefix and `unique_id` prefix means an existing petkit-local install migrating
+to my-petkit gets **new** HA entities; the old ones are orphaned. This is a fresh product, so no
+migration is provided.
+
+### Device-facing (bytes a device receives)
+
+Tests cannot prove a device accepts these: the tests were renamed by the same substitution. They are
+verified on hardware by runbook item H12, and are the input to the golden device check.
+
+| Upstream file:line | Field | Upstream value | my-petkit value |
+|---|---|---|---|
+| `devices/payloads.py:357` | STS `token` | `petkit-local-no-sts-token-required-by-this-bucket` | `my-petkit-no-sts-token-required-by-this-bucket` |
+| `devices/payloads.py:361` | STS `secret` | `petkit-local-unchecked-secret-000000000000` | `my-petkit-unchecked-secret-000000000000` |
+| `devices/payloads.py:362` | STS `keyId` | `STS.petkit-local` | `STS.my-petkit` |
+| `devices/payloads.py:418` | `domain_url` path (only parsed by `sscanf` for the host) | `https://{host}/petkit-local/` | `https://{host}/my-petkit/` |
+| `devices/payloads.py:437,441` | `primaryBucketName`, `standbyBucketName` | `petkit-local` | `my-petkit` |
+| `mqtt/broker.py:140-141` | broker certificate CN and SAN | `petkit-local` | `my-petkit` |
+| `http/bucket.py:293,321` | `x-oss-request-id` header prefix | `petkit-local-{ts}` | `my-petkit-{ts}` |
+| `http/server.py:190` | `service` in the status JSON | `petkit-local` | `my-petkit` |
+| `mqtt/bridge.py:256` | internal bridge client id on the device broker | `petkit-local-bridge` | `my-petkit-bridge` |
+| `patchers/common.py:462` | patcher wrapper header written onto the device | `petkit-local patcher wrapper` | `my-petkit patcher wrapper` |
+| `http/cloud_fetch.py:53` | `User-Agent` sent to PetKit's cloud | `PetKit-Local` | `My-PetKit` |
+
+Every replaced literal is 3 characters shorter (`petkit-local` → `my-petkit`).

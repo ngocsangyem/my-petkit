@@ -1,0 +1,52 @@
+# mypy (non-strict, --ignore-missing-imports) errors present in the ported
+# upstream code (9f86e22). Format: <error-code> <file> <count>.
+# scripts/lint-baseline-gate.py fails CI when a count grows or a new pair
+# appears. Modules are moved to strict one commit at a time, each with the
+# golden device check green; lower or delete the rows a commit fixes.
+arg-type src/my_petkit/devices/registry.py 1
+arg-type src/my_petkit/events/decode.py 1
+arg-type src/my_petkit/events/migrations.py 1
+arg-type src/my_petkit/events/sessions.py 2
+arg-type src/my_petkit/events/store.py 2
+arg-type src/my_petkit/http/handlers/feed.py 10
+arg-type src/my_petkit/media/stitch.py 1
+arg-type src/my_petkit/mqtt/broker.py 1
+arg-type src/my_petkit/patchers/cloud.py 2
+arg-type src/my_petkit/patchers/mqtt.py 1
+arg-type src/my_petkit/web/api/devices.py 1
+arg-type src/my_petkit/web/api/schedules.py 1
+arg-type src/my_petkit/web/api/settings.py 1
+assignment src/my_petkit/events/migrations.py 1
+assignment src/my_petkit/ha/commands.py 7
+assignment src/my_petkit/ha/discovery.py 4
+assignment src/my_petkit/ha/publisher.py 1
+assignment src/my_petkit/media/stitch.py 1
+assignment src/my_petkit/mqtt/bridge.py 1
+assignment src/my_petkit/patchers/cloud.py 2
+assignment src/my_petkit/patchers/mqtt.py 1
+assignment src/my_petkit/web/api/devices.py 2
+attr-defined src/my_petkit/events/store.py 4
+attr-defined src/my_petkit/http/middleware/logging.py 1
+attr-defined src/my_petkit/patchers/cloud.py 1
+attr-defined src/my_petkit/patchers/mqtt.py 1
+dict-item src/my_petkit/web/api/schedules.py 1
+misc src/my_petkit/events/store.py 1
+misc src/my_petkit/http/dns.py 1
+misc src/my_petkit/mqtt/broker.py 1
+misc src/my_petkit/web/api/patchers.py 1
+override src/my_petkit/http/dns.py 1
+return-value src/my_petkit/ai/pets.py 1
+return-value src/my_petkit/http/bucket.py 2
+return-value src/my_petkit/http/handlers/discern.py 1
+return-value src/my_petkit/http/server.py 1
+return-value src/my_petkit/patchers/cloud.py 2
+return-value src/my_petkit/patchers/mqtt.py 1
+return-value src/my_petkit/web/api/devices.py 1
+return-value src/my_petkit/web/api/pets.py 1
+union-attr src/my_petkit/ha/command_router.py 1
+union-attr src/my_petkit/http/handlers/discern.py 1
+union-attr src/my_petkit/web/api/sounds.py 3
+var-annotated src/my_petkit/events/sessions.py 1
+var-annotated src/my_petkit/ha/entities/numbers.py 1
+var-annotated src/my_petkit/http/handlers/upload_log.py 1
+var-annotated src/my_petkit/patchers/camera.py 1

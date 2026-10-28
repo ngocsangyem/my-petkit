@@ -8,14 +8,17 @@ repos:
     hooks:
       - id: gitleaks
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 25bcf95026b96e2dd3c0aec3090c3d6ef6ca2e6c # v0.17.3
+  # Ruff runs through the baseline gate: the ported code carries counted,
+  # justified hits (services/api/ruff-baseline.txt) and plain `ruff check`
+  # would fail on them. The gate fails only on hits beyond that baseline.
+  - repo: local
     hooks:
-      # Lint only. Ported protocol code is never reformatted (it must stay
-      # diffable against upstream); new code is formatted by `ruff format` in
-      # its own CI step, scoped to the new-code directories.
-      - id: ruff-check
-        args: [--config, services/api/pyproject.toml]
+      - id: ruff-baseline-gate
+        name: ruff (baseline gate)
+        language: python
+        additional_dependencies: ["ruff==0.17.3"]
+        entry: bash -c 'cd services/api && python ../../scripts/lint-baseline-gate.py ruff ruff ruff-baseline.txt src tests'
+        pass_filenames: false
         files: ^services/api/
 
   - repo: https://github.com/rbubley/mirrors-prettier
