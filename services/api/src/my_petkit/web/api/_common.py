@@ -20,6 +20,7 @@ from aiohttp import web
 from my_petkit.devices.base import Device, split_bucket_authority
 from my_petkit.http.proxy import resolve_upstream
 from my_petkit.utils.coerce import to_int
+from my_petkit.web.appkeys import CFG, LIVE_CONFIG, PET_REGISTRY, REGISTRY
 
 log = logging.getLogger(__name__)
 
@@ -37,7 +38,7 @@ MAX_CAPTURE_LIMIT = 5000
 
 def _live(request: web.Request) -> dict[str, Any]:
     """The shared device-facing config dict, or an empty stand-in for it."""
-    return request.app.get("live_config") or {}
+    return request.app.get(LIVE_CONFIG) or {}
 
 
 def _refuse(status: type[web.HTTPException], error: str) -> web.HTTPException:
@@ -69,7 +70,7 @@ def _device_or_404(request: web.Request) -> Device:
         web.HTTPBadRequest: the id is not a number.
         web.HTTPNotFound: no device has that id.
     """
-    device = request.app["registry"].get(_path_id(request))
+    device = request.app[REGISTRY].get(_path_id(request))
     if not device:
         raise _refuse(web.HTTPNotFound, "not found")
     return device
@@ -132,7 +133,7 @@ async def _deliver(hub, bridge, d, suffix: str, envelope: Any,
 
 async def _pets_by_id(request: web.Request) -> dict[int, dict[str, Any]]:
     """Every pet keyed by id, faces attached; `{}` with no pet registry."""
-    pet_registry = request.app.get("pet_registry")
+    pet_registry = request.app.get(PET_REGISTRY)
     if pet_registry is None:
         return {}
     pets = await pet_registry.all()
@@ -185,7 +186,7 @@ def _limit_param(request: web.Request, default: int, maximum: int) -> int:
 
 def _device_log_root(request: web.Request) -> str:
     """Where uploaded device logs live, or an empty string when unconfigured."""
-    return request.app["cfg"].get("device_log_root", "")
+    return request.app[CFG].get("device_log_root", "")
 
 
 def _device_log_reason(request: web.Request) -> str:
@@ -198,7 +199,7 @@ def _device_log_reason(request: web.Request) -> str:
     """
     if not _device_log_root(request):
         return "no_log_root"
-    endpoint = request.app["cfg"].get("bucket_endpoint", "")
+    endpoint = request.app[CFG].get("bucket_endpoint", "")
     if not endpoint:
         return "no_bucket_endpoint"
     if split_bucket_authority(endpoint) is None:

@@ -25,6 +25,9 @@ from my_petkit.utils.const import (
 )
 from my_petkit.utils.jsonio import atomic_write_json, read_json
 from my_petkit.web.api._common import MAX_EVENT_LIMIT, _json_body, _limit_param, _live
+from my_petkit.web.appkeys import (
+    CFG, EVENT_STORE, HA_PUBLISHER, HUB, LIVE_CONFIG, REGISTRY, RETENTION_CONFIG,
+)
 
 log = logging.getLogger(__name__)
 
@@ -76,7 +79,7 @@ def _current_settings(request: web.Request) -> dict[str, Any]:
     live config did.
     """
     live = _live(request)
-    cfg = request.app["cfg"]
+    cfg = request.app[CFG]
     fallbacks = dict(LIVE_SETTING_DEFAULTS)
     fallbacks["capture"] = bool(cfg.get("capture", False))
 
@@ -135,9 +138,9 @@ async def api_settings(request: web.Request) -> web.Response:
     rejected request cannot leave half its settings written.
     """
     if request.method == "GET":
-        return web.json_response({"settings": _current_settings(request), "writable": bool(request.app.get("live_config"))})
+        return web.json_response({"settings": _current_settings(request), "writable": bool(request.app.get(LIVE_CONFIG))})
 
-    live = request.app.get("live_config")
+    live = request.app.get(LIVE_CONFIG)
     if not isinstance(live, dict) or not live:
         # Nothing wired to write into (empty fallback in tests / no device app).
         return web.json_response({"error": "settings not writable in this mode"}, status=400)
@@ -162,7 +165,7 @@ async def api_settings(request: web.Request) -> web.Response:
     live.update(changed)
 
     # Persist overrides so panel changes survive a restart (merge with existing).
-    path = request.app["cfg"].get("settings_path")
+    path = request.app[CFG].get("settings_path")
     if path:
         try:
             # A damaged overrides file is already dead weight — config.py's
@@ -213,7 +216,7 @@ async def api_blocked(request: web.Request) -> web.Response:
     Answers `{records: [...], counts: {...}}`. `payload_json` is masked unless
     `?reveal=1`, `?limit=` is clamped, and `?device=` / `?kind=` filter.
     """
-    store = request.app.get("event_store")
+    store = request.app.get(EVENT_STORE)
     if store is None:
         return web.json_response({"error": "no event store"}, status=400)
 
@@ -227,7 +230,7 @@ async def api_blocked(request: web.Request) -> web.Response:
         rows = [{**r, "payload_json": _mask(r.get("payload_json"))} for r in rows]
 
     return web.json_response({"records": rows,
-                              "counts": request.app["hub"].redaction_counts()})
+                              "counts": request.app[HUB].redaction_counts()})
 
 
 async def api_info(request: web.Request) -> web.Response:
@@ -243,10 +246,10 @@ async def api_info(request: web.Request) -> web.Response:
     # table — so the dependency only runs one way at import time.
     from my_petkit.web.panel import ASSET_VERSION  # noqa: PLC0415
 
-    cfg = request.app["cfg"]
-    reg = request.app["registry"]
+    cfg = request.app[CFG]
+    reg = request.app[REGISTRY]
     cert = cfg.get("cert_path", "")
-    ha_pub = request.app.get("ha_publisher")
+    ha_pub = request.app.get(HA_PUBLISHER)
     return web.json_response({
         # The hash of the assets THIS process would serve, so the panel can
         # compare it with the one baked into the page it is running from. They
@@ -276,7 +279,7 @@ async def api_info(request: web.Request) -> web.Response:
         "device_count": len(reg.all()),
         # live-editable runtime settings (reflect the shared device-facing config)
         "settings": _current_settings(request),
-        "settings_writable": bool(request.app.get("live_config")),
+        "settings_writable": bool(request.app.get(LIVE_CONFIG)),
         "capture": _current_settings(request)["capture"],
         # The products that do on-device recognition, so the AI/Pets tab can
         # name them instead of carrying its own copy of the list. Sorted for a
@@ -288,11 +291,11 @@ async def api_info(request: web.Request) -> web.Response:
         # Per-rule totals since start. The routine substitutions live only here
         # and in the capture files — see events/models.py::BlockedAttempt for
         # why they are not rows in the database.
-        "redactions": request.app["hub"].redaction_counts(),
+        "redactions": request.app[HUB].redaction_counts(),
         # Proxied-call outcomes. The answer to "is proxy mode actually doing
         # anything?", which nothing else answers once a taken-over device
         # settles into polling only the heartbeat.
-        "upstream": request.app["hub"].upstream_counts(),
+        "upstream": request.app[HUB].upstream_counts(),
     })
 
 
@@ -315,7 +318,7 @@ async def api_retention(request: web.Request) -> web.Response:
     `RetentionConfig.update`, which is what validates it, and persists the
     result so the next sweep uses it.
     """
-    retention = request.app.get("retention_config")
+    retention = request.app.get(RETENTION_CONFIG)
     if retention is None:
         return web.json_response({"error": "retention not available"}, status=400)
 
@@ -325,6 +328,6 @@ async def api_retention(request: web.Request) -> web.Response:
     body = await _json_body(request)
 
     retention.update(body)
-    data_dir = request.app["cfg"].get("data_dir", "/data")
+    data_dir = request.app[CFG].get("data_dir", "/data")
     retention.save(data_dir)
     return web.json_response({"ok": True, "retention": retention.data})

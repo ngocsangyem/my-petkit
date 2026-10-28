@@ -28,6 +28,7 @@ from my_petkit.utils.paths import UnsafePathError, safe_join
 from my_petkit.web.api._common import (
     _cloud_upstream, _face_summaries, _json_body, _path_id, _pets_by_id,
 )
+from my_petkit.web.appkeys import CFG, EVENT_STORE, HA_PUBLISHER, PET_REGISTRY, REGISTRY
 
 log = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ async def api_pets_list_create(request: web.Request) -> web.Response:
     create, since the link can be fixed afterwards. A new pet is immediately
     published to HA as its own virtual device.
     """
-    pet_registry = request.app.get("pet_registry")
+    pet_registry = request.app.get(PET_REGISTRY)
     if pet_registry is None:
         return web.json_response({"error": "pet registry not available"}, status=400)
 
@@ -58,7 +59,7 @@ async def api_pets_list_create(request: web.Request) -> web.Response:
         device_ids = []
 
     pet = await pet_registry.create(name, device_ids=device_ids, weight=body.get("weight"))
-    ha_publisher = request.app.get("ha_publisher")
+    ha_publisher = request.app.get(HA_PUBLISHER)
     if ha_publisher is not None:
         await ha_publisher.publish_pet_discovery(pet)
     return web.json_response({"pet": pet})
@@ -72,7 +73,7 @@ async def api_pet_detail(request: web.Request) -> web.Response:
     and a `device_ids` that will not parse is skipped rather than clearing the
     links.
     """
-    pet_registry = request.app.get("pet_registry")
+    pet_registry = request.app.get(PET_REGISTRY)
     if pet_registry is None:
         return web.json_response({"error": "pet registry not available"}, status=400)
     pid = _path_id(request)
@@ -131,7 +132,7 @@ async def api_pet_detail(request: web.Request) -> web.Response:
     # while the history has already moved — the two would diverge permanently,
     # with no way back through the UI.
     bound = 0
-    store = request.app.get("event_store")
+    store = request.app.get(EVENT_STORE)
     if "device_pet_ids_json" in fields and store is not None:
         wanted = set(json.loads(fields["device_pet_ids_json"]))
         try:
@@ -155,7 +156,7 @@ async def api_pet_detail(request: web.Request) -> web.Response:
                     other, device_pet_ids_json=json.dumps([a for a in aliases if a != ref]))
             bound += await store.bind_pet_ref(ref, pid)
 
-    ha_publisher = request.app.get("ha_publisher")
+    ha_publisher = request.app.get(HA_PUBLISHER)
     if ha_publisher is not None:
         await ha_publisher.publish_pet_discovery(pet)
     return web.json_response({"pet": pet, "bound_events": bound})
@@ -172,7 +173,7 @@ async def api_pet_faces(request: web.Request) -> web.Response:
     "Too many face picture" guard whose limit we could not recover, so we stop
     at the largest count the real cloud was seen to serve.
     """
-    pet_registry = request.app.get("pet_registry")
+    pet_registry = request.app.get(PET_REGISTRY)
     if pet_registry is None:
         return web.json_response({"error": "pet registry not available"}, status=400)
     pid = _path_id(request)
@@ -207,7 +208,7 @@ async def _owned_face(request: web.Request) -> dict[str, Any] | None:
     on an ownership assumption it never verified. A stale panel tab is enough
     to trigger that.
     """
-    pet_registry = request.app.get("pet_registry")
+    pet_registry = request.app.get(PET_REGISTRY)
     if pet_registry is None:
         return None
     try:
@@ -221,7 +222,7 @@ async def _owned_face(request: web.Request) -> dict[str, Any] | None:
 
 async def api_pet_face_detail(request: web.Request) -> web.Response:
     """DELETE one reference photo; answers `{"ok": bool}`."""
-    pet_registry = request.app.get("pet_registry")
+    pet_registry = request.app.get(PET_REGISTRY)
     if pet_registry is None:
         return web.json_response({"error": "pet registry not available"}, status=400)
     face = await _owned_face(request)
@@ -246,7 +247,7 @@ async def api_pet_face_photo(request: web.Request) -> web.Response:
     # unreachable — but `photo_path` is a writable column and this route is on
     # an unauthenticated panel, so it must not depend on that staying true.
     # Same reasoning as handlers/discern.py::handle_faces.
-    faces_dir = os.path.join(request.app["cfg"].get("data_dir", "/data"), "faces")
+    faces_dir = os.path.join(request.app[CFG].get("data_dir", "/data"), "faces")
     try:
         path = safe_join(faces_dir, os.path.basename(face["photo_path"]))
     except UnsafePathError:
@@ -266,7 +267,7 @@ async def api_pets_unbound(request: web.Request) -> web.Response:
     table the guess would even look right, and be wrong the day a second
     animal appears.
     """
-    store = request.app.get("event_store")
+    store = request.app.get(EVENT_STORE)
     if store is None:
         return web.json_response({"error": "event store not available"}, status=400)
     return web.json_response({"unbound": await store.unbound_pet_refs()})
@@ -333,10 +334,10 @@ async def api_pets_import(request: web.Request) -> web.Response:
     which no device ever asks for — so an imported pet is called
     `PetKit pet <id>` until somebody renames it. Nothing is invented.
     """
-    pet_registry = request.app.get("pet_registry")
+    pet_registry = request.app.get(PET_REGISTRY)
     if pet_registry is None:
         return web.json_response({"error": "pet registry not available"}, status=503)
-    reg = request.app["registry"]
+    reg = request.app[REGISTRY]
 
     body = await _json_body(request)
     if not isinstance(body, dict):
@@ -358,7 +359,7 @@ async def api_pets_import(request: web.Request) -> web.Response:
             return web.json_response(
                 {"error": f"could not reach PetKit: {e}"}, status=502)
 
-        store = request.app.get("event_store")
+        store = request.app.get(EVENT_STORE)
         results = []
         for entry in cloud_pets(payload, device.petkit_id):
             pet_ref = entry["pet_ref"]
@@ -379,7 +380,7 @@ async def api_pets_import(request: web.Request) -> web.Response:
                     faces += 1
 
             pet = await pet_registry.get(pet["id"])
-            ha_publisher = request.app.get("ha_publisher")
+            ha_publisher = request.app.get(HA_PUBLISHER)
             if ha_publisher is not None:
                 await ha_publisher.publish_pet_discovery(pet)
 

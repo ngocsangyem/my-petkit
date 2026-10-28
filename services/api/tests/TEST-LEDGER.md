@@ -256,6 +256,23 @@ reviewer can find every place the suite was touched.
 - added: tests/test_repro_stitch_failure_keeps_chunks.py::test_failed_move_into_place_keeps_every_source_chunk
 - added: tests/test_repro_stitch_failure_keeps_chunks.py::test_failed_db_swap_keeps_every_source_chunk
 
+### Panel handlers read app state through the web/appkeys.py constants (one AST-check ID per module)
+
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[__init__.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[_common.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[ble.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[devices.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[logs.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[media.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[patchers.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[pets.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[schedules.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[settings.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[sounds.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[talk.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[timeline.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_the_check_catches_both_read_forms
+
 ## Removed
 
 None.
@@ -268,3 +285,4 @@ None.
 | `test_panel.py`, `test_main_lifecycle.py`, `test_panel_script_loads.py`, `test_provision_js.py`, `test_ble_accessories.py`, `test_bounded_growth.py` | paths into the package gain the `src/` segment | mechanical | import |
 | `test_version.py` | `config.yaml` and `CHANGELOG.md` read from the repository-root `addon/`; `pyproject.toml` from `services/api/` | mechanical | import |
 | `test_state_parsers.py` | real-looking SSID/BSSID fixture replaced by `ExampleNet` / `000000000000`; nothing asserts on it | fixture sanitising | import |
+| `test_repro_panel_app_key_reads.py` | strict xfail markers removed now the sound and device-delete handlers read `hub`/`ha_publisher` through `web/appkeys.py`; docstring now describes the wired behaviour; unused `pytest` import dropped | xfail removed | fix |
