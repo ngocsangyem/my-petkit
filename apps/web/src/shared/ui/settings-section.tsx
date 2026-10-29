@@ -83,7 +83,7 @@ export function SettingsRow({
     <Field
       orientation="horizontal"
       className={cn(
-        'ui-settings-row py-3 first:pt-0 last:pb-0 [.ui-settings-row+&]:border-t [.ui-settings-row+&]:border-border',
+        'ui-settings-row py-3 [.ui-settings-row+&]:border-t [.ui-settings-row+&]:border-border',
         ROW_LAYOUT[kind],
       )}
     >

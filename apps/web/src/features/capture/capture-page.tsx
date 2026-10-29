@@ -60,8 +60,10 @@ export function CapturePage() {
 
   const data = listing.data;
   const finding = data ? (
-    `Raw traffic between devices and this server · ${data.enabled ? 'recording' : 'not recording'} · ` +
-    `${data.files.length} ${data.files.length === 1 ? 'file' : 'files'}, ${formatBytes(totalBytes(data))}`
+    <span className="text-muted-foreground">
+      {`Raw traffic between devices and this server · ${data.enabled ? 'recording' : 'not recording'} · ` +
+        `${data.files.length} ${data.files.length === 1 ? 'file' : 'files'}, ${formatBytes(totalBytes(data))}`}
+    </span>
   ) : (
     <Skeleton width={420} height={14} />
   );

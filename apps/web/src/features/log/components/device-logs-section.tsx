@@ -100,6 +100,7 @@ export function DeviceLogsSection() {
         <Table
           label="Device logs"
           variant="compact"
+          minWidth={560}
           rows={files}
           rowKey={f => f.rel}
           selectedKey={selected}
@@ -157,7 +158,7 @@ export function DeviceLogsSection() {
   }
 
   return (
-    <section className="mt-6 flex min-w-0 flex-col gap-3" aria-labelledby="devlog-title">
+    <section className="flex min-w-0 flex-col gap-3" aria-labelledby="devlog-title">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
         <h2 id="devlog-title">Device logs</h2>
         <SearchField

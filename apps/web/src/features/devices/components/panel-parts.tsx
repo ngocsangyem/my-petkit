@@ -53,7 +53,7 @@ export function PanelFrame({ id, title, summary, open, onOpenChange, children }:
     >
       <h2 className="text-lg">
         <CollapsibleTrigger className="group/panel flex w-full items-baseline gap-2.5 rounded-lg p-5 text-left text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-          <span className="text-lg font-semibold">{title}</span>
+          <span className="max-w-full shrink-0 text-lg font-semibold">{title}</span>
           <span className="ml-auto min-w-0 truncate text-sm font-normal text-muted-foreground">
             {summary}
           </span>

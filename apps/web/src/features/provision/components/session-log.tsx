@@ -21,7 +21,7 @@ export function SessionLog({ lines }: { lines: readonly LogLine[] }) {
         <div
           role="log"
           aria-labelledby={headingId}
-          className="max-h-[480px] overflow-auto rounded-lg bg-ink px-4 py-3 font-mono text-xs leading-[1.7] text-control"
+          className="max-h-[480px] overflow-auto rounded-lg bg-ink px-4 py-3 font-mono text-xs leading-[1.7] text-control dark:bg-ground dark:text-muted-foreground"
           ref={box}
         >
           {lines.map(l => (

@@ -47,9 +47,10 @@ export interface TableProps<Row> {
   /**
    * `plain`: the device list (56px rows, 1px rule, no band).
    * `compact`: 44px rows, e.g. inside a settings panel.
+   * `dense`: 48px rows on the sheet, e.g. a file list.
    * `log`: framed, mono 12.5px body, 30px rows, level edge on the left.
    */
-  variant?: 'plain' | 'compact' | 'log';
+  variant?: 'plain' | 'compact' | 'dense' | 'log';
   /** Key of the selected row; it gets a 2px accent inset left edge. */
   selectedKey?: string | null;
   /** Level per row (log variant): a 2px left edge in the level colour. */
@@ -68,12 +69,14 @@ type Variant = NonNullable<TableProps<unknown>['variant']>;
 const ROW: Record<Variant, string> = {
   plain: 'h-(--pk-row-height) border-rule',
   compact: 'h-11 border-border',
+  dense: 'h-(--pk-row-height-compact) border-rule',
   log: 'h-[30px] border-rule',
 };
 
 const CELL_PAD: Record<Variant, string> = {
   plain: 'py-2',
   compact: 'py-1.5',
+  dense: 'py-1.5',
   log: 'py-1',
 };
 
@@ -192,6 +195,8 @@ export function Table<Row>({
 /** Props for {@link LogLevelText}. */
 export interface LogLevelTextProps {
   level: LogLevel;
+  /** The word to print, e.g. the event kind; defaults to the level itself. */
+  children?: ReactNode;
 }
 
 const LEVEL_TEXT: Record<LogLevel, string> = {
@@ -202,6 +207,6 @@ const LEVEL_TEXT: Record<LogLevel, string> = {
 };
 
 /** The level word in a log row, coloured by level (info and debug stay muted). */
-export function LogLevelText({ level }: LogLevelTextProps) {
-  return <span className={cn('font-sans text-xs', LEVEL_TEXT[level])}>{level}</span>;
+export function LogLevelText({ level, children }: LogLevelTextProps) {
+  return <span className={cn('font-sans text-xs', LEVEL_TEXT[level])}>{children ?? level}</span>;
 }

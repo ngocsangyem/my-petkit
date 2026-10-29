@@ -56,7 +56,7 @@ export function PatchersPage() {
       <PageHeading
         title="Patchers"
         badge={<StepUpPill />}
-        finding={finding(status.data)}
+        finding={<span className="text-muted-foreground">{finding(status.data)}</span>}
         actions={picker}
       />
       <RiskNotice>

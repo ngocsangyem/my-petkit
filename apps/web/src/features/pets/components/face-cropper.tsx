@@ -99,7 +99,7 @@ export function FaceCropper({ target, onClose, onSave }: FaceCropperProps) {
       {!source || !view ? (
         <label
           className={cn(
-            'flex min-h-[220px] cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-control bg-raised p-6 text-center hover:border-data focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-data',
+            'flex min-h-[220px] cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-control bg-raised p-6 text-center hover:border-data has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-data',
             dragOver && 'border-data',
           )}
           onDragEnter={e => {

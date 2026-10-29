@@ -133,7 +133,7 @@ function GalleryBody({
           key={current}
           path={current}
           thumb={false}
-          className="max-h-[70vh] w-full rounded-lg bg-ink object-contain"
+          className="max-h-[70vh] w-full rounded-lg bg-ink object-contain dark:bg-ground"
         />
       )}
     </>

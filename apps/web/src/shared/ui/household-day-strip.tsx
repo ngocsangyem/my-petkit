@@ -55,8 +55,11 @@ export interface HouseholdDayStripProps {
   nowMinute?: number | null;
   /** Label above the now line; defaults to HH:MM of `nowMinute`. */
   nowLabel?: string;
-  /** Lane height: 32 on the devices screen, 28 on the design sheet. */
-  laneHeight?: 28 | 32;
+  /**
+   * Lane height: 32 on the devices screen, 28 on the design sheet, 40 on the timeline, which also
+   * labels every third hour and rules each one across the lanes.
+   */
+  laneHeight?: 28 | 32 | 40;
   /** Accessible name, e.g. "Today at home, Tue 28 Oct". */
   label: string;
 }
@@ -69,10 +72,32 @@ function petInk(index: number): string {
   return cn(`ui-pet-ink-${slot}`, PET_INK[slot]);
 }
 
-/** Lane height and the top offset of each mark, so marks stay centred in a 32 or 28px lane. */
+/** Lane height, the offset and size of each mark (centred in the lane), the row gap, and the axis. */
 const LANE = {
-  32: { lane: 'h-8', visit: 'top-2', meal: 'top-3', band: 'top-2.5' },
-  28: { lane: 'h-7', visit: 'top-1.5', meal: 'top-2.5', band: 'top-2' },
+  40: {
+    lane: 'h-10',
+    visit: 'top-2.5 h-5',
+    meal: 'top-4',
+    band: 'top-3.5',
+    rowGap: 'gap-y-2',
+    hourStep: 3,
+  },
+  32: {
+    lane: 'h-8',
+    visit: 'top-2 h-4',
+    meal: 'top-3',
+    band: 'top-2.5',
+    rowGap: 'gap-y-1.5',
+    hourStep: 6,
+  },
+  28: {
+    lane: 'h-7',
+    visit: 'top-1.5 h-4',
+    meal: 'top-2.5',
+    band: 'top-2',
+    rowGap: 'gap-y-1.5',
+    hourStep: 6,
+  },
 } as const;
 
 type LaneGeometry = (typeof LANE)[keyof typeof LANE];
@@ -82,13 +107,28 @@ function svgSafeId(id: string): string {
   return `strip${id.replace(/[^a-zA-Z0-9_-]/g, '')}`;
 }
 
-const AXIS = [
-  { label: '00', minute: 0 },
-  { label: '06', minute: 360 },
-  { label: '12', minute: 720 },
-  { label: '18', minute: 1080 },
-  { label: '24', minute: 1440 },
-];
+/** Axis labels every `step` hours, 00 to 24. */
+function axisFor(step: number): { label: string; minute: number }[] {
+  const out = [];
+  for (let h = 0; h <= 24; h += step)
+    out.push({ label: String(h).padStart(2, '0'), minute: h * 60 });
+  return out;
+}
+
+/** 1px hour rules inside a lane, at every labelled hour except the two ends. */
+function HourRules({ step }: { step: number }) {
+  if (step >= 6) return null;
+  return axisFor(step)
+    .filter(a => a.minute > 0 && a.minute < 1440)
+    .map(a => (
+      <span
+        key={a.minute}
+        className="pointer-events-none absolute inset-y-0 w-px bg-border"
+        style={{ left: leftAt(a.minute) }}
+        aria-hidden="true"
+      />
+    ));
+}
 
 function NowLine({ minute }: { minute: number | null | undefined }) {
   if (minute === null || minute === undefined) return null;
@@ -151,7 +191,7 @@ function LaneMarks({
         <span
           key={`${v.minute}-${i}`}
           className={cn(
-            'absolute h-4 w-[3px] rounded-[1px] bg-current',
+            'absolute w-[3px] rounded-[1px] bg-current',
             geometry.visit,
             petInk(lane.petIndex),
           )}
@@ -216,13 +256,16 @@ export function HouseholdDayStrip({
   const geometry = LANE[laneHeight];
   return (
     <div
-      className="ui-strip grid grid-cols-[84px_minmax(0,1fr)] items-center gap-x-3 gap-y-1.5 min-[901px]:grid-cols-[120px_minmax(0,1fr)]"
+      className={cn(
+        'ui-strip grid grid-cols-[84px_minmax(0,1fr)] items-center gap-x-3 min-[901px]:grid-cols-[120px_minmax(0,1fr)]',
+        geometry.rowGap,
+      )}
       role="group"
       aria-label={label}
     >
       <span />
       <div className="relative h-[18px] text-xs text-muted-foreground" aria-hidden="true">
-        {AXIS.map(a => (
+        {axisFor(geometry.hourStep).map(a => (
           <span
             key={a.label}
             className={cn(
@@ -265,6 +308,7 @@ export function HouseholdDayStrip({
               lane.kind === 'fountain' && 'overflow-hidden',
             )}
           >
+            <HourRules step={geometry.hourStep} />
             <LaneMarks lane={lane} patternId={`${baseId}-${laneIndex}`} geometry={geometry} />
             <NowLine minute={nowMinute} />
           </div>

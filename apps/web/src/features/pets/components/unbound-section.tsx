@@ -111,7 +111,6 @@ export function UnboundSection({ unbound, error, onRetry, pets, notify }: Unboun
             {pets.map(p => (
               <Button
                 key={p.id}
-                size="small"
                 disabled={bind.isPending}
                 aria-label={`Bind ${u.pet_ref} to ${p.name}`}
                 onClick={() => {

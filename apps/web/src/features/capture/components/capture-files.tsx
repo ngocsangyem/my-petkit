@@ -33,6 +33,7 @@ export function CaptureFiles({ listing, selected, onSelect }: CaptureFilesProps)
       ) : (
         <Table
           label="Capture files"
+          variant="dense"
           rows={listing.files}
           rowKey={f => f.name}
           selectedKey={selected}

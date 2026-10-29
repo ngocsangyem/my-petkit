@@ -9,8 +9,8 @@ type Mode = 'sign-in' | 'first-run';
 
 /** Muted 13px copy inside the sign-in card. */
 const NOTE = 'text-sm text-muted-foreground';
-/** Mono 13px ink for the host and the recovery command. */
-const CODE = 'font-mono text-sm text-foreground';
+/** Mono 12px ink for the host and the recovery command. */
+const CODE = 'font-mono text-xs text-foreground';
 
 /**
  * Sign in with the admin password, or, on a server with no admin yet, create

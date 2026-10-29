@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Button, Icon, Skeleton, Table, type TableColumn } from '@/shared/ui';
+import { Button, Icon, LogLevelText, Skeleton, Table, type TableColumn } from '@/shared/ui';
 import { formatTime } from '@/shared/format/format';
 import type { HubEvent } from '@/shared/ws/hub-event';
 import { deviceText, detailText, entryText, eventKey, levelOf } from '../log-format';
@@ -72,9 +72,28 @@ export function LiveLogTable({ rows, autoscroll, loading, emptyText, onCopy }: L
   };
 
   const columns: TableColumn<HubEvent>[] = [
-    { key: 'time', header: 'Time', width: '96px', nowrap: true, cell: e => formatTime(e.ts) },
-    { key: 'kind', header: 'Kind', width: '72px', muted: true, cell: e => e.kind },
-    { key: 'device', header: 'Device', width: '110px', nowrap: true, cell: deviceText },
+    {
+      key: 'time',
+      header: 'Time',
+      width: '96px',
+      nowrap: true,
+      muted: true,
+      cell: e => formatTime(e.ts),
+    },
+    {
+      key: 'kind',
+      header: 'Kind',
+      width: '72px',
+      cell: e => <LogLevelText level={levelOf(e)}>{e.kind}</LogLevelText>,
+    },
+    {
+      key: 'device',
+      header: 'Device',
+      width: '110px',
+      nowrap: true,
+      muted: true,
+      cell: deviceText,
+    },
     {
       key: 'message',
       header: 'Message',

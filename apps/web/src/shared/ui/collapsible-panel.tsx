@@ -35,7 +35,7 @@ export function CollapsiblePanel({
     >
       <h2 className="text-lg">
         <CollapsibleTrigger className="group/trigger flex w-full items-baseline gap-2.5 rounded-lg border-0 bg-transparent p-5 text-left text-foreground">
-          <span className="text-lg font-semibold">{title}</span>
+          <span className="max-w-full shrink-0 text-lg font-semibold">{title}</span>
           {summary && (
             <span className="min-w-0 truncate text-sm font-normal text-muted-foreground">
               {summary}

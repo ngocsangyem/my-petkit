@@ -195,14 +195,19 @@ export interface StackedFieldProps {
   label: ReactNode;
   /** Optional 12px muted hint under the control. */
   hint?: ReactNode;
+  /** 12/400 muted label with a 4px gap, for long step forms (provision); default is 13/500. */
+  quiet?: boolean;
   children: ReactNode;
 }
 
 /** A label above its control, for forms (sign-in, dialogs). */
-export function StackedField({ label, hint, children }: StackedFieldProps) {
+export function StackedField({ label, hint, quiet, children }: StackedFieldProps) {
   return (
-    <label className="flex flex-col gap-1.5 text-sm font-medium">
-      <span>{label}</span>
+    <label className={cn('flex flex-col', quiet ? 'gap-1' : 'gap-1.5')}>
+      {/* Type styles sit on the label text only, so the control keeps its own weight and colour. */}
+      <span className={quiet ? 'text-xs text-muted-foreground' : 'text-sm font-medium'}>
+        {label}
+      </span>
       {children}
       {hint && <span className="text-xs font-normal text-muted-foreground">{hint}</span>}
     </label>

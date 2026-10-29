@@ -57,6 +57,7 @@ export function ProvisionForm(props: ProvisionFormProps) {
       <fieldset className={FIELDSET} disabled={blocked}>
         <legend className={LEGEND}>Wi-Fi network</legend>
         <StackedField
+          quiet
           label="Wi-Fi name"
           hint="The network the device will join, not necessarily the one this browser is on."
         >
@@ -70,6 +71,7 @@ export function ProvisionForm(props: ProvisionFormProps) {
           />
         </StackedField>
         <StackedField
+          quiet
           label="Password"
           hint="Required: an open network cannot be provisioned this way. It goes from this page to the device over Bluetooth, never to this server or to PetKit."
         >
@@ -87,6 +89,7 @@ export function ProvisionForm(props: ProvisionFormProps) {
       <fieldset className={FIELDSET} disabled={blocked}>
         <legend className={LEGEND}>Server and time</legend>
         <StackedField
+          quiet
           label="Server devices will use"
           hint="Burned in at provisioning: use an IP, or a name the device itself can resolve."
         >
@@ -112,6 +115,7 @@ export function ProvisionForm(props: ProvisionFormProps) {
         )}
         <ServerUrlWarnings value={values.server} />
         <StackedField
+          quiet
           label="Time zone"
           hint="The device has no clock settings of its own: it keeps this fixed offset, with no daylight saving. Changing it later means provisioning again."
         >

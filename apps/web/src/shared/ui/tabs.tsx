@@ -51,7 +51,7 @@ export function Tabs<Id extends string>({
             key={t.id}
             value={t.id}
             disabled={t.disabled}
-            className="h-8 flex-none rounded-none border-0 px-0 py-0 text-base font-normal text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring data-active:font-medium data-active:text-foreground after:bg-data group-data-horizontal/tabs:after:bottom-[-1px]"
+            className="h-8 flex-none rounded-none border-0 px-0 py-0 text-base font-normal text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring data-active:font-medium data-active:text-foreground after:bg-data group-data-[orientation=horizontal]/tabs:after:bottom-[-1px]"
           >
             {t.label}
           </TabsTrigger>

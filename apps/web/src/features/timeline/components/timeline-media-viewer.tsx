@@ -7,7 +7,9 @@ import { MediaImage } from './timeline-still-gallery';
 import { posterPath, videoSources, type MediaSlots, type VideoSource } from '../timeline-model';
 
 // The video box: 16:9 on ink, the fisheye kept whole (contain, never cropped).
-const VIEWER = 'flex items-center justify-center overflow-hidden rounded-lg bg-ink text-control';
+/** Video stays on a near-black frame in both themes; `ink` turns light in dark mode, `ground` does not. */
+const VIEWER =
+  'flex items-center justify-center overflow-hidden rounded-lg bg-ink text-control dark:bg-ground dark:text-muted-foreground';
 const FILL = 'size-full object-contain';
 
 function AssemblingNote({ snapshot }: { snapshot: string | null }) {
@@ -16,9 +18,11 @@ function AssemblingNote({ snapshot }: { snapshot: string | null }) {
       {snapshot && (
         <MediaImage path={snapshot} thumb className={`${FILL} absolute inset-0 opacity-35`} />
       )}
-      <div className="relative flex flex-col items-center gap-1 text-on-dark">
+      <div className="relative flex flex-col items-center gap-1 text-on-dark dark:text-foreground">
         <span>Assembling video…</span>
-        <span className="text-xs text-control">Chunks arrive during the cleaning that follows</span>
+        <span className="text-xs text-control dark:text-muted-foreground">
+          Chunks arrive during the cleaning that follows
+        </span>
       </div>
     </AspectRatio>
   );

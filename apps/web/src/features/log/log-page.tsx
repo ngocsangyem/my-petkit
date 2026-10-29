@@ -60,7 +60,7 @@ export function LogPage() {
         }
       />
 
-      <section className="mt-6 flex min-w-0 flex-col gap-3" aria-label="Live log">
+      <section className="flex min-w-0 flex-col gap-3" aria-label="Live log">
         <LiveLogToolbar filters={filters} />
         {live.error && (
           <ErrorBlock

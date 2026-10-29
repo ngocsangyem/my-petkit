@@ -106,7 +106,9 @@ export function SoundsSection({ deviceId }: { deviceId: number }) {
         </span>
         <Input
           type="file"
-          className="w-auto max-w-full"
+          // The native file control drawn as a secondary button (as the pets artboard's upload),
+          // with the chosen file name beside it in muted text.
+          className="h-auto w-auto max-w-full self-start border-0 bg-transparent p-0 text-sm text-muted-foreground file:mr-3 file:h-8 file:cursor-pointer file:rounded-md file:border file:border-solid file:border-input file:bg-background file:px-3 file:text-base file:font-medium file:text-foreground hover:file:bg-raised disabled:bg-transparent dark:bg-transparent"
           accept="audio/*"
           disabled={call.busy || list.length >= MAX_SOUNDS}
           onChange={e => {
