@@ -26,7 +26,8 @@ const featureZones = features.map(name => ({
 }));
 
 export default tseslint.config(
-  { ignores: ['dist', 'coverage', 'src/api/schema.d.ts'] },
+  // public/ holds plain scripts served as they are (theme-init.js), outside the TS project.
+  { ignores: ['dist', 'coverage', 'public', 'src/api/schema.d.ts'] },
   js.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
   security.configs.recommended,

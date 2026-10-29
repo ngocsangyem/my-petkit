@@ -81,3 +81,58 @@
   --pk-text-caption: 12px;
   --pk-line-height: 1.45;
 }
+
+/*
+ * Dark mode: `.dark` on <html>, set before the first paint by public/theme-init.js.
+ * Values come from design-reference §7.5 (shared with iOS) and §8.4 (the web
+ * frame, approved 2026-10-30). Tokens neither table covers are marked "derived":
+ * picked to keep the light theme's contrast steps.
+ */
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --pk-ground: #0e0f10;
+  --pk-surface: #1a1c1e;
+  --pk-raised: #232628;
+  --pk-active: #1a1c1e; /* active nav pill (§8.4) */
+  --pk-border: #3a3e41; /* same light value as the drawing base (§7.5) */
+  --pk-rule: #25282a; /* derived */
+  --pk-control: #3a3e41; /* the dark drawing-base fill */
+  --pk-text: #f2f4f4;
+  --pk-text-hover: #ffffff; /* derived */
+  --pk-muted: #a1a8a8;
+  /* Primary buttons and selected chips invert to light ink on near-black (§8.4). */
+  --pk-on-dark: #0e0f10;
+
+  --pk-accent: #4fc2b6;
+  --pk-accent-hover: #7fd6cc; /* derived */
+  --pk-chart2: #6aa3e6; /* derived */
+  --pk-chart3: #d9a441; /* derived */
+  --pk-positive: #5fd39b;
+  --pk-warning: #f0b35a; /* §8.4 */
+  --pk-negative: #ff7a72;
+  --pk-log-info-edge: #3a3e41; /* derived */
+  --pk-fountain-reporting: #1f3a37; /* §8.4 */
+
+  --pk-pill-positive-bg: #123824;
+  --pk-pill-positive-ink: #bdf2d3;
+  --pk-pill-negative-bg: #43191a;
+  --pk-pill-negative-ink: #ffc9c4;
+  --pk-pill-warning-bg: #3d2a0c; /* derived */
+  --pk-pill-warning-ink: #f0b35a; /* the dark warning text (§8.4) */
+  --pk-pill-neutral-bg: #2c3032;
+  --pk-pill-neutral-ink: #d5dbda;
+
+  --pk-pet-0-tint: #1d2c40; /* derived */
+  --pk-pet-0-ink: #8fb4e6; /* day-strip tick (§8.4) */
+  --pk-pet-1-tint: #3a2c12; /* derived */
+  --pk-pet-1-ink: #e0b26a; /* day-strip tick (§8.4) */
+
+  --pk-overlay-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); /* derived */
+  --pk-overlay-backdrop: rgba(0, 0, 0, 0.55); /* derived */
+  --pk-swatch-edge: rgba(255, 255, 255, 0.12); /* derived */
+}

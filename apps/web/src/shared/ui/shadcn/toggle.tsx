@@ -5,8 +5,8 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from 'cn';
 
 // Edited from the shadcn source: a pressed toggle gets an accent border, never
-// a fill (design-reference §3, the one selected state), and the focus ring is
-// the accent outline.
+// a fill (design-reference §3, the one selected state); in dark mode it inverts
+// to light ink like the primary button (§8.4). The focus ring is the accent outline.
 const toggleVariants = cva(
   "group/toggle inline-flex items-center justify-center gap-1 rounded-md text-sm font-medium whitespace-nowrap text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
@@ -14,7 +14,7 @@ const toggleVariants = cva(
       variant: {
         default: 'bg-transparent',
         outline:
-          'border border-input bg-secondary hover:not-disabled:bg-muted aria-pressed:border-ring',
+          'border border-input bg-secondary hover:not-disabled:bg-muted aria-pressed:border-ring dark:aria-pressed:border-primary dark:aria-pressed:bg-primary dark:aria-pressed:text-primary-foreground',
       },
       size: {
         default:
