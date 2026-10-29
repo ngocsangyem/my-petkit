@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { Icon } from './icons';
 import { Pill } from './pill';
-import './step-up.css';
 
 /** Props for {@link StepUpPill}. */
 export interface StepUpPillProps {
@@ -23,9 +22,9 @@ export interface RiskNoticeProps {
 /** The single warning paragraph of a step-up screen: on `raised`, with one 16px red icon. */
 export function RiskNotice({ children }: RiskNoticeProps) {
   return (
-    <div className="ui-risk">
-      <Icon name="warning" size={16} strokeWidth={2} className="ui-risk__icon" />
-      <p className="ui-risk__text">{children}</p>
+    <div className="flex items-start gap-3 rounded-lg bg-raised px-4 py-3.5">
+      <Icon name="warning" size={16} strokeWidth={2} className="mt-0.5 flex-none text-negative" />
+      <p className="max-w-[72ch]">{children}</p>
     </div>
   );
 }

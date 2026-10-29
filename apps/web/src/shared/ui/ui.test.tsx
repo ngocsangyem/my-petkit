@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { CollapsiblePanel } from './collapsible-panel';
@@ -93,13 +93,14 @@ describe('ConfirmDialog', () => {
     render(<DialogHarness onConfirm={onConfirm} onCancel={onCancel} />);
     const opener = screen.getByRole('button', { name: 'Clean now' });
     await user.click(opener);
-    const dialog = screen.getByRole('dialog', { name: 'Clean the litter box now?' });
-    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    const dialog = screen.getByRole('alertdialog', { name: 'Clean the litter box now?' });
+    // Modal: everything outside the dialog is hidden from assistive tech.
+    expect(opener.closest('[aria-hidden="true"]')).not.toBeNull();
     expect(dialog).toHaveAccessibleDescription('The drum turns once.');
     await user.click(within(dialog).getByRole('button', { name: 'Clean' }));
     expect(onConfirm).toHaveBeenCalledTimes(1);
     expect(onCancel).not.toHaveBeenCalled();
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
     expect(opener).toHaveFocus();
   });
 
@@ -122,17 +123,18 @@ describe('ConfirmDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Clean now' }));
     const cancel = screen.getByRole('button', { name: 'Cancel' });
     const confirm = screen.getByRole('button', { name: 'Clean' });
-    expect(cancel).toHaveFocus();
+    await waitFor(() => expect(cancel).toHaveFocus());
     await user.tab();
     expect(confirm).toHaveFocus();
+    // Base UI wraps the popup in focus guards that send focus back around.
     await user.tab();
-    expect(cancel).toHaveFocus();
+    await waitFor(() => expect(cancel).toHaveFocus());
     await user.tab({ shift: true });
-    expect(confirm).toHaveFocus();
+    await waitFor(() => expect(confirm).toHaveFocus());
     await user.keyboard('{Escape}');
     expect(onCancel).toHaveBeenCalledTimes(1);
     expect(onConfirm).not.toHaveBeenCalled();
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
   });
 
   it('ignores Escape and disables its buttons while busy', async () => {

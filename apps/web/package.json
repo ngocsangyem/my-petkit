@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "lint": "eslint . && tsc --noEmit && prettier --check src && node scripts/check-no-hex.mjs",
+    "lint": "eslint . && tsc --noEmit && prettier --check src && node scripts/check-no-hex.mjs && node scripts/check-design-rules.mjs",
     "test": "vitest run",
     "format": "prettier --write src"
   },

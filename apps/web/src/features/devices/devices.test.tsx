@@ -136,7 +136,7 @@ describe('DevicesPage', () => {
     expect(names).toEqual(['Clean Now', 'Dump Litter']);
 
     await user.click(within(commands).getByRole('button', { name: 'Clean Now' }));
-    const dialog = screen.getByRole('dialog', { name: 'Clean Now on the litter box?' });
+    const dialog = screen.getByRole('alertdialog', { name: 'Clean Now on the litter box?' });
     expect(calls.some(c => c.method === 'POST')).toBe(false);
     await user.click(within(dialog).getByRole('button', { name: 'Clean Now' }));
 

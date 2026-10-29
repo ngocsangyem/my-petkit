@@ -1,8 +1,13 @@
-import { useId, useRef, type ReactNode } from 'react';
-import { createPortal } from 'react-dom';
+import { useRef, type ReactNode } from 'react';
 import { Button } from './button';
-import { useModalFocus } from './use-modal-focus';
-import './confirm-dialog.css';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from './shadcn/alert-dialog';
 
 /** Props for {@link ConfirmDialog}. */
 export interface ConfirmDialogProps {
@@ -15,7 +20,7 @@ export interface ConfirmDialogProps {
   confirmLabel: string;
   cancelLabel?: string;
   onConfirm: () => void;
-  /** Called by Cancel, Escape and a click on the backdrop. */
+  /** Called by Cancel and Escape. */
   onCancel: () => void;
   /** While true both buttons are disabled and Escape is ignored. */
   busy?: boolean;
@@ -38,39 +43,20 @@ export function ConfirmDialog({
   busy = false,
   confirmDisabled = false,
 }: ConfirmDialogProps) {
-  const titleId = useId();
-  const bodyId = useId();
-  const panel = useRef<HTMLDivElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
-  useModalFocus(panel, { open, onEscape: busy ? null : onCancel, initialFocus: cancelRef });
-
-  if (!open) return null;
-  return createPortal(
-    <div className="ui-dialog-layer">
-      <div
-        className="ui-dialog-backdrop"
-        aria-hidden="true"
-        onClick={() => {
-          if (!busy) onCancel();
-        }}
-      />
-      <div
-        ref={panel}
-        className="ui-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        aria-describedby={bodyId}
-        aria-busy={busy || undefined}
-        tabIndex={-1}
-      >
-        <h2 id={titleId} className="ui-dialog__title">
-          {title}
-        </h2>
-        <div id={bodyId} className="ui-dialog__body">
-          {children}
-        </div>
-        <div className="ui-dialog__actions">
+  return (
+    <AlertDialog
+      open={open}
+      onOpenChange={next => {
+        if (!next && !busy) onCancel();
+      }}
+    >
+      <AlertDialogContent initialFocus={cancelRef} aria-busy={busy || undefined}>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription render={<div />}>{children}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
           <Button
             ref={cancelRef}
             variant="secondary"
@@ -88,9 +74,8 @@ export function ConfirmDialog({
           >
             {confirmLabel}
           </Button>
-        </div>
-      </div>
-    </div>,
-    document.body,
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

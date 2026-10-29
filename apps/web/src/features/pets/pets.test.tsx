@@ -122,7 +122,7 @@ describe('PetsPage', () => {
     });
 
     await userEvent.click(within(card).getByRole('button', { name: 'Delete' }));
-    expect(screen.getByRole('dialog', { name: 'Delete Miso?' })).toBeInTheDocument();
+    expect(screen.getByRole('alertdialog', { name: 'Delete Miso?' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Delete pet' }));
     await waitFor(() => {
       expect(calls.some(c => c.method === 'DELETE' && c.url.endsWith('/api/pets/1'))).toBe(true);
