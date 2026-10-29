@@ -10,7 +10,9 @@ import XCTest
 func assertScreen<V: View>(_ view: V, named name: String,
                            file: StaticString = #filePath, testName: String = #function, line: UInt = #line) {
     for style in [UIUserInterfaceStyle.light, .dark] {
-        let controller = UIHostingController(rootView: view)
+        // A test host is never the active scene, which would draw the
+        // privacy shield over every R3 screen instead of the screen.
+        let controller = UIHostingController(rootView: view.environment(\.scenePhase, .active))
         assertSnapshot(
             of: controller,
             as: .image(on: .iPhone13, precision: 0.99, perceptualPrecision: 0.98,
