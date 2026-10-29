@@ -12,7 +12,7 @@ export function ServerUrlWarnings({ value }: { value: string }) {
   const warnings = provisionUrlWarning(value);
   if (warnings.length === 0) return null;
   return (
-    <ul className="provision-advisories" aria-live="polite">
+    <ul className="m-0 flex list-none flex-col gap-1 p-0 text-xs text-warning" aria-live="polite">
       {warnings.map(w => (
         <li key={w}>{TEXT[w]}</li>
       ))}

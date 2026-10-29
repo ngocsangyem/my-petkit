@@ -10,18 +10,17 @@ import {
   RiskNotice,
   Skeleton,
   StepUpPill,
+  useToast,
 } from '@/shared/ui';
 import { fetchCaptureFile, useCaptureListing, useDeleteCapture } from './api';
 import { CaptureFiles, totalBytes } from './components/capture-files';
 import { CaptureTail } from './components/capture-tail';
-import { useNotice } from '@/shared/feedback/use-notice';
 import { saveBlob } from '@/shared/feedback/save-file';
-import './capture.css';
 
 export function CapturePage() {
   const listing = useCaptureListing();
   const remove = useDeleteCapture();
-  const [notice, showNotice] = useNotice();
+  const toast = useToast();
   const [selected, setSelected] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
@@ -36,7 +35,7 @@ export function CapturePage() {
     try {
       saveBlob(await fetchCaptureFile(name), name);
     } catch (e) {
-      showNotice(`Download failed: ${errorMessage(e)}`);
+      toast(`Download failed: ${errorMessage(e)}`, { error: true });
     } finally {
       setDownloading(null);
     }
@@ -48,10 +47,10 @@ export function CapturePage() {
     remove.mutate(name, {
       onSuccess: () => {
         if (selected === name) setSelected(null);
-        showNotice(`Deleted ${name}`);
+        toast(`Deleted ${name}`);
       },
       onError: e => {
-        showNotice(`Could not delete ${name}: ${errorMessage(e)}`);
+        toast(`Could not delete ${name}: ${errorMessage(e)}`, { error: true });
       },
       onSettled: () => {
         setConfirming(null);
@@ -81,9 +80,6 @@ export function CapturePage() {
           )
         }
       />
-      <span className="capture-notice" role="status">
-        {notice}
-      </span>
       <RiskNotice>
         Every capture is sensitive. It is an exact recording of what your devices said and were
         told, with nothing filtered: expect the Wi-Fi name, LAN addresses, the device serial and its
@@ -92,7 +88,7 @@ export function CapturePage() {
       </RiskNotice>
 
       {listing.isPending && (
-        <div className="capture-grid">
+        <div className="grid grid-cols-1 items-start gap-6 min-[901px]:grid-cols-2">
           <Skeleton height={240} />
           <Skeleton height={420} />
         </div>
@@ -105,7 +101,7 @@ export function CapturePage() {
         />
       )}
       {data && (
-        <div className="capture-grid">
+        <div className="grid grid-cols-1 items-start gap-6 min-[901px]:grid-cols-2">
           <CaptureFiles listing={data} selected={current} onSelect={setSelected} />
           <CaptureTail
             name={current}

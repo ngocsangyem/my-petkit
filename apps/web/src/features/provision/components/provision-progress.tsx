@@ -16,17 +16,17 @@ export function ProvisionProgress({ wifiDone, serverDone, sent }: ProvisionProgr
   const done = steps.filter(s => s.done).length;
   const next = steps.find(s => !s.done);
   return (
-    <div className="provision-progress">
-      <p className="provision-progress__finding">
+    <div className="flex flex-col gap-1.5">
+      <p>
         {next ? (
           <>
-            <span className="provision-strong">
+            <span className="font-medium">
               {COUNT[done]} of three steps {done === 1 ? 'is' : 'are'} done.
             </span>{' '}
             Next: {next.next}.
           </>
         ) : (
-          <span className="provision-strong">All three steps are done.</span>
+          <span className="font-medium">All three steps are done.</span>
         )}
       </p>
       <div
@@ -35,13 +35,17 @@ export function ProvisionProgress({ wifiDone, serverDone, sent }: ProvisionProgr
         aria-valuemin={0}
         aria-valuemax={3}
         aria-valuenow={done}
-        className="provision-progress__track"
+        className="h-1.5 overflow-hidden rounded-[3px] bg-rule"
       >
-        <span className="provision-progress__fill" style={{ width: `${(done / 3) * 100}%` }} />
+        <span className="block h-1.5 bg-data" style={{ width: `${(done / 3) * 100}%` }} />
       </div>
-      <ol className="provision-progress__steps">
+      <ol className="m-0 flex list-none flex-wrap gap-x-5 gap-y-1 p-0 text-sm text-muted-foreground">
         {steps.map(s => (
-          <li key={s.label} aria-current={s === next ? 'step' : undefined}>
+          <li
+            key={s.label}
+            aria-current={s === next ? 'step' : undefined}
+            className="aria-[current=step]:font-medium aria-[current=step]:text-foreground"
+          >
             {s.label}, {s.done ? 'done' : s === next ? 'next' : 'to do'}
           </li>
         ))}

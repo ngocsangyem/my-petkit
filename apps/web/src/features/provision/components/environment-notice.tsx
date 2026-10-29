@@ -22,7 +22,7 @@ export function EnvironmentNotice({ block }: { block: EnvironmentBlock }) {
         included. You will need Chrome or Edge as well. A plain-HTTP page cannot tell whether you
         have one, because the browser hides Web Bluetooth entirely until the page is secure. Or use
         the hosted provisioning page at{' '}
-        <a href={HOSTED} target="_blank" rel="noopener noreferrer" className="provision-mono">
+        <a href={HOSTED} target="_blank" rel="noopener noreferrer" className="font-mono">
           {HOSTED}
         </a>
         , which runs entirely in your browser and talks to the device over Bluetooth. It never sees

@@ -29,6 +29,11 @@ interface ProvisionFormProps {
   onSend: () => void;
 }
 
+/** A fieldset laid out as a column, with the browser's frame and padding removed. */
+export const FIELDSET = 'm-0 flex min-w-0 flex-col gap-3 border-0 p-0';
+/** Step heading: 16/600, as an h2. */
+export const LEGEND = 'mb-3 p-0 text-lg font-semibold';
+
 /** "UTC+07:00", with the browser's zone named on the detected entry. */
 function timezoneLabel(o: TimezoneOption, detectedHours: number, zoneName: string): string {
   if (Math.abs(o.hours - detectedHours) >= 1e-9) return o.label;
@@ -48,9 +53,9 @@ export function ProvisionForm(props: ProvisionFormProps) {
     label: timezoneLabel(o, props.detectedHours, props.zoneName),
   }));
   return (
-    <form className="provision-form" onSubmit={submit} noValidate>
-      <fieldset className="provision-fieldset" disabled={blocked}>
-        <legend className="provision-legend">Wi-Fi network</legend>
+    <form className="flex min-w-0 flex-col gap-6" onSubmit={submit} noValidate>
+      <fieldset className={FIELDSET} disabled={blocked}>
+        <legend className={LEGEND}>Wi-Fi network</legend>
         <StackedField
           label="Wi-Fi name"
           hint="The network the device will join, not necessarily the one this browser is on."
@@ -79,8 +84,8 @@ export function ProvisionForm(props: ProvisionFormProps) {
         </StackedField>
       </fieldset>
 
-      <fieldset className="provision-fieldset" disabled={blocked}>
-        <legend className="provision-legend">Server and time</legend>
+      <fieldset className={FIELDSET} disabled={blocked}>
+        <legend className={LEGEND}>Server and time</legend>
         <StackedField
           label="Server devices will use"
           hint="Burned in at provisioning: use an IP, or a name the device itself can resolve."
@@ -111,7 +116,7 @@ export function ProvisionForm(props: ProvisionFormProps) {
           hint="The device has no clock settings of its own: it keeps this fixed offset, with no daylight saving. Changing it later means provisioning again."
         >
           <Select
-            className="provision-select"
+            className="w-full"
             value={values.tz}
             options={tzOptions}
             onChange={e => {
@@ -121,12 +126,12 @@ export function ProvisionForm(props: ProvisionFormProps) {
         </StackedField>
       </fieldset>
 
-      <div className="provision-send">
-        <h2 className="provision-legend">Send</h2>
-        <span className="provision-muted-body">
+      <div className="flex flex-col gap-3">
+        <h2>Send</h2>
+        <span className="text-muted-foreground">
           Hold the device’s button until it beeps, then choose it from the browser’s list.
         </span>
-        <div className="provision-send__actions">
+        <div className="flex flex-wrap gap-2">
           <Button disabled={off} title={props.blockedReason} onClick={props.onFind}>
             Find device
           </Button>
@@ -134,10 +139,10 @@ export function ProvisionForm(props: ProvisionFormProps) {
             Send to device
           </Button>
         </div>
-        <p role="status" className="provision-status">
+        <p role="status" className="min-h-[1.45em] text-sm">
           {props.status}
         </p>
-        <span className="provision-footnote">
+        <span className="text-xs text-muted-foreground">
           Web Bluetooth needs Chrome or Edge on desktop or Android, and a secure context: a page
           with a trusted certificate. On an iPhone, use the my-petkit app.
         </span>

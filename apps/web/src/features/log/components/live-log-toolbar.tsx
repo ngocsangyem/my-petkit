@@ -6,9 +6,9 @@ import { ALL, type LiveLogFilters } from '../hooks/use-live-log-filters';
 export function LiveLogToolbar({ filters }: { filters: LiveLogFilters }) {
   const status = useStreamStatus();
   return (
-    <div className="log-toolbar">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
       <SearchField
-        className="log-toolbar__grep"
+        className="max-w-[300px] flex-[1_1_220px]"
         aria-label="Filter the live log"
         placeholder="grep"
         mono
@@ -53,7 +53,7 @@ export function LiveLogToolbar({ filters }: { filters: LiveLogFilters }) {
         checked={filters.autoscroll}
         onCheckedChange={filters.setAutoscroll}
       />
-      <span className="log-toolbar__live">
+      <span className="ml-auto text-sm">
         <LiveIndicator state={status} />
       </span>
     </div>

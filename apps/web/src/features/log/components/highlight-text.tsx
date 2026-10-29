@@ -19,7 +19,13 @@ export function HighlightText({ text, query }: { text: string; query: string }) 
   return (
     <>
       {parts.map(p =>
-        p.hit ? <mark key={p.at}>{p.text}</mark> : <span key={p.at}>{p.text}</span>,
+        p.hit ? (
+          <mark key={p.at} className="bg-pill-warning text-pill-warning-ink">
+            {p.text}
+          </mark>
+        ) : (
+          <span key={p.at}>{p.text}</span>
+        ),
       )}
     </>
   );

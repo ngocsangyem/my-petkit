@@ -17,7 +17,11 @@ export function DeviceLogViewer({ rel, query, offset, onOffset }: DeviceLogViewe
 
   if (win.isPending) {
     return (
-      <div className="devlog-view" aria-busy="true" aria-label="Loading the device log">
+      <div
+        className="flex max-h-[480px] flex-col gap-2.5 overflow-auto rounded-lg border border-border p-3"
+        aria-busy="true"
+        aria-label="Loading the device log"
+      >
         {Array.from({ length: 8 }, (_, i) => (
           <Skeleton key={i} height={14} />
         ))}
@@ -41,14 +45,14 @@ export function DeviceLogViewer({ rel, query, offset, onOffset }: DeviceLogViewe
   const paged = matched > DEVICE_LOG_PAGE;
 
   return (
-    <div className="devlog">
-      <div className="devlog__bar">
-        <span className="devlog__count" role="status">
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
+        <span role="status">
           {count}
           {paged && ` · showing ${first}–${last}`}
         </span>
         {paged && (
-          <span className="devlog__pager">
+          <span className="flex gap-2">
             <Button
               size="small"
               disabled={offset === 0 || win.isFetching}
@@ -73,11 +77,16 @@ export function DeviceLogViewer({ rel, query, offset, onOffset }: DeviceLogViewe
       {lines.length === 0 ? (
         <EmptyBlock>{query ? 'No line matches.' : 'This log is empty.'}</EmptyBlock>
       ) : (
-        <div className="devlog-view" aria-label={`Lines of ${rel}`}>
+        <div
+          className="flex max-h-[480px] flex-col overflow-auto rounded-lg border border-border py-2 font-mono text-xs"
+          aria-label={`Lines of ${rel}`}
+        >
           {lines.map(([n, text]) => (
-            <div className="devlog-view__line" key={n}>
-              <span className="devlog-view__n">{n}</span>
-              <span className="devlog-view__text">
+            <div className="flex gap-3 px-3 py-px" key={n}>
+              <span className="min-w-[5ch] flex-none text-right text-muted-foreground select-none">
+                {n}
+              </span>
+              <span className="whitespace-pre-wrap wrap-anywhere">
                 <HighlightText text={text} query={query} />
               </span>
             </div>
