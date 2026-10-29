@@ -52,9 +52,17 @@ jobs:
           build-mode: ${{ matrix.build-mode }}
           queries: security-extended
 
-      - name: Build Swift package
+      - name: Build Swift package and app
         if: matrix.language == 'swift' && steps.swift.outputs.present == 'true'
-        run: swift build --package-path apps/ios/PetkitKit
+        run: |
+          swift build --package-path apps/ios/PetkitKit
+          if [ -f apps/ios/project.yml ]; then
+            brew install xcodegen
+            (cd apps/ios && xcodegen generate)
+            xcodebuild build -project apps/ios/MyPetkit.xcodeproj -scheme MyPetkit \
+              -destination 'generic/platform=iOS Simulator' -skipPackagePluginValidation \
+              CODE_SIGNING_ALLOWED=NO
+          fi
 
       - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         if: matrix.language != 'swift' || steps.swift.outputs.present == 'true'
