@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { SectionCard, TabPanel, Tabs, usePersistedState } from '@/shared/ui';
+import { SectionCard, Tabs, usePersistedState } from '@/shared/ui';
 import { DeferredFeedPanel } from './components/deferred-feed-panel';
 import { ScheduleEditor } from './components/schedule-editor';
 import type { DeviceDetail, ScheduleDraft } from './schedule-model';
@@ -39,18 +39,10 @@ function SchedulesCard({ device }: DeviceSchedulesProps) {
   if (!first) return null;
   const selected = tabs.some(t => t.id === stored) ? stored : first.id;
   const target = targets.find(t => t.target === selected);
-  const idPrefix = `schedules-${device.id}`;
 
   return (
     <SectionCard title="Schedules">
-      <Tabs
-        label="Schedules"
-        idPrefix={idPrefix}
-        tabs={tabs}
-        selected={selected}
-        onSelect={setSelected}
-      />
-      <TabPanel idPrefix={idPrefix} tab={selected}>
+      <Tabs label="Schedules" tabs={tabs} selected={selected} onSelect={setSelected}>
         {target ? (
           <ScheduleEditor
             deviceId={device.id}
@@ -72,7 +64,7 @@ function SchedulesCard({ device }: DeviceSchedulesProps) {
             offset={device.timezoneInfo.effective}
           />
         )}
-      </TabPanel>
+      </Tabs>
       <p className="sched-muted">
         The device runs these on its own clock, in its own time zone. Nothing is set for you: an
         empty schedule does not restrict the device. A period that ends before it starts runs

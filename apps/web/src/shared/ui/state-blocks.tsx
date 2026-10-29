@@ -38,7 +38,7 @@ export interface EmptyBlockProps {
 /** Empty section body: one sentence in a 1px dashed box; the section keeps its header. */
 export function EmptyBlock({ children, action }: EmptyBlockProps) {
   return (
-    <Empty className="col-span-full min-h-[38px] flex-none flex-row flex-wrap items-center justify-start gap-x-3 gap-y-1 rounded-lg border border-dashed border-control px-3 py-2 text-left text-small text-muted-foreground">
+    <Empty className="col-span-full min-h-[38px] flex-none flex-row flex-wrap items-center justify-start gap-x-3 gap-y-1 rounded-lg border border-dashed border-control px-3 py-2 text-left text-sm text-muted-foreground">
       <span>{children}</span>
       {action}
     </Empty>
@@ -63,7 +63,7 @@ export function ErrorBlock({
   retrying = false,
 }: ErrorBlockProps) {
   return (
-    <Alert className="col-span-full flex min-h-[38px] flex-wrap items-center gap-x-2 gap-y-1 border-0 bg-transparent p-0 text-small text-foreground">
+    <Alert className="col-span-full flex min-h-[38px] flex-wrap items-center gap-x-2 gap-y-1 border-0 bg-transparent p-0 text-sm text-foreground">
       <span>{message}</span>
       {onRetry && (
         <Button variant="text" onClick={onRetry} disabled={retrying}>

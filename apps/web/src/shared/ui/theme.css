@@ -115,10 +115,21 @@
 
   --font-sans: var(--pk-font-sans);
   --font-mono: var(--pk-font-mono);
-  --text-title: var(--pk-text-title);
-  --text-section: var(--pk-text-section);
-  --text-figure: var(--pk-text-figure);
-  --text-body: var(--pk-text-body);
-  --text-small: var(--pk-text-small);
-  --text-caption: var(--pk-text-caption);
+  /*
+   * The design's type scale on Tailwind's own size names, so class merging
+   * (cn) knows they are sizes, not colours: xs caption 12, sm small 13,
+   * base body 14, lg section 16, xl title 22, 3xl figure 28.
+   */
+  --text-xs: var(--pk-text-caption);
+  --text-xs--line-height: var(--pk-line-height);
+  --text-sm: var(--pk-text-small);
+  --text-sm--line-height: var(--pk-line-height);
+  --text-base: var(--pk-text-body);
+  --text-base--line-height: var(--pk-line-height);
+  --text-lg: var(--pk-text-section);
+  --text-lg--line-height: 1.35;
+  --text-xl: var(--pk-text-title);
+  --text-xl--line-height: 1.3;
+  --text-3xl: var(--pk-text-figure);
+  --text-3xl--line-height: 1.15;
 }

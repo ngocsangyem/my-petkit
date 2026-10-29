@@ -30,7 +30,6 @@ import {
   StatusMark,
   StepUpPill,
   Switch,
-  TabPanel,
   Table,
   Tabs,
   TextInput,
@@ -318,7 +317,6 @@ export function UiGallery() {
         <div className="gallery-stack gallery-gap-16">
           <Tabs
             label="Screen"
-            idPrefix="gallery-tabs"
             tabs={[
               { id: 'sign', label: 'Sign in' },
               { id: 'first', label: 'First run' },
@@ -326,8 +324,7 @@ export function UiGallery() {
             ]}
             selected={tab}
             onSelect={setTab}
-          />
-          <TabPanel idPrefix="gallery-tabs" tab={tab}>
+          >
             <SegmentedChips
               label="Cat shown in colour"
               options={[
@@ -337,7 +334,7 @@ export function UiGallery() {
               value={cat}
               onChange={setCat}
             />
-          </TabPanel>
+          </Tabs>
           <EmptyBlock>No channel usage in this range.</EmptyBlock>
           <span className="gallery-row" aria-busy="true">
             <Skeleton width={56} height={28} />

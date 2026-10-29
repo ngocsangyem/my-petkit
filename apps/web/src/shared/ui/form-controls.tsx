@@ -1,12 +1,15 @@
 import type { ChangeEvent, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react';
+import { cn } from 'cn';
 import { Icon } from './icons';
-import './form-controls.css';
+import { Input } from './shadcn/input';
+import { InputGroup, InputGroupAddon, InputGroupInput } from './shadcn/input-group';
+import { NativeSelect, NativeSelectOption } from './shadcn/native-select';
+import { Switch as ShadcnSwitch } from './shadcn/switch';
 
 type NativeInput = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'size'>;
 
-function controlClass(extra: (string | false | undefined)[], className?: string): string {
-  return ['ui-control', ...extra, className].filter(Boolean).join(' ');
-}
+/** Mono 13px, for hosts, IPs, URLs, keys and grep patterns. */
+const MONO = 'font-mono text-sm';
 
 /** Props for {@link TextInput}. */
 export interface TextInputProps extends NativeInput {
@@ -29,12 +32,9 @@ export function TextInput({
   ...rest
 }: TextInputProps) {
   return (
-    <input
+    <Input
       type={type}
-      className={controlClass(
-        [mono && 'ui-control--mono', alignEnd && 'ui-control--end', large && 'ui-control--large'],
-        className,
-      )}
+      className={cn(mono && MONO, alignEnd && 'text-right', large && 'h-9', className)}
       {...rest}
     />
   );
@@ -59,10 +59,10 @@ export function parseNumberInput(raw: string): number | null {
 /** 32px numeric input, right-aligned with tabular figures; reports parsed numbers. */
 export function NumberInput({ value, onValueChange, mono, className, ...rest }: NumberInputProps) {
   return (
-    <input
+    <Input
       type="number"
       inputMode="decimal"
-      className={controlClass(['ui-control--end', mono && 'ui-control--mono'], className)}
+      className={cn('text-right', mono && MONO, className)}
       value={value ?? ''}
       onChange={(e: ChangeEvent<HTMLInputElement>) => {
         onValueChange(parseNumberInput(e.target.value));
@@ -82,9 +82,9 @@ export interface TimeInputProps extends Omit<NativeInput, 'value' | 'onChange'> 
 /** 32px native time input; values are "HH:MM" in the device's own day. */
 export function TimeInput({ value, onValueChange, className, ...rest }: TimeInputProps) {
   return (
-    <input
+    <Input
       type="time"
-      className={controlClass(['ui-control--time'], className)}
+      className={cn('w-auto', className)}
       value={value}
       onChange={e => {
         onValueChange(e.target.value);
@@ -102,34 +102,45 @@ export interface SelectOption {
 }
 
 /** Props for {@link Select}. */
-export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'children'> {
+export interface SelectProps extends Omit<
+  SelectHTMLAttributes<HTMLSelectElement>,
+  'children' | 'size'
+> {
   options: readonly SelectOption[];
 }
 
-/** 32px native select. */
+/**
+ * 32px native select. Native on purpose: Base UI's Select injects a <style> element when it
+ * opens, which the app's CSP blocks.
+ */
 export function Select({ options, className, ...rest }: SelectProps) {
   return (
-    <select className={controlClass(['ui-control--select'], className)} {...rest}>
+    <NativeSelect className={className} {...rest}>
       {options.map(o => (
-        <option key={o.value} value={o.value} disabled={o.disabled}>
+        <NativeSelectOption key={o.value} value={o.value} disabled={o.disabled}>
           {o.label}
-        </option>
+        </NativeSelectOption>
       ))}
-    </select>
+    </NativeSelect>
   );
 }
 
 /** Props for {@link Switch}. */
-export interface SwitchProps extends Omit<NativeInput, 'checked' | 'onChange'> {
+export interface SwitchProps {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
-  /** Visible label beside the box (toolbar use); omit inside a settings row, which labels it. */
+  /** Visible label beside the switch (toolbar use); omit inside a settings row, which labels it. */
   label?: ReactNode;
-  /** 16px in toolbars, 20px in settings panels. */
+  /** Small in toolbars, regular in settings panels. */
   small?: boolean;
+  id?: string;
+  disabled?: boolean;
+  'aria-label'?: string;
+  'aria-describedby'?: string;
+  className?: string;
 }
 
-/** An on/off setting: a native checkbox exposed as `role="switch"`, ink-coloured. */
+/** An on/off setting with `role="switch"`, ink-coloured when on. */
 export function Switch({
   checked,
   onCheckedChange,
@@ -138,22 +149,24 @@ export function Switch({
   className,
   ...rest
 }: SwitchProps) {
-  const input = (
-    <input
-      type="checkbox"
-      role="switch"
-      className={['ui-switch', small && 'ui-switch--small', className].filter(Boolean).join(' ')}
+  const control = (
+    // A real <button>, so a <label htmlFor> names it and clicking the label toggles it.
+    <ShadcnSwitch
+      nativeButton
+      render={<button type="button" />}
+      size={small ? 'sm' : 'default'}
+      className={className}
       checked={checked}
-      onChange={e => {
-        onCheckedChange(e.target.checked);
+      onCheckedChange={next => {
+        onCheckedChange(next);
       }}
       {...rest}
     />
   );
-  if (label === undefined) return input;
+  if (label === undefined) return control;
   return (
-    <label className="ui-switch-label">
-      {input}
+    <label className="inline-flex items-center gap-1.5 text-sm">
+      {control}
       {label}
     </label>
   );
@@ -169,7 +182,7 @@ export interface InlineFieldProps {
 /** A label with its control on one line, for toolbars ("Level [All levels]"). */
 export function InlineField({ label, children }: InlineFieldProps) {
   return (
-    <label className="ui-inline-field">
+    <label className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
       {label}
       {children}
     </label>
@@ -188,10 +201,10 @@ export interface StackedFieldProps {
 /** A label above its control, for forms (sign-in, dialogs). */
 export function StackedField({ label, hint, children }: StackedFieldProps) {
   return (
-    <label className="ui-stacked-field">
-      <span className="ui-stacked-field__label">{label}</span>
+    <label className="flex flex-col gap-1.5 text-sm font-medium">
+      <span>{label}</span>
       {children}
-      {hint && <span className="ui-stacked-field__hint">{hint}</span>}
+      {hint && <span className="text-xs font-normal text-muted-foreground">{hint}</span>}
     </label>
   );
 }
@@ -218,17 +231,25 @@ export function SearchField({
   ...rest
 }: SearchFieldProps) {
   return (
-    <label className={['ui-search', `ui-search--${tone}`, className].filter(Boolean).join(' ')}>
-      <Icon name="search" size={14} strokeWidth={2} />
-      <input
+    <InputGroup
+      className={cn(
+        'focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring',
+        tone === 'frame' && 'border-border',
+        className,
+      )}
+    >
+      <InputGroupAddon>
+        <Icon name="search" size={14} strokeWidth={2} />
+      </InputGroupAddon>
+      <InputGroupInput
         type="search"
-        className={mono ? 'ui-search__input ui-control--mono' : 'ui-search__input'}
+        className={cn('focus-visible:outline-none', mono && MONO)}
         value={value}
         onChange={e => {
           onValueChange(e.target.value);
         }}
         {...rest}
       />
-    </label>
+    </InputGroup>
   );
 }

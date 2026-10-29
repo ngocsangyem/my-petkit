@@ -22,9 +22,9 @@ const buttonVariants = cva(
         link: 'text-data hover:not-disabled:text-data-hover',
       },
       size: {
-        default: 'h-8 px-3 text-body',
-        sm: 'h-7 px-2.5 text-small',
-        lg: 'h-9 px-3.5 text-body',
+        default: 'h-8 px-3 text-base',
+        sm: 'h-7 px-2.5 text-sm',
+        lg: 'h-9 px-3.5 text-base',
         icon: 'size-8',
         'icon-sm': 'size-7',
       },

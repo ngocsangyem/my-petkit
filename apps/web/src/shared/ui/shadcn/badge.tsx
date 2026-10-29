@@ -6,7 +6,7 @@ import { cn } from 'cn';
 // Edited from the shadcn source: 20px pills in the design's four pill colour
 // pairs (design-reference §2), placed beside a value or a title only.
 const badgeVariants = cva(
-  'group/badge inline-flex h-5 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-full border border-transparent px-2 text-caption leading-none font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:outline-ring [&>svg]:pointer-events-none [&>svg]:size-3!',
+  'group/badge inline-flex h-5 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-full border border-transparent px-2 text-xs leading-none font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:outline-ring [&>svg]:pointer-events-none [&>svg]:size-3!',
   {
     variants: {
       variant: {

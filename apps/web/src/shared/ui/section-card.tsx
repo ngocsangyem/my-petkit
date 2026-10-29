@@ -20,7 +20,7 @@ export function SectionCard({ title, aside, end, children }: SectionCardProps) {
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-3">
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-2.5 gap-y-1">
           <h2 id={headingId}>{title}</h2>
-          {aside && <span className="text-small text-muted-foreground">{aside}</span>}
+          {aside && <span className="text-sm text-muted-foreground">{aside}</span>}
         </div>
         {end}
       </div>

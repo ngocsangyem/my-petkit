@@ -29,7 +29,7 @@ function Toasts() {
       key={toast.id}
       toast={toast}
       data-slot="toast"
-      className="flex items-start gap-3 rounded-lg border border-border bg-popover px-4 py-3 text-body text-popover-foreground shadow-overlay transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 data-[type=error]:text-destructive"
+      className="flex items-start gap-3 rounded-lg border border-border bg-popover px-4 py-3 text-base text-popover-foreground shadow-overlay transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 data-[type=error]:text-destructive"
     >
       {/* Titles are plain strings rendered as text, never markup. */}
       <Toast.Title className="min-w-0 flex-1 break-words" />
