@@ -790,6 +790,15 @@ reviewer can find every place the suite was touched.
 - added: tests/test_w7h_water_change_retired.py::test_the_panel_refuses_water_change_and_queues_nothing[body0]
 - added: tests/test_w7h_water_change_retired.py::test_the_panel_refuses_water_change_and_queues_nothing[body1]
 
+### HA event entities fire (payload reaches HA as JSON; declared types follow the codes table)
+
+- added: tests/test_bridge_events.py::test_ha_event_fires_with_content_not_transport_envelope
+- added: tests/test_discovery.py::test_event_entity_payload_reaches_ha_unwrapped
+- added: tests/test_entities.py::test_event_entity_options_accept_every_event_the_device_can_fire
+- added: tests/test_publisher_events.py::test_event_payload_is_json_carrying_event_type
+- added: tests/test_publisher_events.py::test_event_attrs_become_attributes_and_envelope_is_stripped
+- added: tests/test_publisher_events.py::test_device_content_cannot_override_event_type
+
 ## Removed
 
 None.

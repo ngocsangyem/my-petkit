@@ -13,6 +13,21 @@
   and cycle) is unchanged. Evidence from upstream petkit-local PR #39 (a proxy
   capture of the official app on a W7H, firmware 456).
 
+- **Home Assistant `event` entities fire.** Every event entity had stayed at
+  `unknown`: the discovery config's `value_template` unwrapped the payload to
+  a bare string, and HA's event platform requires the rendered value to still
+  be a JSON object, so it logged "No valid JSON event payload detected" and
+  dropped every event. The template is gone and HA now parses the payload
+  directly. The accepted `event_types` are derived from the event-code table
+  instead of hand-written lists, so a T5/T6/T7's `light_over`, `smooth_over`,
+  `spray_over` and the other next-gen cycles, and the W7H's `flush_over` /
+  `water_change_over`, are no longer silently rejected. With the payload now
+  parsed, every extra key becomes an attribute of the fired event, so an
+  MQTT event now carries its decoded content only: the transport envelope
+  (including `XDevice`, the signed request credential) is stripped, and a
+  content key cannot override `event_type`. Ported from upstream petkit-local
+  PR #26, verified there on a T6.
+
 - **Uploaded sounds reach the device again.** `dev_sound_get` crashed on every
   call and answered `{"result": {}}`, so a sound uploaded in the panel was
   never offered to the feeder. It now lists the uploaded sounds, and answers
