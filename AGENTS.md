@@ -212,6 +212,10 @@ gitleaks git --config .gitleaks.toml --redact .   # before every push; CI scans 
 cd .semgrep && semgrep --test .        # project semgrep rules still catch their fixtures
 scripts/gen-clients.sh                 # regenerate the TS types + iOS spec copy from the contract
 swift build --package-path apps/ios/PetkitKit   # builds the generated Swift client
+swift test --package-path apps/ios/PetkitKit    # pinning, pairing, error envelope
+cd apps/ios && xcodegen generate && swiftlint lint --strict   # project is generated, not committed
+xcodebuild test -project apps/ios/MyPetkit.xcodeproj -scheme MyPetkit -skipPackagePluginValidation \
+  -destination 'platform=iOS Simulator,name=iPhone 16'   # app + snapshot tests (iOS details: apps/ios/SPIKE.md)
 ```
 
 ## Repository rules
