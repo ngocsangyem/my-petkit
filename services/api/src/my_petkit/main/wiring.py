@@ -27,6 +27,7 @@ from my_petkit.main.lifecycle import BACKGROUND_TASKS
 from my_petkit.media.crypto import resolve_key_string
 from my_petkit.media.go2rtc import Go2rtc
 from my_petkit.media.retention import RetentionConfig
+from my_petkit.mqtt.ble_relay import update_linked_k3
 from my_petkit.mqtt.bridge import MQTTBridge
 from my_petkit.mqtt.upstream import (
     CREDENTIALS_FILENAME, UpstreamCredentials, UpstreamMQTT,
@@ -125,8 +126,14 @@ class _LocalRepublisher:
             await client.publish(topic, payload)
 
 
-async def _on_state_report(ha_publisher: HAPublisher, device: Device, body: dict) -> None:
-    """Mirror a freshly parsed state report into HA.
+async def _on_state_report(ha_publisher: HAPublisher, ble_registry: BLERegistry | None,
+                           device: Device, body: dict) -> None:
+    """Mirror a freshly parsed state report into HA, and any linked K3 with it.
+
+    The K3's battery and liquid ride along at the top level of the parent's
+    state report. An unpatched ESP32 parent (T4, D4, D3) never sends the MQTT
+    property post the bridge lifts them from, so this is the only place its
+    K3 is ever updated (see `mqtt.ble_relay.update_linked_k3`).
 
     Only installed when HA publishing is enabled; the HTTP handler
     treats a missing hook as "nothing to notify", so no other code
@@ -134,6 +141,10 @@ async def _on_state_report(ha_publisher: HAPublisher, device: Device, body: dict
     """
     await ha_publisher.publish_state(device)
     await ha_publisher.publish_availability(device)
+    k3 = update_linked_k3(device, body, ble_registry, require_k3_id=True)
+    if k3:
+        await ha_publisher.publish_ble_discovery(k3)
+        await ha_publisher.publish_ble_state(k3)
 
 
 async def _on_signup(ha_publisher: HAPublisher | None, device: Device) -> None:
@@ -247,7 +258,7 @@ def build_services(config: Config, args: argparse.Namespace) -> Services:
     app[BACKGROUND_TASKS] = []
 
     if ha_publisher:
-        app["on_state_report"] = partial(_on_state_report, ha_publisher)
+        app["on_state_report"] = partial(_on_state_report, ha_publisher, ble_registry)
 
     app["on_signup"] = partial(_on_signup, ha_publisher)
     app["on_device_seen"] = partial(_on_device_seen, ha_publisher)

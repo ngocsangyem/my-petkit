@@ -25,6 +25,7 @@ from typing import TYPE_CHECKING
 from my_petkit.devices.ble import ble_command_frame, parser_for
 from my_petkit.devices.ble.framing import _iter_ble_frames
 from my_petkit.utils.dicts import dig
+from my_petkit.utils.logtext import one_line
 
 if TYPE_CHECKING:
     from my_petkit.devices.base import Device
@@ -38,6 +39,65 @@ log = logging.getLogger(__name__)
 #: Seconds to ask a parent to hold a BLE relay session open (`connect.time`).
 #: Confirmed working at 30 on a CTW3 behind a D4SH; the unit is inferred.
 BLE_SESSION_HOLD_SECONDS = 30
+
+
+def _same_id(reported: object, petkit_id: int) -> bool:
+    """Whether a reported `k3Id` (an int, or its decimal string) is `petkit_id`."""
+    if isinstance(reported, bool):
+        return False
+    if isinstance(reported, int):
+        return reported == petkit_id
+    if isinstance(reported, str) and reported.strip().isdigit():
+        return int(reported.strip()) == petkit_id
+    return False
+
+
+def update_linked_k3(device: Device, params: dict, ble_registry: BLERegistry | None,
+                     *, require_k3_id: bool = False) -> BLEDevice | None:
+    """Merge K3 consumable fields piggybacked on the parent's state.
+
+    The K3 spray is BLE-only and never posts anything itself: its battery and
+    liquid level ride along at the top level of the parent litter box's own
+    state — the MQTT `property/post`, the HTTP `dev_state_report` body and the
+    `state` block of every `dev_event_report`. An unpatched ESP32 parent (T4,
+    D4, D3) only ever speaks HTTP, so every one of those transports has to
+    reach this one extractor or its K3 never reports anything.
+
+    The same top-level `battery` key can also be the PARENT's own battery, so
+    the values are attributed to the K3 only when the frame names it: a
+    `k3Id` that is not the linked K3's id always refuses the update, and
+    `require_k3_id` (the HTTP paths) refuses a frame with no `k3Id` at all.
+
+    Returns:
+        The K3 BLEDevice if anything changed (the caller re-publishes it to
+        HA), else None.
+    """
+    if not ble_registry:
+        return None
+    k3 = ble_registry.get_linked_k3(device.petkit_id)
+    if not k3:
+        return None
+    if "k3Id" in params:
+        if not _same_id(params["k3Id"], k3.petkit_id):
+            return None
+    elif require_k3_id:
+        return None
+
+    updated = False
+    if "battery" in params:
+        k3.state.setdefault("consumables", {})["battery"] = params["battery"]
+        updated = True
+    if "liquid" in params:
+        k3.state.setdefault("consumables", {})["liquid"] = params["liquid"]
+        updated = True
+
+    if not updated:
+        return None
+    ble_registry.mark_dirty()
+    log.info("Updated K3 (id=%d) from parent device %d: battery=%s liquid=%s",
+             k3.petkit_id, device.petkit_id,
+             one_line(params.get("battery", "?")), one_line(params.get("liquid", "?")))
+    return k3
 
 
 class BLERelay:
@@ -246,36 +306,12 @@ class BLERelay:
     def _update_linked_k3(self, device: Device, params: dict) -> BLEDevice | None:
         """Merge K3 consumable fields piggybacked on the parent's property post.
 
-        The K3 spray is BLE-only and never posts anything itself: its
-        battery and liquid level ride along in the parent litter box's own
-        property post, which is why they are picked out here rather than in
-        `_handle_ble_response`.
-
-        Returns:
-            The K3 BLEDevice if anything changed (the caller re-publishes it to
-            HA), else None.
+        Thin wrapper over :func:`update_linked_k3` for the MQTT call site. A
+        property post without a `k3Id` is still accepted, as it always was:
+        no capture yet shows whether this frame carries one. A post naming a
+        different K3 is refused.
         """
-        if not self._ble_registry:
-            return None
-        k3 = self._ble_registry.get_linked_k3(device.petkit_id)
-        if not k3:
-            return None
-
-        updated = False
-        if "battery" in params:
-            k3.state.setdefault("consumables", {})["battery"] = params["battery"]
-            updated = True
-        if "liquid" in params:
-            k3.state.setdefault("consumables", {})["liquid"] = params["liquid"]
-            updated = True
-
-        if not updated:
-            return None
-        self._ble_registry.mark_dirty()
-        log.info("Updated K3 (id=%d) from parent device %d: battery=%s liquid=%s",
-                 k3.petkit_id, device.petkit_id,
-                 params.get("battery", "?"), params.get("liquid", "?"))
-        return k3
+        return update_linked_k3(device, params, self._ble_registry)
 
     async def _handle_ble_response(self, device: Device, params: dict) -> None:
         """Apply one relayed BLE frame to the accessory it came from.

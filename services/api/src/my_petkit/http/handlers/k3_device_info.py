@@ -42,8 +42,8 @@ from my_petkit.http.handlers._common import no_device_response, request_device
 
 #: Which of the K3's reported values map to which key of this reply.
 #:
-#: `battery` and `liquid` are the two the parent piggybacks on its own
-#: `property/post` (`mqtt/bridge.py::_update_linked_k3`), so they are the two
+#: `battery` and `liquid` are the two the parent piggybacks on its own state
+#: (`mqtt/ble_relay.py::update_linked_k3`, over MQTT and HTTP), so they are the two
 #: that are ever populated today. The rest are named because the firmware reads
 #: them and a future frame may carry them, not because we have seen one.
 _STATE_FIELDS = {

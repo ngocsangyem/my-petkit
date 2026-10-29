@@ -49,6 +49,15 @@
   is still not spoken; every other CONNACK is unchanged. Ported from upstream
   petkit-local PR 41.
 
+- **A K3 spray linked to a T4, D4 or D3 now shows its battery and liquid
+  level.** Those levels ride along on the parent litter box's own state, and
+  were only read from its MQTT property post — which an unpatched ESP32 parent
+  never sends, so its K3 stayed `unknown`. They are now also read from the
+  `dev_state_report` body and the `state` block of every `dev_event_report`,
+  but only when the report's `k3Id` names the linked K3, so a parent's own
+  battery is never shown as the K3's. Ported from upstream petkit-local PR 28
+  (verified on a live T4, firmware 1.652).
+
 - **Uploaded sounds reach the device again.** `dev_sound_get` crashed on every
   call and answered `{"result": {}}`, so a sound uploaded in the panel was
   never offered to the feeder. It now lists the uploaded sounds, and answers
