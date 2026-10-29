@@ -5,6 +5,8 @@
 //   made by scripts/gen-clients.sh); the generated code is never committed.
 // - `PetkitCore` is everything testable without UI: pairing, Keychain, TLS
 //   pinning, the pinned media loader, display models.
+// - `PetkitBLE` provisions a device's Wi-Fi over Bluetooth (PetKit Ingenic
+//   framing and ESP32 BLUFI), with the protocol kept apart from CoreBluetooth.
 import PackageDescription
 
 let package = Package(
@@ -13,6 +15,7 @@ let package = Package(
     products: [
         .library(name: "PetkitAPI", targets: ["PetkitAPI"]),
         .library(name: "PetkitCore", targets: ["PetkitCore"]),
+        .library(name: "PetkitBLE", targets: ["PetkitBLE"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-openapi-generator", exact: "1.9.0"),
@@ -34,7 +37,9 @@ let package = Package(
             ]
         ),
         .target(name: "PetkitCore"),
+        .target(name: "PetkitBLE"),
         .testTarget(name: "PetkitCoreTests", dependencies: ["PetkitCore"]),
         .testTarget(name: "PetkitAPITests", dependencies: ["PetkitAPI"]),
+        .testTarget(name: "PetkitBLETests", dependencies: ["PetkitBLE"]),
     ]
 )
