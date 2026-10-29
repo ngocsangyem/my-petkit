@@ -1,5 +1,6 @@
 // Public surface of the shared UI layer. Importing it loads the fonts, the
 // tokens and the global base styles once.
+import './theme.css';
 import './global.css';
 
 export { Button, buttonClassName } from './button';
