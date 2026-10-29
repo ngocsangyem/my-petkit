@@ -1032,6 +1032,21 @@ FOUNTAIN_W7H_START_ACTIONS = frozenset({
 #: Neither belongs behind a button labelled with a cleaning cycle.
 FOUNTAIN_W7H_START_ACTIONS_NOT_WORK = frozenset({7, 32})
 
+#: Accepted by the whitelist above, and KNOWN TO CRASH the device. Never send.
+#:
+#: 5 is the "water change" work mode, and the official app has no control that
+#: sends it: a proxy capture of the app driving a W7H (fw 456) shows only 1, 2
+#: and 3. Sent as a `start`, it took a real W7H down three times out of three —
+#: the MQTT session dropped within milliseconds, `ctrl` died, and the next boot
+#: reported `reboot_reason=3` (the watchdog's forced reboot). An unsynced forced
+#: reboot is a risk to the device's flash filesystem, not just an outage.
+#:
+#: It stays in `FOUNTAIN_W7H_START_ACTIONS` because that set is the firmware's
+#: literal accept list, and being accepted is exactly what makes it dangerous:
+#: the value gets past the gate and into a job that kills `ctrl`. The scheduled
+#: water change the device runs on its own (`autoWaterChange`) is unaffected.
+FOUNTAIN_W7H_START_ACTIONS_CRASH = frozenset({5})
+
 
 def work_modes_for(device_type: str | None = None) -> dict[int, str]:
     """The `action`/`workMode` enum for this device model.

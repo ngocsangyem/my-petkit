@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- **The W7H fountain's Water Change button is gone, because it crashed the
+  device.** It sent `start_action: 5`, and a W7H rebooted on every press (3 of
+  3): the MQTT session dropped, `ctrl` died and the watchdog restarted the box
+  (`reboot_reason=3`). PetKit's own app has no control that sends 5. The value
+  is now refused wherever a W7H command is built, so neither Home Assistant nor
+  the panel can send it by name. An install that already discovered the button
+  has it removed from Home Assistant on the next discovery publish (an empty
+  retained config). The scheduled water change (Auto Water Change, its time
+  and cycle) is unchanged. Evidence from upstream petkit-local PR #39 (a proxy
+  capture of the official app on a W7H, firmware 456).
+
 - **Uploaded sounds reach the device again.** `dev_sound_get` crashed on every
   call and answered `{"result": {}}`, so a sound uploaded in the panel was
   never offered to the feeder. It now lists the uploaded sounds, and answers

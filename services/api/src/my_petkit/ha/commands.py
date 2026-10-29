@@ -378,7 +378,13 @@ def _fountain_start(code: int) -> Command:
     one `start_action`, and the device tells them apart by which model it is.
     The values are NOT the litter ones (`codes.FOUNTAIN_W7H_START_ACTIONS`);
     2 is "refill" here and "deodorize" on a Purobot.
+
+    Being on the firmware's accept list is not enough: 5 is on it and crashes
+    the device (`codes.FOUNTAIN_W7H_START_ACTIONS_CRASH`), so it is refused
+    here, the one place a W7H `start` is built.
     """
+    if code in codes.FOUNTAIN_W7H_START_ACTIONS_CRASH:
+        raise ValueError(f"start_action {code} crashes the W7H and is never sent")
     if code not in codes.FOUNTAIN_W7H_START_ACTIONS:
         raise ValueError(f"start_action {code} is not one the W7H accepts")
     return ("start", _envelope("thing.service.start", {"start_action": code}, ms_id=True))
@@ -388,10 +394,11 @@ FOUNTAIN_ACTIONS = {
     "reset_filter": lambda device: (PROPERTY_SET_SUFFIX, make_mqtt_property_set({"filterPercent": 100})),
     "pause_fountain": lambda device: (PROPERTY_SET_SUFFIX, make_mqtt_property_set({"power": 0})),
     "resume_fountain": lambda device: (PROPERTY_SET_SUFFIX, make_mqtt_property_set({"power": 1})),
-    # W7H only; no other fountain publishes these buttons.
+    # W7H only; no other fountain publishes these buttons. There is
+    # deliberately no `fountain_water_change`: it sent `start_action: 5`, which
+    # the official app never sends and which rebooted the device every time.
     "fountain_flush": lambda device: _fountain_start(1),
     "fountain_refill": lambda device: _fountain_start(2),
-    "fountain_water_change": lambda device: _fountain_start(5),
 }
 
 ALL_ACTIONS = {**LITTER_ACTIONS, **FEEDER_ACTIONS, **FOUNTAIN_ACTIONS, **SHARED_ACTIONS}
