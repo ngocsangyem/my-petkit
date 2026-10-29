@@ -95,13 +95,16 @@ FOUNTAIN_BUTTONS = [
 
 #: The W7H's water-treatment jobs, as `thing.service.start` actions.
 #:
-#: These are the only three of the twenty values its firmware accepts
-#: (`codes.FOUNTAIN_W7H_START_ACTIONS`) that anything names. 1 and 5 name
-#: themselves — `work_start_event_detect` gives each its own branch, log line
-#: and still (`fPro_flushStart.jpeg`, `fPro_changeStart.jpeg`). 2 is on the
-#: accept list but reaches that function's default branch, so "Refill" is the
-#: app's word for a value the firmware only lets through; if it turns out to
+#: Two of the twenty values its firmware accepts
+#: (`codes.FOUNTAIN_W7H_START_ACTIONS`). 1 names itself — `work_start_event_detect`
+#: gives it its own branch, log line and still (`fPro_flushStart.jpeg`). 2 is on
+#: the accept list but reaches that function's default branch, so "Refill" is
+#: the app's word for a value the firmware only lets through; if it turns out to
 #: mean something else, this is the button that is wrong.
+#:
+#: There is no Water Change button. It sent 5, which the firmware also names
+#: (`fPro_changeStart.jpeg`) but which crashes the device
+#: (`codes.FOUNTAIN_W7H_START_ACTIONS_CRASH`); see `FOUNTAIN_W7H_RETIRED_BUTTONS`.
 #:
 #: Deep clean is deliberately absent. The cycle exists (`ster_mode_*.aac`, the
 #: `disinfectState` field, "Boil ster over result" in the log) but no accepted
@@ -112,8 +115,6 @@ FOUNTAIN_W7H_BUTTONS = [
               icon="mdi:water-sync"),
     EntityDef(component="button", key="fountain_refill", name="Refill",
               icon="mdi:water-plus"),
-    EntityDef(component="button", key="fountain_water_change", name="Water Change",
-              icon="mdi:water-boiler-alert"),
     # What the removed `pause_fountain`/`resume_fountain` were reaching for.
     # Those wrote `{"power": 0|1}` through `property.set`, and `power` is not
     # among this firmware's set handlers, so they wrote a field nothing reads.
@@ -122,4 +123,18 @@ FOUNTAIN_W7H_BUTTONS = [
     # camera litter boxes get, for the same reason.
     EntityDef(component="button", key="power_off", name="Power Off", icon="mdi:power-off"),
     EntityDef(component="button", key="power_on", name="Power On", icon="mdi:power-on"),
+]
+
+#: Buttons a W7H published in earlier versions and must no longer have.
+#:
+#: Dropping a button from the list above only stops announcing it: its
+#: discovery config is RETAINED on Home Assistant's broker, so the entity would
+#: live on and stay pressable. These are cleared with an empty retained config
+#: instead (`CategorySpec.model_retired`). Only `component` and `key` matter,
+#: because they are all the discovery topic is built from.
+#:
+#: `fountain_water_change` sent `start_action: 5`, which rebooted a real W7H
+#: three presses out of three (`codes.FOUNTAIN_W7H_START_ACTIONS_CRASH`).
+FOUNTAIN_W7H_RETIRED_BUTTONS = [
+    EntityDef(component="button", key="fountain_water_change", name="Water Change"),
 ]

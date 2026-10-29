@@ -780,6 +780,16 @@ reviewer can find every place the suite was touched.
 - added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[web/spa.py]
 - added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[shared/web_build.py]
 
+### The W7H Water Change job (start_action 5) is removed, refused and cleared from Home Assistant
+
+- added: tests/test_w7h_water_change_retired.py::test_the_crashing_start_action_cannot_be_built
+- added: tests/test_w7h_water_change_retired.py::test_no_named_action_sends_the_crashing_start_action_to_a_w7h
+- added: tests/test_w7h_water_change_retired.py::test_discovery_no_longer_offers_water_change
+- added: tests/test_w7h_water_change_retired.py::test_only_the_w7h_retires_water_change
+- added: tests/test_w7h_water_change_retired.py::test_the_retired_water_change_config_is_cleared_from_home_assistant
+- added: tests/test_w7h_water_change_retired.py::test_the_panel_refuses_water_change_and_queues_nothing[body0]
+- added: tests/test_w7h_water_change_retired.py::test_the_panel_refuses_water_change_and_queues_nothing[body1]
+
 ## Removed
 
 None.
@@ -826,3 +836,5 @@ None.
 | `test_cloud_pet_import.py::test_a_malformed_request_is_refused`, `test_k3_and_cloud_bindings.py::test_a_malformed_request_is_refused` | the malformed body is sent with `Content-Type: application/json`, so it is still the BODY that is refused (400) rather than the content type (415) | auth migration | 05 |
 | `test_panel.py` (3 tests), `test_schedules.py::test_an_unknown_target_is_refused`, `test_k3_and_cloud_bindings.py::test_an_unreachable_cloud_is_an_error_not_a_silent_nothing`, `test_cloud_pet_import.py::test_a_refusal_from_petkit_is_reported_not_swallowed`, `test_panel_media.py::test_pet_face_upload_stops_at_the_cap`, `test_panel_command_action_validation.py::test_an_unknown_action_is_refused_with_the_existing_message` | read the error text from `["error"]["message"]`: errors are the `{"error": {"code", "message"}}` envelope now; the message text is unchanged | error envelope | 05 |
 | `conftest.py` | re-exports the `authed_client` fixture from `conftest_auth.py` | auth migration | 05 |
+| `test_w7h.py::test_the_job_buttons_send_actions_the_firmware_accepts`, `test_w7h.py::test_no_button_sends_an_action_that_is_not_a_job` | `fountain_water_change` dropped from the buttons checked: the button and its action are removed because `start_action: 5` crashes the device | behaviour change | – |
+| `test_entities.py::test_entity_count_per_device_type_is_unchanged` | W7H 84 -> 83 for the removed Water Change button | behaviour change | – |

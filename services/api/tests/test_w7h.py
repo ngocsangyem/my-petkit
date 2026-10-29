@@ -429,8 +429,7 @@ def test_the_job_buttons_send_actions_the_firmware_accepts():
 
     device = Device(device_type="w7h", petkit_id=1, serial_number="W")
     for key, expected in [("fountain_flush", 1),
-                          ("fountain_refill", 2),
-                          ("fountain_water_change", 5)]:
+                          ("fountain_refill", 2)]:
         suffix, envelope = ALL_ACTIONS[key](device)
         assert suffix == "start"
         assert envelope["method"] == "thing.service.start"
@@ -444,7 +443,7 @@ def test_no_button_sends_an_action_that_is_not_a_job():
     from my_petkit.ha.commands import ALL_ACTIONS
 
     device = Device(device_type="w7h", petkit_id=1, serial_number="W")
-    for key in ("fountain_flush", "fountain_refill", "fountain_water_change"):
+    for key in ("fountain_flush", "fountain_refill"):
         _, envelope = ALL_ACTIONS[key](device)
         assert envelope["params"]["start_action"] \
             not in codes.FOUNTAIN_W7H_START_ACTIONS_NOT_WORK

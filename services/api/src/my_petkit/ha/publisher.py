@@ -29,7 +29,7 @@ from typing import TYPE_CHECKING, Any
 from my_petkit.devices import defaults
 from my_petkit.devices.base import Device
 from my_petkit.devices.registry import DeviceRegistry
-from my_petkit.ha.categories import get_entities_for_device
+from my_petkit.ha.categories import get_entities_for_device, get_retired_entities_for_device
 from my_petkit.ha.command_router import CommandRouter
 from my_petkit.ha.entities.ble import get_ble_entities
 from my_petkit.ha.entities.pet import PET_SENSORS
@@ -257,7 +257,15 @@ class HAPublisher:
             )
             await self._emit(topic, json.dumps(payload), retain=True)
 
-        log.info("Published %d discovery configs for %s (id=%d)", len(entities), device.device_type, device.petkit_id)
+        # An empty retained config is how HA is told an entity is gone; leaving
+        # an entity out of the list above only stops announcing it.
+        retired = get_retired_entities_for_device(device)
+        for entity in retired:
+            await self._emit(discovery_topic(entity, device.petkit_id, self._prefix),
+                             "", retain=True)
+
+        log.info("Published %d discovery configs for %s (id=%d), cleared %d retired",
+                 len(entities), device.device_type, device.petkit_id, len(retired))
 
     async def unpublish_discovery(self, device: Device) -> None:
         """Remove every HA entity of `device` by publishing empty payloads."""

@@ -25,7 +25,7 @@ from my_petkit.devices.base import Device
 from my_petkit.ha.discovery import EntityDef
 from my_petkit.ha.entities.buttons import (
     FEEDER_BUTTONS, FEEDER_CAMERA_BUTTONS, FEEDER_DUAL_BUTTONS,
-    FOUNTAIN_BUTTONS, FOUNTAIN_W7H_BUTTONS,
+    FOUNTAIN_BUTTONS, FOUNTAIN_W7H_BUTTONS, FOUNTAIN_W7H_RETIRED_BUTTONS,
     LITTER_BUTTONS, LITTER_CAMERA_BUTTONS, LITTER_T6_BUTTONS,
 )
 from my_petkit.ha.entities.camera import CAMERA_ENTITIES
@@ -115,6 +115,21 @@ class CategorySpec:
     #: `tests/test_entity_backing.py` exists to catch. Excluding is not the same
     #: as deleting: the entity stays real for every other model in the family.
     model_excludes: tuple[tuple[str, frozenset[str]], ...] = ()
+    #: `(codename, entities)` a model USED to publish and no longer does, so
+    #: their retained discovery configs are cleared (`ha/publisher.py`).
+    #:
+    #: Leaving an entity out of the lists above stops it being announced; it
+    #: does not take it out of Home Assistant, whose broker keeps the retained
+    #: config — so the entity lives on, and a retired button stays pressable.
+    model_retired: tuple[tuple[str, tuple[EntityDef, ...]], ...] = ()
+
+    def retired_for(self, has_camera: bool, device_type: str = "") -> list[EntityDef]:
+        """Entities this model retired, minus any it publishes again."""
+        codename = device_type.lower()
+        published = {(e.component, e.key)
+                     for e in self.entities_for(has_camera, device_type=codename)}
+        return [e for model, gone in self.model_retired if model == codename
+                for e in gone if (e.component, e.key) not in published]
 
     def entities_for(self, has_camera: bool, device_type: str = "") -> list[EntityDef]:
         """HA entity definitions for one device, in discovery order.
@@ -357,6 +372,9 @@ CATEGORY_SPECS: dict[str, CategorySpec] = {
                 "pause_fountain", "resume_fountain",
             })),
         ),
+        model_retired=(
+            ("w7h", tuple(FOUNTAIN_W7H_RETIRED_BUTTONS)),
+        ),
     ),
     "purifier": CategorySpec(
         device_types=frozenset(DEVICE_TYPES_PURIFIER),
@@ -396,6 +414,18 @@ def get_entities_for_device(device: Device) -> list[EntityDef]:
         return []
     return spec.entities_for(has_camera=device.is_camera,
                              device_type=device.device_type)
+
+
+def get_retired_entities_for_device(device: Device) -> list[EntityDef]:
+    """Entities this device used to publish, whose discovery must be cleared.
+
+    See `CategorySpec.model_retired`. Empty for a codename no category claims.
+    """
+    spec = spec_for_device(device)
+    if spec is None:
+        return []
+    return spec.retired_for(has_camera=device.is_camera,
+                            device_type=device.device_type)
 
 
 def get_setting_fields(device: Device) -> set[str]:
