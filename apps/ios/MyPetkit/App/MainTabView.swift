@@ -4,12 +4,12 @@ import SwiftUI
 /// The four tabs: Home, Timeline, Pets, Server. Server holds Logs, Capture,
 /// Patchers, Setup and the app's own settings.
 struct MainTabView: View {
-    enum Tab: Hashable { case home, timeline, pets, server }
+    typealias Tab = TabRouter.Tab
 
-    @State private var tab: Tab = .home
+    @State private var router = TabRouter()
 
     var body: some View {
-        TabView(selection: $tab) {
+        TabView(selection: $router.tab) {
             NavigationStack { HomeView() }
                 .tabItem { Label("Home", systemImage: "house") }
                 .tag(Tab.home)
@@ -26,5 +26,6 @@ struct MainTabView: View {
         .tint(Theme.Color.text)
         .toolbarBackground(Theme.Color.surface, for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)
+        .environment(router)
     }
 }
