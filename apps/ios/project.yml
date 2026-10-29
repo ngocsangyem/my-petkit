@@ -14,6 +14,9 @@ settings:
 packages:
   PetkitKit:
     path: PetkitKit
+  SnapshotTesting:
+    url: https://github.com/pointfreeco/swift-snapshot-testing
+    exactVersion: 1.19.6
 targets:
   MyPetkit:
     type: application
@@ -44,6 +47,7 @@ targets:
       - target: MyPetkit
       - package: PetkitKit
         product: PetkitCore
+      - package: SnapshotTesting
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES

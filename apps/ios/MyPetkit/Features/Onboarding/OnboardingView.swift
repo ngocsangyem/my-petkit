@@ -80,8 +80,9 @@ struct OnboardingView: View {
     @ViewBuilder private var footer: some View {
         switch model.step {
         case .scan:
+            // On the ground itself, so the pill takes the card colour to stand out.
             Button("Enter address manually") { model.step = .manualAddress }
-                .buttonStyle(.secondary)
+                .buttonStyle(SecondaryButtonStyle(fill: Theme.Color.surface))
         case .found:
             busyButton("Trust this server") { model.trustScanned() }
             Button("Enter address manually") { model.step = .manualAddress }

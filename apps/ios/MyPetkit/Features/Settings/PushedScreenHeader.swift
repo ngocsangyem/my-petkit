@@ -71,10 +71,11 @@ struct ServerNavRow: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            .layoutPriority(1)
             Spacer(minLength: 8)
             if let value {
+                // Values are short ("All on", "180 / 7 days"); the title wraps instead.
                 Text(value).font(Theme.Font.body).foregroundStyle(valueColor).lineLimit(1).monospacedDigit()
+                    .fixedSize()
             }
             if needsStepUp {
                 StepUpPill(short: true)
