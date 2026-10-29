@@ -12,7 +12,6 @@ import {
 import { usePatcherDevices, usePatcherStatus, type DeviceSummary, type PatcherStatus } from './api';
 import { DevicePatches } from './components/device-patches';
 import { usePatcherProgress } from './hooks/use-patcher-progress';
-import './patchers.css';
 
 function deviceLabel(d: DeviceSummary): string {
   return `${d.name} · ${d.type.toUpperCase()} · #${d.id}`;
@@ -40,7 +39,7 @@ export function PatchersPage() {
 
   const picker =
     list.length > 1 && device ? (
-      <label className="patchers-picker">
+      <label className="flex items-center gap-2 text-sm text-muted-foreground">
         Device
         <Select
           options={list.map(d => ({ value: String(d.id), label: deviceLabel(d) }))}

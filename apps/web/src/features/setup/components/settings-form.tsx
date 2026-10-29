@@ -116,24 +116,30 @@ export function SettingsForm({ info }: { info: ServerInfo }) {
       </SettingsSection>
 
       {(dirty.length > 0 || notice || save.isError) && (
-        <div className="setup-savebar" role="region" aria-label="Unsaved settings">
-          <div className="setup-savebar__text" role="status">
+        <div
+          className="sticky bottom-0 z-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-border bg-background py-3 [&+section]:mt-2 [&+section]:border-t [&+section]:border-rule [&+section]:pt-8"
+          role="region"
+          aria-label="Unsaved settings"
+        >
+          <div className="min-w-0" role="status">
             {save.isError ? (
-              <span className="setup-error">Nothing was saved: {errorMessage(save.error)}</span>
+              <span className="text-sm text-negative">
+                Nothing was saved: {errorMessage(save.error)}
+              </span>
             ) : problem ? (
-              <span className="setup-error">{problem}</span>
+              <span className="text-sm text-negative">{problem}</span>
             ) : dirty.length > 0 ? (
               <span>
                 {dirty.length === 1 ? '1 unsaved change' : `${dirty.length} unsaved changes`}:{' '}
-                <span className="setup-mono">{dirty.join(', ')}</span>. Saving asks for your
-                password.
+                <span className="font-mono text-xs wrap-anywhere">{dirty.join(', ')}</span>. Saving
+                asks for your password.
               </span>
             ) : (
               <span>{notice}</span>
             )}
           </div>
           {dirty.length > 0 && (
-            <div className="setup-savebar__actions">
+            <div className="flex gap-2">
               <Button onClick={discard} disabled={save.isPending}>
                 Discard
               </Button>

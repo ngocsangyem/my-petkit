@@ -1,5 +1,9 @@
+import { cn } from 'cn';
 import { Pill } from '@/shared/ui';
 import { summariseUpstream } from '../setup-model';
+
+/** Set off from the rows above by a rule, inside the same panel. */
+const FRAME = 'flex flex-col gap-1.5 border-t border-border pt-3';
 
 /**
  * What proxy mode is actually doing. Once a taken-over device settles it polls
@@ -10,16 +14,16 @@ export function UpstreamStatus({ counts }: { counts: Record<string, number> }) {
   const s = summariseUpstream(counts);
   if (!s.total) {
     return (
-      <p className="setup-upstream-status setup-muted">
+      <p className={cn(FRAME, 'text-sm text-muted-foreground')}>
         No calls forwarded yet. A device polls about every 10 seconds.
       </p>
     );
   }
   return (
-    <div className="setup-upstream-status">
-      <p className="setup-upstream-status__line">
+    <div className={FRAME}>
+      <p className="flex flex-wrap items-center gap-2">
         <span>
-          Forwarded <span className="setup-num">{s.total}</span> calls
+          Forwarded <span className="tabular-nums">{s.total}</span> calls
         </span>
         <Pill tone={s.ok ? 'positive' : 'neutral'}>{s.ok} answered</Pill>
         {s.refused.map(r => (
@@ -34,7 +38,7 @@ export function UpstreamStatus({ counts }: { counts: Record<string, number> }) {
         ))}
       </p>
       {s.refused.length > 0 && !s.ok && (
-        <p className="setup-muted">
+        <p className="text-sm text-muted-foreground">
           The cloud refuses every session-bearing call. That is expected once this server has taken
           the device over, since the session it presents is one we issued; the device is served our
           own answers throughout.

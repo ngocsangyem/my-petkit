@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { errorMessage } from '@/shared/api/errors';
 import { formatDateTime, relativeTime } from '@/shared/format/format';
-import { Button, ConfirmDialog, EmptyBlock } from '@/shared/ui';
+import { Button, ConfirmDialog, EmptyBlock, Table, type TableColumn } from '@/shared/ui';
 import { useRevokeToken, type ClientToken } from '../api';
 
 function tokenName(t: ClientToken): string {
@@ -15,32 +15,50 @@ export function TokenList({ tokens }: { tokens: readonly ClientToken[] }) {
 
   if (tokens.length === 0) return <EmptyBlock>No phone is paired yet.</EmptyBlock>;
 
+  const columns: TableColumn<ClientToken>[] = [
+    {
+      key: 'phone',
+      header: 'Phone',
+      cell: t => (
+        <span className="flex min-w-0 flex-col">
+          <span className="font-medium wrap-anywhere">{tokenName(t)}</span>
+          <span className="text-sm text-muted-foreground">
+            Paired {formatDateTime(t.created_at)} · last used {relativeTime(t.last_used)}
+          </span>
+        </span>
+      ),
+    },
+    {
+      key: 'action',
+      header: 'Action',
+      hiddenHeader: true,
+      alignEnd: true,
+      cell: t => (
+        <Button
+          variant="destructive"
+          onClick={() => {
+            revoke.reset();
+            setAsking(t);
+          }}
+          disabled={revoke.isPending && revoke.variables === t.id}
+        >
+          Revoke
+        </Button>
+      ),
+    },
+  ];
+
   return (
     <>
-      <ul className="tokens-list" aria-label="Client tokens">
-        {tokens.map(t => (
-          <li key={t.id} className="tokens-row">
-            <span className="tokens-row__text">
-              <span className="tokens-row__name">{tokenName(t)}</span>
-              <span className="tokens-muted">
-                Paired {formatDateTime(t.created_at)} · last used {relativeTime(t.last_used)}
-              </span>
-            </span>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                revoke.reset();
-                setAsking(t);
-              }}
-              disabled={revoke.isPending && revoke.variables === t.id}
-            >
-              Revoke
-            </Button>
-          </li>
-        ))}
-      </ul>
+      <Table
+        label="Client tokens"
+        variant="compact"
+        columns={columns}
+        rows={tokens}
+        rowKey={t => String(t.id)}
+      />
       {revoke.isError && (
-        <p role="alert" className="tokens-error">
+        <p role="alert" className="pt-2 text-sm text-negative">
           Not revoked: {errorMessage(revoke.error)}
         </p>
       )}

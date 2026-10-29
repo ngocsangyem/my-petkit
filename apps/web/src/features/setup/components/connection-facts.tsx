@@ -8,8 +8,15 @@ interface Fact {
   note: string;
 }
 
+/** The state word carries the colour; nothing else in the row does. */
+const WORD_TONE = {
+  positive: 'text-positive',
+  negative: 'text-negative',
+  muted: 'text-muted-foreground',
+} as const;
+
 function Word({ tone, children }: { tone: 'positive' | 'negative' | 'muted'; children: string }) {
-  return <span className={`setup-word setup-word--${tone}`}>{children}</span>;
+  return <span className={WORD_TONE[tone]}>{children}</span>;
 }
 
 function bridgeWord(info: ServerInfo) {
@@ -26,13 +33,13 @@ export function ConnectionFacts({ info }: { info: ServerInfo }) {
   const facts: Fact[] = [
     {
       label: 'Version',
-      value: <span className="setup-mono">{info.version}</span>,
+      value: <span className="font-mono text-xs wrap-anywhere">{info.version}</span>,
       note: 'The code actually running. If an update did not take effect this still shows the old number, the quickest way to tell a stale build from a real bug.',
     },
     {
       label: 'API URL',
       value: (
-        <span className="setup-mono">
+        <span className="font-mono text-xs wrap-anywhere">
           <ValueText value={info.api_url} />
         </span>
       ),
@@ -46,7 +53,7 @@ export function ConnectionFacts({ info }: { info: ServerInfo }) {
     {
       label: 'MQTT broker port',
       value: (
-        <span className="setup-num">
+        <span className="tabular-nums">
           <ValueText value={info.mqtt_port} />
           {info.mqtt_tls ? (
             <>
@@ -79,7 +86,7 @@ export function ConnectionFacts({ info }: { info: ServerInfo }) {
     },
     {
       label: 'Devices',
-      value: <span className="setup-num">{info.device_count}</span>,
+      value: <span className="tabular-nums">{info.device_count}</span>,
       note: 'Devices this server knows.',
     },
   ];
@@ -89,14 +96,17 @@ export function ConnectionFacts({ info }: { info: ServerInfo }) {
       title="Connection"
       description="Bound at startup. Change these in the server configuration, then restart."
     >
-      <dl className="setup-facts">
+      <dl className="m-0 flex flex-col">
         {facts.map(f => (
-          <div key={f.label} className="setup-facts__row">
-            <dt className="setup-facts__label">
-              <span className="setup-facts__name">{f.label}</span>
-              <span className="setup-facts__note">{f.note}</span>
+          <div
+            key={f.label}
+            className="grid grid-cols-1 items-start gap-1 py-3 first:pt-0 last:pb-0 [&+&]:border-t [&+&]:border-border min-[901px]:grid-cols-[minmax(0,1fr)_minmax(120px,220px)] min-[901px]:gap-4"
+          >
+            <dt className="flex flex-col gap-0.5">
+              <span className="font-medium">{f.label}</span>
+              <span className="text-sm text-muted-foreground">{f.note}</span>
             </dt>
-            <dd className="setup-facts__value">{f.value}</dd>
+            <dd className="m-0 wrap-anywhere min-[901px]:text-right">{f.value}</dd>
           </div>
         ))}
       </dl>

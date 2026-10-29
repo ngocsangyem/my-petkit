@@ -1,7 +1,20 @@
 import { formatBytes } from '@/shared/format/format';
 import { Button, Table, type TableColumn } from '@/shared/ui';
 import type { PatcherEntry } from '../api';
-import { firstParagraph, isFinalLine, primaryAction, statusOf } from '../patcher-model';
+import {
+  firstParagraph,
+  isFinalLine,
+  primaryAction,
+  statusOf,
+  type StatusTone,
+} from '../patcher-model';
+
+/** Status word colour per tone: the word carries the state, never a fill. */
+const TONE: Record<StatusTone, string> = {
+  positive: 'text-positive',
+  warning: 'text-warning',
+  muted: 'text-muted-foreground',
+};
 
 interface PatchTableProps {
   patchers: readonly PatcherEntry[];
@@ -24,9 +37,11 @@ export function PatchTable({ patchers, linesOf, selected, onPick }: PatchTablePr
       header: 'Patch',
       width: '52%',
       cell: p => (
-        <span className="patchers-cell">
-          <span className="patchers-cell__name">{p.name}</span>
-          <span className="patchers-cell__what">{firstParagraph(p.description)}</span>
+        <span className="flex min-w-0 flex-col">
+          <span className="font-medium">{p.name}</span>
+          <span className="line-clamp-2 text-xs text-muted-foreground">
+            {firstParagraph(p.description)}
+          </span>
         </span>
       ),
     },
@@ -41,9 +56,9 @@ export function PatchTable({ patchers, linesOf, selected, onPick }: PatchTablePr
       key: 'status',
       header: 'Status',
       cell: p => {
-        if (running(linesOf(p.id))) return <span className="patchers-tone--accent">Running…</span>;
+        if (running(linesOf(p.id))) return <span className="text-data">Running…</span>;
         const s = statusOf(p);
-        return <span className={`patchers-tone--${s.tone}`}>{s.text}</span>;
+        return <span className={TONE[s.tone]}>{s.text}</span>;
       },
     },
     {

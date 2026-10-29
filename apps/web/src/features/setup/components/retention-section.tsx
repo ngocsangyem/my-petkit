@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { cn } from 'cn';
 import { errorMessage } from '@/shared/api/errors';
 import {
   Button,
@@ -80,7 +81,7 @@ function RetentionTable({ data, save }: RetentionTableProps) {
       cell: r =>
         r.sized ? (
           <NumberInput
-            className="setup-cap-input"
+            className="w-27.5"
             min={0}
             aria-label={`${r.label}, max size in MB`}
             value={caps[r.key]?.mb ?? null}
@@ -99,7 +100,7 @@ function RetentionTable({ data, save }: RetentionTableProps) {
       width: '140px',
       cell: r => (
         <NumberInput
-          className="setup-cap-input"
+          className="w-27.5"
           min={0}
           aria-label={`${r.label}, max age in days`}
           value={caps[r.key]?.days ?? null}
@@ -121,7 +122,7 @@ function RetentionTable({ data, save }: RetentionTableProps) {
         rowKey={r => r.key}
         minWidth={420}
       />
-      <div className="setup-panel-actions">
+      <div className="flex flex-wrap items-center gap-3 pt-3">
         <Button
           onClick={() => {
             save.mutate(toPatch(caps));
@@ -130,7 +131,10 @@ function RetentionTable({ data, save }: RetentionTableProps) {
         >
           {save.isPending ? 'Saving…' : 'Save retention'}
         </Button>
-        <span role="status" className={save.isError ? 'setup-error' : 'setup-muted'}>
+        <span
+          role="status"
+          className={cn('text-sm', save.isError ? 'text-negative' : 'text-muted-foreground')}
+        >
           {save.isError && `Not saved: ${errorMessage(save.error)}`}
           {save.isSuccess && 'Retention saved.'}
         </span>
@@ -148,7 +152,7 @@ export function RetentionSection() {
   return (
     <SettingsSection title="Retention" description={DESCRIPTION}>
       {retention.isPending ? (
-        <div className="setup-skeleton-rows" aria-busy="true">
+        <div className="flex flex-col gap-3" aria-busy="true">
           {ROWS.map(r => (
             <Skeleton key={r.key} height={32} />
           ))}

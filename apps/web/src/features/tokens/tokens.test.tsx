@@ -31,7 +31,7 @@ describe('TokensSection', () => {
       'GET /api/auth/tokens': { body: { tokens: TOKENS } },
     });
     renderWithProviders(<TokensSection />);
-    const list = await screen.findByRole('list', { name: 'Client tokens' });
+    const list = await screen.findByRole('table', { name: 'Client tokens' });
     expect(within(list).getByText('iPhone 16')).toBeInTheDocument();
     expect(within(list).getByText(/last used never/)).toBeInTheDocument();
     expect(await screen.findByText(groupFingerprint(SHA))).toBeInTheDocument();

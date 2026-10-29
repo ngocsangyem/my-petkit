@@ -6,7 +6,6 @@ import { useClientTokens, useCreatePairing, type Pairing } from './api';
 import { PairingPanel } from './components/pairing-panel';
 import { TokenList } from './components/token-list';
 import { groupFingerprint } from './pairing-format';
-import './tokens.css';
 
 /** This server as the app would dial it: the page's host at the user plane's TLS port. */
 function ServerFacts() {
@@ -15,12 +14,12 @@ function ServerFacts() {
   if (info.isError) return null;
   const { port, cert_sha256: sha } = info.data.user_tls;
   return (
-    <div className="tokens-facts tokens-facts--ruled">
-      <span className="tokens-caption">This server and its certificate SHA-256</span>
-      <span className="tokens-mono">
+    <div className="mt-3 flex flex-col gap-1 border-t border-border pt-3">
+      <span className="text-xs text-muted-foreground">This server and its certificate SHA-256</span>
+      <span className="font-mono text-xs wrap-anywhere">
         {port ? `${window.location.hostname}:${port}` : <Missing />}
       </span>
-      <span className="tokens-mono tokens-fingerprint">
+      <span className="font-mono text-xs wrap-anywhere leading-relaxed tabular-nums [word-spacing:4px]">
         {sha ? groupFingerprint(sha) : <Missing />}
       </span>
     </div>
@@ -81,14 +80,14 @@ export function TokensSection() {
           }}
         />
       ) : (
-        <div className="tokens-actions">
+        <div className="flex flex-wrap gap-2 pt-3">
           <Button variant="primary" onClick={newCode} disabled={create.isPending || !tokens.data}>
             {create.isPending ? 'Creating…' : 'Pair a phone'}
           </Button>
         </div>
       )}
       {create.isError && (
-        <p role="alert" className="tokens-error">
+        <p role="alert" className="pt-2 text-sm text-negative">
           No pairing code: {errorMessage(create.error)}
         </p>
       )}

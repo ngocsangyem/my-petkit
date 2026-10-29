@@ -44,15 +44,15 @@ export function DevicePatches({ device, progress }: DevicePatchesProps) {
 
   return (
     <>
-      <section className="patchers-list" aria-labelledby={titleId}>
-        <div className="patchers-list__head">
-          <h2 id={titleId} className="patchers-list__title">
+      <section className="flex flex-col gap-2" aria-labelledby={titleId}>
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <h2 id={titleId} className="text-lg font-semibold">
             Patches
           </h2>
-          <span className="patchers-muted">
+          <span className="text-sm text-muted-foreground">
             {ip ? (
               <>
-                The server reaches this device at <span className="patchers-mono">{ip}</span>.
+                The server reaches this device at <span className="font-mono text-xs">{ip}</span>.
               </>
             ) : (
               'Device IP unknown: wait for a state report before patching.'

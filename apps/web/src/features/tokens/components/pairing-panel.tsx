@@ -18,7 +18,7 @@ function PairingQr({ text }: { text: string }) {
   const { size, path } = useMemo(() => qrPath(text), [text]);
   return (
     <svg
-      className="tokens-qr"
+      className="block h-auto max-w-full"
       viewBox={`-2 -2 ${size + 4} ${size + 4}`}
       width="196"
       height="196"
@@ -26,8 +26,8 @@ function PairingQr({ text }: { text: string }) {
       aria-label="QR code for pairing the iOS app"
       shapeRendering="crispEdges"
     >
-      <rect className="tokens-qr__ground" x="-2" y="-2" width={size + 4} height={size + 4} />
-      <path className="tokens-qr__ink" d={path} />
+      <rect className="fill-background" x="-2" y="-2" width={size + 4} height={size + 4} />
+      <path className="fill-ink" d={path} />
     </svg>
   );
 }
@@ -62,8 +62,12 @@ export function PairingPanel({
   const fingerprint = groupFingerprint(pairing.qr.cert_sha256);
 
   return (
-    <div className="tokens-pairing" aria-labelledby={titleId} role="group">
-      <h3 id={titleId} className="tokens-pairing__title">
+    <div
+      className="mt-3 flex flex-col gap-3 border-t border-border pt-3"
+      aria-labelledby={titleId}
+      role="group"
+    >
+      <h3 id={titleId} className="text-lg font-semibold">
         Pair the iOS app
       </h3>
       {pairedName ? (
@@ -72,24 +76,28 @@ export function PairingPanel({
         <p role="status">This code has expired. Create a new one to pair a phone.</p>
       ) : (
         <>
-          <p className="tokens-muted">
+          <p className="text-sm text-muted-foreground">
             Scan this code in the app. It carries this server’s address and certificate fingerprint,
             so the app trusts this server only.
           </p>
-          <div className="tokens-qr-frame">
+          <div className="flex justify-center rounded-lg bg-background p-4">
             <PairingQr text={payload} />
           </div>
-          <div className="tokens-facts">
-            <span className="tokens-caption">Server and certificate fingerprint</span>
-            <span className="tokens-mono">{pairing.qr.url}</span>
-            <span className="tokens-mono tokens-fingerprint">{fingerprint || '—'}</span>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">
+              Server and certificate fingerprint
+            </span>
+            <span className="font-mono text-xs wrap-anywhere">{pairing.qr.url}</span>
+            <span className="font-mono text-xs wrap-anywhere leading-relaxed tabular-nums [word-spacing:4px]">
+              {fingerprint || '—'}
+            </span>
           </div>
-          <p className="tokens-muted">
+          <p className="text-sm text-muted-foreground">
             The app shows the same fingerprint before it connects. If they differ, do not continue.
           </p>
-          <div className="tokens-code">
-            <span className="tokens-caption">Code</span>
-            <span className="tokens-mono">{pairing.code}</span>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <span className="text-xs text-muted-foreground">Code</span>
+            <span className="font-mono text-xs wrap-anywhere">{pairing.code}</span>
             <Button
               size="small"
               onClick={() => {
@@ -98,18 +106,18 @@ export function PairingPanel({
             >
               Copy code
             </Button>
-            <span role="status" className="tokens-muted">
+            <span role="status" className="text-sm text-muted-foreground">
               {copied === true && 'Copied.'}
               {copied === false && 'Copy failed; select the code instead.'}
             </span>
           </div>
-          <p className="tokens-muted" role="timer" aria-live="off">
+          <p className="text-sm text-muted-foreground" role="timer" aria-live="off">
             Single use. Expires in{' '}
-            <span className="tokens-num">{countdown(pairing.expires_at, now)}</span>.
+            <span className="tabular-nums">{countdown(pairing.expires_at, now)}</span>.
           </p>
         </>
       )}
-      <div className="tokens-actions">
+      <div className="flex flex-wrap gap-2 pt-3">
         {(expired || pairedName) && (
           <Button onClick={onNewCode} disabled={creating}>
             {creating ? 'Creating…' : 'New code'}
