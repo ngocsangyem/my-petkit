@@ -1,8 +1,10 @@
-// swift-tools-version: 5.9
-// Shared code for the iOS app. `PetkitAPI` is the user-plane client, generated
-// at build time from `Sources/PetkitAPI/openapi.yaml` (a copy of
-// packages/contracts/openapi.yaml made by scripts/gen-clients.sh); the
-// generated code is never committed.
+// swift-tools-version: 6.0
+// Shared code for the iOS app.
+// - `PetkitAPI` is the user-plane client, generated at build time from
+//   `Sources/PetkitAPI/openapi.yaml` (a copy of packages/contracts/openapi.yaml
+//   made by scripts/gen-clients.sh); the generated code is never committed.
+// - `PetkitCore` is everything testable without UI: pairing, Keychain, TLS
+//   pinning, the pinned media loader, display models.
 import PackageDescription
 
 let package = Package(
@@ -10,6 +12,7 @@ let package = Package(
     platforms: [.iOS(.v17), .macOS(.v14)],
     products: [
         .library(name: "PetkitAPI", targets: ["PetkitAPI"]),
+        .library(name: "PetkitCore", targets: ["PetkitCore"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-openapi-generator", exact: "1.9.0"),
@@ -27,5 +30,7 @@ let package = Package(
                 .plugin(name: "OpenAPIGenerator", package: "swift-openapi-generator"),
             ]
         ),
+        .target(name: "PetkitCore"),
+        .testTarget(name: "PetkitCoreTests", dependencies: ["PetkitCore"]),
     ]
 )

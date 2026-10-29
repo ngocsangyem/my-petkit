@@ -1,0 +1,4 @@
+// Per-developer signing lives in Signing.local.xcconfig (not committed);
+// copy Signing.local.xcconfig.example and set your Team ID. Simulator builds
+// need neither.
+#include? "Signing.local.xcconfig"

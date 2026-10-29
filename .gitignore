@@ -79,3 +79,6 @@ plans/
 .build/
 .swiftpm/
 xcuserdata/
+
+# XcodeGen output (regenerate with `xcodegen generate` in apps/ios)
+apps/ios/MyPetkit.xcodeproj/
