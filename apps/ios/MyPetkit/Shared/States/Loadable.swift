@@ -16,7 +16,9 @@ enum Loadable<Value> {
     /// The sentence shown inside the block for `error`.
     static func message(for error: any Error) -> String {
         if let api = APIError.from(error) { return api.message }
-        if let url = error as? URLError {
+        // The generated client wraps transport failures in ClientError.
+        let underlying = (error as? ClientError)?.underlyingError ?? error
+        if let url = underlying as? URLError {
             switch url.code {
             case .notConnectedToInternet, .cannotConnectToHost, .timedOut, .networkConnectionLost,
                  .cannotFindHost:

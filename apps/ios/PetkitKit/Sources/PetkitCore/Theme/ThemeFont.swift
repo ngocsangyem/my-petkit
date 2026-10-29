@@ -30,9 +30,9 @@ public extension Theme {
         static func sans(_ size: CGFloat, _ weight: SwiftUI.Font.Weight,
                          relativeTo style: SwiftUI.Font.TextStyle) -> SwiftUI.Font {
             let name = switch weight {
-            case .semibold: "IBMPlexSans-SemiBold"
-            case .medium: "IBMPlexSans-Medium"
-            default: "IBMPlexSans-Regular"
+            case .semibold: "IBMPlexSans-SmBld"
+            case .medium: "IBMPlexSans-Medm"
+            default: "IBMPlexSans"
             }
             return isAvailable(name)
                 ? .custom(name, size: size, relativeTo: style)
@@ -41,7 +41,7 @@ public extension Theme {
 
         static func monospaced(_ size: CGFloat, _ weight: SwiftUI.Font.Weight,
                                relativeTo style: SwiftUI.Font.TextStyle) -> SwiftUI.Font {
-            let name = weight == .medium ? "IBMPlexMono-Medium" : "IBMPlexMono-Regular"
+            let name = weight == .medium ? "IBMPlexMono-Medm" : "IBMPlexMono"
             return isAvailable(name)
                 ? .custom(name, size: size, relativeTo: style)
                 : .system(style, design: .monospaced).weight(weight)

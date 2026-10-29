@@ -24,6 +24,14 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>The camera reads the pairing code on your my-petkit dashboard.</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>IBMPlexSans-Regular.ttf</string>
+		<string>IBMPlexSans-Medium.ttf</string>
+		<string>IBMPlexSans-SemiBold.ttf</string>
+		<string>IBMPlexMono-Regular.ttf</string>
+		<string>IBMPlexMono-Medium.ttf</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>
