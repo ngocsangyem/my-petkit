@@ -1,0 +1,45 @@
+# SwiftLint for the iOS app and PetkitKit. Run from apps/ios: `swiftlint lint --strict`.
+included:
+  - MyPetkit
+  - MyPetkitTests
+  - PetkitKit/Sources
+  - PetkitKit/Tests
+opt_in_rules:
+  - force_unwrapping
+disabled_rules:
+  - trailing_comma
+  - identifier_name
+  - type_name
+  - nesting
+  - todo
+force_cast: error
+force_try: error
+force_unwrapping: error
+line_length:
+  warning: 140
+  error: 200
+  ignores_comments: true
+  ignores_urls: true
+file_length:
+  warning: 600
+type_body_length:
+  warning: 400
+function_body_length:
+  warning: 80
+cyclomatic_complexity:
+  warning: 20
+large_tuple:
+  warning: 4
+custom_rules:
+  no_colour_literals:
+    name: "Colour outside Theme"
+    regex: '(Color\((red|\.sRGB)|#colorLiteral|UIColor\(red)'
+    excluded: 'PetkitKit/Sources/PetkitCore/Theme/'
+    message: "Colours are declared once in PetkitCore/Theme (Theme.Color)."
+    severity: error
+  no_literal_font_size:
+    name: "Font size outside Theme"
+    regex: '\.font\(\.system\(size:'
+    excluded: 'PetkitKit/Sources/PetkitCore/Theme/'
+    message: "Use a Theme.Font role."
+    severity: error

@@ -109,6 +109,9 @@ def _open_user_plane(config: Any, ha_addon: bool) -> tuple[AuthService, ssl.SSLC
     bind = "" if ipaddress.ip_address(config.user_bind_host).is_unspecified else config.user_bind_host
     cert, key, fingerprint = ensure_user_cert(Path(config.data_dir) / "certs",
                                               [api_host, bind, *names])
+    # Public, and the only way to check a client is about to pin the right
+    # certificate before any admin exists to show a pairing QR code.
+    log.info("user plane: TLS certificate SHA-256 %s", fingerprint)
     settings = UserPlaneSettings(
         ingress_port=config.web_port if ha_addon else None,
         allowed_hosts=frozenset(names),
