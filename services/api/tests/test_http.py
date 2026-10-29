@@ -309,8 +309,16 @@ def test_a_command_is_labelled_with_a_msg_type_the_device_dispatches():
     from my_petkit.ha.commands import ALL_ACTIONS
     from my_petkit.http.handlers.heartbeat import _to_heartbeat_content
 
+    from my_petkit.patchers.common import build_run_cmd
+    from my_petkit.patchers.pan import PAN_COMMANDS
+
     device = Device(device_type="d4sh", petkit_id=1, serial_number="F")
     for key, build in ALL_ACTIONS.items():
+        if key in PAN_COMMANDS:
+            # A camera pan never goes through the heartbeat translation: it is
+            # a run_cmd line, sent in `build_run_cmd`'s own envelope.
+            assert json.loads(build_run_cmd(PAN_COMMANDS[key]))["msgType"] == 0
+            continue
         suffix, envelope = build(device)
         content = json.loads(_to_heartbeat_content(
             {**envelope, "_service_suffix": suffix}))

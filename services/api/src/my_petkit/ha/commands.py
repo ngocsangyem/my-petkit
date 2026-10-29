@@ -41,6 +41,7 @@ from my_petkit.utils.coerce import to_int
 from my_petkit.utils.const import DEVICE_TYPES_FEEDER_DUAL, DEVICE_TYPES_FEEDER_NEXT_GEN
 from my_petkit.http.handlers.feed import _build_latest as _feed_latest
 from my_petkit.http.handlers.feed import _compute_next_tick as _feed_next_tick
+from my_petkit.patchers import pan
 from my_petkit.utils.logtext import one_line
 from my_petkit.utils.timeutil import local_day_start
 
@@ -52,6 +53,12 @@ Command = tuple[str, dict[str, Any]]
 
 
 PROPERTY_SET_SUFFIX = "property/set"
+
+# Not a thing/service topic: a command under this suffix is a shell line for the
+# device's own run_cmd path (`patchers/pan.send_pan_command`), never published
+# to MQTT. Only the camera-pan buttons produce it, and both consumers refuse the
+# raw panel form carrying it, so a hand-made request cannot reach root.
+RUN_CMD_SUFFIX = "@run_cmd"
 
 # Media capability toggles (ha/entities/switches.py::CAPABILITY_SWITCHES) route
 # here instead of the generic settings.<field> path below: they don't push
@@ -186,6 +193,29 @@ def _device_power(on: bool) -> Command:
     return ("power", _envelope("thing.service.power", {"power_action": int(on)}))
 
 
+def _camera_pan(device: Device, key: str) -> Command:
+    """Pan a T6's camera through the firmware's `pktool` (`patchers/pan.py`).
+
+    Gated in `handle_ha_command` (`_refuse_camera_pan`), the one path a press
+    takes; the line itself is re-checked when it is sent.
+    """
+    return (RUN_CMD_SUFFIX, {"run_cmd": pan.PAN_COMMANDS[key]})
+
+
+def _refuse_camera_pan(device: Device) -> None:
+    """Refuse a pan unless the Camera Pan patcher is applied and the camera is on.
+
+    Privacy mode turns the head away, and a pan would turn it back.
+
+    Raises:
+        Refused: the press must not reach the device.
+    """
+    if not pan.is_active(device):
+        raise Refused("camera pan needs the Camera Pan patcher")
+    if to_int(device.config.get("settings", {}).get("camera"), 1) == 0:
+        raise Refused("the camera is off")
+
+
 #: Actions that are not one family's. Merged into `ALL_ACTIONS` alongside the
 #: per-category tables, so the litter and fountain buttons resolve to one
 #: implementation instead of two copies that can drift.
@@ -213,6 +243,10 @@ LITTER_ACTIONS = {
     "light": lambda device: _litter_start(7),
     "pack_waste": lambda device: _litter_start(8),
     "open_sealed_door": lambda device: _litter_start(11),
+    # T6 only, and only with the Camera Pan patcher applied.
+    "pan_left": lambda device: _camera_pan(device, "pan_left"),
+    "pan_right": lambda device: _camera_pan(device, "pan_right"),
+    "pan_home": lambda device: _camera_pan(device, "pan_home"),
     # no localkit reference; best-effort control verbs
     "pause": lambda device: _litter_ctrl("stop_action", 0),
     "resume": lambda device: _litter_ctrl("continue_action", 0),
@@ -447,6 +481,8 @@ def handle_ha_command(device: Device, entity: EntityDef, payload: str) -> Comman
             log.info("Recorded %s replacement for device %d at %s",
                      which.upper(), device.petkit_id, ts)
 
+        if entity.key in pan.PAN_COMMANDS:
+            _refuse_camera_pan(device)
         action = ALL_ACTIONS.get(entity.key)
         if not action:
             log.warning("Unknown button action '%s' for device %d", entity.key, device.petkit_id)

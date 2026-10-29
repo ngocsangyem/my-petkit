@@ -1451,7 +1451,7 @@ export interface components {
         };
         PatcherEntry: {
             /** @enum {string} */
-            id: "mqtt" | "cloud" | "cacert" | "camera" | "ssh" | "talk";
+            id: "mqtt" | "cloud" | "cacert" | "camera" | "ssh" | "talk" | "pan";
             name: string;
             description: string;
             /** @description "applied", "not applied" or "active (MQTT connected)". */
@@ -2240,7 +2240,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /** @enum {string} */
-                    patcher: "mqtt" | "cloud" | "cacert" | "camera" | "ssh" | "talk";
+                    patcher: "mqtt" | "cloud" | "cacert" | "camera" | "ssh" | "talk" | "pan";
                     /**
                      * @description "remove" removes the patcher; any other value applies it.
                      * @default apply

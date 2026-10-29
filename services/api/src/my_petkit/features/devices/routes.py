@@ -20,11 +20,12 @@ from my_petkit.devices.base import Device
 from my_petkit.devices.state_parsers import apply_consumable_state
 from my_petkit.ha.categories import get_entities_for_device
 from my_petkit.ha.commands import (
-    ALL_ACTIONS, PROPERTY_SET_SUFFIX, Refused, handle_ha_command,
+    ALL_ACTIONS, PROPERTY_SET_SUFFIX, RUN_CMD_SUFFIX, Refused, handle_ha_command,
     make_mqtt_property_set,
 )
 from my_petkit.media.go2rtc import stream_urls_with_rtsp
 from my_petkit.mqtt.broker import delivery_view
+from my_petkit.patchers import pan
 from my_petkit.utils.coerce import to_float
 from my_petkit.utils.timeutil import offset_hours_for_locale
 from my_petkit.utils.const import device_display_name
@@ -355,9 +356,21 @@ async def api_send_command(request: web.Request) -> web.Response:
         envelope = body.get("payload")
         if not suffix or envelope is None:
             return web.json_response({"error": "need action, entity+value, or suffix+payload"}, status=400)
+        # The pan buttons' run_cmd sentinel is only ever built by
+        # `ha/commands.py`; a raw request naming it is refused, not stepped up.
+        if suffix == RUN_CMD_SUFFIX:
+            return web.json_response({"error": "that suffix cannot be sent"}, status=400)
         # The raw form publishes verbatim, which is enough to carry a
         # `run_cmd` to the device: root on the box, so it takes a step-up.
         require_step_up(request, "raw_command", device_id=d.petkit_id)
+
+    if suffix == RUN_CMD_SUFFIX:
+        # A camera pan: one of `patchers/pan.py`'s fixed lines over run_cmd.
+        sent = await pan.send_pan_command(d, envelope, bridge)
+        delivered = "mqtt" if sent == "mqtt" else "heartbeat-queue"
+        hub.record_command(d.petkit_id, delivered, f"{suffix} {action or entity_key}")
+        return web.json_response({"ok": True, "delivered": delivered, "suffix": suffix,
+                                  "envelope": envelope})
 
     return await _deliver(hub, bridge, d, suffix, envelope, transport)
 

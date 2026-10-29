@@ -26,7 +26,7 @@ from my_petkit.ha.discovery import EntityDef
 from my_petkit.ha.entities.buttons import (
     FEEDER_BUTTONS, FEEDER_CAMERA_BUTTONS, FEEDER_DUAL_BUTTONS,
     FOUNTAIN_BUTTONS, FOUNTAIN_W7H_BUTTONS, FOUNTAIN_W7H_RETIRED_BUTTONS,
-    LITTER_BUTTONS, LITTER_CAMERA_BUTTONS, LITTER_T6_BUTTONS,
+    LITTER_BUTTONS, LITTER_CAMERA_BUTTONS, LITTER_T6_BUTTONS, LITTER_T6_PAN_BUTTONS,
 )
 from my_petkit.ha.entities.camera import CAMERA_ENTITIES
 from my_petkit.ha.entities.events import (
@@ -58,6 +58,7 @@ from my_petkit.ha.entities.switches import (
     PURIFIER_SWITCHES,
 )
 from my_petkit.ha.entities.text import FEEDER_SCHEDULE_TEXT, LITTER_SCHEDULE_TEXT
+from my_petkit.patchers import pan
 from my_petkit.ha.entities.times import FOUNTAIN_W7H_TIMES
 from my_petkit.utils.const import (
     DEVICE_TYPES_FEEDER, DEVICE_TYPES_LITTER, DEVICE_TYPES_PURIFIER,
@@ -412,8 +413,18 @@ def get_entities_for_device(device: Device) -> list[EntityDef]:
     spec = spec_for_device(device)
     if spec is None:
         return []
-    return spec.entities_for(has_camera=device.is_camera,
-                             device_type=device.device_type)
+    entities = spec.entities_for(has_camera=device.is_camera,
+                                 device_type=device.device_type)
+    # An operator opt-in rather than a model fact, so it lives outside the
+    # table; appended last, where it cannot move an existing entity.
+    if pan.is_active(device):
+        entities.extend(LITTER_T6_PAN_BUTTONS)
+    return entities
+
+
+def get_pan_buttons() -> list[EntityDef]:
+    """The camera-pan buttons, whose discovery is cleared when the opt-in ends."""
+    return list(LITTER_T6_PAN_BUTTONS)
 
 
 def get_retired_entities_for_device(device: Device) -> list[EntityDef]:

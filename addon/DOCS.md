@@ -165,6 +165,25 @@ There is no snapshot URL: the device answers every path with the same video
 stream, so the MQTT camera entity stays empty and the sensor carries the URL
 instead.
 
+## Panning the T6 camera
+
+The Purobot Ultra's camera turns on one motor, and PetKit's app pans it over a
+channel this app never sees. Apply **Camera Pan (T6)** in the Patchers tab to
+get **Pan Left**, **Pan Right** and **Pan Home** buttons, in Home Assistant and
+the panel. Each press turns the head about 18 degrees; Left is as seen facing
+the box, and Home turns it back into the drum, where the firmware parks it.
+
+Applying writes nothing to the device and does not reboot it. It checks that
+the firmware's own `pktool` is the build the commands were read from, and
+refuses any other; every press checks it again, so a firmware update that
+replaces it makes the buttons do nothing. Removing it takes the buttons away.
+
+Read the patcher's description before applying: `pktool` moves the motor
+around the firmware's own motor control, so these moves get none of its stall
+detection. The motor driver still stops every move at the ends of the travel,
+a press is skipped while the motor is already moving, and the buttons do
+nothing while the Camera switch is off.
+
 ## Provisioning over Bluetooth
 
 The **Provision** tab hands a device its Wi-Fi credentials, a custom `apiServers`

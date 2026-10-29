@@ -267,6 +267,10 @@ def test_every_patcher_declares_more_space_than_the_gate_can_ever_demand():
     forgets the field, or sets it below the fixed overhead."""
     floor = WRAPPER_RESERVE_BYTES + SPACE_MARGIN_BYTES
     for pid, info in ALL_PATCHERS.items():
+        if pid == "pan":
+            # Writes nothing, not even the wrapper, so the gate never runs.
+            assert info["needs_bytes"] == 0 and info["files"] == []
+            continue
         assert info["needs_bytes"] >= floor, pid
 
 

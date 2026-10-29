@@ -1041,7 +1041,9 @@ async def test_a_device_with_no_confirmed_stream_is_offered_no_address():
 
 async def test_all_patchers_are_offered_on_every_next_gen_device():
     """No patcher is gated by architecture in the listing. The patchers
-    themselves validate the binary they download from the device."""
+    themselves validate the binary they download from the device. Camera pan
+    is gated by MODEL instead -- only the T6 has the motor -- so it is the one
+    entry these two may show as unavailable."""
     reg = DeviceRegistry()
     reg.get_or_create(petkit_id=1, device_type="w7h", serial_number="SN")
     reg.get_or_create(petkit_id=2, device_type="t5", serial_number="SN2")
@@ -1051,7 +1053,7 @@ async def test_all_patchers_are_offered_on_every_next_gen_device():
         for did in (1, 2):
             resp = await (await c.get(f"/api/devices/{did}/patcher")).json()
             assert resp["supported"] is True
-            blocked = {p for p, e in resp["patchers"].items() if e["unavailable"]}
+            blocked = {p for p, e in resp["patchers"].items() if e["unavailable"]} - {"pan"}
             assert blocked == set(), f"device {did} has blocked patchers: {blocked}"
     finally:
         await c.close()

@@ -37,7 +37,6 @@ dict-item src/my_petkit/features/schedules/routes.py 1
 misc src/my_petkit/events/store_base.py 1
 misc src/my_petkit/http/dns.py 1
 misc src/my_petkit/mqtt/broker.py 1
-misc src/my_petkit/features/patchers/routes.py 1
 override src/my_petkit/http/dns.py 1
 return-value src/my_petkit/ai/pets.py 1
 return-value src/my_petkit/http/bucket.py 2

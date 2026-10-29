@@ -18,6 +18,7 @@ from typing import Any
 from aiohttp import web
 
 from my_petkit.devices.base import Device, split_bucket_authority
+from my_petkit.ha.commands import RUN_CMD_SUFFIX
 from my_petkit.http.proxy import resolve_upstream
 from my_petkit.utils.coerce import to_int
 from my_petkit.shared.appkeys import CFG, LIVE_CONFIG, PET_REGISTRY, REGISTRY
@@ -111,7 +112,12 @@ async def _deliver(hub, bridge, d, suffix: str, envelope: Any,
     from MQTT to the heartbeat queue is the part that must not diverge. A failed
     publish is not an error to the caller — the device picks the command up on
     its next poll either way — so `delivered` reports what actually happened.
+
+    Never sends `RUN_CMD_SUFFIX`: that is a root shell line, not a topic, and
+    only `features/devices` may deliver one, through `patchers/pan.py`.
     """
+    if suffix == RUN_CMD_SUFFIX:
+        raise _refuse(web.HTTPBadRequest, "that suffix cannot be sent")
     if transport == "auto":
         mqtt_live = d.mqtt_connected and bridge is not None and getattr(bridge, "_client", None)
         transport = "mqtt" if mqtt_live else "heartbeat"

@@ -19,7 +19,8 @@ import logging
 from typing import TYPE_CHECKING, Any, AsyncIterable, Iterable
 
 from my_petkit.devices.ble import ble_command_for
-from my_petkit.ha.commands import Refused, handle_ha_command
+from my_petkit.ha.commands import RUN_CMD_SUFFIX, Refused, handle_ha_command
+from my_petkit.patchers import pan
 from my_petkit.utils.coerce import to_int
 from my_petkit.utils.logtext import excerpt
 
@@ -247,6 +248,14 @@ class CommandRouter:
             # from somewhere else on the topic. Log and drop: the entity keeps
             # its old value and the next state publish puts HA back in step.
             log.warning("Refused HA command on %s: %s", topic, exc)
+            return
+
+        # A camera pan is a run_cmd shell line, not a thing/service publish.
+        if result and result[0] == RUN_CMD_SUFFIX:
+            try:
+                await pan.send_pan_command(device, result[1], self._command_sink)
+            except ValueError as exc:
+                log.warning("Refused HA command on %s: %s", topic, exc)
             return
 
         # Deliver to the device: real-time over MQTT if the device has an active

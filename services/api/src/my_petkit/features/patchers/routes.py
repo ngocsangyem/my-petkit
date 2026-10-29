@@ -37,11 +37,14 @@ from my_petkit.patchers.ssh import (
     ARCH_TO_BINARY as SSH_ARCH_TO_BINARY,
     DBKEY_RESERVE_BYTES, dropbear_path_for,
 )
+from my_petkit.ha.categories import get_pan_buttons
+from my_petkit.patchers import pan
+from my_petkit.patchers.common import run_cmd_capture
 from my_petkit.patchers.talk import PATCHER_INFO as TALK_PATCHER
 from my_petkit.patchers.verify import assert_download_plausible, elf_arch
 from my_petkit.shared.panel_request import _device_or_404, _json_body
 from my_petkit.shared.background_tasks import _spawn_background
-from my_petkit.shared.appkeys import BRIDGE, CFG, HUB, REGISTRY
+from my_petkit.shared.appkeys import BRIDGE, CFG, HA_PUBLISHER, HUB, REGISTRY
 from my_petkit.shared.tiers import Tier, tier
 from my_petkit.utils.logtext import one_line
 
@@ -59,8 +62,16 @@ log = logging.getLogger(__name__)
 _PATCHER_LOCKS: dict[int, asyncio.Lock] = {}
 
 ALL_PATCHERS: dict[str, dict[str, Any]] = {
-    p["id"]: p for p in [MQTT_PATCHER, CLOUD_PATCHER, CACERT_PATCHER, CAMERA_PATCHER, SSH_PATCHER, TALK_PATCHER]
+    p["id"]: p for p in [MQTT_PATCHER, CLOUD_PATCHER, CACERT_PATCHER, CAMERA_PATCHER, SSH_PATCHER,
+                         TALK_PATCHER, pan.PATCHER_INFO]
 }
+
+
+def _unavailable_reason(d: Device, patcher_id: str) -> str:
+    """Why this device cannot take the patcher, or "" when it can."""
+    if patcher_id == pan.PATCHER_ID and d.device_type.lower() not in pan.PAN_DEVICE_TYPES:
+        return "only the T6 has a pan motor"
+    return ""
 
 
 @tier(GET=Tier.R0_SENSITIVE)
@@ -90,7 +101,7 @@ async def api_patcher_status(request: web.Request) -> web.Response:
             "description": pinfo["description"],
             "status": status,
             "applied": applied,
-            "unavailable": "",
+            "unavailable": _unavailable_reason(d, pid),
             "greyed": pid == "mqtt" and d.mqtt_connected,
             # What to warn about before we know the model. The actual gate at
             # apply time uses the measured size of the patched file, which is
@@ -128,6 +139,9 @@ async def api_patcher_apply(request: web.Request) -> web.Response:
     action = body.get("action", "apply")
     if patcher_id not in ALL_PATCHERS:
         return web.json_response({"error": f"unknown patcher: {patcher_id}"}, status=400)
+    unavailable = _unavailable_reason(d, patcher_id)
+    if unavailable and action != "remove":
+        return web.json_response({"error": unavailable}, status=400)
     # SSH needs a public key. Accept it in the request, persist it on the device
     # config so a re-apply after an OTA does not ask again, and validate it
     # before spawning a background task that would fail minutes later.
@@ -226,6 +240,9 @@ async def _patcher_apply(d: Device, patcher_id: str, device_ip: str, download_ba
     cfg = app.get(CFG, {})
     data_dir = cfg.get("data_dir", "/data") if "data_dir" in cfg else "/data"
     P = f"[{patcher_id}]"
+    if patcher_id == pan.PATCHER_ID:
+        await _pan_apply(d, device_ip, hub, app)
+        return
     storage_dir = await detect_patch_storage_dir(d, device_ip, bridge=bridge)
     reg.save()
     wrapper_path = app_init_wrapper_path(d)
@@ -407,6 +424,32 @@ async def _patcher_apply(d: Device, patcher_id: str, device_ip: str, download_ba
     hub.publish("patcher", did, f"{P} done - device will reboot, patch active on next boot")
 
 
+async def _pan_apply(d: Device, device_ip: str, hub: EventHub, app: web.Application) -> None:
+    """Opt a T6 into camera pan once its firmware checks out.
+
+    Writes nothing to the device and does not reboot it: the check reads back
+    pktool's checksum and the motor's travel, because the pan commands were
+    read from one firmware build and a different one may number its actions
+    differently.
+    """
+    did = d.petkit_id
+    P = f"[{pan.PATCHER_ID}]"
+    hub.publish("patcher", did, f"{P} checking the firmware's pktool and pan motor...")
+    output = await run_cmd_capture(d, device_ip, pan.VERIFY_COMMAND, bridge=app.get(BRIDGE))
+    problem = pan.verify_problem(output)
+    if problem:
+        hub.publish("patcher", did, f"{P} FAILED: {problem}")
+        return
+    active = _get_active_patchers(d)
+    active.add(pan.PATCHER_ID)
+    _save_active_patchers(d, active, app[REGISTRY])
+    publisher = app.get(HA_PUBLISHER)
+    if publisher is not None:
+        await publisher.publish_discovery(d)
+    hub.publish("patcher", did, f"{P} done - Pan Left, Pan Right and Pan Home are available, "
+                                "no reboot needed")
+
+
 async def _patcher_remove(d: Device, patcher_id: str, device_ip: str, download_base: str,
                           hub: EventHub, app: web.Application) -> None:
     """Drop one patcher from the active set and reboot the device into it.
@@ -420,6 +463,17 @@ async def _patcher_remove(d: Device, patcher_id: str, device_ip: str, download_b
     reg = app[REGISTRY]
     bridge = app.get(BRIDGE)  # see _patcher_apply
     P = f"[{patcher_id}]"
+    if patcher_id == pan.PATCHER_ID:
+        # Nothing on the device to undo: drop the opt-in and the buttons.
+        active = _get_active_patchers(d)
+        active.discard(patcher_id)
+        _save_active_patchers(d, active, reg)
+        publisher = app.get(HA_PUBLISHER)
+        if publisher is not None:
+            await publisher.retire_entities(d, get_pan_buttons())
+            await publisher.publish_discovery(d)
+        hub.publish("patcher", did, f"{P} done - removed, the pan buttons are gone, no reboot needed")
+        return
     await detect_patch_storage_dir(d, device_ip, bridge=bridge)
     reg.save()
     wrapper_path = app_init_wrapper_path(d)
@@ -436,7 +490,8 @@ async def _patcher_remove(d: Device, patcher_id: str, device_ip: str, download_b
     files = " ".join(file_paths)
     cleanup_cmds = f"rm -f {files}" if files else "true"
 
-    if active:
+    # Camera pan is recorded in the active set but puts nothing in the wrapper.
+    if active - {pan.PATCHER_ID}:
         hub.publish("patcher", did, f"{P} uploading updated wrapper...")
         wrapper_content = generate_app_init_wrapper(active, d)
         stage_file("app_init.sh", wrapper_content.encode(), did)

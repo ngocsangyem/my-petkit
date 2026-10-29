@@ -59,6 +59,15 @@ LITTER_T6_BUTTONS = [
               icon="mdi:door-open"),
 ]
 
+#: Purobot Ultra camera pan, published only while the Camera Pan patcher is
+#: applied (`ha/categories.py`, `patchers/pan.py`). Left is as seen facing the
+#: box; Home turns the camera back into the drum.
+LITTER_T6_PAN_BUTTONS = [
+    EntityDef(component="button", key="pan_left", name="Pan Left", icon="mdi:pan-left"),
+    EntityDef(component="button", key="pan_right", name="Pan Right", icon="mdi:pan-right"),
+    EntityDef(component="button", key="pan_home", name="Pan Home", icon="mdi:camera-retake"),
+]
+
 FEEDER_BUTTONS = [
     EntityDef(component="button", key="feed", name="Feed", icon="mdi:food"),
     EntityDef(component="button", key="reset_desiccant", name="Reset Desiccant", icon="mdi:restart"),

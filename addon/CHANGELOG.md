@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- **The T6's camera can be panned: Pan Left, Pan Right and Pan Home.** The
+  buttons appear once the new **Camera Pan (T6)** patcher is applied, and only
+  on a Purobot Ultra. Each press runs the firmware's own `pktool motor_test`
+  over run_cmd: a quarter turn is 1250 steps, a press is 250
+  (about 18 degrees), and Home is 2500, the into-the-drum position the
+  firmware parks at. No binary is shipped and nothing is written to the
+  device; applying only checks pktool's checksum and the motor's travel
+  against the firmware the commands were read from (T6 951) and refuses any
+  other, and every press re-checks the checksum, so an app update that
+  replaces pktool stops the buttons instead of running an unverified tool. These moves bypass `ctrl`'s own motor arbitration and stall
+  detection, so a press is skipped while the motor is moving, refused while
+  the Camera switch is off, and the motor driver's own 0..2500 clamp still
+  bounds every move. The three shell lines are constants; the panel's raw
+  `{suffix, payload}` form cannot reach run_cmd through them. Replaces
+  upstream petkit-local PR #25's hand-built `/system/motorctl`, which was not
+  in the tree.
+
 - **The W7H fountain's Water Change button is gone, because it crashed the
   device.** It sent `start_action: 5`, and a W7H rebooted on every press (3 of
   3): the MQTT session dropped, `ctrl` died and the watchdog restarted the box

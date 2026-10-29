@@ -646,6 +646,7 @@ paths:
                   - camera
                   - ssh
                   - talk
+                  - pan
                 action:
                   type: string
                   default: apply
@@ -4055,6 +4056,7 @@ components:
           - camera
           - ssh
           - talk
+          - pan
         name:
           type: string
         description:

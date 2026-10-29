@@ -33,7 +33,7 @@ from my_petkit.ha.categories import get_entities_for_device, get_retired_entitie
 from my_petkit.ha.command_router import CommandRouter
 from my_petkit.ha.entities.ble import get_ble_entities
 from my_petkit.ha.entities.pet import PET_SENSORS
-from my_petkit.ha.discovery import build_discovery_payload, discovery_topic
+from my_petkit.ha.discovery import EntityDef, build_discovery_payload, discovery_topic
 from my_petkit.devices.state_parsers import apply_consumable_state
 from my_petkit.events.normalize import MQTT_ENVELOPE_KEYS
 from my_petkit.ha.commands import LOCAL_DEFAULTS
@@ -267,6 +267,18 @@ class HAPublisher:
 
         log.info("Published %d discovery configs for %s (id=%d), cleared %d retired",
                  len(entities), device.device_type, device.petkit_id, len(retired))
+
+    async def retire_entities(self, device: Device, entities: list[EntityDef]) -> None:
+        """Clear `entities`' discovery, for ones an opt-in just took away.
+
+        `publish_discovery` only stops announcing an entity it no longer lists;
+        HA keeps the retained config until it is replaced by an empty one.
+        """
+        if not self._client or not self._connected:
+            return
+        for entity in entities:
+            await self._emit(discovery_topic(entity, device.petkit_id, self._prefix),
+                             "", retain=True)
 
     async def unpublish_discovery(self, device: Device) -> None:
         """Remove every HA entity of `device` by publishing empty payloads."""

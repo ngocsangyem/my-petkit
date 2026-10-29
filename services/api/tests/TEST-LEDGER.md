@@ -893,6 +893,9 @@ None.
 | `conftest.py` | re-exports the `authed_client` fixture from `conftest_auth.py` | auth migration | 05 |
 | `test_w7h.py::test_the_job_buttons_send_actions_the_firmware_accepts`, `test_w7h.py::test_no_button_sends_an_action_that_is_not_a_job` | `fountain_water_change` dropped from the buttons checked: the button and its action are removed because `start_action: 5` crashes the device | behaviour change | – |
 | `test_entities.py::test_entity_count_per_device_type_is_unchanged` | W7H 84 -> 83 for the removed Water Change button | behaviour change | – |
+| `test_http.py::test_a_command_is_labelled_with_a_msg_type_the_device_dispatches` | the camera-pan actions are checked against `build_run_cmd`'s envelope instead: they are run_cmd lines and never pass through the heartbeat translation | behaviour change | – |
+| `test_panel.py::test_all_patchers_are_offered_on_every_next_gen_device` | Camera Pan may show as unavailable: it is gated by model (only the T6 has the motor), not by architecture | behaviour change | – |
+| `test_patcher_space.py::test_every_patcher_declares_more_space_than_the_gate_can_ever_demand` | Camera Pan is exempt and pinned to 0: it writes nothing, not even the wrapper, so the space gate never runs for it | behaviour change | – |
 
 ### Media serves the byte ranges the iOS media loader asks for
 
@@ -902,3 +905,33 @@ a two-byte probe for type and total length, then open-ended ranges.
 - added: tests/test_media_range_requests.py::test_the_two_byte_probe_reports_type_and_total_length
 - added: tests/test_media_range_requests.py::test_an_open_ended_range_reads_to_the_end
 - added: tests/test_media_range_requests.py::test_a_range_past_the_end_is_refused_not_served_whole
+
+### T6 camera pan: opt-in buttons over the firmware's pktool
+
+Only the three fixed shell lines may reach run_cmd, and only on a T6 whose operator applied
+the Camera Pan patcher.
+
+- added: tests/test_t6_camera_pan.py::test_the_buttons_appear_only_on_an_opted_in_t6
+- added: tests/test_t6_camera_pan.py::test_the_pan_buttons_are_appended_after_every_existing_t6_entity
+- added: tests/test_t6_camera_pan.py::test_each_button_sends_its_exact_fixed_shell_line
+- added: tests/test_t6_camera_pan.py::test_a_pan_is_refused_without_the_patcher
+- added: tests/test_t6_camera_pan.py::test_a_pan_is_refused_while_the_camera_is_off
+- added: tests/test_t6_camera_pan.py::test_only_a_pan_line_reaches_run_cmd
+- added: tests/test_t6_camera_pan.py::test_the_firmware_check_accepts_only_the_build_the_commands_came_from[known-build]
+- added: tests/test_t6_camera_pan.py::test_the_firmware_check_accepts_only_the_build_the_commands_came_from[no-answer]
+- added: tests/test_t6_camera_pan.py::test_the_firmware_check_accepts_only_the_build_the_commands_came_from[other-pktool]
+- added: tests/test_t6_camera_pan.py::test_the_firmware_check_accepts_only_the_build_the_commands_came_from[other-travel]
+- added: tests/test_t6_camera_pan.py::test_the_firmware_check_accepts_only_the_build_the_commands_came_from[empty]
+- added: tests/test_t6_camera_pan.py::test_the_panel_action_sends_the_pan_line_over_run_cmd
+- added: tests/test_t6_camera_pan.py::test_the_raw_panel_form_cannot_name_the_run_cmd_suffix
+- added: tests/test_t6_camera_pan.py::test_the_shared_delivery_helper_refuses_the_run_cmd_suffix
+- added: tests/test_t6_camera_pan.py::test_a_home_assistant_press_sends_the_pan_line_over_run_cmd
+- added: tests/test_t6_camera_pan.py::test_a_home_assistant_press_with_the_camera_off_sends_nothing
+- added: tests/test_t6_camera_pan.py::test_retiring_the_pan_buttons_clears_their_discovery
+- added: tests/test_t6_camera_pan.py::test_the_patcher_is_unavailable_and_refused_off_the_t6
+- added: tests/test_t6_camera_pan.py::test_applying_records_the_opt_in_only_when_the_firmware_checks_out[known-build]
+- added: tests/test_t6_camera_pan.py::test_applying_records_the_opt_in_only_when_the_firmware_checks_out[no-answer]
+- added: tests/test_t6_camera_pan.py::test_applying_records_the_opt_in_only_when_the_firmware_checks_out[other-pktool]
+- added: tests/test_t6_camera_pan.py::test_removing_drops_the_opt_in_and_says_done_without_a_reboot
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[patchers/pan.py]
+  — the per-module clock check picks up the new `patchers/pan.py`.

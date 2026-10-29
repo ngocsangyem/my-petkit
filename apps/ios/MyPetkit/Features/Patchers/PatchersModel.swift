@@ -15,9 +15,9 @@ struct PatchableDevice: Identifiable, Hashable {
     var detailLine: String { "\(type.uppercased()) · \(firmware) · \(id)" }
 }
 
-/// One device's patchers, in the server's order of the six patchers.
+/// One device's patchers, in the server's order of the seven patchers.
 struct DevicePatchers: Equatable {
-    static let order = ["mqtt", "cloud", "cacert", "camera", "ssh", "talk"]
+    static let order = ["mqtt", "cloud", "cacert", "camera", "ssh", "talk", "pan"]
 
     let supported: Bool
     let deviceIP: String
