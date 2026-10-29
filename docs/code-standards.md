@@ -59,6 +59,13 @@ Why the protocol core is kept as-is:
   - Shared components go in `src/shared/ui/` and `MyPetkit/Shared/`.
   - Each screen is built from the artboard listed in the table in §4.
   - The hard rules in §6 block at review.
+- **Web components are shadcn/ui on Base UI, styled with Tailwind v4.**
+  - The CLI copies components into `apps/web/src/shared/ui/shadcn/` (`components.json`); they are our code. Call the CLI at a pinned version (`pnpm dlx shadcn@<x.y.z> add <name>`), never `@latest`, and never re-`add` a component that exists: compare with `shadcn diff` and edit by hand.
+  - After every `add`, edit the file for the design: radius, the accent focus outline instead of a ring, no resting shadow, theme colours only. Note the edit in a comment at the top. `scripts/check-design-rules.mjs` (part of `pnpm lint`) rejects resting shadows, letter-spacing, uppercase, blur, gradients and Tailwind palette colours.
+  - `src/shared/ui/*.tsx` wraps them with the props screens use (`Button`, `Pill`, `ConfirmDialog`, `Tabs`, form controls, `useToast`); prefer the wrapper.
+  - `src/shared/ui/theme.css` maps shadcn's variables onto the `--pk-` tokens. The type scale uses Tailwind's size names (`text-xs` 12 to `text-3xl` 28) so class merging reads them as sizes.
+  - Never use a component that injects `<style>` at runtime: the SPA's CSP has no `style-src`. Sonner and Base UI's Select do, so the toast is built on Base UI's Toast primitive and selects are native.
+  - Any plain CSS must sit in a cascade layer (`base.css` is in `@layer base`): unlayered rules beat every utility class.
 
 ---
 

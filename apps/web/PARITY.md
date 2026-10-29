@@ -98,6 +98,7 @@ legacy panel ledger's §11.1. Talk has no web client in the old panel and gets n
 | shell | "This page is out of date" banner when `/api/info` names a newer build | main.js `checkPageIsCurrent` | bf3a909 |  |
 | shell | Live indicator for the event stream; reconnect backoff 2 → 30 s | ws.js | bf3a909 |  |
 | shell | Every string from a device rendered as text only; no inline handlers or styles (CSP) | core.js `esc` | bf3a909 |  |
+| shell | Dark mode: System, Light, Dark; set before the first paint (new, not in the old panel) | — | 306e7d2 |  |
 | shell | Accessibility: tablist roles, real `disabled`, focus ring, dialogs trap focus | index.html | bf3a909 |  |
 | auth | Sign in; first run with the setup token from the log | auth.js | bf3a909 |  |
 | auth | Step-up prompt on `step_up_required`, then the request is replayed | core.js `api`, auth.js | bf3a909 |  |
