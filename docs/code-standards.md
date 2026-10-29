@@ -24,7 +24,7 @@ services/api/src/my_petkit/
 │   ├── capture/
 │   ├── logs/            (live log WS, device logs)
 │   └── setup/           (settings, guards, blocked, retention)
-├── web/                 composition root: panel.py (original name kept; route table and registration order), middleware/, spa.py, hub.py, appkeys.py
+├── web/                 composition root: panel.py (original name kept; route table and registration order), spa.py (the web app at `/`), hub.py; static/bin/ holds the ssh patcher's dropbear builds
 └── shared/              things shared between features: errors.py, pagination.py, redact_client.py
 ```
 

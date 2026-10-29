@@ -15,6 +15,7 @@ import pytest
 from aiohttp import web
 
 from my_petkit.shared.tiers import TOKEN_EXEMPT, Tier, route_tier
+from tests.conftest import WEB_ENTRY
 from tests.conftest_auth import anonymous_client, bare_panel
 
 #: The only routes a caller may reach with no credential, beyond static files
@@ -90,12 +91,13 @@ async def test_signed_media_without_a_signature_is_refused(tmp_path):
         await client.close()
 
 
-async def test_static_shell_needs_no_token(tmp_path):
+async def test_static_shell_needs_no_token(tmp_path, web_build):
     client = anonymous_client(bare_panel(tmp_path))
     await client.start_server()
     try:
         assert (await client.get("/")).status == 200
-        assert (await client.get("/static/styles.css")).status == 200
+        assert (await client.get(f"/assets/{WEB_ENTRY}")).status == 200
+        assert (await client.get("/favicon.svg")).status == 200
     finally:
         await client.close()
 
@@ -109,7 +111,7 @@ async def test_an_unknown_path_reveals_nothing_without_a_token(tmp_path):
         await client.close()
 
 
-async def test_a_panel_without_auth_refuses_everything_but_static(tmp_path):
+async def test_a_panel_without_auth_refuses_everything_but_static(tmp_path, web_build):
     from aiohttp.test_utils import TestClient, TestServer
 
     client = TestClient(TestServer(bare_panel(tmp_path)))

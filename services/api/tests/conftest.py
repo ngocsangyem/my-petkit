@@ -55,6 +55,29 @@ def pet_registry(event_store: EventStore, tmp_path: Path) -> PetRegistry:
     return PetRegistry(event_store, str(tmp_path / "faces"))
 
 
+#: Entry script of the minimal web app build `web_build` writes.
+WEB_ENTRY = "index-Ab12_cd.js"
+
+
+@pytest.fixture
+def web_build(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """A minimal web app build, served instead of `apps/web/dist`.
+
+    The panel serves the build at `/`, and a checkout need not have built it, so
+    every test that reaches the document or a build file brings this one: an
+    index naming a hashed entry, the entry itself, and a file at the top level.
+    """
+    dist = tmp_path / "dist"
+    (dist / "assets").mkdir(parents=True)
+    (dist / "index.html").write_text(
+        f'<!doctype html><script type="module" src="./assets/{WEB_ENTRY}"></script>'
+    )
+    (dist / "assets" / WEB_ENTRY).write_text("export {};")
+    (dist / "favicon.svg").write_text("<svg/>")
+    monkeypatch.setenv("MY_PETKIT_WEB_DIST", str(dist))
+    return dist
+
+
 # The signed-in panel client lives in its own module; re-exported here so
 # pytest registers the fixture for every test.
 from tests.conftest_auth import authed_client  # noqa: E402, F401

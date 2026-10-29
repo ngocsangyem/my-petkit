@@ -48,8 +48,9 @@ my_petkit/
 │                  crypto · transcode · layout · retention · go2rtc
 ├── features/      the user plane, one package per feature (routes.py each); never import each other
 ├── shared/        what several features need: appkeys, request helpers, media slots, live settings
-├── web/           panel.py the composition root: the application + the whole route table · hub
-│                  appkeys.py the app[...] contract · hub.py event ring/WS · static/ · templates/
+├── web/           panel.py the composition root: the application + the whole route table
+│                  spa.py serves the web app's build (apps/web) at / · hub.py event ring/WS
+│                  static/bin/ the dropbear builds the ssh patcher installs
 ├── patchers/      on-device patches: cacert · mqtt · cloud · camera · ssh
 ├── ai/pets.py     pet CRUD + the face photos the device's NPU matches against
 └── utils/         const · crypto · capture · jsonio · paths · coerce · dicts · timeutil · clock

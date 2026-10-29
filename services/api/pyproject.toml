@@ -22,6 +22,9 @@ dependencies = [
     "tzdata>=2024.1",
     "aiosqlite>=0.19",
     "Jinja2>=3.1",
+    # Unused by the server since the server-rendered panel was deleted. Kept
+    # while the golden check's approved baseline still imports it: that check
+    # replays the baseline's code in this same environment.
     "aiohttp-jinja2>=1.6",
     # argon2id for the user-plane admin password (features/auth/passwords.py).
     "argon2-cffi>=23.1",
@@ -54,17 +57,13 @@ my-petkit = "my_petkit.main:main"
 where = ["src"]
 include = ["my_petkit*"]
 
-# The web panel ships its own template/static assets; without this they are
-# dropped from wheels/sdists (the Docker image copies the tree verbatim, so
-# only pip installs are affected).
+# The dropbear binaries the ssh patcher installs are package data; without this
+# they are dropped from wheels/sdists and a pip-installed copy fails at open().
+# The Docker image copies the tree verbatim, which is why this stayed hidden.
+# The web app is not package data: it is a separate build (`apps/web/dist`,
+# `MY_PETKIT_WEB_DIST`).
 [tool.setuptools.package-data]
-# `static/*` does not match `static/bin/dropbear-mipsel`: a glob segment does
-# not cross a directory boundary. Without the second entry a pip-installed
-# copy ships no dropbear and the ssh patcher fails at open(). The Docker
-# image copies the tree verbatim, which is why this stayed hidden. Same reason
-# for `static/js/*`: the panel is a graph of ES modules under that directory,
-# and without it a pip-installed copy serves an index whose only script 404s.
-"my_petkit.web" = ["templates/*.html", "static/*", "static/bin/*", "static/js/*"]
+"my_petkit.web" = ["static/bin/*"]
 
 [tool.pytest.ini_options]
 python_files = "test_*.py"

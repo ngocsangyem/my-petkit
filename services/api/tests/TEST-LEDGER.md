@@ -205,7 +205,6 @@ reviewer can find every place the suite was touched.
 - added: tests/fuzz/test_fuzz_normalize_http_mqtt.py::test_any_mqtt_event_normalizes
 - added: tests/fuzz/test_fuzz_normalize_http_mqtt.py::test_any_property_params_normalize
 - added: tests/fuzz/test_fuzz_parse_x_device.py::test_any_header_parses_to_a_dict_or_none
-- added: tests/fuzz/test_fuzz_provision_frame_decode.py::test_no_reply_makes_the_decoder_throw
 
 ### Reproductions awaiting approval (strict xfail; each becomes a plain test when its fix lands, or is removed if the fix is declined)
 
@@ -558,7 +557,6 @@ reviewer can find every place the suite was touched.
 - added: tests/test_user_plane_errors_and_headers.py::test_a_json_body_without_the_json_content_type_is_refused
 - added: tests/test_user_plane_errors_and_headers.py::test_an_unexpected_exception_is_a_500_with_a_correlation_id_and_no_detail
 - added: tests/test_user_plane_errors_and_headers.py::test_every_response_carries_the_security_headers_and_no_cors
-- added: tests/test_user_plane_errors_and_headers.py::test_the_index_csp_allows_exactly_its_one_inline_script
 
 ### Web sessions (signed cookie, idle and absolute limits, logout, password epoch)
 
@@ -771,8 +769,6 @@ reviewer can find every place the suite was touched.
 - added: tests/test_web_app_serving.py::test_a_hashed_asset_is_cached_for_good_and_other_files_are_revalidated
 - added: tests/test_web_app_serving.py::test_the_document_reached_through_assets_is_not_cached_for_good
 - added: tests/test_web_app_serving.py::test_a_path_outside_the_build_or_missing_from_it_is_a_404
-- added: tests/test_web_app_serving.py::test_app_without_a_slash_redirects_relatively_so_ingress_keeps_its_prefix
-- added: tests/test_web_app_serving.py::test_without_a_build_the_app_says_how_to_build_it
 - added: tests/test_web_app_serving.py::test_info_reports_the_entry_of_the_build_the_server_would_serve
 - added: tests/test_event_content_repair_is_linear.py::test_an_unterminated_string_of_escaped_quotes_is_repaired_in_linear_time
 - added: tests/test_event_content_repair_is_linear.py::test_a_bare_token_is_still_quoted_and_text_inside_strings_is_left_alone
@@ -845,9 +841,91 @@ Ported from upstream petkit-local PR 28, with a `k3Id` guard added.
 - added: tests/test_http_k3.py::test_a_state_report_without_k3_id_leaves_the_k3_alone
 - added: tests/test_http_k3.py::test_an_event_report_state_block_updates_the_linked_k3
 
+### The web app is served at `/`; the server-rendered panel is deleted
+
+`/` serves the web app's document, `/assets/{name}` and `/{name}` its build files, and `/app`,
+`/app/` redirect there permanently. Two IDs are renamed for the new mount (the old ones are
+dropped from the list above): `test_app_without_a_slash_redirects_relatively_so_ingress_keeps_its_prefix`
+became the 301 test below, `test_without_a_build_the_app_says_how_to_build_it` the no-build test.
+
+- added: tests/test_web_app_serving.py::test_the_old_mount_redirects_permanently_and_relatively_so_ingress_keeps_its_prefix
+- added: tests/test_web_app_serving.py::test_without_a_build_the_root_says_how_to_build_it_and_the_api_still_answers
+- added: tests/test_web_app_serving.py::test_the_document_assets_resolve_under_an_ingress_prefix
+  — replaces `test_panel.py::test_index_assets_resolve_under_an_ingress_prefix` for the web app's document.
+- added: tests/test_web_app_serving.py::test_only_the_web_app_routes_are_public_static
+- added: tests/test_web_app_serving.py::test_without_a_credential_only_the_static_shell_answers
+
+Also retired with the panel, never in the baseline: the ledger-added
+`test_user_plane_errors_and_headers.py::test_the_index_csp_allows_exactly_its_one_inline_script`
+(its line is dropped above). The document it checked had one hashed inline script; the web app's
+has none, and `test_the_document_is_never_reused_unasked_and_allows_no_inline_code` pins `SPA_CSP`.
+
+Also retired, never in the baseline: the ledger-added
+`fuzz/test_fuzz_provision_frame_decode.py::test_no_reply_makes_the_decoder_throw` (its line is
+dropped from the device-plane fuzzing list above). It fed hypothesis frames to `pkParse` in the
+deleted `provision.js` through node. The decoder now lives in the web app's
+`src/ble/provisioning-protocol.ts`, which Node 20 cannot load without the web toolchain, so the
+"never throws on any notification" property belongs in that app's vitest suite; until a
+randomized test lands there, only the fixed vectors in `provisioning-protocol.test.ts` cover it.
+
 ## Removed
 
-None.
+### The server-rendered panel (`web/templates`, `web/static/js`, `web/static/styles.css`) is deleted
+
+These assert on the deleted markup, JavaScript and CSS, or on the routes that served them
+(`/static`, `/asset/{v}/js/{name}`). The behaviour they guarded lives in the web app (`apps/web`)
+and is tested there with vitest; the serving properties (no-cache document, immutable hashed
+assets, relative URLs under Ingress, path containment, CSP) are tested for the web app in
+`test_web_app_serving.py`. The one API assertion among them, that `/api/info` hands out no
+`web_tls_port`, is kept by `test_contract_spec_paths_exist.py` (the spec's `SetupServerInfo`
+has no such key and the contract test pins served routes) and was never a property of the page.
+
+- removed: tests/test_panel.py::test_index_served
+- removed: tests/test_panel.py::test_index_renders_template_and_links_assets
+- removed: tests/test_panel.py::test_static_assets_are_served
+- removed: tests/test_panel.py::test_index_assets_resolve_under_an_ingress_prefix
+- removed: tests/test_panel.py::test_index_is_only_routed_at_a_trailing_slash_path
+- removed: tests/test_panel.py::test_frontend_has_no_inline_event_handlers
+- removed: tests/test_panel.py::test_devices_tab_is_one_collapsible_panel_per_device
+- removed: tests/test_panel.py::test_the_timeline_container_is_left_with_nothing_but_our_own_nodes
+- removed: tests/test_panel.py::test_a_filter_chip_with_no_events_is_not_shown
+- removed: tests/test_panel.py::test_timeline_refresh_does_not_rebuild_the_whole_view
+- removed: tests/test_panel.py::test_no_element_id_is_shared_between_device_panels
+- removed: tests/test_panel.py::test_esc_escapes_every_markup_breaking_character
+- removed: tests/test_panel.py::test_provision_ui_has_ble_protocol
+- removed: tests/test_panel.py::test_the_timeline_filters_by_pet_with_chips_not_a_dropdown
+- removed: tests/test_panel.py::test_the_capture_tab_warns_what_is_in_a_capture
+- removed: tests/test_panel.py::test_the_capture_tab_no_longer_describes_capture_as_an_addon_option
+- removed: tests/test_panel.py::test_the_capture_tab_offers_delete_next_to_download
+- removed: tests/test_panel.py::test_assets_are_revalidated_not_heuristically_cached
+- removed: tests/test_panel.py::test_the_index_says_no_cache_whatever_its_path_looks_like
+- removed: tests/test_panel.py::test_a_stale_page_can_tell_that_it_is_stale
+- removed: tests/test_panel.py::test_proxy_dependent_controls_are_gated_on_proxy_mode
+- removed: tests/test_panel.py::test_provision_refuses_a_bluetooth_only_accessory
+- removed: tests/test_panel.py::test_provision_does_not_claim_success_for_a_write_that_returned
+- removed: tests/test_panel.py::test_the_accessory_panel_is_its_own_panel_and_is_trimmed
+- removed: tests/test_panel.py::test_every_js_module_is_reachable_under_the_versioned_path
+- removed: tests/test_panel.py::test_the_versioned_asset_path_cannot_escape_the_js_directory
+- removed: tests/test_panel.py::test_a_hash_versioned_module_is_cacheable_forever
+
+Node harnesses for the deleted JavaScript. The provisioning decoders were ported to TypeScript and
+their vectors moved to `apps/web/src/ble/provisioning-protocol.test.ts` and
+`provisioning-payload.test.ts` (CRC, both length readings, notification offset, fragmented ESP32
+reply, join states, named failures, port-80 warning). The load test guarded a module graph that
+no longer exists; the web app's build and its vitest suite fail on the equivalent errors.
+
+- removed: tests/test_provision_js.py::test_a_blufi_level_failure_is_named_rather_than_numbered
+- removed: tests/test_provision_js.py::test_a_fragmented_esp32_custom_data_reply_is_reassembled
+- removed: tests/test_provision_js.py::test_a_notification_is_read_from_its_own_offset
+- removed: tests/test_provision_js.py::test_a_reported_failure_is_named_rather_than_numbered
+- removed: tests/test_provision_js.py::test_an_outbound_frame_uses_ingenic_crc_length
+- removed: tests/test_provision_js.py::test_both_readings_of_the_length_field_are_accepted
+- removed: tests/test_provision_js.py::test_esp32_provisioning_warns_when_api_url_is_not_port_80
+- removed: tests/test_provision_js.py::test_server_connected_and_online_count_as_joined
+- removed: tests/test_provision_js.py::test_the_crc_is_the_one_the_devices_use
+- removed: tests/test_provision_js.py::test_wrong_password_state_is_a_warning_not_terminal
+- removed: tests/test_panel_script_loads.py::test_a_plain_http_page_is_told_it_needs_https_not_a_different_browser
+- removed: tests/test_panel_script_loads.py::test_the_panel_script_survives_being_loaded
 
 ## Modified (same ID, changed body)
 
@@ -896,6 +974,15 @@ None.
 | `test_http.py::test_a_command_is_labelled_with_a_msg_type_the_device_dispatches` | the camera-pan actions are checked against `build_run_cmd`'s envelope instead: they are run_cmd lines and never pass through the heartbeat translation | behaviour change | – |
 | `test_panel.py::test_all_patchers_are_offered_on_every_next_gen_device` | Camera Pan may show as unavailable: it is gated by model (only the T6 has the motor), not by architecture | behaviour change | – |
 | `test_patcher_space.py::test_every_patcher_declares_more_space_than_the_gate_can_ever_demand` | Camera Pan is exempt and pinned to 0: it writes nothing, not even the wrapper, so the space gate never runs for it | behaviour change | – |
+| `test_panel.py::test_every_published_entity_component_has_somewhere_to_render`, `test_panel.py::test_the_accessory_panel_renders_every_component_an_accessory_has` | read the web app's `entity-sections.ts` (`ENTITY_SECTION`) and `accessory-panel-body.tsx` instead of the deleted `static/js`; no longer start a test client; same property, every published component has a home | panel deleted, check moved to the web app | – |
+| `test_panel.py::test_every_hub_kind_the_proxy_publishes_has_a_colour` | checks that the web app's `log-format.ts` `levelOf` names `redact` and `blocked` (the row colour), instead of `.k.<kind>` rules in the deleted CSS | panel deleted, check moved to the web app | – |
+| `test_panel.py::test_the_photo_cap_agrees_with_the_store` | reads `MAX_FACES` from the web app's `pet-model.ts` instead of the deleted JS | panel deleted, check moved to the web app | – |
+| `test_bounded_growth.py::test_every_retention_category_is_editable_from_the_panel` | reads `RETENTION_SIZED` / `RETENTION_AGE_ONLY` from the web app's `retention-and-blocked-model.ts` instead of `RETENTION_LABELS` in the deleted `setup.js`; same three assertions | panel deleted, check moved to the web app | – |
+| `test_auth_every_route_requires_token.py::test_static_shell_needs_no_token`, `test_auth_every_route_requires_token.py::test_a_panel_without_auth_refuses_everything_but_static` | use the `web_build` fixture (`conftest.py`), since `/` now serves the web app's build; the shell files checked are `/assets/<entry>` and `/favicon.svg` instead of `/static/styles.css` | `/` serves the web app | – |
+| `test_user_plane_errors_and_headers.py::test_every_response_carries_the_security_headers_and_no_cors` | the static file checked is the web app's `/favicon.svg`, which carries `SPA_CSP`; `/api/devices` still carries `BASE_CSP`; other headers unchanged | `/` serves the web app | – |
+| `test_web_app_serving.py` (document, hashed asset, document-through-assets, path containment, info entry) | paths moved from `/app/...` to `/`, `/assets/...` and `/{name}`; the build comes from the shared `web_build` fixture; the info test also asserts `asset_version` is present and empty | `/` serves the web app | – |
+| `test_contract_spec_paths_exist.py` (`UNDESCRIBED`) | `/static`, `/asset/{v}/js/{name}` and `/app/{path}` dropped; `/assets/{name}` and `/{name}` added; `/app`, `/app/` now described as redirects to the root | `/` serves the web app | – |
+| `conftest.py` | new `web_build` fixture and `WEB_ENTRY` constant: a minimal build in a temporary dist directory, moved out of `test_web_app_serving.py` so every module that reaches `/` can use it | fixture | – |
 
 ### Media serves the byte ranges the iOS media loader asks for
 

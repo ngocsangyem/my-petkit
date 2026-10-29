@@ -22,7 +22,7 @@ Rules: `docs/code-standards.md` and `docs/security/secure-coding-rules.md`.
 
 **Stack.** Python 3.11+, one asyncio loop, one container. aiohttp (device API, bucket, panel), amqtt
 (embedded device-facing broker), aiomqtt (client for HA's broker), SQLAlchemy 2.0 async + aiosqlite
-(`{data_dir}/petkit.db`), Jinja2, ffmpeg. Device identity and settings persist as atomic JSON
+(`{data_dir}/petkit.db`), ffmpeg. Device identity and settings persist as atomic JSON
 (`devices.json`, `ble_devices.json`). `README.md` credits the projects the payloads came from.
 
 ## Orientation

@@ -7,9 +7,9 @@ import re
 from aiohttp import web
 from aiohttp.test_utils import TestClient, TestServer
 
-from my_petkit.features.auth.security_headers import BASE_CSP, inline_script_hash
+from my_petkit.features.auth.security_headers import BASE_CSP
 from my_petkit.shared.errors import error_middleware
-from my_petkit.web import panel as panel_mod
+from my_petkit.web.spa import SPA_CSP
 from tests.conftest_auth import anonymous_client, authed_test_client, bare_panel
 
 
@@ -76,13 +76,14 @@ async def test_a_json_body_without_the_json_content_type_is_refused(tmp_path):
         await client.close()
 
 
-async def test_every_response_carries_the_security_headers_and_no_cors(tmp_path):
+async def test_every_response_carries_the_security_headers_and_no_cors(tmp_path, web_build):
     client = anonymous_client(bare_panel(tmp_path))
     await client.start_server()
     try:
-        for path in ("/api/devices", "/static/styles.css"):
+        # The web app's files carry their own policy; everything else the base one.
+        for path, csp in (("/api/devices", BASE_CSP), ("/favicon.svg", SPA_CSP)):
             r = await client.get(path, headers={"Origin": "https://evil.example"})
-            assert r.headers["Content-Security-Policy"] == BASE_CSP
+            assert r.headers["Content-Security-Policy"] == csp
             assert r.headers["X-Content-Type-Options"] == "nosniff"
             assert r.headers["Referrer-Policy"] == "no-referrer"
             assert "Strict-Transport-Security" not in r.headers  # plain HTTP here
@@ -91,22 +92,5 @@ async def test_every_response_carries_the_security_headers_and_no_cors(tmp_path)
             "Origin": "https://evil.example", "Access-Control-Request-Method": "POST"})
         assert pre.status >= 400
         assert "Access-Control-Allow-Origin" not in pre.headers
-    finally:
-        await client.close()
-
-
-async def test_the_index_csp_allows_exactly_its_one_inline_script(tmp_path):
-    client = anonymous_client(bare_panel(tmp_path))
-    await client.start_server()
-    try:
-        r = await client.get("/")
-        html = await r.text()
-        csp = r.headers["Content-Security-Policy"]
-        scripts = re.findall(r"<script>(.*?)</script>", html, re.S | re.I)
-        assert scripts, "the index has an inline script"
-        for body in scripts:
-            assert inline_script_hash(body) in csp
-        assert "'unsafe-inline'" not in csp.split("script-src", 1)[1].split(";", 1)[0]
-        assert csp == panel_mod.INDEX_CSP
     finally:
         await client.close()
