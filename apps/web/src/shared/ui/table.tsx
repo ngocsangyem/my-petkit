@@ -1,6 +1,14 @@
 import type { ReactNode } from 'react';
+import { cn } from 'cn';
+import {
+  Table as ShadcnTable,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './shadcn/table';
 import { EmptyBlock } from './state-blocks';
-import './table.css';
 
 /** Severity of a log line; drawn as a 2px left edge, never as a row fill. */
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
@@ -54,6 +62,29 @@ export interface TableProps<Row> {
   role?: 'table' | 'log';
 }
 
+type Variant = NonNullable<TableProps<unknown>['variant']>;
+
+/** Row height and rule colour per variant; compact rows sit on a raised panel, so the rule is `border`. */
+const ROW: Record<Variant, string> = {
+  plain: 'h-(--pk-row-height) border-rule',
+  compact: 'h-11 border-border',
+  log: 'h-[30px] border-rule',
+};
+
+const CELL_PAD: Record<Variant, string> = {
+  plain: 'py-2',
+  compact: 'py-1.5',
+  log: 'py-1',
+};
+
+/** Left edge colour per log level. */
+const LEVEL_EDGE: Record<LogLevel, string> = {
+  debug: 'border-l-(--pk-log-info-edge)',
+  info: 'border-l-(--pk-log-info-edge)',
+  warn: 'border-l-chart-3',
+  error: 'border-l-negative',
+};
+
 /** Data table: muted headers, 1px rules, no zebra, numbers right-aligned. */
 export function Table<Row>({
   columns,
@@ -67,50 +98,55 @@ export function Table<Row>({
   emptyText = 'Nothing to show yet.',
   role,
 }: TableProps<Row>) {
+  // Edged tables reserve a 2px left edge on every row so selection never shifts the layout.
   const edged = variant === 'log' || selectedKey !== undefined || levelOf !== undefined;
+  const log = variant === 'log';
   const cellClass = (col: TableColumn<Row>) =>
-    [
-      col.numeric || col.alignEnd ? 'ui-table__end' : '',
-      col.mono ? 'ui-table__mono' : '',
-      col.muted ? 'ui-table__muted' : '',
-      col.nowrap ? 'ui-table__nowrap' : '',
-    ]
-      .filter(Boolean)
-      .join(' ') || undefined;
+    cn(
+      (col.numeric || col.alignEnd) && 'text-right',
+      col.mono && (log ? 'font-mono' : 'font-mono text-xs'),
+      col.muted && 'text-muted-foreground',
+      col.nowrap ? 'whitespace-nowrap' : 'whitespace-normal',
+    );
 
   return (
-    <div className={`ui-table-wrap ui-table-wrap--${variant}`}>
-      <table
-        className={`ui-table ui-table--${variant}${edged ? ' ui-table--edged' : ''}`}
+    <div
+      data-variant={variant}
+      className={cn('overflow-x-auto', log && 'rounded-lg border border-border')}
+    >
+      <ShadcnTable
         aria-label={label}
         role={role === 'log' ? 'log' : undefined}
         style={minWidth ? { minWidth } : undefined}
+        className="border-collapse text-base"
       >
-        <thead>
-          <tr>
-            {columns.map(col => (
-              <th
+        <TableHeader className="[&_tr]:border-b-0">
+          <TableRow className="border-b-0 hover:bg-transparent">
+            {columns.map((col, i) => (
+              <TableHead
                 key={col.key}
                 scope="col"
-                className={cellClass(col)}
+                className={cn(
+                  'h-auto px-0 pt-0 pr-3 pb-2 text-xs font-medium text-muted-foreground last:pr-0',
+                  log && 'pt-2',
+                  i === 0 && edged && (log ? 'pl-3' : 'pl-2.5'),
+                  (col.numeric || col.alignEnd) && 'text-right',
+                )}
                 style={col.width ? { width: col.width } : undefined}
               >
-                {col.hiddenHeader ? (
-                  <span className="ui-visually-hidden">{col.header}</span>
-                ) : (
-                  col.header
-                )}
-              </th>
+                {col.hiddenHeader ? <span className="sr-only">{col.header}</span> : col.header}
+              </TableHead>
             ))}
-          </tr>
-        </thead>
-        <tbody>
+          </TableRow>
+        </TableHeader>
+        {/* Every row keeps its top rule, the last one included (shadcn drops the last row's border). */}
+        <TableBody className={cn('[&_tr:last-child]:border-t', log && 'font-mono text-[12.5px]')}>
           {rows.length === 0 ? (
-            <tr className="ui-table__empty-row">
-              <td colSpan={columns.length}>
+            <TableRow className="border-t border-b-0 border-rule hover:bg-transparent">
+              <TableCell colSpan={columns.length} className="px-0 py-2 whitespace-normal">
                 <EmptyBlock>{emptyText}</EmptyBlock>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ) : (
             rows.map(row => {
               const key = rowKey(row);
@@ -118,29 +154,37 @@ export function Table<Row>({
                 selectedKey !== undefined && selectedKey !== null && key === selectedKey;
               const level = levelOf?.(row);
               return (
-                <tr
+                <TableRow
                   key={key}
                   aria-current={selected ? 'true' : undefined}
-                  className={
-                    [
-                      selected ? 'ui-table__row--selected' : '',
-                      level ? `ui-table__row--${level}` : '',
-                    ]
-                      .filter(Boolean)
-                      .join(' ') || undefined
-                  }
+                  data-level={level}
+                  className={cn('border-t border-b-0 hover:bg-raised', ROW[variant])}
                 >
-                  {columns.map(col => (
-                    <td key={col.key} className={cellClass(col)}>
+                  {columns.map((col, i) => (
+                    <TableCell
+                      key={col.key}
+                      className={cn(
+                        'px-0 pr-3 last:pr-0',
+                        CELL_PAD[variant],
+                        i === 0 &&
+                          edged && [
+                            'border-l-2 border-l-transparent',
+                            log ? 'pl-2.5' : 'pl-2',
+                            selected && 'border-l-data',
+                            level && LEVEL_EDGE[level],
+                          ],
+                        cellClass(col),
+                      )}
+                    >
                       {col.cell(row)}
-                    </td>
+                    </TableCell>
                   ))}
-                </tr>
+                </TableRow>
               );
             })
           )}
-        </tbody>
-      </table>
+        </TableBody>
+      </ShadcnTable>
     </div>
   );
 }
@@ -150,7 +194,14 @@ export interface LogLevelTextProps {
   level: LogLevel;
 }
 
+const LEVEL_TEXT: Record<LogLevel, string> = {
+  debug: 'text-muted-foreground',
+  info: 'text-muted-foreground',
+  warn: 'text-warning',
+  error: 'text-negative',
+};
+
 /** The level word in a log row, coloured by level (info and debug stay muted). */
 export function LogLevelText({ level }: LogLevelTextProps) {
-  return <span className={`ui-level-text ui-level-text--${level}`}>{level}</span>;
+  return <span className={cn('font-sans text-xs', LEVEL_TEXT[level])}>{level}</span>;
 }

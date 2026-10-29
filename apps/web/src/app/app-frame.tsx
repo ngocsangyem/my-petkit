@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { useMatches } from 'react-router';
 import { useServerInfo } from '@/auth/use-server-info';
 import { api } from '@/shared/api/client';
-import { Button } from '@/shared/ui';
+import { Button, ThemeModeControl } from '@/shared/ui';
 import { useStreamStatus } from '@/shared/ws/use-event-stream';
 import { AppShell, type ShellNavGroup } from './app-shell';
 import { SCREENS } from './routes-meta';
@@ -67,14 +67,22 @@ export function AppFrame({ children }: { children: ReactNode }) {
     <AppShell
       navGroups={NAV}
       serverLine={info.data ? `Home server · v${info.data.version}` : undefined}
-      account={<SignOut />}
+      account={
+        <div className="flex flex-col items-start gap-3">
+          <ThemeModeControl />
+          <SignOut />
+        </div>
+      }
       liveState={live}
       serverLabel={window.location.host}
       badge={tls ? 'TLS' : 'Not encrypted'}
       pageTitle={title}
     >
       {info.isError && (
-        <p className="server-unreachable" role="status">
+        <p
+          className="rounded-lg bg-raised px-3.5 py-2.5 text-sm text-muted-foreground"
+          role="status"
+        >
           The server is not answering. Retrying; nothing on this page is lost.
         </p>
       )}

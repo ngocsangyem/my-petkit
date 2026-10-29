@@ -28,16 +28,16 @@ const RULES = [
   { name: 'uppercase label', re: /(?<![\w-])uppercase(?![\w-])/ },
   {
     name: 'blur or glass',
-    re: /(?<![\w-])(?:[\w-]+:)*(?:backdrop-blur(?:-[\w[\]]+)?|blur-[\w[\]]+|backdrop-filter)(?![\w-])/,
+    re: /(?<![\w-])(?:backdrop-blur|blur-[\w[\]]|backdrop-filter)/,
   },
   {
     name: 'gradient',
-    re: /(?<![\w-])bg-(?:linear|radial|conic|gradient)-|(?<![\w-])(?:from|via|to)-(?:\w+-)?\d{2,3}\b/,
+    re: /(?<![\w-])(?:bg-(?:linear|radial|conic|gradient)-|(?:from|via|to)-[a-z]+-\d{2,3}\b)/,
   },
   {
     name: 'palette colour instead of a theme colour',
     re: new RegExp(
-      `(?<![\\w-])(?:[\\w-]+:)*(?:bg|text|border|ring|fill|stroke|outline|from|to|via|divide|shadow|decoration|accent|caret)-(?:${PALETTE})(?:-\\d{2,3})?(?:/\\d+)?(?![\\w-])`,
+      `(?<![\\w-])(?:bg|text|border|ring|fill|stroke|outline|from|to|via|divide|shadow|decoration|accent|caret)-(?:${PALETTE})(?:-\\d{2,3})?(?:/\\d+)?(?![\\w-])`,
     ),
   },
 ];

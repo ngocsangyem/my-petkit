@@ -1,5 +1,3 @@
-import './drum-mark.css';
-
 /** Props for {@link DrumMark}. */
 export interface DrumMarkProps {
   /** Rendered size in px (20 in the shell, 56 on the design sheet). */
@@ -12,7 +10,7 @@ export interface DrumMarkProps {
 export function DrumMark({ size = 20, title }: DrumMarkProps) {
   return (
     <svg
-      className="ui-drum-mark"
+      className="flex-none"
       width={size}
       height={size}
       viewBox="0 0 20 20"
@@ -22,13 +20,13 @@ export function DrumMark({ size = 20, title }: DrumMarkProps) {
       focusable="false"
     >
       <circle
-        className="ui-drum-mark__ring"
+        className="fill-none stroke-data"
         cx="10"
         cy="10"
         r="8.5"
         strokeWidth={size > 32 ? 1.6 : 2}
       />
-      <path className="ui-drum-mark__fill" d="M3.2 13.2 A8 8 0 0 0 16.8 13.2 Z" />
+      <path className="fill-data" d="M3.2 13.2 A8 8 0 0 0 16.8 13.2 Z" />
     </svg>
   );
 }

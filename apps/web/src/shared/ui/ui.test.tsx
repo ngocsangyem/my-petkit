@@ -7,7 +7,7 @@ import { minuteToPercent, spanAt } from './day-strip-geometry';
 import { FigureContainer } from './figure-container';
 import { parseNumberInput } from './form-controls';
 import { HouseholdDayStrip, petSlot, type DayStripLane } from './household-day-strip';
-import { ratioPercent } from './ratio-bar';
+import { RatioBar, ratioPercent } from './ratio-bar';
 import { StatusMark } from './status-mark';
 
 describe('FigureContainer', () => {
@@ -266,6 +266,23 @@ describe('HouseholdDayStrip', () => {
     expect(screen.getByRole('img', { name: 'Visit at 01:00' })).toHaveClass(
       `ui-pet-ink-${petSlot(2)}`,
     );
+  });
+});
+
+describe('RatioBar', () => {
+  it('is a named meter with the true amount, and has no amount when it is unknown', () => {
+    render(
+      <>
+        <RatioBar value={3} max={30} ariaLabel="N60 deodorizer remaining" label="3 days" />
+        <RatioBar value={null} max={30} ariaLabel="Desiccant remaining" />
+      </>,
+    );
+    const known = screen.getByRole('meter', { name: 'N60 deodorizer remaining' });
+    expect(known).toHaveAttribute('aria-valuenow', '3');
+    expect(known).toHaveAttribute('aria-valuemax', '30');
+    expect(screen.getByText('3 days')).toBeInTheDocument();
+    const unknown = screen.getByRole('meter', { name: 'Desiccant remaining' });
+    expect(unknown).not.toHaveAttribute('aria-valuenow');
   });
 });
 
