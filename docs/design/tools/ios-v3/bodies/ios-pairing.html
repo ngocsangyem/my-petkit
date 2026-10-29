@@ -1,0 +1,30 @@
+<!-- Pair with server · iOS | 844 -->
+<div class="scr" style="height:844px">
+  <header class="top">
+    <div class="bar"><span class="server">[[MARK]] my-petkit</span></div>
+    <h1>Is this your server?</h1>
+    <p class="lede">On the dashboard, open Setup › Phones and scan the code. It carries the server address and its certificate fingerprint.</p>
+  </header>
+  <main class="main">
+    <section class="thumb" style="height:220px;border-radius:20px;background:#1b1d1e;display:flex;align-items:center;justify-content:center">
+      <svg width="130" height="130" viewBox="0 0 150 150" style="margin-top:-30px" aria-hidden="true" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round">
+        <path d="M4 40V20A16 16 0 0 1 20 4h20M110 4h20a16 16 0 0 1 16 16v20M146 110v20a16 16 0 0 1-16 16h-20M40 146H20A16 16 0 0 1 4 130v-20"/>
+      </svg>
+      <span class="pill" style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);color:#fff">Point the camera at the code</span>
+    </section>
+
+    <section class="card" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center"><h2>Server found</h2><span class="pill p-pos">[[I:check:14]]&nbsp;Certificate matches</span></div>
+      <div><div class="lbl">Address</div><div class="mono" style="font-size:14px">https://192.168.1.20:8443</div></div>
+      <div style="background:#f4f7f6;border-radius:14px;padding:10px 12px">
+        <div class="lbl">Certificate SHA-256</div>
+        <div class="mono" style="font-size:14px;letter-spacing:0;word-spacing:6px">4F9A 21C0 7E… 3BE8 510D</div>
+      </div>
+      <p class="xs muted" style="margin:0">Compare these blocks with the ones on the dashboard before you trust it.</p>
+    </section>
+
+    <div style="flex:1"></div>
+    <button class="btn btn-pri" style="width:100%">Trust this server</button>
+    <button class="btn" style="width:100%;background:none;color:#131416">Enter address manually</button>
+  </main>
+</div>

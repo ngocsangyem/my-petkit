@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Feeding schedule</title>
+<title>Feeding schedule · iOS</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -12,130 +12,142 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <style>
 body{margin:0}
-a{color:#131416;text-decoration:none}a:hover{color:#0f6e66}
-button{font-family:inherit}
-.row:active{background:#f5f7f7}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #0f6e66;outline-offset:2px}
+*{box-sizing:border-box}
+.scr{position:relative;width:390px;overflow:hidden;background:#edf2f1;color:#131416;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:15px;line-height:1.4;display:flex;flex-direction:column;font-variant-numeric:tabular-nums}
+.top{padding:54px 20px 12px;display:flex;flex-direction:column;gap:6px}
+.bar{display:flex;align-items:center;justify-content:space-between;min-height:44px}
+.server{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:#5d6262}
+.iconbtn{width:44px;height:44px;border-radius:999px;background:#ffffff;color:#131416;display:flex;align-items:center;justify-content:center;border:0;text-decoration:none}
+h1{margin:0;font-size:24px;font-weight:600;letter-spacing:0}
+h2{margin:0;font-size:17px;font-weight:600}
+.lede{margin:0;font-size:15px;color:#3b4040}
+.main{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:12px;padding:4px 16px 16px}
+.card{background:#ffffff;border-radius:20px;padding:16px}
+.sec{display:flex;justify-content:space-between;align-items:baseline;padding:8px 4px 0}
+.link{color:#0f6e66;font-size:14px;font-weight:500;text-decoration:none}
+.muted{color:#5d6262}
+.small{font-size:13px}
+.xs{font-size:12px}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.pos{color:#1e7b4f}.neg{color:#c4242a}.warn{color:#92400e}.blue{color:#2f70bb}.acc{color:#0f6e66}
+.pill{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;font-size:12px;font-weight:500}
+.p-pos{background:#dcfae5;color:#04250e}.p-neg{background:#ffedea;color:#831c1e}.p-warn{background:#fffbeb;color:#92400e}.p-neu{background:#e8eded;color:#353736}
+.btn{flex:none;height:50px;border-radius:999px;border:0;font:inherit;font-weight:600;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 22px}
+.btn-pri{background:#131416;color:#ffffff}
+.btn-sec{background:#edf2f1;color:#131416}
+.chip{height:36px;border-radius:999px;padding:0 14px;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;background:#ffffff;color:#131416;white-space:nowrap}
+.chip.on{background:#131416;color:#ffffff}
+.av{border-radius:50%;object-fit:cover;flex:none}
+.fig{font-size:30px;font-weight:500;line-height:1.1}
+.unit{font-size:15px;color:#5d6262;font-weight:400;margin-left:2px}
+.lbl{font-size:13px;color:#5d6262}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.split{display:grid;grid-template-columns:1fr 1fr;background:#f4f7f6;border-radius:14px}
+.split>div{padding:12px 14px}
+.split>div:nth-child(odd){box-shadow:inset -1px 0 0 #e3e8e7}
+.split>div:nth-child(n+3){box-shadow:inset 0 1px 0 #e3e8e7}
+.split>div:nth-child(3){box-shadow:inset 0 1px 0 #e3e8e7,inset -1px 0 0 #e3e8e7}
+.row{display:flex;align-items:center;gap:12px;min-height:52px}
+.row+.row{box-shadow:inset 0 1px 0 #eef1f1}
+.grow{flex:1;min-width:0}
+.track{height:6px;border-radius:999px;background:#e8eded;overflow:hidden}
+.track>span{display:block;height:100%;border-radius:999px;background:#0f6e66}
+.tabbar{display:flex;justify-content:space-around;padding:8px 8px 30px;background:#ffffff}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:#5d6262;width:64px}
+.tab.on{color:#131416;font-weight:600}
+.tab svg{width:24px;height:24px}
+.toggle{width:51px;height:31px;border-radius:999px;background:#131416;position:relative;flex:none}
+.toggle::after{content:'';position:absolute;top:2px;right:2px;width:27px;height:27px;border-radius:50%;background:#fff}
+.toggle.off{background:#d5dbda}.toggle.off::after{right:auto;left:2px}
+.dev{color:inherit;text-decoration:none;display:flex;flex-direction:column;gap:10px;padding:8px 8px 14px}
+.dev .art{position:relative;height:112px;padding-top:20px;border-radius:14px;background:#f4f7f6;display:flex;align-items:center;justify-content:center}
+.dev .art .st{position:absolute;top:8px;left:8px}
+.dev .tx{padding:0 6px}
+.pet{display:flex;flex-direction:column;gap:10px;color:inherit;text-decoration:none}
+.pet img{width:100%;height:120px;border-radius:14px;object-fit:cover}
+.nowrap{white-space:nowrap}
+.hero{display:flex;flex-direction:column;align-items:center;gap:6px;background:#f4f7f6;border-radius:16px;padding:18px 12px 14px;position:relative}
+.acts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.act{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px 10px;border-radius:16px;background:#f4f7f6;font-size:13px;font-weight:500;color:#131416;text-decoration:none}
+.thumb{position:relative;border-radius:14px;overflow:hidden;background:#1b1d1e}
+.playb{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.92);color:#131416;display:flex;align-items:center;justify-content:center}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#ffffff;border-radius:24px 24px 0 0;padding:10px 20px 34px;box-shadow:0 -8px 30px rgba(0,0,0,.12)}
+.grab{width:36px;height:5px;border-radius:3px;background:#d5dbda;margin:0 auto 14px}
+.scrim{position:absolute;inset:0;background:rgba(19,20,22,.35)}
+.seg{display:flex;background:#e3e8e7;border-radius:999px;padding:3px}
+.seg span{flex:1;text-align:center;height:32px;line-height:32px;border-radius:999px;font-size:14px;font-weight:500;color:#3b4040}
+.seg span.on{background:#ffffff;color:#131416;font-weight:600}
+.field{height:50px;border-radius:14px;background:#f4f7f6;display:flex;align-items:center;padding:0 14px;font-size:16px}
+.flabel{font-size:13px;color:#5d6262;margin:0 0 6px 4px}
+.warnbox{display:flex;gap:10px;background:#f4f7f6;border-radius:16px;padding:12px 14px;font-size:14px;color:#3b4040}
+.btn-neg{background:#c4242a;color:#ffffff}
+.step{display:flex;align-items:center;gap:12px;min-height:40px}
+.step .ic{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;font-size:13px}
+.log{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;line-height:1.45;padding:6px 0 6px 10px;box-shadow:inset 2px 0 0 #d5dbda}
+.log+.log{margin-top:6px}
+.log .t{color:#5d6262;margin-right:8px}
+.dark.scr{background:#0e0f10;color:#f2f4f4}
+.dark .card,.dark .tabbar,.dark .iconbtn,.dark .chip{background:#1a1c1e;color:#f2f4f4}
+.dark .hero,.dark .dev .art,.dark .split,.dark .act{background:#232628}
+.dark .muted,.dark .lbl,.dark .unit,.dark .server,.dark .tab{color:#a1a8a8}
+.dark .tab.on{color:#f2f4f4}
+.dark .lede{color:#c9cfcf}
+.dark .neg{color:#ff7a72}.dark .pos{color:#5fd39b}.dark .link,.dark .acc{color:#4fc2b6}
+.dark .p-pos{background:#123824;color:#bdf2d3}.dark .p-neg{background:#43191a;color:#ffc9c4}.dark .p-neu{background:#2c3032;color:#d5dbda}
+.dark svg [stroke="#131416"]{stroke:#e9eded}
+.dark svg [fill="#ffffff"]{fill:#1a1c1e}
+.dark svg [fill="#e3e8e7"]{fill:#3a3e41}
 </style>
 </helmet>
-<div style="position: relative; width: 390px; height: 844px; overflow: hidden; box-sizing: border-box; background: #ffffff; color: #131416; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 15px; line-height: 1.4; display: flex; flex-direction: column">
-  <header style="background: #f2f6f5; padding: 54px 16px 14px; display: flex; flex-direction: column; gap: 4px">
-    <a href="ios-devices.dc.html" aria-label="Back" style="width: 44px; height: 44px; margin-left: -12px; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#131416" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
-    <h1 style="margin: 0; font-size: 24px; font-weight: 600">Schedule</h1>
-    <p style="margin: 0; font-size: 14px">Next meal <span style="font-weight: 600; font-variant-numeric: tabular-nums">18:00, 20 g</span>, in 3 h 13 m. <span style="color: #5d6262">Kitchen feeder <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px">100198342</span></span></p>
-  </header>
-
-  <main style="flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 12px; padding: 12px 16px 34px">
-    <div role="tablist" aria-label="Schedule kind" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; padding: 2px; background: #e8eded; border-radius: 6px; flex-shrink: 0">
-      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
-        <button type="button" role="tab" aria-selected="{{t.sel}}" onClick="{{t.pick}}" style="height: 40px; border: 0; border-radius: 4px; background: {{t.bg}}; color: {{t.ink}}; font-size: 14px; font-weight: {{t.weight}}">{{t.label}}</button>
-      </sc-for>
+<div class="scr" style="height:900px">
+  <header class="top">
+    <div class="bar">
+      <a class="iconbtn" href="ios-device-feeder.dc.html" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></a>
+      <a class="iconbtn" href="#" aria-label="Add a meal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></a>
     </div>
+    <h1>Feeding schedule</h1>
+    <p class="lede">Next meal at <b style="font-weight:600">18:00</b>, in 3 h 13 m. Kitchen feeder.</p>
+  </header>
+  <main class="main">
+    <div class="seg"><span class="on">Every day</span><span>Weekly</span><span>One-off</span></div>
+    <section class="card" style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><span><span class="fig" style="font-size:24px">35</span><span class="unit">of 65 g today</span></span><span class="small muted">30 g to go</span></div>
+      <div class="track"><span style="width:54%"></span></div>
+    </section>
 
-    <sc-if value="{{showRange}}" hint-placeholder-val="{{true}}">
-      <div style="display: flex; flex-direction: column; gap: 12px; min-height: 0">
-        <div style="display: flex; flex-direction: column; gap: 6px">
-          <div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums">Fed 35 of 65 g today</span><span style="font-size: 13px; color: #5d6262; font-variant-numeric: tabular-nums">30 g to go</span></div>
-          <div role="img" aria-label="35 of 65 grams fed, 54 percent" style="height: 8px; border-radius: 4px; background: #e8eded"><div style="width: 53.8%; height: 8px; border-radius: 4px; background: #0f6e66"></div></div>
-        </div>
-        <div style="position: relative; height: 396px; flex-shrink: 0">
-          <sc-for list="{{hours}}" as="h" hint-placeholder-count="6">
-            <div style="position: absolute; left: 0; right: 0; top: {{h.top}}; border-top: 1px solid #eef1f1"><span style="position: absolute; top: -7px; left: 0; font-size: 11px; color: #5d6262; font-variant-numeric: tabular-nums">{{h.label}}</span></div>
-          </sc-for>
-          <sc-for list="{{meals}}" as="m" hint-placeholder-count="4">
-            <button type="button" style="position: absolute; left: 36px; right: 0; top: {{m.top}}; height: 44px; box-sizing: border-box; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; border: {{m.border}}; border-radius: 6px; background: {{m.bg}}; color: #131416; text-align: left; font: 15px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums"><span><span style="font-weight: 600">{{m.time}}</span> <span>{{m.amount}}</span></span><span style="font-size: 13px; color: {{m.ink}}; white-space: nowrap">{{m.status}}</span></button>
-          </sc-for>
-          <div style="position: absolute; left: 30px; right: 0; top: 193px; height: 1px; background: #0f6e66"></div>
-          <span style="position: absolute; right: 0; top: 184px; padding: 0 4px; background: #ffffff; font-size: 11px; font-weight: 600; color: #0f6e66; font-variant-numeric: tabular-nums">Now 14:47</span>
-        </div>
-        <button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 500 14px 'IBM Plex Sans', sans-serif; width: 100%; flex-shrink: 0">Add a meal</button>
-        <p style="margin: 0; font-size: 12px; color: #5d6262; line-height: 1.45">Times use the feeder's own time zone, Asia/Saigon. Saved meals are pushed to the feeder straight away.</p>
+    <section style="display:flex;flex-direction:column;gap:10px">
+      <div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 16px">
+        <div style="width:64px"><div class="fig" style="font-size:22px">07:00</div><div class="xs muted">Breakfast</div></div>
+        <div class="grow"><div>20 g</div><div class="xs muted">Hopper 1 × 2</div></div>
+        <span class="pill p-pos">Fed</span>
       </div>
-    </sc-if>
-
-    <sc-if value="{{showWeekly}}" hint-placeholder-val="{{false}}">
-      <div style="display: flex; flex-direction: column; gap: 4px">
-        <div role="group" aria-label="Days" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-bottom: 8px">
-          <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
-            <button type="button" aria-pressed="{{d.on}}" style="height: 44px; border: 1px solid #cdd3d2; border-radius: 6px; background: {{d.bg}}; color: #131416; font-size: 13px; font-weight: {{d.weight}}">{{d.label}}</button>
-          </sc-for>
-        </div>
-        <label for="wk-time" style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-top: 1px solid #eef1f1; font-size: 15px">Time<input id="wk-time" type="time" value="12:30" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 15px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums"></label>
-        <label for="wk-a" style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-top: 1px solid #eef1f1; font-size: 15px">Hopper A portions<input id="wk-a" type="number" value="1" min="0" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 15px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums; width: 80px"></label>
-        <label for="wk-b" style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-top: 1px solid #eef1f1; font-size: 15px">Hopper B portions<input id="wk-b" type="number" value="1" min="0" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 15px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums; width: 80px"></label>
-        <p style="margin: 8px 0 12px; font-size: 12px; color: #5d6262; line-height: 1.45">Repeats every selected day. Each portion is 10 g.</p>
-        <button type="button" style="height: 48px; border: 0; border-radius: 6px; background: #131416; color: #ffffff; font: 600 15px 'IBM Plex Sans', sans-serif; width: 100%">Save weekly meal</button>
+      <div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 16px">
+        <div style="width:64px"><div class="fig" style="font-size:22px">12:00</div><div class="xs muted">Lunch</div></div>
+        <div class="grow"><div>15 g</div><div class="xs muted">Hopper 1 × 1 · Hopper 2 × 1</div></div>
+        <span class="pill p-pos">Fed</span>
       </div>
-    </sc-if>
-
-    <sc-if value="{{showPoint}}" hint-placeholder-val="{{false}}">
-      <div style="display: flex; flex-direction: column; gap: 4px">
-        <label for="pt-date" style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-top: 1px solid #eef1f1; font-size: 15px; border-top: 0">Date<input id="pt-date" type="date" value="2026-10-29" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 15px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums"></label>
-        <label for="pt-time" style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-top: 1px solid #eef1f1; font-size: 15px">Time<input id="pt-time" type="time" value="07:30" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 15px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums"></label>
-        <label for="pt-a" style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-top: 1px solid #eef1f1; font-size: 15px">Hopper A portions<input id="pt-a" type="number" value="2" min="0" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 15px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums; width: 80px"></label>
-        <label for="pt-b" style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-top: 1px solid #eef1f1; font-size: 15px">Hopper B portions<input id="pt-b" type="number" value="0" min="0" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 15px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums; width: 80px"></label>
-        <div style="margin: 8px 0 12px"><p style="margin: 0; font-size: 12px; color: #5d6262; line-height: 1.5"><span style="color: #2f70bb; font-weight: 500">Polling · heartbeat.</span> This feeder checks in about once a minute, so the meal reaches it on its next check-in.</p></div>
-        <button type="button" style="height: 48px; border: 0; border-radius: 6px; background: #131416; color: #ffffff; font: 600 15px 'IBM Plex Sans', sans-serif; width: 100%">Schedule meal</button>
+      <div style="display:flex;align-items:center;gap:8px;padding:0 4px" class="xs acc"><span style="font-weight:600">Now 14:47</span><span style="flex:1;height:1px;background:#0f6e66"></span></div>
+      <div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 16px;box-shadow:inset 0 0 0 2px #131416">
+        <div style="width:64px"><div class="fig" style="font-size:22px">18:00</div><div class="xs muted">Dinner</div></div>
+        <div class="grow"><div>20 g</div><div class="xs muted">Hopper 1 × 2</div></div>
+        <span class="toggle"></span>
       </div>
-    </sc-if>
-
-    <sc-if value="{{showFeed}}" hint-placeholder-val="{{false}}">
-      <div style="display: flex; flex-direction: column; gap: 4px">
-        <label for="fd-a" style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-top: 1px solid #eef1f1; font-size: 15px">Hopper A portions<input id="fd-a" type="number" value="1" min="0" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 15px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums; width: 80px"></label>
-        <label for="fd-b" style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-top: 1px solid #eef1f1; font-size: 15px">Hopper B portions<input id="fd-b" type="number" value="0" min="0" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 15px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums; width: 80px"></label>
-        <div style="margin: 8px 0 12px"><p style="margin: 0; font-size: 12px; color: #5d6262; line-height: 1.5"><span style="color: #2f70bb; font-weight: 500">Polling · heartbeat.</span> This feeder checks in about once a minute, so the meal reaches it on its next check-in.</p></div>
-        <button type="button" style="height: 48px; border: 0; border-radius: 6px; background: #131416; color: #ffffff; font: 600 15px 'IBM Plex Sans', sans-serif; width: 100%">Feed now</button>
+      <div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 16px">
+        <div style="width:64px"><div class="fig" style="font-size:22px">22:00</div><div class="xs muted">Late snack</div></div>
+        <div class="grow"><div>10 g</div><div class="xs muted">Hopper 2 × 1</div></div>
+        <span class="toggle"></span>
       </div>
-    </sc-if>
+    </section>
+    <button class="btn btn-sec" style="background:#ffffff"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Add a meal</button>
+    <p class="xs muted" style="margin:0 4px">Times use the feeder's own time zone, Asia/Saigon. Saved meals are sent to the feeder straight away.</p>
   </main>
 </div>
+
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":900}}'>
 class Component extends DCLogic {
-  constructor(props) {
-    super(props);
-    this.state = { tab: 'range' };
-  }
-  renderVals() {
-    const cur = this.state.tab;
-    const defs = [['range', 'Range'], ['weekly', 'Weekly'], ['point', 'One-off'], ['feed', 'Feed now']];
-    // Timeline axis: 06:00 to 24:00 at 22 px per hour.
-    const y = (h, m) => (((h - 6) * 60 + m) / 60 * 22).toFixed(1) + 'px';
-    const hours = [];
-    for (let h = 6; h <= 24; h++) {
-      hours.push({ top: y(h, 0), label: h % 3 === 0 ? String(h).padStart(2, '0') : '' });
-    }
-    const fed = { border: '1px solid #e3e8e7', bg: '#f5f7f7', ink: '#1e7b4f', status: 'Fed' };
-    const planned = { border: '1px solid #cdd3d2', bg: '#ffffff', ink: '#5d6262', status: 'Planned' };
-    const next = { border: '2px solid #0f6e66', bg: '#ffffff', ink: '#0f6e66', status: 'Next, in 3 h 13 m' };
-    const meals = [
-      { ...fed, top: y(7, 0), time: '07:00', amount: '20 g (2 × 10 g)' },
-      { ...fed, top: y(12, 0), time: '12:00', amount: '15 g' },
-      { ...next, top: y(18, 0), time: '18:00', amount: '20 g (2 × 10 g)' },
-      { ...planned, top: y(22, 0), time: '22:00', amount: '10 g' }
-    ];
-    const dayDefs = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return {
-      showRange: cur === 'range', showWeekly: cur === 'weekly', showPoint: cur === 'point', showFeed: cur === 'feed',
-      tabs: defs.map(([id, label]) => ({
-        label,
-        sel: cur === id ? 'true' : 'false',
-        bg: cur === id ? '#ffffff' : 'transparent',
-        ink: cur === id ? '#131416' : '#5d6262',
-        weight: cur === id ? 600 : 500,
-        pick: () => this.setState({ tab: id })
-      })),
-      hours,
-      meals,
-      days: dayDefs.map((label, i) => ({
-        label,
-        on: i < 5 ? 'true' : 'false',
-        bg: i < 5 ? '#e8eded' : '#ffffff',
-        weight: i < 5 ? 600 : 400
-      }))
-    };
-  }
+  renderVals() { return {}; }
 }
 </script>
 </body>

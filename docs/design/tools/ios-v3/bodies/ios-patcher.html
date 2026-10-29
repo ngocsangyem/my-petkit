@@ -1,0 +1,37 @@
+<!-- Patcher (R3 step-up) · iOS | 1000 -->
+<div class="scr" style="height:1000px">
+  <header class="top">
+    <div class="bar">
+      <a class="iconbtn" href="ios-device-t6.dc.html" aria-label="Back">[[I:back:20]]</a>
+      <span class="pill p-neg">Step-up required</span>
+    </div>
+    <h1>Local camera streaming</h1>
+    <p class="lede">Stream the litter box camera from this server instead of PetKit's cloud relay.</p>
+  </header>
+  <main class="main">
+    <section class="card" style="padding:4px 16px">
+      <div class="row" style="min-height:64px">[[DRUM:44,62]]<div class="grow"><div style="font-weight:500">Litter box</div><div class="xs muted">Purobot Ultra T6 · <span class="mono">1.2.86</span> · <span class="mono">100234567</span></div></div></div>
+    </section>
+
+    <div class="warnbox"><span class="neg" style="flex:none;margin-top:2px">[[I:warn:16]]</span><span>Runs commands on the box as root. A mistake can stop it booting, and it is outside the warranty.</span></div>
+
+    <section class="card" style="display:flex;flex-direction:column;gap:14px">
+      <div><h2 style="font-size:16px">What changes</h2><p style="margin:4px 0 0;color:#3b4040">Adds <span class="mono">/system/app_init.sh</span>, which starts the local video server at boot instead of the cloud relay. Firmware files are not overwritten.</p></div>
+      <div><h2 style="font-size:16px">How to undo</h2><p style="margin:4px 0 0;color:#3b4040">Undo removes that one file and reboots the box. Stock firmware starts again and the cloud relay returns.</p></div>
+      <div>
+        <div style="display:flex;justify-content:space-between"><h2 style="font-size:16px">Space on the box</h2><span class="small">Needs 1.1 of 6.8 MB free</span></div>
+        <div class="track" style="margin-top:8px"><span style="width:16%"></span></div>
+      </div>
+    </section>
+
+    <section class="card" style="display:flex;flex-direction:column;gap:10px">
+      <p class="flabel" style="margin:0">SSH public key</p>
+      <div class="field mono" style="font-size:12px;overflow:hidden;white-space:nowrap">ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK3v…q9 my</div>
+      <p class="small pos" style="margin:0"><span class="dot" style="background:#1e7b4f"></span>Reachable: the server talks to the box on the home network.</p>
+    </section>
+
+    <div style="flex:1"></div>
+    <button class="btn btn-neg" style="width:100%">[[I:lock:18]] Apply patch</button>
+    <p class="xs muted" style="margin:0;text-align:center">Asks for your password, then shows progress here step by step.</p>
+  </main>
+</div>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Litter box · iOS</title>
+<title>Litter box (Purobot Ultra T6) · iOS</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -12,150 +12,189 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <style>
 body{margin:0}
-a{color:#131416;text-decoration:none}a:hover{color:#0f6e66}
-.row:active{background:#f5f7f7}
-button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #0f6e66;outline-offset:2px}
-.sw{appearance:none;-webkit-appearance:none;flex:none;width:44px;height:26px;margin:0;border-radius:13px;background:#cdd3d2;position:relative}
-.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#ffffff}
-.sw:checked{background:#131416}.sw:checked::after{left:21px}
+*{box-sizing:border-box}
+.scr{position:relative;width:390px;overflow:hidden;background:#edf2f1;color:#131416;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:15px;line-height:1.4;display:flex;flex-direction:column;font-variant-numeric:tabular-nums}
+.top{padding:54px 20px 12px;display:flex;flex-direction:column;gap:6px}
+.bar{display:flex;align-items:center;justify-content:space-between;min-height:44px}
+.server{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:#5d6262}
+.iconbtn{width:44px;height:44px;border-radius:999px;background:#ffffff;color:#131416;display:flex;align-items:center;justify-content:center;border:0;text-decoration:none}
+h1{margin:0;font-size:24px;font-weight:600;letter-spacing:0}
+h2{margin:0;font-size:17px;font-weight:600}
+.lede{margin:0;font-size:15px;color:#3b4040}
+.main{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:12px;padding:4px 16px 16px}
+.card{background:#ffffff;border-radius:20px;padding:16px}
+.sec{display:flex;justify-content:space-between;align-items:baseline;padding:8px 4px 0}
+.link{color:#0f6e66;font-size:14px;font-weight:500;text-decoration:none}
+.muted{color:#5d6262}
+.small{font-size:13px}
+.xs{font-size:12px}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.pos{color:#1e7b4f}.neg{color:#c4242a}.warn{color:#92400e}.blue{color:#2f70bb}.acc{color:#0f6e66}
+.pill{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;font-size:12px;font-weight:500}
+.p-pos{background:#dcfae5;color:#04250e}.p-neg{background:#ffedea;color:#831c1e}.p-warn{background:#fffbeb;color:#92400e}.p-neu{background:#e8eded;color:#353736}
+.btn{flex:none;height:50px;border-radius:999px;border:0;font:inherit;font-weight:600;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 22px}
+.btn-pri{background:#131416;color:#ffffff}
+.btn-sec{background:#edf2f1;color:#131416}
+.chip{height:36px;border-radius:999px;padding:0 14px;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;background:#ffffff;color:#131416;white-space:nowrap}
+.chip.on{background:#131416;color:#ffffff}
+.av{border-radius:50%;object-fit:cover;flex:none}
+.fig{font-size:30px;font-weight:500;line-height:1.1}
+.unit{font-size:15px;color:#5d6262;font-weight:400;margin-left:2px}
+.lbl{font-size:13px;color:#5d6262}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.split{display:grid;grid-template-columns:1fr 1fr;background:#f4f7f6;border-radius:14px}
+.split>div{padding:12px 14px}
+.split>div:nth-child(odd){box-shadow:inset -1px 0 0 #e3e8e7}
+.split>div:nth-child(n+3){box-shadow:inset 0 1px 0 #e3e8e7}
+.split>div:nth-child(3){box-shadow:inset 0 1px 0 #e3e8e7,inset -1px 0 0 #e3e8e7}
+.row{display:flex;align-items:center;gap:12px;min-height:52px}
+.row+.row{box-shadow:inset 0 1px 0 #eef1f1}
+.grow{flex:1;min-width:0}
+.track{height:6px;border-radius:999px;background:#e8eded;overflow:hidden}
+.track>span{display:block;height:100%;border-radius:999px;background:#0f6e66}
+.tabbar{display:flex;justify-content:space-around;padding:8px 8px 30px;background:#ffffff}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:#5d6262;width:64px}
+.tab.on{color:#131416;font-weight:600}
+.tab svg{width:24px;height:24px}
+.toggle{width:51px;height:31px;border-radius:999px;background:#131416;position:relative;flex:none}
+.toggle::after{content:'';position:absolute;top:2px;right:2px;width:27px;height:27px;border-radius:50%;background:#fff}
+.toggle.off{background:#d5dbda}.toggle.off::after{right:auto;left:2px}
+.dev{color:inherit;text-decoration:none;display:flex;flex-direction:column;gap:10px;padding:8px 8px 14px}
+.dev .art{position:relative;height:112px;padding-top:20px;border-radius:14px;background:#f4f7f6;display:flex;align-items:center;justify-content:center}
+.dev .art .st{position:absolute;top:8px;left:8px}
+.dev .tx{padding:0 6px}
+.pet{display:flex;flex-direction:column;gap:10px;color:inherit;text-decoration:none}
+.pet img{width:100%;height:120px;border-radius:14px;object-fit:cover}
+.nowrap{white-space:nowrap}
+.hero{display:flex;flex-direction:column;align-items:center;gap:6px;background:#f4f7f6;border-radius:16px;padding:18px 12px 14px;position:relative}
+.acts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.act{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px 10px;border-radius:16px;background:#f4f7f6;font-size:13px;font-weight:500;color:#131416;text-decoration:none}
+.thumb{position:relative;border-radius:14px;overflow:hidden;background:#1b1d1e}
+.playb{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.92);color:#131416;display:flex;align-items:center;justify-content:center}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#ffffff;border-radius:24px 24px 0 0;padding:10px 20px 34px;box-shadow:0 -8px 30px rgba(0,0,0,.12)}
+.grab{width:36px;height:5px;border-radius:3px;background:#d5dbda;margin:0 auto 14px}
+.scrim{position:absolute;inset:0;background:rgba(19,20,22,.35)}
+.seg{display:flex;background:#e3e8e7;border-radius:999px;padding:3px}
+.seg span{flex:1;text-align:center;height:32px;line-height:32px;border-radius:999px;font-size:14px;font-weight:500;color:#3b4040}
+.seg span.on{background:#ffffff;color:#131416;font-weight:600}
+.field{height:50px;border-radius:14px;background:#f4f7f6;display:flex;align-items:center;padding:0 14px;font-size:16px}
+.flabel{font-size:13px;color:#5d6262;margin:0 0 6px 4px}
+.warnbox{display:flex;gap:10px;background:#f4f7f6;border-radius:16px;padding:12px 14px;font-size:14px;color:#3b4040}
+.btn-neg{background:#c4242a;color:#ffffff}
+.step{display:flex;align-items:center;gap:12px;min-height:40px}
+.step .ic{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;font-size:13px}
+.log{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;line-height:1.45;padding:6px 0 6px 10px;box-shadow:inset 2px 0 0 #d5dbda}
+.log+.log{margin-top:6px}
+.log .t{color:#5d6262;margin-right:8px}
+.dark.scr{background:#0e0f10;color:#f2f4f4}
+.dark .card,.dark .tabbar,.dark .iconbtn,.dark .chip{background:#1a1c1e;color:#f2f4f4}
+.dark .hero,.dark .dev .art,.dark .split,.dark .act{background:#232628}
+.dark .muted,.dark .lbl,.dark .unit,.dark .server,.dark .tab{color:#a1a8a8}
+.dark .tab.on{color:#f2f4f4}
+.dark .lede{color:#c9cfcf}
+.dark .neg{color:#ff7a72}.dark .pos{color:#5fd39b}.dark .link,.dark .acc{color:#4fc2b6}
+.dark .p-pos{background:#123824;color:#bdf2d3}.dark .p-neg{background:#43191a;color:#ffc9c4}.dark .p-neu{background:#2c3032;color:#d5dbda}
+.dark svg [stroke="#131416"]{stroke:#e9eded}
+.dark svg [fill="#ffffff"]{fill:#1a1c1e}
+.dark svg [fill="#e3e8e7"]{fill:#3a3e41}
 </style>
 </helmet>
-<div style="position: relative; width: 390px; height: 1600px; overflow: hidden; box-sizing: border-box; background: #ffffff; color: #131416; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 15px; line-height: 1.4; display: flex; flex-direction: column">
-
-  <header style="background: #f2f6f5; padding: 54px 16px 12px; display: flex; flex-direction: column; gap: 6px">
-    <div style="display: flex; align-items: center; justify-content: space-between">
-      <a href="ios-devices.dc.html" aria-label="Back to devices" style="width: 44px; height: 44px; margin-left: -10px; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#131416" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
-      <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #1e7b4f; font-weight: 500"><span style="width: 7px; height: 7px; border-radius: 50%; background: #1e7b4f"></span>Online · MQTT · 12 s ago</span>
+<div class="scr" style="height:1900px">
+  <header class="top" style="padding-bottom:4px">
+    <div class="bar">
+      <a class="iconbtn" href="ios-devices.dc.html" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></a>
+      <span class="small pos"><span class="dot" style="background:#1e7b4f"></span>Online · MQTT · 12 s ago</span>
     </div>
-    <h1 style="margin: 0; font-size: 24px; font-weight: 600">Litter box</h1>
-    <p style="margin: 0; font-size: 15px"><span style="color: #1e7b4f; font-weight: 500">Idle</span> and <span style="color: #1e7b4f; font-weight: 500">clean</span>. Last clean 14:05, 5 min after Miso left.</p>
-    <p style="margin: 0; font-size: 13px; color: #5d6262">Purobot Ultra T6 · fw <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px">1.2.86</span> · ID <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px">100234567</span></p>
   </header>
 
-  <main style="flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 16px; padding: 16px 16px 24px">
-
-    <section aria-label="Box state" style="display: flex; flex-direction: column; border: 1px solid #e3e8e7; border-radius: 8px">
-      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr))">
-        <div style="padding: 12px 14px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; font-weight: 500; color: #5d6262">Bags left</span><span style="font-size: 28px; line-height: 1.15; font-variant-numeric: tabular-nums">14</span></div>
-        <div style="padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #eef1f1"><span style="font-size: 12px; font-weight: 500; color: #5d6262">Litter level</span><span style="font-size: 28px; line-height: 1.15; font-variant-numeric: tabular-nums">62<span style="font-size: 14px; color: #5d6262"> %</span></span></div>
-        <div style="padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #eef1f1"><span style="font-size: 12px; font-weight: 500; color: #5d6262">Visits today</span><span style="font-size: 28px; line-height: 1.15; font-variant-numeric: tabular-nums">5</span></div>
+  <main class="main">
+    <section class="card" style="padding:8px 8px 16px;display:flex;flex-direction:column;gap:14px">
+      <div class="hero"><svg width="168" height="168" viewBox="0 0 100 100" aria-hidden="true"><rect x="16" y="80" width="68" height="12" rx="6" fill="#e3e8e7" stroke="#131416" stroke-width="3"/><clipPath id="dc"><circle cx="50" cy="46" r="34"/></clipPath><circle cx="50" cy="46" r="34" fill="#ffffff"/><rect x="10" y="58.2" width="80" height="60" fill="#cfe5e2" clip-path="url(#dc)"/><circle cx="50" cy="46" r="34" fill="none" stroke="#131416" stroke-width="3"/><ellipse cx="50" cy="50" rx="19" ry="15" fill="#ffffff" fill-opacity=".55" stroke="#131416" stroke-width="3"/></svg></div>
+      <div style="padding:0 8px">
+        <h1>Litter box</h1>
+        <p class="lede" style="margin-top:4px"><span class="pos" style="font-weight:500">Idle and clean.</span> Cleaned at 14:05, five minutes after Miso left.</p>
+        <p class="xs muted" style="margin:6px 0 0">Purobot Ultra T6 · firmware <span class="mono">1.2.86</span></p>
       </div>
-      <div style="display: flex; justify-content: space-between; padding: 10px 14px; border-top: 1px solid #eef1f1; font-size: 14px"><span style="color: #5d6262">Waste bin</span><span style="color: #5d6262">Not reported</span></div>
-    </section>
-
-    <section aria-labelledby="w-h" style="display: flex; flex-direction: column; gap: 8px">
-      <h2 id="w-h" style="margin: 0; font-size: 16px; font-weight: 600">Weights, last 14 days</h2>
-      <div style="display: flex; flex-direction: column; gap: 6px; padding: 8px 0; border-top: 1px solid #eef1f1">
-        <div style="display: flex; align-items: center; gap: 10px">
-          <img src="/_blob/38e9ae33b4e603f8aa6a989a45ef55a8" alt="" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover">
-          <span style="font-weight: 500; flex: 1">Miso</span>
-          <span style="font-variant-numeric: tabular-nums">5.42 kg</span>
+      <div style="padding:0 8px;display:flex;flex-direction:column;gap:10px">
+        <button class="btn btn-pri" style="width:100%"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4 9 13M6 14h8l2 6H4z"/></svg> Clean now</button>
+        <div class="acts">
+          <a class="act" href="#"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12l-1 12H7z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>Pack</a>
+          <a class="act" href="#"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16c3-3 5 3 8 0s5 3 8 0M4 10h16"/></svg>Level</a>
+          <a class="act" href="#"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19c0-8 6-13 14-13 0 8-5 14-13 14M5 19l7-7"/></svg>Deodorize</a>
+          <a class="act" href="#"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg>More</a>
         </div>
-        <svg width="100%" height="28" viewBox="0 0 340 40" preserveAspectRatio="none" role="img" aria-label="Miso weight, 5.38 to 5.42 kilograms over 14 days"><polyline points="0,34 40,30 80,32 120,24 160,26 200,18 240,22 280,12 320,8 340,6" fill="none" stroke="#0f6e66" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"></polyline></svg>
-        <span style="font-size: 13px; color: #5d6262; font-variant-numeric: tabular-nums">5.38 → 5.42 kg · +0.04 kg over 14 days</span>
-      </div>
-      <div style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid #eef1f1">
-        <img src="/_blob/04acdb0fd9daefc6a525576e97df95d6" alt="" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; object-position: 50% 20%">
-        <span style="display: flex; flex-direction: column; flex: 1"><span style="font-weight: 500">Mochi</span><span style="font-size: 13px; color: #5d6262; font-variant-numeric: tabular-nums">3.80 → 3.86 kg · +0.06 kg over 14 days</span></span>
-        <span style="font-variant-numeric: tabular-nums">3.86 kg</span>
+        <p class="xs muted" style="margin:0;text-align:center">Each command asks before it runs. Last: Clean, 14:05, echoed.</p>
       </div>
     </section>
 
-    <section aria-labelledby="c-h" style="display: flex; flex-direction: column; gap: 4px">
-      <h2 id="c-h" style="margin: 0 0 4px; font-size: 16px; font-weight: 600">Consumables</h2>
-      <sc-for list="{{consumables}}" as="c" hint-placeholder-count="3">
-        <div style="display: flex; flex-direction: column; gap: 6px; padding: 8px 0; border-top: 1px solid #eef1f1">
-          <div style="display: flex; justify-content: space-between; font-size: 14px"><span>{{c.name}}</span><span style="color: {{c.ink}}; font-weight: {{c.weight}}; font-variant-numeric: tabular-nums">{{c.left}}</span></div>
-          <div style="height: 4px; border-radius: 2px; background: #e8eded; overflow: hidden"><div style="width: {{c.pct}}; height: 100%; background: {{c.bar}}"></div></div>
-        </div>
-      </sc-for>
-    </section>
-
-    <section aria-labelledby="a-h" style="display: flex; flex-direction: column">
-      <h2 id="a-h" style="margin: 0 0 6px; font-size: 16px; font-weight: 600">Commands</h2>
-      <button type="button" class="row" onClick="{{askClean}}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; box-sizing: border-box; padding: 8px 0; border-top: 1px solid #eef1f1; width: 100%; background: none; border-left: 0; border-right: 0; border-bottom: 0; font: 500 15px 'IBM Plex Sans', sans-serif; color: #131416; text-align: left">Clean now<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5d6262" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></button>
-      <button type="button" class="row" onClick="{{askPack}}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; box-sizing: border-box; padding: 8px 0; border-top: 1px solid #eef1f1; width: 100%; background: none; border-left: 0; border-right: 0; border-bottom: 0; font: 500 15px 'IBM Plex Sans', sans-serif; color: #131416; text-align: left">Pack waste<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5d6262" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></button>
-      <button type="button" class="row" onClick="{{askDoor}}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; box-sizing: border-box; padding: 8px 0; border-top: 1px solid #eef1f1; width: 100%; background: none; border-left: 0; border-right: 0; border-bottom: 0; font: 500 15px 'IBM Plex Sans', sans-serif; color: #131416; text-align: left">Open sealed door<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5d6262" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></button>
-      <button type="button" class="row" onClick="{{askDump}}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; box-sizing: border-box; padding: 8px 0; border-top: 1px solid #eef1f1; width: 100%; background: none; border-left: 0; border-right: 0; border-bottom: 1px solid #eef1f1; font: 500 15px 'IBM Plex Sans', sans-serif; color: #131416; text-align: left">Dump litter<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5d6262" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></button>
-      <p style="margin: 8px 0 0; font-size: 12px; color: #5d6262">Each command asks before it runs.</p>
-      <p style="margin: 6px 0 0; font-size: 13px; color: #5d6262">Last command: Clean · sent over MQTT <span style="font-variant-numeric: tabular-nums">14:05</span> · echoed</p>
-    </section>
-
-    <section aria-labelledby="s-h" style="display: flex; flex-direction: column">
-      <h2 id="s-h" style="margin: 0 0 6px; font-size: 16px; font-weight: 600">Settings</h2>
-      <label class="row" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; box-sizing: border-box; padding: 8px 0; border-top: 1px solid #eef1f1">
-        <span style="display: flex; flex-direction: column"><span style="font-weight: 500">Auto clean after visit</span><span style="font-size: 13px; color: #5d6262">Cleans after the cat leaves the box.</span></span>
-        <input class="sw" type="checkbox" checked>
-      </label>
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; box-sizing: border-box; padding: 8px 0; border-top: 1px solid #eef1f1"><span>Clean delay</span><span style="color: #5d6262; font-variant-numeric: tabular-nums">5 min</span></div>
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; box-sizing: border-box; padding: 8px 0; border-top: 1px solid #eef1f1"><span>Litter type</span><span style="color: #5d6262">Tofu</span></div>
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; box-sizing: border-box; padding: 8px 0; border-top: 1px solid #eef1f1; border-bottom: 1px solid #eef1f1"><span>Timezone</span><span style="color: #5d6262; font-variant-numeric: tabular-nums">Asia/Saigon · +7.0</span></div>
-    </section>
-
-    <section aria-labelledby="b-h" style="display: flex; flex-direction: column; margin-top: -8px">
-      <h2 id="b-h" style="margin: 0 0 6px; font-size: 14px; font-weight: 500; color: #5d6262">Bluetooth accessories</h2>
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; box-sizing: border-box; padding: 8px 0; border-top: 1px solid #eef1f1; border-bottom: 1px solid #eef1f1"><span style="display: flex; flex-direction: column"><span style="font-weight: 500">Pura Air spray</span><span style="font-size: 13px; color: #5d6262">K3 · relayed by this box</span></span><span style="font-size: 13px; color: #5d6262">No report · 2 d</span></div>
-    </section>
-
-    <section aria-labelledby="u-h" style="display: flex; flex-direction: column">
-      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px"><h2 id="u-h" style="margin: 0; font-size: 16px; font-weight: 600">Camera stream</h2><a href="ios-live.dc.html" style="min-height: 44px; display: flex; align-items: center; margin: -12px 0; font-size: 14px; color: #0f6e66">Live view</a></div>
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; box-sizing: border-box; padding: 8px 0; border-top: 1px solid #eef1f1; border-bottom: 1px solid #eef1f1; align-items: center">
-        <span style="min-width: 0; font-family: 'IBM Plex Mono', monospace; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">https://192.168.1.20:8443/live/100234567.m3u8</span>
-        <button type="button" onClick="{{copy}}" style="flex: none; height: 44px; padding: 0 14px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 500 14px 'IBM Plex Sans', sans-serif">{{copyLabel}}</button>
+    <section class="card" style="padding:8px">
+      <div class="split">
+        <div><div class="lbl">Bags left</div><div class="fig">14</div></div>
+        <div><div class="lbl">Litter level</div><div class="fig">62<span class="unit">%</span></div></div>
+        <div><div class="lbl">Visits today</div><div class="fig">5</div></div>
+        <div><div class="lbl">Waste bin</div><div style="font-size:17px;padding-top:6px" class="muted">Not reported</div></div>
       </div>
     </section>
 
-    <a href="ios-patcher.dc.html" class="row" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; box-sizing: border-box; padding: 8px 0; border-top: 1px solid #eef1f1; border-bottom: 1px solid #eef1f1"><span style="font-weight: 500">Device patches</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5d6262" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></a>
+    <section class="card" style="padding:0">
+      <a href="ios-live.dc.html" class="thumb" style="display:block;height:190px;border-radius:20px 20px 0 0">
+        <img src="/_blob/38e9ae33b4e603f8aa6a989a45ef55a8" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(.6) brightness(.55)">
+        <span class="playb"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></svg></span>
+        <span class="pill" style="position:absolute;left:12px;top:12px;background:rgba(0,0,0,.55);color:#fff">Live view</span>
+      </a>
+      <div class="row" style="padding:0 16px">
+        <span class="grow small">Camera stream · plays here and in Home Assistant</span>
+        <span class="muted"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></span>
+      </div>
+    </section>
+
+    <div class="sec"><h2>Consumables</h2></div>
+    <section class="card" style="display:flex;flex-direction:column;gap:14px">
+      <div><div style="display:flex;justify-content:space-between"><span>N60 deodorizer</span><span class="warn" style="font-weight:600">3 days</span></div><div class="track" style="margin-top:6px"><span style="width:10%;background:#92400e"></span></div></div>
+      <div><div style="display:flex;justify-content:space-between"><span>N50 deodorant</span><span>19 days</span></div><div class="track" style="margin-top:6px"><span style="width:63%"></span></div></div>
+      <div><div style="display:flex;justify-content:space-between"><span>Desiccant</span><span>26 days</span></div><div class="track" style="margin-top:6px"><span style="width:87%"></span></div></div>
+    </section>
+
+    <div class="sec"><h2>Automation</h2></div>
+    <section class="card" style="padding:4px 16px">
+      <div class="row">
+        <div class="grow"><div>Auto clean after a visit</div><div class="xs muted">Starts once the cat has left the box.</div></div>
+        <span class="toggle"></span>
+      </div>
+      <div class="row"><span class="grow">Clean delay</span><span class="muted">5 min</span><span class="muted"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></span></div>
+      <div class="row">
+        <div class="grow"><div style="display:flex;gap:8px;align-items:center">Auto-pack <span class="pill p-neu">Experimental</span></div><div class="xs muted">After 10 cleans, only when no cat is near and bags are left.</div></div>
+        <span class="toggle"></span>
+      </div>
+      <div class="row"><span class="grow">Pack trigger</span><span class="muted">After 10 cleans</span><span class="muted"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></span></div>
+    </section>
+
+    <div class="sec"><h2>Settings</h2></div>
+    <section class="card" style="padding:4px 16px">
+      <div class="row"><span class="grow">Litter type</span><span class="muted">Tofu</span><span class="muted"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></span></div>
+      <div class="row"><span class="grow">Do not disturb</span><span class="muted">22:00 – 07:00</span><span class="muted"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></span></div>
+      <div class="row"><span class="grow">Timezone</span><span class="muted">Asia/Saigon</span><span class="muted"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></span></div>
+      <div class="row"><span class="grow">Sounds</span><span class="muted">Chime</span><span class="muted"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></span></div>
+    </section>
+
+    <div class="sec"><h2>Bluetooth accessories</h2><a class="link" href="#">Pair</a></div>
+    <section class="card" style="padding:4px 16px">
+      <div class="row"><svg width="40" height="40" viewBox="0 0 100 100" aria-hidden="true"><rect x="34" y="18" width="32" height="68" rx="16" fill="#ffffff" stroke="#131416" stroke-width="3"/><circle cx="50" cy="38" r="6" fill="none" stroke="#131416" stroke-width="3"/></svg><div class="grow"><div>Pura Air spray</div><div class="xs muted">K3 · relayed by this box</div></div><span class="small muted">No report · 2 d</span></div>
+    </section>
+
+    <section class="card" style="padding:4px 16px">
+      <a class="row" href="ios-patcher.dc.html" style="color:inherit;text-decoration:none"><span class="muted"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 6a4 4 0 0 0 5 5l-9 9-4-4 9-9a4 4 0 0 0-1-1z"/></svg></span><span class="grow">Device patches</span><span class="pill p-neg">Step-up</span><span class="muted"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></span></a>
+      <div class="row"><span class="muted"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M15 12h.01"/></svg></span><span class="grow">Device ID</span><span class="mono muted">100234567</span></div>
+      <div class="row"><span class="grow neg">Remove device</span></div>
+    </section>
   </main>
-
-  <sc-if value="{{confirmOpen}}" hint-placeholder-val="{{false}}">
-    <div style="position: absolute; inset: 0; background: rgba(19,20,22,0.4); display: flex; align-items: flex-end">
-      <div role="dialog" aria-modal="true" aria-label="Confirm command" style="width: 100%; box-sizing: border-box; padding: 24px 16px 40px; background: #ffffff; border-radius: 16px 16px 0 0; box-shadow: 0 -4px 20px rgba(19,20,22,0.12); display: flex; flex-direction: column; gap: 10px">
-        <h2 style="margin: 0; font-size: 20px; font-weight: 600">{{confirmTitle}}?</h2>
-        <p style="margin: 0 0 8px; font-size: 15px; color: #5d6262">{{confirmBody}}</p>
-        <button type="button" onClick="{{close}}" style="height: 48px; border: 0; border-radius: 6px; background: #131416; color: #ffffff; font: 600 15px 'IBM Plex Sans', sans-serif">{{confirmTitle}}</button>
-        <button type="button" onClick="{{close}}" style="height: 48px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 500 15px 'IBM Plex Sans', sans-serif">Cancel</button>
-      </div>
-    </div>
-  </sc-if>
 </div>
+
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1600}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1900}}'>
 class Component extends DCLogic {
-  constructor(props) {
-    super(props);
-    this.state = { ask: null, copied: false };
-  }
-  renderVals() {
-    const copy = {
-      clean: ['Clean now', 'The drum turns and sifts. A cat inside stops it. Sent over MQTT; if the box is polling instead, it waits for the next heartbeat.'],
-      pack: ['Pack waste', 'Seals the current bag and loads a new one. 14 bags left.'],
-      door: ['Open sealed door', 'Unlocks the waste door so a full bin can be emptied.'],
-      dump: ['Dump litter', 'Empties all litter into the bin. You will need to refill it.']
-    };
-    const a = this.state.ask;
-    const set = (k) => () => this.setState({ ask: k });
-    // Consumable bars: days left over an assumed 30-day life, drawn at true ratio.
-    const life = (name, days) => {
-      const warn = days <= 7;
-      return {
-        name, left: days + ' days',
-        pct: (days / 30 * 100).toFixed(1) + '%',
-        ink: warn ? '#92400e' : '#131416', weight: warn ? '600' : '400',
-        bar: warn ? '#92400e' : '#0f6e66'
-      };
-    };
-    return {
-      consumables: [life('N60 deodorizer', 3), life('N50 deodorant', 19), life('Desiccant', 26)],
-      askClean: set('clean'), askPack: set('pack'), askDoor: set('door'), askDump: set('dump'),
-      close: () => this.setState({ ask: null }),
-      confirmOpen: !!a,
-      confirmTitle: a ? copy[a][0] : '',
-      confirmBody: a ? copy[a][1] : '',
-      copy: () => this.setState({ copied: true }),
-      copyLabel: this.state.copied ? 'Copied' : 'Copy'
-    };
-  }
+  renderVals() { return {}; }
 }
 </script>
 </body>
