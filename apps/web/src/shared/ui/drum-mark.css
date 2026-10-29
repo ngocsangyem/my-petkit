@@ -1,0 +1,12 @@
+.ui-drum-mark {
+  flex: none;
+}
+
+.ui-drum-mark__ring {
+  fill: none;
+  stroke: var(--accent);
+}
+
+.ui-drum-mark__fill {
+  fill: var(--accent);
+}

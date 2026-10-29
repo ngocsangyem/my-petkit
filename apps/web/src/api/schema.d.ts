@@ -1639,6 +1639,8 @@ export interface components {
             /** @description Hash of the panel assets this process serves. */
             asset_version: string;
             version: string;
+            /** @description File name of the web app build's entry script (`index-<hash>.js`), or null when no build is present. A page loaded from an older build sees a different name. */
+            web_entry: string | null;
             api_url: string | null;
             /** @description Config passthrough, may be null when unset. */
             mqtt_tls: unknown;

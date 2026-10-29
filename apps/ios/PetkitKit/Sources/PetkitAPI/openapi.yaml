@@ -4481,6 +4481,7 @@ components:
       required:
       - asset_version
       - version
+      - web_entry
       - api_url
       - mqtt_tls
       - mqtt_tls_port
@@ -4504,6 +4505,13 @@ components:
           description: Hash of the panel assets this process serves.
         version:
           type: string
+        web_entry:
+          type:
+          - string
+          - 'null'
+          description: File name of the web app build's entry script (`index-<hash>.js`), or
+            null when no build is present. A page loaded from an older build sees a
+            different name.
         api_url:
           type:
           - string

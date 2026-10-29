@@ -26,6 +26,9 @@ UNDESCRIBED = {
     ("GET", "/asset/{v}/js/{name}"): "versioned static assets",
     ("GET", "/api/ws"): "WebSocket; documented in packages/contracts/ws-events.md",
     ("GET", "/api/devices/{id}/talk"): "WebSocket audio stream",
+    ("GET", "/app"): "redirect to the web app's document",
+    ("GET", "/app/"): "the web app's document (HTML)",
+    ("GET", "/app/{path}"): "the web app's static build",
 }
 
 #: The security requirement each tier's operations must carry.

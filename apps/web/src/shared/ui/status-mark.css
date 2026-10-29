@@ -1,0 +1,54 @@
+.ui-status,
+.ui-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.ui-status__dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  background: currentColor;
+}
+
+.ui-status--online {
+  color: var(--positive);
+}
+
+.ui-status--polling {
+  color: var(--chart2);
+}
+
+.ui-status--offline {
+  color: var(--negative);
+}
+
+.ui-status--unknown {
+  color: var(--muted);
+}
+
+.ui-status--unknown .ui-status__dot {
+  background: transparent;
+}
+
+/* The Live label stays muted; only the dot carries the state. */
+.ui-live {
+  color: var(--muted);
+}
+
+.ui-live--live .ui-status__dot {
+  color: var(--positive);
+}
+
+.ui-live--connecting .ui-status__dot {
+  color: var(--muted);
+  background: transparent;
+}
+
+.ui-live--offline .ui-status__dot {
+  color: var(--negative);
+}

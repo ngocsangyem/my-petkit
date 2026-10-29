@@ -767,6 +767,16 @@ reviewer can find every place the suite was touched.
 - added: tests/test_contract_spec_paths_exist.py::test_every_error_response_uses_the_error_envelope
 - added: tests/test_contract_spec_paths_exist.py::test_each_operation_declares_the_refusals_its_tier_and_method_imply
 - added: tests/test_contract_spec_paths_exist.py::test_operation_ids_are_unique
+- added: tests/test_web_app_serving.py::test_the_document_is_never_reused_unasked_and_allows_no_inline_code
+- added: tests/test_web_app_serving.py::test_a_hashed_asset_is_cached_for_good_and_other_files_are_revalidated
+- added: tests/test_web_app_serving.py::test_the_document_reached_through_assets_is_not_cached_for_good
+- added: tests/test_web_app_serving.py::test_a_path_outside_the_build_or_missing_from_it_is_a_404
+- added: tests/test_web_app_serving.py::test_app_without_a_slash_redirects_relatively_so_ingress_keeps_its_prefix
+- added: tests/test_web_app_serving.py::test_without_a_build_the_app_says_how_to_build_it
+- added: tests/test_web_app_serving.py::test_info_reports_the_entry_of_the_build_the_server_would_serve
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[shared/web_build.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[web/spa.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[shared/web_build.py]
 
 ## Removed
 

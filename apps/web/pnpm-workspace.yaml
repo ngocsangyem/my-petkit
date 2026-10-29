@@ -1,0 +1,4 @@
+# unrs-resolver ships prebuilt binaries per platform; its install script only
+# rebuilds from source, which nothing here needs.
+allowBuilds:
+  unrs-resolver: false
