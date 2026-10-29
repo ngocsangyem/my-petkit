@@ -799,6 +799,27 @@ reviewer can find every place the suite was touched.
 - added: tests/test_publisher_events.py::test_event_attrs_become_attributes_and_envelope_is_stripped
 - added: tests/test_publisher_events.py::test_device_content_cannot_override_event_type
 
+### dev_state_report `time` rendered at the device's own UTC offset, UTC for an unusable one
+
+- added: tests/test_timeutil.py::test_cloud_timestamp_defaults_to_utc
+- added: tests/test_timeutil.py::test_cloud_timestamp_localizes_to_the_offset
+- added: tests/test_timeutil.py::test_cloud_timestamp_offset_is_hhmm[0.0-+0000]
+- added: tests/test_timeutil.py::test_cloud_timestamp_offset_is_hhmm[-7.0--0700]
+- added: tests/test_timeutil.py::test_cloud_timestamp_offset_is_hhmm[5.75-+0545]
+- added: tests/test_timeutil.py::test_cloud_timestamp_offset_is_hhmm[5.5-+0530]
+- added: tests/test_timeutil.py::test_cloud_timestamp_offset_is_hhmm[14.0-+1400]
+- added: tests/test_timeutil.py::test_cloud_timestamp_falls_back_to_utc_for_an_unusable_offset[nan]
+- added: tests/test_timeutil.py::test_cloud_timestamp_falls_back_to_utc_for_an_unusable_offset[inf]
+- added: tests/test_timeutil.py::test_cloud_timestamp_falls_back_to_utc_for_an_unusable_offset[-inf]
+- added: tests/test_timeutil.py::test_cloud_timestamp_falls_back_to_utc_for_an_unusable_offset[24.0]
+- added: tests/test_timeutil.py::test_cloud_timestamp_falls_back_to_utc_for_an_unusable_offset[-24.0]
+- added: tests/test_timeutil.py::test_cloud_timestamp_falls_back_to_utc_for_an_unusable_offset[30.0]
+- added: tests/test_timeutil.py::test_cloud_timestamp_falls_back_to_utc_for_an_unusable_offset[23.9999]
+- added: tests/test_timeutil.py::test_cloud_timestamp_falls_back_to_utc_for_an_unusable_offset[1e+308]
+- added: tests/test_http.py::test_state_report_time_carries_the_devices_offset
+- added: tests/test_http.py::test_state_report_time_is_utc_for_an_unidentified_device
+- added: tests/test_http.py::test_state_report_time_is_utc_for_an_out_of_range_offset
+
 ## Removed
 
 None.

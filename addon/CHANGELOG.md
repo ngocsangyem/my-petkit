@@ -28,6 +28,15 @@
   content key cannot override `event_type`. Ported from upstream petkit-local
   PR #26, verified there on a T6.
 
+- **Scheduled feeds fire on the local wall-clock minute again.** The
+  `dev_state_report` reply's `time` was always rendered in UTC (`+0000`), and
+  the firmware sets its clock's timezone from that offset, so a box outside UTC
+  fired every scheduled meal hours late (two on a UTC+2 install). The time is
+  now rendered at the device's own UTC offset, the same `timezone` it is sent
+  at signup, as PetKit's cloud does. An unidentified device, or an offset that
+  is not a usable value (NaN, infinite, 24 h or more), still gets UTC. Ported
+  from petkit-local PR #30, with the UTC fallback suggested in its review.
+
 - **Uploaded sounds reach the device again.** `dev_sound_get` crashed on every
   call and answered `{"result": {}}`, so a sound uploaded in the panel was
   never offered to the feeder. It now lists the uploaded sounds, and answers
