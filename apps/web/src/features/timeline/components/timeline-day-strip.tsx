@@ -142,11 +142,11 @@ export function TimelineDayStrip(props: TimelineDayStripProps) {
     const nowMinute = isToday ? minuteOfDay(now / 1000, start) : null;
     const lanes = buildStripLanes(day, pets, devices);
     body = lanes.length ? (
-      <div className="tl-strip-scroll">
+      <div className="overflow-x-auto *:min-w-160">
         <HouseholdDayStrip lanes={lanes} nowMinute={nowMinute} label={`${title}, ${date}`} />
       </div>
     ) : (
-      <p className="tl-muted">No pets or feeders to chart yet.</p>
+      <p className="text-muted-foreground">No pets or feeders to chart yet.</p>
     );
   }
   return (

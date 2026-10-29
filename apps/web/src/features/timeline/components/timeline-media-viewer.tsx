@@ -1,19 +1,26 @@
 import { useRef, useState } from 'react';
 import { mediaUrl } from '@/shared/api/base-path';
 import { SegmentedChips } from '@/shared/ui';
+import { AspectRatio } from '@/shared/ui/shadcn/aspect-ratio';
 import { useLazyVideo } from '../hooks/use-lazy-video';
 import { MediaImage } from './timeline-still-gallery';
 import { posterPath, videoSources, type MediaSlots, type VideoSource } from '../timeline-model';
 
+// The video box: 16:9 on ink, the fisheye kept whole (contain, never cropped).
+const VIEWER = 'flex items-center justify-center overflow-hidden rounded-lg bg-ink text-control';
+const FILL = 'size-full object-contain';
+
 function AssemblingNote({ snapshot }: { snapshot: string | null }) {
   return (
-    <div className="tl-viewer tl-viewer--note">
-      {snapshot && <MediaImage path={snapshot} thumb className="tl-viewer__still" />}
-      <div className="tl-viewer__caption">
+    <AspectRatio ratio={16 / 9} className={VIEWER}>
+      {snapshot && (
+        <MediaImage path={snapshot} thumb className={`${FILL} absolute inset-0 opacity-35`} />
+      )}
+      <div className="relative flex flex-col items-center gap-1 text-on-dark">
         <span>Assembling video…</span>
-        <span className="tl-viewer__sub">Chunks arrive during the cleaning that follows</span>
+        <span className="text-xs text-control">Chunks arrive during the cleaning that follows</span>
       </div>
-    </div>
+    </AspectRatio>
   );
 }
 
@@ -23,10 +30,10 @@ function VideoPlayer({ source, poster }: { source: VideoSource; poster: string |
   const loops = source.label !== 'Playback';
   useLazyVideo(ref, mediaUrl(source.path), true);
   return (
-    <div className="tl-viewer">
+    <AspectRatio ratio={16 / 9} className={VIEWER}>
       <video
         ref={ref}
-        className="tl-viewer__video"
+        className={FILL}
         controls
         muted
         loop={loops}
@@ -35,7 +42,7 @@ function VideoPlayer({ source, poster }: { source: VideoSource; poster: string |
         poster={poster ? mediaUrl(poster, true) : undefined}
         aria-label={`${source.label} video`}
       />
-    </div>
+    </AspectRatio>
   );
 }
 
@@ -63,19 +70,21 @@ export function TimelineMediaViewer({ media, onOpenStill }: TimelineMediaViewerP
     return (
       <button
         type="button"
-        className="tl-viewer tl-viewer--still"
+        className="block w-full cursor-zoom-in rounded-lg border-0 bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         aria-label="Open snapshot"
         onClick={() => {
           onOpenStill([still], 'Snapshot');
         }}
       >
-        <MediaImage path={still} thumb className="tl-viewer__still" />
+        <AspectRatio ratio={16 / 9} className={VIEWER}>
+          <MediaImage path={still} thumb className={FILL} />
+        </AspectRatio>
       </button>
     );
   }
 
   return (
-    <div className="tl-viewer-block">
+    <div className="flex flex-col gap-2">
       <VideoPlayer key={source.path} source={source} poster={posterPath(media)} />
       {sources.length > 1 && (
         <SegmentedChips
@@ -86,7 +95,7 @@ export function TimelineMediaViewer({ media, onOpenStill }: TimelineMediaViewerP
         />
       )}
       {media.video_pending && !media.playback_url && (
-        <span className="tl-muted tl-small">Full playback still processing…</span>
+        <span className="text-sm text-muted-foreground">Full playback still processing…</span>
       )}
     </div>
   );

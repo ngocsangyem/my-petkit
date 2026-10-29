@@ -106,7 +106,7 @@ describe('TimelinePage', () => {
     // A chip with nothing in it is hidden unless selected.
     expect(within(chips).queryByRole('button', { name: /Faults/ })).not.toBeInTheDocument();
     expect(screen.getByText('1 min 55 s')).toBeInTheDocument();
-    expect(screen.getByText('5.43 kg', { selector: '.tl-col-num' })).toBeInTheDocument();
+    expect(screen.getByText('5.43 kg', { selector: 'button > span' })).toBeInTheDocument();
     expect(screen.getAllByText('Assembling video…').length).toBeGreaterThan(0);
     expect(screen.getByText('Meal dispensed')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Next day' })).toBeDisabled();
@@ -151,13 +151,19 @@ describe('TimelinePage', () => {
     routes();
     const user = userEvent.setup();
     renderWithProviders(<TimelinePage />);
-    await user.click(await screen.findByRole('button', { name: 'Check waste, 2 pictures' }));
-    const dialog = screen.getByRole('dialog', { name: 'Check waste' });
+    const tile = await screen.findByRole('button', { name: 'Check waste, 2 pictures' });
+    await user.click(tile);
+    const dialog = await screen.findByRole('dialog', { name: 'Check waste' });
     expect(within(dialog).getByText('1 of 2')).toBeInTheDocument();
     await user.click(within(dialog).getByRole('button', { name: 'Next picture' }));
     expect(within(dialog).getByText('2 of 2')).toBeInTheDocument();
     await user.keyboard('{Escape}');
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(tile).toHaveFocus();
+    });
   });
 
   it('selecting a session with a clip shows the player and its sources', async () => {
@@ -179,7 +185,7 @@ describe('TimelinePage', () => {
     expect(detailCalls()).toBe(0);
 
     await user.click(screen.getByText('Debug info'));
-    const event = screen.getAllByText('Miso used the litter box', { selector: 'summary' })[0];
+    const event = screen.getAllByText('Miso used the litter box', { selector: 'button' })[0];
     await user.click(event!);
     expect(await screen.findByText('Pet left the box')).toBeInTheDocument();
     expect(screen.getByText('report_pet_out')).toBeInTheDocument();

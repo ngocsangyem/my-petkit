@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import { cn } from 'cn';
 import { Missing } from '@/shared/ui';
 import {
   clockTime,
@@ -15,7 +16,6 @@ import {
 import { TimelineDebugInfo, type DebugEntry } from './timeline-debug-info';
 import { TimelineMediaViewer } from './timeline-media-viewer';
 import { StillGallery, StillTiles } from './timeline-still-gallery';
-import './timeline-detail.css';
 
 function debugEntries(s: TimelineSession): DebugEntry[] {
   const entries: DebugEntry[] = [];
@@ -42,12 +42,17 @@ interface PairProps {
 /** One fact row: muted label left, value right; a missing value is a muted em dash. */
 function Pair({ label, value, muted, action, fallback }: PairProps) {
   return (
-    <div className="tl-facts__pair">
-      <dt className={muted ? 'tl-facts__detail' : undefined}>
+    <div className="flex justify-between gap-3">
+      <dt
+        className={cn(
+          'inline-flex flex-wrap items-baseline gap-2 text-muted-foreground',
+          muted && 'text-sm',
+        )}
+      >
         {label}
         {action}
       </dt>
-      <dd>{value ?? fallback ?? <Missing />}</dd>
+      <dd className="m-0 text-right">{value ?? fallback ?? <Missing />}</dd>
     </div>
   );
 }
@@ -82,15 +87,18 @@ export function TimelineSessionDetail({ session: s }: { session: TimelineSession
   };
 
   return (
-    <section className="tl-detail" aria-label="Selected event">
-      <div className="tl-detail__head">
-        <h2>{sessionSentence(s)}</h2>
-        {subline && <span className="tl-muted tl-small tl-num">{subline}</span>}
+    <section
+      className="flex min-w-0 flex-col gap-3.5 rounded-lg border border-border p-5"
+      aria-label="Selected event"
+    >
+      <div className="flex flex-col gap-1">
+        <h2 className="m-0 text-lg font-semibold">{sessionSentence(s)}</h2>
+        {subline && <span className="text-sm text-muted-foreground">{subline}</span>}
       </div>
       {media && (
         <TimelineMediaViewer key={String(stepMedia)} media={media} onOpenStill={openStill} />
       )}
-      <dl className="tl-facts">
+      <dl className="m-0 flex flex-col gap-1.5">
         <Pair label={isVisit ? 'Entered' : 'At'} value={clockTime(entered, true)} />
         {left !== null && <Pair label="Left" value={clockTime(left, true)} />}
         {s.sub_events.map((e, i) => (
@@ -103,7 +111,7 @@ export function TimelineSessionDetail({ session: s }: { session: TimelineSession
               e.id !== null && hasMedia(e.media) ? (
                 <button
                   type="button"
-                  className="tl-link"
+                  className="cursor-pointer border-0 bg-transparent p-0 text-xs text-data focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:underline"
                   aria-pressed={stepMedia === e.id}
                   onClick={() => {
                     setStepMedia(stepMedia === e.id ? null : e.id);
@@ -128,21 +136,18 @@ export function TimelineSessionDetail({ session: s }: { session: TimelineSession
         <Pair
           label="Matched"
           value={s.pet_name}
-          fallback={<span className="tl-muted">Nobody recognised</span>}
+          fallback={<span className="text-muted-foreground">Nobody recognised</span>}
         />
         {s.device_name && <Pair label="Device" value={s.device_name} />}
       </dl>
       <StillTiles groups={stillGroups(s)} onOpen={openStill} />
       <TimelineDebugInfo entries={debugEntries(s)} />
-      {gallery && (
-        <StillGallery
-          paths={gallery.paths}
-          title={gallery.title}
-          onClose={() => {
-            setGallery(null);
-          }}
-        />
-      )}
+      <StillGallery
+        gallery={gallery}
+        onClose={() => {
+          setGallery(null);
+        }}
+      />
     </section>
   );
 }

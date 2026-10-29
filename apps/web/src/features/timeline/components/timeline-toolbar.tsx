@@ -1,4 +1,6 @@
 import { Icon, InlineField, Select, type SelectOption } from '@/shared/ui';
+import { Button } from '@/shared/ui/shadcn/button';
+import { Input } from '@/shared/ui/shadcn/input';
 import type { TimelineDevice, TimelinePet } from '../api';
 import { isDateString, shiftDay, todayLocal } from '../timeline-model';
 
@@ -34,21 +36,22 @@ export function TimelineToolbar({
     ...devices.map(d => ({ value: String(d.id), label: `${d.name} #${String(d.id)}` })),
   ];
   return (
-    <div className="tl-toolbar">
-      <button
+    <div className="flex flex-wrap items-center gap-2">
+      <Button
         type="button"
-        className="tl-icon-btn"
+        variant="outline"
+        size="icon"
         aria-label="Previous day"
         onClick={() => {
           onDate(shiftDay(date, -1));
         }}
       >
-        <Icon name="chevron" className="tl-icon-btn__prev" />
-      </button>
+        <Icon name="chevron" className="rotate-90" />
+      </Button>
       <InlineField label="Date">
-        <input
+        <Input
           type="date"
-          className="ui-control tl-date"
+          className="w-auto"
           value={date}
           max={today}
           onChange={e => {
@@ -56,18 +59,19 @@ export function TimelineToolbar({
           }}
         />
       </InlineField>
-      <button
+      <Button
         type="button"
-        className="tl-icon-btn"
+        variant="outline"
+        size="icon"
         aria-label="Next day"
         disabled={date >= today}
         onClick={() => {
           onDate(shiftDay(date, 1));
         }}
       >
-        <Icon name="chevron" className="tl-icon-btn__next" />
-      </button>
-      <span className="tl-toolbar__gap" />
+        <Icon name="chevron" className="-rotate-90" />
+      </Button>
+      <span className="w-2" />
       {pets.length > 0 && (
         <InlineField label="Cat">
           <Select
