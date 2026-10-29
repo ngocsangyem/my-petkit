@@ -831,6 +831,20 @@ reviewer can find every place the suite was touched.
 - added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[mqtt/protocol_compat.py]
   — the per-module clock check gains the new module.
 
+### A linked K3's battery and liquid also update from HTTP (state report and event report state block), only when `k3Id` names it
+
+Ported from upstream petkit-local PR 28, with a `k3Id` guard added.
+
+- added: tests/test_http_k3.py::test_the_helper_moves_battery_and_liquid_onto_the_named_k3
+- added: tests/test_http_k3.py::test_the_helper_accepts_k3_id_as_a_decimal_string
+- added: tests/test_http_k3.py::test_the_helper_does_nothing_without_a_linked_k3
+- added: tests/test_http_k3.py::test_the_helper_ignores_a_state_with_neither_level
+- added: tests/test_http_k3.py::test_a_parent_battery_without_k3_id_never_reaches_the_k3
+- added: tests/test_http_k3.py::test_a_k3_id_naming_another_k3_is_refused_on_every_transport
+- added: tests/test_http_k3.py::test_a_state_report_updates_the_linked_k3
+- added: tests/test_http_k3.py::test_a_state_report_without_k3_id_leaves_the_k3_alone
+- added: tests/test_http_k3.py::test_an_event_report_state_block_updates_the_linked_k3
+
 ## Removed
 
 None.
