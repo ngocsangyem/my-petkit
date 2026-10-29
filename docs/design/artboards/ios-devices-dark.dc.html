@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Home · dark mode · iOS</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.scr{position:relative;width:390px;overflow:hidden;background:#edf2f1;color:#131416;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:15px;line-height:1.4;display:flex;flex-direction:column;font-variant-numeric:tabular-nums}
+.top{padding:54px 20px 12px;display:flex;flex-direction:column;gap:6px}
+.bar{display:flex;align-items:center;justify-content:space-between;min-height:44px}
+.server{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:#5d6262}
+.iconbtn{width:44px;height:44px;border-radius:999px;background:#ffffff;color:#131416;display:flex;align-items:center;justify-content:center;border:0;text-decoration:none}
+h1{margin:0;font-size:24px;font-weight:600;letter-spacing:0}
+h2{margin:0;font-size:17px;font-weight:600}
+.lede{margin:0;font-size:15px;color:#3b4040}
+.main{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:12px;padding:4px 16px 16px}
+.card{background:#ffffff;border-radius:20px;padding:16px}
+.sec{display:flex;justify-content:space-between;align-items:baseline;padding:8px 4px 0}
+.link{color:#0f6e66;font-size:14px;font-weight:500;text-decoration:none}
+.muted{color:#5d6262}
+.small{font-size:13px}
+.xs{font-size:12px}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.pos{color:#1e7b4f}.neg{color:#c4242a}.warn{color:#92400e}.blue{color:#2f70bb}.acc{color:#0f6e66}
+.pill{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;font-size:12px;font-weight:500}
+.p-pos{background:#dcfae5;color:#04250e}.p-neg{background:#ffedea;color:#831c1e}.p-warn{background:#fffbeb;color:#92400e}.p-neu{background:#e8eded;color:#353736}
+.btn{flex:none;height:50px;border-radius:999px;border:0;font:inherit;font-weight:600;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 22px}
+.btn-pri{background:#131416;color:#ffffff}
+.btn-sec{background:#edf2f1;color:#131416}
+.chip{height:36px;border-radius:999px;padding:0 14px;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;background:#ffffff;color:#131416;white-space:nowrap}
+.chip.on{background:#131416;color:#ffffff}
+.av{border-radius:50%;object-fit:cover;flex:none}
+.fig{font-size:30px;font-weight:500;line-height:1.1}
+.unit{font-size:15px;color:#5d6262;font-weight:400;margin-left:2px}
+.lbl{font-size:13px;color:#5d6262}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.split{display:grid;grid-template-columns:1fr 1fr;background:#f4f7f6;border-radius:14px}
+.split>div{padding:12px 14px}
+.split>div:nth-child(odd){box-shadow:inset -1px 0 0 #e3e8e7}
+.split>div:nth-child(n+3){box-shadow:inset 0 1px 0 #e3e8e7}
+.split>div:nth-child(3){box-shadow:inset 0 1px 0 #e3e8e7,inset -1px 0 0 #e3e8e7}
+.row{display:flex;align-items:center;gap:12px;min-height:52px}
+.row+.row{box-shadow:inset 0 1px 0 #eef1f1}
+.grow{flex:1;min-width:0}
+.track{height:6px;border-radius:999px;background:#e8eded;overflow:hidden}
+.track>span{display:block;height:100%;border-radius:999px;background:#0f6e66}
+.tabbar{display:flex;justify-content:space-around;padding:8px 8px 30px;background:#ffffff}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:#5d6262;width:64px}
+.tab.on{color:#131416;font-weight:600}
+.tab svg{width:24px;height:24px}
+.toggle{width:51px;height:31px;border-radius:999px;background:#131416;position:relative;flex:none}
+.toggle::after{content:'';position:absolute;top:2px;right:2px;width:27px;height:27px;border-radius:50%;background:#fff}
+.toggle.off{background:#d5dbda}.toggle.off::after{right:auto;left:2px}
+.dev{color:inherit;text-decoration:none;display:flex;flex-direction:column;gap:10px;padding:8px 8px 14px}
+.dev .art{position:relative;height:112px;padding-top:20px;border-radius:14px;background:#f4f7f6;display:flex;align-items:center;justify-content:center}
+.dev .art .st{position:absolute;top:8px;left:8px}
+.dev .tx{padding:0 6px}
+.pet{display:flex;flex-direction:column;gap:10px;color:inherit;text-decoration:none}
+.pet img{width:100%;height:120px;border-radius:14px;object-fit:cover}
+.nowrap{white-space:nowrap}
+.hero{display:flex;flex-direction:column;align-items:center;gap:6px;background:#f4f7f6;border-radius:16px;padding:18px 12px 14px;position:relative}
+.acts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.act{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px 10px;border-radius:16px;background:#f4f7f6;font-size:13px;font-weight:500;color:#131416;text-decoration:none}
+.thumb{position:relative;border-radius:14px;overflow:hidden;background:#1b1d1e}
+.playb{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.92);color:#131416;display:flex;align-items:center;justify-content:center}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#ffffff;border-radius:24px 24px 0 0;padding:10px 20px 34px;box-shadow:0 -8px 30px rgba(0,0,0,.12)}
+.grab{width:36px;height:5px;border-radius:3px;background:#d5dbda;margin:0 auto 14px}
+.scrim{position:absolute;inset:0;background:rgba(19,20,22,.35)}
+.seg{display:flex;background:#e3e8e7;border-radius:999px;padding:3px}
+.seg span{flex:1;text-align:center;height:32px;line-height:32px;border-radius:999px;font-size:14px;font-weight:500;color:#3b4040}
+.seg span.on{background:#ffffff;color:#131416;font-weight:600}
+.field{height:50px;border-radius:14px;background:#f4f7f6;display:flex;align-items:center;padding:0 14px;font-size:16px}
+.flabel{font-size:13px;color:#5d6262;margin:0 0 6px 4px}
+.warnbox{display:flex;gap:10px;background:#f4f7f6;border-radius:16px;padding:12px 14px;font-size:14px;color:#3b4040}
+.btn-neg{background:#c4242a;color:#ffffff}
+.step{display:flex;align-items:center;gap:12px;min-height:40px}
+.step .ic{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;font-size:13px}
+.log{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;line-height:1.45;padding:6px 0 6px 10px;box-shadow:inset 2px 0 0 #d5dbda}
+.log+.log{margin-top:6px}
+.log .t{color:#5d6262;margin-right:8px}
+.dark.scr{background:#0e0f10;color:#f2f4f4}
+.dark .card,.dark .tabbar,.dark .iconbtn,.dark .chip{background:#1a1c1e;color:#f2f4f4}
+.dark .hero,.dark .dev .art,.dark .split,.dark .act{background:#232628}
+.dark .muted,.dark .lbl,.dark .unit,.dark .server,.dark .tab{color:#a1a8a8}
+.dark .tab.on{color:#f2f4f4}
+.dark .lede{color:#c9cfcf}
+.dark .neg{color:#ff7a72}.dark .pos{color:#5fd39b}.dark .link,.dark .acc{color:#4fc2b6}
+.dark .p-pos{background:#123824;color:#bdf2d3}.dark .p-neg{background:#43191a;color:#ffc9c4}.dark .p-neu{background:#2c3032;color:#d5dbda}
+.dark svg [stroke="#131416"]{stroke:#e9eded}
+.dark svg [fill="#ffffff"]{fill:#1a1c1e}
+.dark svg [fill="#e3e8e7"]{fill:#3a3e41}
+</style>
+</helmet>
+<div class="scr dark" style="height:1120px">
+  <header class="top">
+    <div class="bar">
+      <span class="server"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="none" stroke="#0f6e66" stroke-width="2"/><path d="M3.2 13.2 A8 8 0 0 0 16.8 13.2 Z" fill="#0f6e66"/></svg> Home server · TLS pinned</span>
+      <a class="iconbtn" href="ios-provision.dc.html" aria-label="Add a device"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></a>
+    </div>
+    <h1>Home</h1>
+    <p class="lede"><span class="neg" style="font-weight:500">The fountain has been silent since 06:10.</span> Everything else is fine.</p>
+  </header>
+
+  <main class="main">
+    <section class="grid2" aria-label="Cats">
+      <a class="card pet" href="ios-pets.dc.html" style="padding:8px 8px 14px">
+        <img src="/_blob/38e9ae33b4e603f8aa6a989a45ef55a8" alt="Miso">
+        <div style="padding:0 6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:17px;font-weight:600">Miso</b><span class="small">5.42 kg</span></div>
+          <span class="small muted">3 visits · last 13:58</span>
+        </div>
+      </a>
+      <a class="card pet" href="ios-pets.dc.html" style="padding:8px 8px 14px">
+        <img src="/_blob/04acdb0fd9daefc6a525576e97df95d6" alt="Mochi" style="object-position:50% 20%">
+        <div style="padding:0 6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:17px;font-weight:600">Mochi</b><span class="small">3.86 kg</span></div>
+          <span class="small muted">2 visits · last 11:05</span>
+        </div>
+      </a>
+    </section>
+
+    <div class="sec"><h2>Devices</h2><span class="small muted">4</span></div>
+    <section class="grid2" aria-label="Devices">
+      <a class="card dev" href="ios-device-t6.dc.html">
+        <div class="art"><svg width="88" height="88" viewBox="0 0 100 100" aria-hidden="true"><rect x="16" y="80" width="68" height="12" rx="6" fill="#e3e8e7" stroke="#131416" stroke-width="3"/><clipPath id="dc"><circle cx="50" cy="46" r="34"/></clipPath><circle cx="50" cy="46" r="34" fill="#ffffff"/><rect x="10" y="58.2" width="80" height="60" fill="#cfe5e2" clip-path="url(#dc)"/><circle cx="50" cy="46" r="34" fill="none" stroke="#131416" stroke-width="3"/><ellipse cx="50" cy="50" rx="19" ry="15" fill="#ffffff" fill-opacity=".55" stroke="#131416" stroke-width="3"/></svg><span class="st pill p-pos">Online</span></div>
+        <div class="tx"><b style="font-weight:600">Litter box</b><br><span class="small muted">Idle and clean · 14 bags</span></div>
+      </a>
+      <a class="card dev" href="ios-device-feeder.dc.html">
+        <div class="art"><svg width="88" height="88" viewBox="0 0 100 100" aria-hidden="true"><rect x="22" y="10" width="56" height="62" rx="12" fill="#ffffff" stroke="#131416" stroke-width="3"/><rect x="27" y="22" width="20" height="34" rx="5" fill="#ffffff"/><rect x="27" y="32.2" width="20" height="23.8" rx="4" fill="#e9d9b8"/><rect x="27" y="22" width="20" height="34" rx="5" fill="none" stroke="#131416" stroke-width="2.5"/><rect x="53" y="22" width="20" height="34" rx="5" fill="#ffffff"/><rect x="53" y="44.1" width="20" height="11.9" rx="4" fill="#e9d9b8"/><rect x="53" y="22" width="20" height="34" rx="5" fill="none" stroke="#131416" stroke-width="2.5"/><path d="M18 80h64l-6 10H24z" fill="#e3e8e7" stroke="#131416" stroke-width="3" stroke-linejoin="round"/></svg><span class="st pill p-neu">Polling</span></div>
+        <div class="tx"><b style="font-weight:600">Kitchen feeder</b><br><span class="small muted">Next meal 18:00 · 20 g</span></div>
+      </a>
+      <a class="card dev" href="ios-devices.dc.html">
+        <div class="art"><svg width="88" height="88" viewBox="0 0 100 100" aria-hidden="true"><clipPath id="fc"><rect x="20" y="30" width="60" height="54" rx="14"/></clipPath><rect x="20" y="30" width="60" height="54" rx="14" fill="#ffffff"/><rect x="20" y="62.0" width="60" height="60" fill="#cfe0f2" clip-path="url(#fc)"/><rect x="20" y="30" width="60" height="54" rx="14" fill="none" stroke="#131416" stroke-width="3"/><path d="M50 30V16M42 16h16" stroke="#131416" stroke-width="3" stroke-linecap="round"/></svg><span class="st pill p-neg">Offline</span></div>
+        <div class="tx"><b style="font-weight:600">Water fountain</b><br><span class="small neg">Silent since 06:10</span></div>
+      </a>
+      <a class="card dev" href="ios-device-t6.dc.html">
+        <div class="art"><svg width="88" height="88" viewBox="0 0 100 100" aria-hidden="true"><rect x="34" y="18" width="32" height="68" rx="16" fill="#ffffff" stroke="#131416" stroke-width="3"/><circle cx="50" cy="38" r="6" fill="none" stroke="#131416" stroke-width="3"/></svg><span class="st pill p-neu">Unknown</span></div>
+        <div class="tx"><b style="font-weight:600">Pura Air spray</b><br><span class="small muted">Via the litter box · 2 d</span></div>
+      </a>
+    </section>
+
+    <section class="card" aria-labelledby="today-h" style="padding:14px 16px 16px;margin-top:4px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">
+        <h2 id="today-h">Today</h2>
+        <a class="link" href="ios-timeline.dc.html">Timeline</a>
+      </div>
+      <div style="display:grid;grid-template-columns:54px 1fr;row-gap:6px;column-gap:8px;align-items:center;font-size:13px">
+        <span></span>
+        <div style="position:relative;height:14px;font-size:11px;color:#5d6262">
+          <span style="position:absolute;left:0">00</span><span style="position:absolute;left:50%;transform:translateX(-50%)">12</span><span style="position:absolute;right:0">24</span>
+          <span style="position:absolute;left:61.6%;transform:translateX(-50%);padding:0 3px;background:#1a1c1e;color:#4fc2b6;font-weight:600">14:47</span>
+        </div>
+        <span style="font-weight:500">Miso</span>
+        <div style="position:relative;height:24px;background:#232628;border-radius:8px">
+          <span style="position:absolute;top:5px;left:5%;width:3px;height:14px;border-radius:2px;background:#8db6ea"></span>
+          <span style="position:absolute;top:5px;left:35.5%;width:3px;height:14px;border-radius:2px;background:#8db6ea"></span>
+          <span style="position:absolute;top:5px;left:58.2%;width:3px;height:14px;border-radius:2px;background:#8db6ea"></span>
+          <span style="position:absolute;top:0;bottom:0;left:61.6%;width:1px;background:#4fc2b6"></span>
+        </div>
+        <span style="font-weight:500">Mochi</span>
+        <div style="position:relative;height:24px;background:#232628;border-radius:8px">
+          <span style="position:absolute;top:5px;left:15.8%;width:3px;height:14px;border-radius:2px;background:#e3b46a"></span>
+          <span style="position:absolute;top:5px;left:46.2%;width:3px;height:14px;border-radius:2px;background:#e3b46a"></span>
+          <span style="position:absolute;top:0;bottom:0;left:61.6%;width:1px;background:#4fc2b6"></span>
+        </div>
+        <span class="muted">Meals</span>
+        <div style="position:relative;height:24px;background:#232628;border-radius:8px">
+          <span style="position:absolute;top:8px;left:29.2%;width:8px;height:8px;border-radius:2px;background:#e9eded"></span>
+          <span style="position:absolute;top:8px;left:50%;width:8px;height:8px;border-radius:2px;background:#e9eded"></span>
+          <span style="position:absolute;top:8px;left:75%;width:8px;height:8px;border-radius:2px;border:1.5px solid #e9eded"></span>
+          <span style="position:absolute;top:8px;left:91.7%;width:8px;height:8px;border-radius:2px;border:1.5px solid #e9eded"></span>
+          <span style="position:absolute;top:0;bottom:0;left:61.6%;width:1px;background:#4fc2b6"></span>
+        </div>
+      </div>
+    </section>
+  </main>
+  <nav class="tabbar" aria-label="Tabs"><span class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/></svg>Home</span><span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M7 7h10M7 12h7M7 17h9"/></svg>Timeline</span><span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8 4 3l4 2.5M18 8l2-5-4 2.5"/><path d="M5 10c0-3 3-5 7-5s7 2 7 5v3c0 4-3 7-7 7s-7-3-7-7z"/><path d="M10 13h.01M14 13h.01"/></svg>Pets</span><span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="7" rx="2"/><rect x="4" y="13" width="16" height="7" rx="2"/><path d="M8 7.5h.01M8 16.5h.01"/></svg>Server</span></nav>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1120}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -12,103 +12,165 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <style>
 body{margin:0}
-a{color:#131416;text-decoration:none}a:hover{color:#0f6e66}
-button:focus-visible,a:focus-visible{outline:2px solid #0f6e66;outline-offset:2px}
-.chips{scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+*{box-sizing:border-box}
+.scr{position:relative;width:390px;overflow:hidden;background:#edf2f1;color:#131416;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:15px;line-height:1.4;display:flex;flex-direction:column;font-variant-numeric:tabular-nums}
+.top{padding:54px 20px 12px;display:flex;flex-direction:column;gap:6px}
+.bar{display:flex;align-items:center;justify-content:space-between;min-height:44px}
+.server{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:#5d6262}
+.iconbtn{width:44px;height:44px;border-radius:999px;background:#ffffff;color:#131416;display:flex;align-items:center;justify-content:center;border:0;text-decoration:none}
+h1{margin:0;font-size:24px;font-weight:600;letter-spacing:0}
+h2{margin:0;font-size:17px;font-weight:600}
+.lede{margin:0;font-size:15px;color:#3b4040}
+.main{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:12px;padding:4px 16px 16px}
+.card{background:#ffffff;border-radius:20px;padding:16px}
+.sec{display:flex;justify-content:space-between;align-items:baseline;padding:8px 4px 0}
+.link{color:#0f6e66;font-size:14px;font-weight:500;text-decoration:none}
+.muted{color:#5d6262}
+.small{font-size:13px}
+.xs{font-size:12px}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.pos{color:#1e7b4f}.neg{color:#c4242a}.warn{color:#92400e}.blue{color:#2f70bb}.acc{color:#0f6e66}
+.pill{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;font-size:12px;font-weight:500}
+.p-pos{background:#dcfae5;color:#04250e}.p-neg{background:#ffedea;color:#831c1e}.p-warn{background:#fffbeb;color:#92400e}.p-neu{background:#e8eded;color:#353736}
+.btn{flex:none;height:50px;border-radius:999px;border:0;font:inherit;font-weight:600;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 22px}
+.btn-pri{background:#131416;color:#ffffff}
+.btn-sec{background:#edf2f1;color:#131416}
+.chip{height:36px;border-radius:999px;padding:0 14px;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;background:#ffffff;color:#131416;white-space:nowrap}
+.chip.on{background:#131416;color:#ffffff}
+.av{border-radius:50%;object-fit:cover;flex:none}
+.fig{font-size:30px;font-weight:500;line-height:1.1}
+.unit{font-size:15px;color:#5d6262;font-weight:400;margin-left:2px}
+.lbl{font-size:13px;color:#5d6262}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.split{display:grid;grid-template-columns:1fr 1fr;background:#f4f7f6;border-radius:14px}
+.split>div{padding:12px 14px}
+.split>div:nth-child(odd){box-shadow:inset -1px 0 0 #e3e8e7}
+.split>div:nth-child(n+3){box-shadow:inset 0 1px 0 #e3e8e7}
+.split>div:nth-child(3){box-shadow:inset 0 1px 0 #e3e8e7,inset -1px 0 0 #e3e8e7}
+.row{display:flex;align-items:center;gap:12px;min-height:52px}
+.row+.row{box-shadow:inset 0 1px 0 #eef1f1}
+.grow{flex:1;min-width:0}
+.track{height:6px;border-radius:999px;background:#e8eded;overflow:hidden}
+.track>span{display:block;height:100%;border-radius:999px;background:#0f6e66}
+.tabbar{display:flex;justify-content:space-around;padding:8px 8px 30px;background:#ffffff}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:#5d6262;width:64px}
+.tab.on{color:#131416;font-weight:600}
+.tab svg{width:24px;height:24px}
+.toggle{width:51px;height:31px;border-radius:999px;background:#131416;position:relative;flex:none}
+.toggle::after{content:'';position:absolute;top:2px;right:2px;width:27px;height:27px;border-radius:50%;background:#fff}
+.toggle.off{background:#d5dbda}.toggle.off::after{right:auto;left:2px}
+.dev{color:inherit;text-decoration:none;display:flex;flex-direction:column;gap:10px;padding:8px 8px 14px}
+.dev .art{position:relative;height:112px;padding-top:20px;border-radius:14px;background:#f4f7f6;display:flex;align-items:center;justify-content:center}
+.dev .art .st{position:absolute;top:8px;left:8px}
+.dev .tx{padding:0 6px}
+.pet{display:flex;flex-direction:column;gap:10px;color:inherit;text-decoration:none}
+.pet img{width:100%;height:120px;border-radius:14px;object-fit:cover}
+.nowrap{white-space:nowrap}
+.hero{display:flex;flex-direction:column;align-items:center;gap:6px;background:#f4f7f6;border-radius:16px;padding:18px 12px 14px;position:relative}
+.acts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.act{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px 10px;border-radius:16px;background:#f4f7f6;font-size:13px;font-weight:500;color:#131416;text-decoration:none}
+.thumb{position:relative;border-radius:14px;overflow:hidden;background:#1b1d1e}
+.playb{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.92);color:#131416;display:flex;align-items:center;justify-content:center}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#ffffff;border-radius:24px 24px 0 0;padding:10px 20px 34px;box-shadow:0 -8px 30px rgba(0,0,0,.12)}
+.grab{width:36px;height:5px;border-radius:3px;background:#d5dbda;margin:0 auto 14px}
+.scrim{position:absolute;inset:0;background:rgba(19,20,22,.35)}
+.seg{display:flex;background:#e3e8e7;border-radius:999px;padding:3px}
+.seg span{flex:1;text-align:center;height:32px;line-height:32px;border-radius:999px;font-size:14px;font-weight:500;color:#3b4040}
+.seg span.on{background:#ffffff;color:#131416;font-weight:600}
+.field{height:50px;border-radius:14px;background:#f4f7f6;display:flex;align-items:center;padding:0 14px;font-size:16px}
+.flabel{font-size:13px;color:#5d6262;margin:0 0 6px 4px}
+.warnbox{display:flex;gap:10px;background:#f4f7f6;border-radius:16px;padding:12px 14px;font-size:14px;color:#3b4040}
+.btn-neg{background:#c4242a;color:#ffffff}
+.step{display:flex;align-items:center;gap:12px;min-height:40px}
+.step .ic{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;font-size:13px}
+.log{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;line-height:1.45;padding:6px 0 6px 10px;box-shadow:inset 2px 0 0 #d5dbda}
+.log+.log{margin-top:6px}
+.log .t{color:#5d6262;margin-right:8px}
+.dark.scr{background:#0e0f10;color:#f2f4f4}
+.dark .card,.dark .tabbar,.dark .iconbtn,.dark .chip{background:#1a1c1e;color:#f2f4f4}
+.dark .hero,.dark .dev .art,.dark .split,.dark .act{background:#232628}
+.dark .muted,.dark .lbl,.dark .unit,.dark .server,.dark .tab{color:#a1a8a8}
+.dark .tab.on{color:#f2f4f4}
+.dark .lede{color:#c9cfcf}
+.dark .neg{color:#ff7a72}.dark .pos{color:#5fd39b}.dark .link,.dark .acc{color:#4fc2b6}
+.dark .p-pos{background:#123824;color:#bdf2d3}.dark .p-neg{background:#43191a;color:#ffc9c4}.dark .p-neu{background:#2c3032;color:#d5dbda}
+.dark svg [stroke="#131416"]{stroke:#e9eded}
+.dark svg [fill="#ffffff"]{fill:#1a1c1e}
+.dark svg [fill="#e3e8e7"]{fill:#3a3e41}
 </style>
 </helmet>
-<div style="position: relative; width: 390px; height: 844px; overflow: hidden; box-sizing: border-box; background: #ffffff; color: #131416; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 15px; line-height: 1.4; display: flex; flex-direction: column">
-
-  <header style="background: #f2f6f5; padding: 54px 16px 14px; display: flex; flex-direction: column; gap: 6px">
-    <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #5d6262"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="none" stroke="#0f6e66" stroke-width="2"></circle><path d="M3.2 13.2 A8 8 0 0 0 16.8 13.2 Z" fill="#0f6e66"></path></svg>my-petkit</span>
-    <h1 style="margin: 0; font-size: 24px; font-weight: 600">Timeline</h1>
-    <p style="margin: 0; font-size: 14px; color: #5d6262">Tue 28 Oct · Asia/Saigon · <span style="font-variant-numeric: tabular-nums">5 visits</span>: Miso 3, Mochi 2</p>
+<div class="scr" style="height:1120px">
+  <header class="top">
+    <div class="bar">
+      <span class="server"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="none" stroke="#0f6e66" stroke-width="2"/><path d="M3.2 13.2 A8 8 0 0 0 16.8 13.2 Z" fill="#0f6e66"/></svg> my-petkit</span>
+      <span class="chip">Today, 28 Oct <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></span>
+    </div>
+    <h1>Timeline</h1>
+    <p class="lede">5 visits, 2 meals so far. The fountain went quiet at 06:10.</p>
   </header>
 
-  <main style="flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 10px; padding: 12px 16px 0">
-    <section aria-label="Today at home" style="display: grid; grid-template-columns: 56px minmax(0, 1fr); row-gap: 4px; column-gap: 8px; align-items: center; font-size: 13px">
-      <span></span>
-      <div style="position: relative; height: 14px; font-size: 11px; color: #5d6262; font-variant-numeric: tabular-nums">
-        <span style="position: absolute; left: 0">00</span><span style="position: absolute; left: 50%; transform: translateX(-50%)">12</span><span style="position: absolute; right: 0">24</span>
-        <span style="position: absolute; left: 61.6%; transform: translateX(-50%); padding: 0 3px; background: #ffffff; color: #0f6e66; font-weight: 600">14:47</span>
-      </div>
-      <span style="display: flex; align-items: center; gap: 6px; font-weight: 500"><img src="/_blob/38e9ae33b4e603f8aa6a989a45ef55a8" alt="" style="width: 18px; height: 18px; border-radius: 50%; object-fit: cover">Miso</span>
-      <div style="position: relative; height: 22px; background: #f5f7f7; border-radius: 4px">
-        <sc-for list="{{miso}}" as="v" hint-placeholder-count="3"><span style="position: absolute; top: 4px; left: {{v.left}}; width: 3px; height: 14px; background: #24548f"></span></sc-for>
-        <span style="position: absolute; top: 0; bottom: 0; left: 61.6%; width: 1px; background: #0f6e66"></span>
-      </div>
-      <span style="display: flex; align-items: center; gap: 6px; font-weight: 500"><img src="/_blob/04acdb0fd9daefc6a525576e97df95d6" alt="" style="width: 18px; height: 18px; border-radius: 50%; object-fit: cover; object-position: 50% 20%">Mochi</span>
-      <div style="position: relative; height: 22px; background: #f5f7f7; border-radius: 4px">
-        <sc-for list="{{mochi}}" as="v" hint-placeholder-count="2"><span style="position: absolute; top: 4px; left: {{v.left}}; width: 3px; height: 14px; background: #7a4f08"></span></sc-for>
-        <span style="position: absolute; top: 0; bottom: 0; left: 61.6%; width: 1px; background: #0f6e66"></span>
-      </div>
-    </section>
-
-    <div class="chips" role="group" aria-label="Filter events" style="display: flex; gap: 8px; overflow-x: auto; margin: 0 -16px; padding: 0 16px; flex-shrink: 0">
-      <sc-for list="{{chips}}" as="c" hint-placeholder-count="6">
-        <button type="button" aria-pressed="{{c.pressed}}" style="flex: none; height: 44px; padding: 0 14px; border-radius: 999px; background: #ffffff; border: 1px solid {{c.line}}; color: {{c.ink}}; font: 500 14px 'IBM Plex Sans', sans-serif">{{c.label}}</button>
-      </sc-for>
+  <main class="main">
+    <div style="display:flex;gap:8px;overflow:hidden">
+      <span class="chip on">All</span>
+      <span class="chip"><img class="av" src="/_blob/38e9ae33b4e603f8aa6a989a45ef55a8" alt="" width="22" height="22">Miso</span>
+      <span class="chip"><img class="av" src="/_blob/04acdb0fd9daefc6a525576e97df95d6" alt="" width="22" height="22" style="object-position:50% 20%">Mochi</span>
+      <span class="chip">Feeder</span>
+      <span class="chip">Fountain</span>
     </div>
 
-    <section aria-labelledby="ev-h" style="display: flex; flex-direction: column">
-      <h2 id="ev-h" style="margin: 0 0 4px; font-size: 16px; font-weight: 600">Today</h2>
-      <sc-for list="{{events}}" as="e" hint-placeholder-count="5">
-        <article style="display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 0 12px; padding: 9px 0; border-top: 1px solid #eef1f1">
-          <img src="{{e.photo}}" alt="" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; object-position: 50% 20%; margin-top: 16px; background: #e8eded">
-          <div style="display: flex; flex-direction: column">
-            <span style="font-size: 13px; color: #5d6262; font-variant-numeric: tabular-nums">{{e.time}}</span>
-            <span style="font-weight: 500">{{e.title}}</span>
-            <span style="font-size: 13px; color: #5d6262; font-variant-numeric: tabular-nums">{{e.meta}}</span>
-            <sc-if value="{{e.hasVideo}}" hint-placeholder-val="{{false}}">
-              <span style="display: flex; align-items: center; gap: 14px; font-size: 13px">
-                <button type="button" aria-label="Play visit video" style="min-height: 44px; margin: -8px 0; padding: 0; border: 0; background: none; color: #0f6e66; font: 500 13px 'IBM Plex Sans', sans-serif; display: inline-flex; align-items: center; gap: 6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="#0f6e66" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>Play video</button>
-                <a href="ios-timeline.dc.html" style="color: #0f6e66">2 waste photos · 1 health check</a>
-              </span>
-            </sc-if>
-            <sc-if value="{{e.note}}" hint-placeholder-val="{{false}}">
-              <span style="font-size: 13px; color: {{e.noteInk}}">{{e.note}}</span>
-            </sc-if>
-          </div>
-        </article>
-      </sc-for>
+    <section class="card" style="padding:0">
+      <div class="thumb" style="height:200px;border-radius:20px 20px 0 0">
+        <img src="/_blob/38e9ae33b4e603f8aa6a989a45ef55a8" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.8)">
+        <span class="playb"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></svg></span>
+        <span class="pill" style="position:absolute;right:12px;bottom:12px;background:rgba(0,0,0,.6);color:#fff">1:55</span>
+      </div>
+      <div style="padding:12px 16px 14px;display:flex;gap:12px;align-items:center">
+        <img class="av" src="/_blob/38e9ae33b4e603f8aa6a989a45ef55a8" alt="" width="36" height="36">
+        <div class="grow"><div style="font-weight:600">Miso used the litter box</div><div class="small muted">13:58 · 1 min 55 s · 5.43 kg · cleaned 14:05</div></div>
+      </div>
+      <div style="display:flex;gap:8px;padding:0 16px 14px">
+        <span class="pill p-neu">2 waste photos</span><span class="pill p-neu">1 stool photo</span>
+      </div>
+    </section>
+
+    <section class="card" style="padding:4px 16px">
+      <div class="row" style="min-height:72px">
+        <img class="av" src="/_blob/04acdb0fd9daefc6a525576e97df95d6" alt="" width="36" height="36" style="object-position:50% 20%">
+        <div class="grow"><div style="font-weight:500">Mochi ate</div><div class="small muted">12:04 · about 9 g of 15 g</div></div>
+        <div class="thumb" style="width:76px;height:56px;border-radius:10px"><img src="/_blob/04acdb0fd9daefc6a525576e97df95d6" alt="" style="width:100%;height:100%;object-fit:cover;filter:brightness(.8)"></div>
+      </div>
+      <div class="row" style="min-height:64px">
+        <span style="width:36px;display:flex;justify-content:center"><svg width="30" height="30" viewBox="0 0 100 100" aria-hidden="true"><rect x="22" y="10" width="56" height="62" rx="12" fill="#ffffff" stroke="#131416" stroke-width="3"/><rect x="27" y="22" width="20" height="34" rx="5" fill="#ffffff"/><rect x="27" y="32.2" width="20" height="23.8" rx="4" fill="#e9d9b8"/><rect x="27" y="22" width="20" height="34" rx="5" fill="none" stroke="#131416" stroke-width="2.5"/><rect x="53" y="22" width="20" height="34" rx="5" fill="#ffffff"/><rect x="53" y="44.1" width="20" height="11.9" rx="4" fill="#e9d9b8"/><rect x="53" y="22" width="20" height="34" rx="5" fill="none" stroke="#131416" stroke-width="2.5"/><path d="M18 80h64l-6 10H24z" fill="#e3e8e7" stroke="#131416" stroke-width="3" stroke-linejoin="round"/></svg></span>
+        <div class="grow"><div style="font-weight:500">Feeder dispensed 15 g</div><div class="small muted">12:00 · on schedule · completed</div></div>
+      </div>
+      <div class="row" style="min-height:72px">
+        <img class="av" src="/_blob/04acdb0fd9daefc6a525576e97df95d6" alt="" width="36" height="36" style="object-position:50% 20%">
+        <div class="grow"><div style="font-weight:500">Mochi used the litter box</div><div class="small muted">11:05 · 1 min 50 s · 3.86 kg</div></div>
+        <div class="thumb" style="width:76px;height:56px;border-radius:10px"><img src="/_blob/04acdb0fd9daefc6a525576e97df95d6" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 20%;filter:brightness(.7)"><span class="playb" style="width:26px;height:26px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></svg></span></div>
+      </div>
+      <div class="row" style="min-height:72px">
+        <img class="av" src="/_blob/38e9ae33b4e603f8aa6a989a45ef55a8" alt="" width="36" height="36">
+        <div class="grow"><div style="font-weight:500">Miso used the litter box</div><div class="small muted">08:31 · 2 min 40 s · 5.42 kg</div></div>
+        <div class="thumb" style="width:76px;height:56px;border-radius:10px"><img src="/_blob/38e9ae33b4e603f8aa6a989a45ef55a8" alt="" style="width:100%;height:100%;object-fit:cover;filter:brightness(.7)"><span class="playb" style="width:26px;height:26px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></svg></span></div>
+      </div>
+      <div class="row" style="min-height:64px">
+        <span style="width:36px;display:flex;justify-content:center"><svg width="30" height="30" viewBox="0 0 100 100" aria-hidden="true"><clipPath id="fc"><rect x="20" y="30" width="60" height="54" rx="14"/></clipPath><rect x="20" y="30" width="60" height="54" rx="14" fill="#ffffff"/><rect x="20" y="62.0" width="60" height="60" fill="#cfe0f2" clip-path="url(#fc)"/><rect x="20" y="30" width="60" height="54" rx="14" fill="none" stroke="#131416" stroke-width="3"/><path d="M50 30V16M42 16h16" stroke="#131416" stroke-width="3" stroke-linecap="round"/></svg></span>
+        <div class="grow"><div style="font-weight:500" class="neg">Fountain stopped reporting</div><div class="small muted">06:10 · water was at 40%</div></div>
+      </div>
+      <div class="row" style="min-height:72px">
+        <img class="av" src="/_blob/04acdb0fd9daefc6a525576e97df95d6" alt="" width="36" height="36" style="object-position:50% 20%">
+        <div class="grow"><div style="font-weight:500">Mochi used the litter box</div><div class="small muted">03:47 · 1 min 32 s · 3.87 kg</div><div class="xs muted">Saved as .ts, which iPhone cannot play.</div></div>
+      </div>
     </section>
   </main>
-
-  <nav aria-label="Main" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); height: 83px; flex: none; box-sizing: border-box; padding: 8px 4px 0; background: #f2f6f5; font-size: 11px; font-weight: 500">
-    <a href="ios-devices.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 3px; color: #5d6262"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M5 15h14"></path></svg>Devices</a>
-    <a href="ios-timeline.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; gap: 3px; color: #131416"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12h16M8 8v8M14 6v12"></path></svg>Timeline</a>
-    <a href="ios-pets.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 3px; color: #5d6262"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="13" r="6"></circle><path d="M7 8 6 3l4 3M17 8l1-5-4 3"></path></svg>Pets</a>
-    <a href="ios-logs.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 3px; color: #5d6262"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13"></path></svg>Logs</a>
-    <a href="ios-settings.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 3px; color: #5d6262"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"></path></svg>Settings</a>
-  </nav>
+  <nav class="tabbar" aria-label="Tabs"><span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/></svg>Home</span><span class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M7 7h10M7 12h7M7 17h9"/></svg>Timeline</span><span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8 4 3l4 2.5M18 8l2-5-4 2.5"/><path d="M5 10c0-3 3-5 7-5s7 2 7 5v3c0 4-3 7-7 7s-7-3-7-7z"/><path d="M10 13h.01M14 13h.01"/></svg>Pets</span><span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="7" rx="2"/><rect x="4" y="13" width="16" height="7" rx="2"/><path d="M8 7.5h.01M8 16.5h.01"/></svg>Server</span></nav>
 </div>
+
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1120}}'>
 class Component extends DCLogic {
-  renderVals() {
-    // Strip positions: minutes since midnight / 1440.
-    const at = (h, m) => ((h * 60 + m) / 1440 * 100).toFixed(1) + '%';
-    const MISO = '/_blob/38e9ae33b4e603f8aa6a989a45ef55a8';
-    const MOCHI = '/_blob/04acdb0fd9daefc6a525576e97df95d6';
-    const labels = ['All', 'Miso', 'Mochi', 'Unrecognised', 'Litter box', 'Feeder', 'Fountain'];
-    return {
-      miso: [{ left: at(1, 12) }, { left: at(8, 31) }, { left: at(13, 58) }],
-      mochi: [{ left: at(3, 47) }, { left: at(11, 5) }],
-      chips: labels.map((label, i) => ({
-        label,
-        pressed: i === 0 ? 'true' : 'false',
-        line: i === 0 ? '#0f6e66' : '#cdd3d2',
-        ink: i === 0 ? '#0f6e66' : '#131416'
-      })),
-      events: [
-        { photo: MISO, who: 'Miso', time: '13:58', title: 'Miso used the litter box', meta: '1 min 55 s · 5.43 kg · cleaned 14:05', hasVideo: false, note: 'Video assembling…', noteInk: '#5d6262' },
-        { photo: MOCHI, who: 'Mochi', time: '11:05', title: 'Mochi used the litter box', meta: '1 min 50 s · 3.86 kg · cleaned 11:12', hasVideo: false, note: '', noteInk: '' },
-        { photo: MISO, who: 'Miso', time: '08:31', title: 'Miso used the litter box', meta: '2 min 40 s · 5.42 kg · cleaned 08:39', hasVideo: true, note: '', noteInk: '' },
-        { photo: MOCHI, who: 'Mochi', time: '03:47', title: 'Mochi used the litter box', meta: '1 min 32 s · 3.87 kg · cleaned 03:54', hasVideo: false, note: 'Video saved as .ts, which iPhone cannot play. Open on the web dashboard.', noteInk: '#5d6262' },
-        { photo: MISO, who: 'Miso', time: '01:12', title: 'Miso used the litter box', meta: '2 min 10 s · 5.41 kg · cleaned 01:19', hasVideo: false, note: '', noteInk: '' }
-      ]
-    };
-  }
+  renderVals() { return {}; }
 }
 </script>
 </body>

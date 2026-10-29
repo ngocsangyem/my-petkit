@@ -1,0 +1,46 @@
+<!-- Empty, loading and error states · iOS | 1160 -->
+<div class="scr" style="height:1160px">
+  <header class="top">
+    <div class="bar"><span class="server">[[MARK]] Home server · TLS pinned</span><a class="iconbtn" href="ios-provision.dc.html" aria-label="Add a device">[[I:plus:20]]</a></div>
+    <h1>Home</h1>
+    <p class="lede">No devices yet.</p>
+  </header>
+  <main class="main">
+    <section class="card" style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:24px 20px">
+      <div class="hero" style="width:100%;flex-direction:row;justify-content:center;gap:10px;opacity:.6">[[DRUM:72,0]][[FEEDER:72,0,0]][[FOUNTAIN:72,0]]</div>
+      <h2>Add your first device</h2>
+      <p class="small muted" style="margin:0">Hold the phone near a litter box, feeder or fountain. Its Wi-Fi and this server's address are sent over Bluetooth.</p>
+      <button class="btn btn-pri" style="width:100%">Add a device</button>
+    </section>
+
+    <div class="sec"><h2>Loading</h2><span class="xs muted">grey bars at final size</span></div>
+    <section class="grid2">
+      <div class="card dev"><div class="art" style="padding-top:0"></div><div class="tx"><div style="height:14px;width:70%;border-radius:4px;background:#e8eded"></div><div style="height:12px;width:90%;border-radius:4px;background:#eef1f1;margin-top:8px"></div></div></div>
+      <div class="card dev"><div class="art" style="padding-top:0"></div><div class="tx"><div style="height:14px;width:60%;border-radius:4px;background:#e8eded"></div><div style="height:12px;width:80%;border-radius:4px;background:#eef1f1;margin-top:8px"></div></div></div>
+    </section>
+
+    <div class="sec"><h2>Error inside its block</h2></div>
+    <section class="card" style="display:flex;flex-direction:column;gap:10px">
+      <h2 style="font-size:16px">Today</h2>
+      <div style="background:#f4f7f6;border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px">
+        <span class="neg">[[I:warn:18]]</span><span class="grow small">Could not load today's visits. The server did not answer.</span>
+        <button class="btn btn-sec" style="height:36px;font-size:14px;background:#ffffff;padding:0 14px">Retry</button>
+      </div>
+    </section>
+
+    <div class="sec"><h2>Zero and missing</h2></div>
+    <section class="card" style="padding:8px">
+      <div class="split">
+        <div><div class="lbl">Visits today</div><div class="fig">0</div></div>
+        <div><div class="lbl">Waste bin</div><div class="fig muted">—</div></div>
+      </div>
+      <p class="xs muted" style="margin:8px 8px 4px">A zero prints as 0. A value the device never sent is a dash.</p>
+    </section>
+
+    <div class="sec"><h2>Server unreachable</h2></div>
+    <section class="card" style="display:flex;gap:12px;align-items:flex-start">
+      <span class="neg" style="margin-top:2px">[[I:cloud:20]]</span>
+      <div class="grow"><div style="font-weight:600">Can't reach your server</div><div class="small muted">Last seen 2 min ago at 192.168.1.20. Are you on the home Wi-Fi or Tailscale?</div></div>
+    </section>
+  </main>
+</div>

@@ -1,6 +1,6 @@
 # Design reference for implementation
 
-This is the visual contract for phase 07 (web), 08 (iOS), 09 (provisioning) and 10 (live). Code must match it. Read it together with the art direction in `../../reports/design-261028-1447-my-petkit-taste-art-direction.md`, which holds the reasoning, the Mobbin references and the banned list.
+This is the visual contract for phase 07 (web), 08 (iOS), 09 (provisioning) and 10 (live). Code must match it. Read it together with the art direction in `research/design-261028-1447-my-petkit-taste-art-direction.md`, which holds the reasoning, the Mobbin references and the banned list.
 
 ## 1. Sources of truth, in order
 
@@ -15,7 +15,7 @@ This is the visual contract for phase 07 (web), 08 (iOS), 09 (provisioning) and 
 
 **Binding:** tokens, the shell, type scale, component shapes, layout per screen, copy tone, and the state rules (empty, zero, error, risk).
 
-**Not binding, and never to be hard-coded:** the sample data. That covers Miso and Mochi, 14:47, 192.168.1.20, the device IDs, the weights and the log lines. Screens render real API data. The sample data becomes test fixtures only, kept in the same shape as `../../reports/design-261028-1447-my-petkit-taste-art-direction.md` §7.
+**Not binding, and never to be hard-coded:** the sample data. That covers Miso and Mochi, 14:47, 192.168.1.20, the device IDs, the weights and the log lines. Screens render real API data. The sample data becomes test fixtures only, kept in the same shape as `research/design-261028-1447-my-petkit-taste-art-direction.md` §7.
 
 The cat photos in `assets/` are for mockups and fixtures only. Credits are in `assets/credits.json`. Mochi's photo is CC BY-SA 4.0, so ship neither photo in the app bundle.
 
@@ -124,13 +124,13 @@ Build these once (`apps/web/src/shared/ui/`, `MyPetkit/Shared/`) and use them ev
 Screens with no artboard are built from §3 and the nearest row above:
 - web schedules editor;
 - web live view;
-- other device models (feeders, fountains, sprays);
-- sounds;
-- dark mode (not designed; ship light only unless a later design pass adds it).
+- web sounds (reuse the layout of `ios-sounds`);
+- sprays and the other device models without their own artboard (reuse `ios-device-feeder`);
+- web dark mode (not designed; the web ships light only). iOS dark mode is designed: see §7.5.
 
 ## 5. How to check a screen against the design
 
-1. **Render the reference**, from the plan folder:
+1. **Open the reference**: `screenshots/<artboard>.webp`, and `artboards/<artboard>.dc.html` for exact values (colour, size, spacing, copy). To render the HTML yourself, from the plan folder (the repo copy has no `assets/`, so photos stay blank there):
 
    ```bash
    node design/tools/render-dc.mjs design/artboards /tmp/dc-out design/assets
@@ -164,3 +164,98 @@ These rules are review-blocking:
 - Mono only for the jobs listed in §2.
 - Red once per object.
 - Device strings render as text only (security rule, phase 07).
+
+## 7. iOS v3 (2026-10-29): supersedes the iOS rows above
+
+The user asked for a mobile app that looks better than PetKit's and Catlink's own apps. v3 replaces the iOS visual layer only; the web keeps §2–§6. All 24 iOS artboards are drawn in v3: the first 14, plus 10 added on 2026-10-29 (§7.4, marked *new*). Research and reasoning: `research/design-261029-0135-ios-v3-mobbin-research.md`. The previous iOS artboards and screenshots are kept in `archive-v2/`.
+
+**Source for the 10 new screens is `tools/ios-v3/bodies/` here, not the live canvas.** The canvas (https://claude.ai/artifact/Dk4xYHQmxdev8Vj22uLQbE) still holds the first 14 iOS boards, checked 2026-10-29. `artboards/` was rebuilt from the bodies and `screenshots/` re-rendered for all 10 on 2026-10-29 (headless Chromium at 390 × the height in each body's first line, then `cwebp -q 85`).
+
+Generator: `tools/ios-v3/build_artboards.py` writes the `ios-*.dc.html` files from `tools/ios-v3/bodies/` and `head.css`, so the mark, tab bar and device drawings stay identical on every screen. Edit the bodies, then rebuild; do not hand-edit the generated artboards.
+
+### 7.1 What changed
+
+| Area | v2 | v3 |
+|---|---|---|
+| Ground | white screen, tinted header and tab bar | `ground.ios #edf2f1` behind everything; content sits on white cards |
+| Cards | 1px border, radius 8, rows split by rules | white, **radius 20**, no border, no shadow (tone step only); inner panels `raised #f4f7f6` radius 14–16 |
+| Controls | 44px rectangles, radius 6 | **full pills**: primary 50px near-black, secondary on `raised`; segmented control on `#e3e8e7` |
+| Pets | 20–24px avatars | real photos as the hero: 120px tiles on Home, 230px on Pets, thumbnails on Timeline |
+| Devices | text rows | a card per device with its **line drawing** (drum, dual hopper, fountain, spray) on a `raised` panel; the drawing shows real state (litter level, hopper levels, water level) |
+| Device detail | a long list | hero drawing, one-sentence state with the coloured word, one primary command, four quick actions, then a 2×2 figure container |
+| Timeline | text rows | latest visit as a large video card; the rest as rows with a 76×56 clip thumbnail |
+| Pets | list of cats | cat switcher chips, photo, weight line chart with 1W/2W/3M, visits per day bars, face photos grid |
+| Live | dark header, light body | full dark screen (`#0e0f10`), large "Hold to talk" pill, round controls on `#202325` |
+| Tab bar | 5 tabs: Devices, Timeline, Pets, Logs, Settings | **4 tabs: Home, Timeline, Pets, Server**. Server holds Logs, Capture, Patchers, Setup and app settings |
+
+### 7.2 New tokens (iOS only)
+
+| Token | Value | Use |
+|---|---|---|
+| `ground.ios` | `#edf2f1` | screen background |
+| `raised` | `#f4f7f6` | panels inside cards, device drawing panel, quick actions |
+| `segment` | `#e3e8e7` | segmented-control track |
+| `food` | `#e9d9b8` | food inside the feeder drawing only |
+| `water` | `#cfe0f2` | water inside the fountain drawing only |
+| `litter` | `#cfe5e2` | litter inside the drum drawing; also the light bars of a bar chart |
+| `live.ground`, `live.control`, `live.text` | `#0e0f10`, `#202325`, `#f2f4f4` | live view only |
+
+Radius: card 20, inner panel 14–16, thumbnail 10–14, controls and pills 999, sheet top 24.
+Type: unchanged faces. Title 24/600, section 17/600, figure 30/500 (22–24 inside rows), body 15, small 13, extra small 12.
+
+### 7.3 Rules kept and rules relaxed
+
+- Kept: no gradients, no glass or blur, no emoji, no icons in tinted squares as decoration, accent only on data and the one selected state, red once per object, every number in tabular figures, mono only for IDs and firmware.
+- Relaxed for the phone, with their limit:
+  - Radius 20 cards and pill controls (the soft mode of `app-screens.md` §9.4, chosen once for iOS).
+  - Quick-action buttons may carry an icon above the label; they are buttons, not decoration, and sit on `raised`, never a hue.
+  - Photos may carry a dark pill label (`rgba(0,0,0,.55)`) over them; the pill is the only overlay.
+  - Bottom sheets get a shadow (they float).
+- The device drawings are line art made from geometry. They are not product renders and never imitate PetKit's product photography.
+
+### 7.4 Screen map (iOS)
+
+| Artboard | iOS feature | Notes |
+|---|---|---|
+| `ios-devices` | `Devices` (Home) | cats first, then devices, then the day strip |
+| `ios-device-t6` | `Devices` (litter-box detail) | includes Automation (auto clean, auto-pack) and Bluetooth accessories |
+| `ios-device-t6-paused` | `Devices` (paused state) | force continue sheet; R3 step-up comes first |
+| `ios-device-feeder` | `Devices` (feeder detail) | per-hopper portions, today's meals, feeder settings; fountains and sprays reuse this layout |
+| `ios-schedules` | `Schedules` | meal cards with a now line |
+| `ios-timeline` | `Timeline` | video card plus clip rows |
+| `ios-pets` | `Pets` | needs per-pet weight history and visits per day from the API (listed as a known gap in `apps/web/PARITY.md`) |
+| `ios-live` | `Live`, `Talk` | |
+| `ios-pairing` | `Onboarding` | dark scanner card, server card with the fingerprint on a `raised` panel |
+| `ios-provision` | `Provision` | drum, Bluetooth and phone drawn on one panel; four steps with check discs; fields on `raised` |
+| `ios-patcher` | `Patchers` | step-up pill, one warning panel, what changes and how to undo; only the final button is red |
+| `ios-logs` | `Logs` (pushed from Server) | Server / Device logs segment, filter field, log lines with a 2px level edge |
+| `ios-capture` | `Capture` (pushed from Server) | warning panel, record toggle, files with sizes, last lines in mono |
+| `ios-settings` | `Settings` (the Server tab) | server card with Devices and Need you figures; Activity, Advanced (step-up rows) and This phone groups |
+| `ios-first-run` *new* | `Onboarding` (step 2 of 2) | setup code from the server log, admin name, password with strength; this iPhone becomes the first paired client |
+| `ios-step-up` *new* | `Shared/StepUpScreen` | the generic R3 re-auth screen every step-up row opens: user, server, password, "valid for 5 minutes, for this phone only", the wait after failures. Its `<title>` line reads "Patcher (R3 step-up)", but the screen is shared |
+| `ios-server-setup` *new* | `Setup` (pushed from Server) | cloud guards (firmware, shell, log upload), proxy mode with region and blocked count, retention per kind with space used |
+| `ios-ble-pair` *new* | `Ble` (pair sheet from the parent device) | type chips, MAC, secret, serial, K3 link, interval, guessed scan type; Import from cloud |
+| `ios-sounds` *new* | `Devices` → Sounds | built-in and uploaded sounds, volume, voice language, the 10 × 2 MB upload limit |
+| `ios-device-fountain` *new* | `Devices` (fountain detail) | offline variant: last known values, Retry connection, commands disabled until it reports, today's drinks, fountain settings |
+| `ios-pet-edit` *new* | `Pets` (edit) | name, registered weight, weight matching, light visits, per-device face photos against the 15-cat limit, remove |
+| `ios-change-cat` *new* | `Timeline` → change cat sheet | who used the box: candidates by weight, "no cat, just passing", optional weight update, "changes this record only" |
+| `ios-states` *new* | `Shared` | empty Home with Add a device, loading bars, error inside a block, zero and missing, server unreachable |
+| `ios-devices-dark` *new* | `Devices` (Home, dark) | the dark-mode reference; every other screen derives from §7.5 |
+
+### 7.5 Dark mode (iOS only)
+
+Drawn only on `ios-devices-dark`. The other screens take their dark colours from the `.dark` rules in `tools/ios-v3/head.css`, which map each light token to one dark value:
+
+| Light | Dark | Use |
+|---|---|---|
+| `ground.ios` `#edf2f1` | `#0e0f10` | screen (same as `live.ground`) |
+| `surface` `#ffffff` | `#1a1c1e` | cards, tab bar, chips, icon buttons; white inside drawings |
+| `raised` `#f4f7f6` | `#232628` | panels, drawing panel, quick actions |
+| `segment` / drawing base `#e3e8e7` | `#3a3e41` | drawing base fill |
+| `text` `#131416` | `#f2f4f4`; strokes `#e9eded` | ink, drawing strokes |
+| `muted` | `#a1a8a8`; lede `#c9cfcf` | secondary text, inactive tab |
+| `accent` | `#4fc2b6` | links, data |
+| `positive` / `negative` | `#5fd39b` / `#ff7a72` | status words |
+| `pill.positive`, `pill.negative`, `pill.neutral` | `#123824/#bdf2d3`, `#43191a/#ffc9c4`, `#2c3032/#d5dbda` | pills |
+
+`Theme.Color` declares each token once with its light and dark value (asset catalog colour sets or `UIColor(dynamicProvider:)`). The app follows the system setting; there is no in-app switch. The web stays light only.
