@@ -67,15 +67,16 @@ final class OnboardingModel {
 
     func submitAddress() {
         run {
-            let unpinned = try ServerAddress(typed: self.addressText, pin: nil)
-            if case .system = unpinned.trust {
-                self.step = try await self.detectAdmin(at: unpinned)
+            let url = try ServerAddress.url(typed: self.addressText)
+            guard ServerTrust.isLocal(url.host() ?? "") else {
+                self.step = try await self.detectAdmin(at: ServerAddress(url: url, pin: nil))
                 return
             }
             // A local server is pinned, so its certificate is read first and
             // shown for comparison; nothing is sent until the user agrees.
-            let pin = try await CertificateProbe.pin(for: unpinned.baseURL)
-            self.step = .confirmFingerprint(try ServerAddress(typed: self.addressText, pin: pin), pin)
+            let address = try await ServerAddress(url: url, pin: CertificateProbe.pin(for: url))
+            guard case .pinned(let pin) = address.trust else { return }
+            self.step = .confirmFingerprint(address, pin)
         } describing: { error in
             (error as? PairingError)?.localizedDescription
                 ?? "No my-petkit server answered at that address."
@@ -153,7 +154,8 @@ final class OnboardingModel {
 
     private func client(for address: ServerAddress) -> Client {
         if let pending, pending.address == address { return pending.client }
-        let client = Client(address: address, session: address.trust.session(host: address.host), token: { nil })
+        let client = Client(address: address, session: address.trust.session(host: address.host),
+                            signingIn: true, token: { nil })
         pending = (address, client)
         return client
     }

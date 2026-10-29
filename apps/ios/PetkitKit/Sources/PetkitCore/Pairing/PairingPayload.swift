@@ -60,10 +60,17 @@ public struct ServerAddress: Sendable, Hashable, Codable {
 
     /// Parses a URL typed by hand. A missing scheme means https.
     public init(typed text: String, pin: CertificatePin?) throws {
+        try self.init(url: Self.url(typed: text), pin: pin)
+    }
+
+    /// The URL a hand-typed address means, before any trust is decided.
+    public static func url(typed text: String) throws -> URL {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         let withScheme = trimmed.contains("://") ? trimmed : "https://\(trimmed)"
-        guard let url = URL(string: withScheme) else { throw PairingError.notHTTPS }
-        try self.init(url: url, pin: pin)
+        guard let url = URL(string: withScheme), url.scheme?.lowercased() == "https",
+              let host = url.host(), !host.isEmpty
+        else { throw PairingError.notHTTPS }
+        return url
     }
 }
 
