@@ -14,11 +14,15 @@ interface FaceStripProps {
 export function FaceStrip({ pet, onAdd, onRemove, busy }: FaceStripProps) {
   const full = pet.faces.length >= MAX_FACES;
   return (
-    <ul className="pets-faces" aria-label={`Face photos of ${pet.name}`}>
+    <ul
+      className="m-0 flex list-none flex-wrap gap-2 p-0"
+      aria-label={`Face photos of ${pet.name}`}
+    >
       {pet.faces.map((face, i) => (
-        <li key={face.id} className="pets-face">
+        <li key={face.id} className="relative size-10">
           {/* The API answers a path relative to the server's mount point. */}
           <img
+            className="block size-10 rounded-md object-cover"
             src={serverUrl(face.url)}
             alt={`Face photo ${i + 1} of ${pet.name}`}
             width={40}
@@ -27,7 +31,7 @@ export function FaceStrip({ pet, onAdd, onRemove, busy }: FaceStripProps) {
           />
           <button
             type="button"
-            className="pets-face__remove"
+            className="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full border border-control bg-background p-0 text-foreground hover:bg-raised"
             aria-label={`Remove face photo ${i + 1} of ${pet.name}`}
             disabled={busy}
             onClick={() => {
@@ -42,7 +46,7 @@ export function FaceStrip({ pet, onAdd, onRemove, busy }: FaceStripProps) {
         <li>
           <button
             type="button"
-            className="pets-face-add"
+            className="flex size-10 items-center justify-center rounded-md border border-control bg-background p-0 text-muted-foreground hover:bg-raised"
             aria-label={`Add a face photo for ${pet.name}`}
             onClick={onAdd}
           >

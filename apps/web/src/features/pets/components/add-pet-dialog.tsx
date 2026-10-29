@@ -49,8 +49,8 @@ export function AddPetDialog({ open, onClose, devices, notify }: AddPetDialogPro
 
   return (
     <PetsModal open={open} title="Add a pet" onClose={onClose} busy={create.isPending}>
-      <form className="pets-form" onSubmit={submit} noValidate>
-        <p className="pets-muted">
+      <form className="flex flex-col gap-4" onSubmit={submit} noValidate>
+        <p className="text-muted-foreground">
           Then give it a few face photos. Until then the device records visits without saying who
           made them.
         </p>
@@ -77,11 +77,11 @@ export function AddPetDialog({ open, onClose, devices, notify }: AddPetDialogPro
           </StackedField>
         )}
         {error && (
-          <p className="pets-form-error" role="alert">
+          <p className="text-sm text-negative" role="alert">
             {error}
           </p>
         )}
-        <div className="ui-dialog__actions">
+        <div className="flex flex-wrap justify-end gap-2">
           <Button onClick={onClose} disabled={create.isPending}>
             Cancel
           </Button>

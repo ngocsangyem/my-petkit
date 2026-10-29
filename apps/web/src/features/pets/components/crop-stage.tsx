@@ -119,9 +119,9 @@ export function CropStage({ source, view, setView, previewRef }: CropStageProps)
   };
 
   return (
-    <div className="pets-crop-work">
+    <div className="grid grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-start gap-(--pk-gap) max-[900px]:grid-cols-1">
       <div
-        className="pets-crop-stage"
+        className="relative aspect-square w-full max-w-[360px] touch-none overflow-hidden rounded-lg bg-rule focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-data"
         role="group"
         tabIndex={0}
         aria-label="Photo under the crop frame. Drag or use the arrow keys to move it; plus and minus zoom."
@@ -131,7 +131,7 @@ export function CropStage({ source, view, setView, previewRef }: CropStageProps)
           ref={stage}
           width={STAGE_SIZE}
           height={STAGE_SIZE}
-          className="pets-crop-stage__canvas"
+          className="block size-full cursor-grab active:cursor-grabbing"
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={endDrag}
@@ -139,13 +139,15 @@ export function CropStage({ source, view, setView, previewRef }: CropStageProps)
         />
         <CropGuide />
       </div>
-      <figure className="pets-crop-preview">
-        <figcaption>What the device sees</figcaption>
+      <figure className="m-0 flex flex-col gap-1.5">
+        <figcaption className="text-xs font-medium text-muted-foreground">
+          What the device sees
+        </figcaption>
         <canvas
           ref={previewRef}
           width={FACE_SIZE}
           height={FACE_SIZE}
-          className="pets-crop-preview__canvas"
+          className="aspect-square h-auto w-full max-w-[224px] rounded-lg border border-border"
           aria-label={`The ${FACE_SIZE} by ${FACE_SIZE} crop that will be uploaded`}
           role="img"
         />

@@ -48,7 +48,7 @@ export function ImportDialog({ open, onClose, devices, notify }: ImportDialogPro
       onClose={onClose}
       busy={run.isPending}
     >
-      <div className="ui-dialog__body">
+      <div className="flex flex-col gap-2 text-muted-foreground">
         <p>
           This asks PetKit which pets the device recognises and downloads their reference photos.
           Each arrives as a new pet with PetKit's id bound to it, so events the device already
@@ -70,19 +70,19 @@ export function ImportDialog({ open, onClose, devices, notify }: ImportDialogPro
           />
         </StackedField>
       ) : (
-        <p className="pets-small">Device: {devices[0]?.name || `#${deviceId}`}</p>
+        <p className="text-sm">Device: {devices[0]?.name || `#${deviceId}`}</p>
       )}
       {run.isPending && (
-        <p className="pets-muted pets-small" role="status">
+        <p className="text-sm text-muted-foreground" role="status">
           Asking PetKit and fetching the photos…
         </p>
       )}
       {error && (
-        <p className="pets-form-error" role="alert">
+        <p className="text-sm text-negative" role="alert">
           {error}
         </p>
       )}
-      <div className="ui-dialog__actions">
+      <div className="flex flex-wrap justify-end gap-2">
         <Button onClick={onClose} disabled={run.isPending}>
           Cancel
         </Button>
