@@ -11,9 +11,9 @@ checklist of the panel ledger (§11.2). A row is ticked only when it works in
   `docs/design/screenshots/<artboard>.webp` for layout, hierarchy, spacing and
   colour. "rendered" means the snapshot exists but the comparison is still to do.
 
-Provisioning (phase 09), live view and talk (phase 10), force continue and
-auto-pack (phase 13), and the pet weight/matching work (phase 14) are not in
-this table.
+Live view and talk (phase 10), force continue and auto-pack (phase 13), and
+the pet weight/matching work (phase 14) are not in this table. Provisioning
+over Bluetooth has its own section below.
 
 ## Routes
 
@@ -131,6 +131,26 @@ this table.
 - [x] Patchers: firmware warning, step-up, progress from `kind="patcher"`, SSH key, the reason when unreachable — 64097d1
 - [x] Media paths resolved against the paired base URL — ecc6611
 - [ ] Client `tz` for the timeline: sent, but the server ignores it and cuts days in its own zone (open question)
+
+## Provisioning over Bluetooth
+
+`PetkitKit/Sources/PetkitBLE` ports the web panel's provisioning
+(`apps/web/src/ble/`) and shares its test vectors. Screen: Home › "+" (or the
+empty state) › Add a device, artboard `ios-provision`.
+
+- [x] Scan by name prefix "Petkit" (any case), not by service; Bluetooth-only accessories (W5, W4X, CTW2, CTW3, K2, K3) listed and refused
+- [x] Protocol chosen by service: 0xAAA0 (Ingenic: T5, T6, T7, D4H, D4SH, W7H) first, 0xFFFF (ESP32 BLUFI: T4, D4) second
+- [x] Ingenic frame `FA FC FD 46 | 0x18 | seq | len | JSON | CRC-16/CCITT-FALSE LE | FB`; both length readings accepted inbound; MTU-split notifications reassembled
+- [x] Framed writes first; bare JSON when framed draws no answer to key 110 (a D4H was reported to need it)
+- [x] BLUFI custom data in 12-byte chunks with remaining length; fragmented replies reassembled; Wi-Fi report and error frames named
+- [x] Key 151 payload written by hand in the app's key order, `/` unescaped, UTF-8 SSID; offset as `toFixed(1)` text ("5.8" for +5:45)
+- [x] Inter-step delays 1045 / 3340 / 5780 / 1030 ms; BLUFI timeouts 5 / 10 / 120 s; key 111 once at state 6, 114 then 101 on joining
+- [x] Server address from `/api/info` `api_url`, editable; warnings for `.local`, a port other than 80, and `https`
+- [x] Time zone in quarter hours, defaulting to the phone's zone; `locale` is the zone name
+- [x] After sending, the device list is polled every 5 s for up to 5 minutes for the new device
+- [x] Diagnostic log with raw frames and the write format used, shared from the screen; the frame holding the Wi-Fi password is logged by length only
+- [x] Bluetooth off, not allowed, or the device disconnecting each shown as a sentence; a link dropped after the device took the credentials reads as it restarting onto Wi-Fi
+- [ ] On real hardware: H1, H1b (what the firmware does with "5.75"), H2 in the phase-12 runbook
 
 ## Known gaps (API has no data for them)
 

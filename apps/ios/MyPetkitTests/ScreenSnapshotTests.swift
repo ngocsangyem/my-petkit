@@ -91,4 +91,10 @@ final class ScreenSnapshotTests: XCTestCase {
     func testOnboarding() {
         assertScreen(OnboardingView(model: OnboardingModel { _ in }), named: "ios-pairing")
     }
+
+    func testProvision() {
+        assertScreen(NavigationStack {
+            ProvisionView(model: .fixture(done: 2, status: "Joining Wi-Fi… Keep the phone near the device."))
+        }.environment(ServerSession.preview), named: "ios-provision")
+    }
 }

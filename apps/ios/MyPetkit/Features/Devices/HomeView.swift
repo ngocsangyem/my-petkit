@@ -12,6 +12,7 @@ struct HomeView: View {
     @Environment(ServerSession.self) private var session
     @Environment(TabRouter.self) private var router
     @State private var model: HomeModel
+    @State private var addingDevice = false
     private let loadsOnAppear: Bool
 
     init() {
@@ -33,6 +34,7 @@ struct HomeView: View {
         .navigationDestination(for: DeviceRoute.self) { route in
             DeviceDetailView(deviceID: route.id)
         }
+        .navigationDestination(isPresented: $addingDevice) { ProvisionView() }
         .task {
             guard loadsOnAppear else { return }
             await model.load(api)
@@ -52,9 +54,9 @@ struct HomeView: View {
     private func content(now: Date) -> some View {
         let day = model.day(now: now)
         return ScreenScroll {
-            // Adding a device (provisioning) is not part of this build, so the
-            // header carries no "+" yet.
-            ScreenHeader(title: "Home", finding: finding(day: day, now: now))
+            ScreenHeader(title: "Home", finding: finding(day: day, now: now)) {
+                IconButton(systemImage: "plus", label: "Add a device") { addingDevice = true }
+            }
         } content: {
             PetTiles(pets: model.pets, days: day.petDays) { Task { await model.loadPets(api) } }
             devices(day: day, now: now)
@@ -82,7 +84,7 @@ struct HomeView: View {
                 BlockError(message: message) { Task { await model.loadDevices(api) } }
             }
         case .loaded(let list) where list.isEmpty && accessories.isEmpty:
-            NoDevicesCard()
+            NoDevicesCard { addingDevice = true }
         case .loaded:
             DeviceGrid {
                 ForEach(model.shownDevices) { device in
