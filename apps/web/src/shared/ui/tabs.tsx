@@ -42,6 +42,8 @@ export function Tabs<Id extends string>({
       <TabsList
         variant="line"
         aria-label={label}
+        // Arrow keys, Home and End select as they move, as the tabs always did.
+        activateOnFocus
         className="h-auto w-full justify-start gap-5 overflow-x-auto border-b border-border p-0"
       >
         {tabs.map(t => (

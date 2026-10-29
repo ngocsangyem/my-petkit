@@ -9,6 +9,8 @@ import { parseNumberInput } from './form-controls';
 import { HouseholdDayStrip, petSlot, type DayStripLane } from './household-day-strip';
 import { RatioBar, ratioPercent } from './ratio-bar';
 import { StatusMark } from './status-mark';
+import { Tabs } from './tabs';
+import { ThemeModeControl, ThemeModeProvider } from './theme-mode';
 
 describe('FigureContainer', () => {
   it('prints a real zero as 0 and a missing value as a muted em dash', () => {
@@ -102,6 +104,20 @@ describe('ConfirmDialog', () => {
     expect(onCancel).not.toHaveBeenCalled();
     await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
     expect(opener).toHaveFocus();
+  });
+
+  it('cancels on a click on the backdrop', async () => {
+    const user = userEvent.setup();
+    const onConfirm = vi.fn();
+    const onCancel = vi.fn();
+    render(<DialogHarness onConfirm={onConfirm} onCancel={onCancel} />);
+    await user.click(screen.getByRole('button', { name: 'Clean now' }));
+    await screen.findByRole('alertdialog');
+    const backdrop = document.querySelector('[data-slot="dialog-overlay"]');
+    expect(backdrop).not.toBeNull();
+    await user.click(backdrop as Element);
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(onConfirm).not.toHaveBeenCalled();
   });
 
   it('cancels with the Cancel button', async () => {
@@ -295,5 +311,62 @@ describe('value helpers', () => {
     expect(parseNumberInput('')).toBeNull();
     expect(parseNumberInput('0')).toBe(0);
     expect(parseNumberInput('abc')).toBeNull();
+  });
+});
+
+function TabsHarness() {
+  const [tab, setTab] = useState<'a' | 'b' | 'c'>('a');
+  return (
+    <Tabs
+      label="Plans"
+      tabs={[
+        { id: 'a', label: 'Alpha' },
+        { id: 'b', label: 'Beta' },
+        { id: 'c', label: 'Gamma' },
+      ]}
+      selected={tab}
+      onSelect={setTab}
+    >
+      Panel {tab}
+    </Tabs>
+  );
+}
+
+describe('Tabs', () => {
+  it('selects with the arrow keys, Home and End as focus moves', async () => {
+    const user = userEvent.setup();
+    render(<TabsHarness />);
+    await user.click(screen.getByRole('tab', { name: 'Alpha' }));
+    await user.keyboard('{ArrowRight}');
+    expect(screen.getByRole('tab', { name: 'Beta' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel')).toHaveTextContent('Panel b');
+    await user.keyboard('{End}');
+    expect(screen.getByRole('tab', { name: 'Gamma' })).toHaveAttribute('aria-selected', 'true');
+    await user.keyboard('{Home}');
+    expect(screen.getByRole('tabpanel')).toHaveTextContent('Panel a');
+  });
+});
+
+describe('ThemeModeControl', () => {
+  it('keeps every mounted control and the page on one choice', async () => {
+    const user = userEvent.setup();
+    render(
+      <ThemeModeProvider>
+        <div data-testid="sidebar">
+          <ThemeModeControl />
+        </div>
+        <div data-testid="menu">
+          <ThemeModeControl />
+        </div>
+      </ThemeModeProvider>,
+    );
+    const menu = within(screen.getByTestId('menu'));
+    const sidebar = within(screen.getByTestId('sidebar'));
+    await user.click(menu.getByRole('button', { name: 'Dark' }));
+    expect(sidebar.getByRole('button', { name: 'Dark' })).toHaveAttribute('aria-pressed', 'true');
+    expect(document.documentElement).toHaveClass('dark');
+    await user.click(sidebar.getByRole('button', { name: 'Light' }));
+    expect(menu.getByRole('button', { name: 'Light' })).toHaveAttribute('aria-pressed', 'true');
+    expect(document.documentElement).not.toHaveClass('dark');
   });
 });

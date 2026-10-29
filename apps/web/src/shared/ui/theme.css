@@ -3,8 +3,8 @@
  * each one points at a design token in tokens.css, so the colours stay there
  * and dark mode only has to redefine the tokens. Nothing here holds a hex.
  *
- * Tailwind's preflight lives in a cascade layer, so the unlayered rules in
- * base.css and the component stylesheets still win over it.
+ * All other CSS sits in Tailwind's base layer (base.css): an unlayered rule
+ * would beat every utility class.
  */
 @import 'tailwindcss';
 @import 'tw-animate-css';

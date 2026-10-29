@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react';
 import { usePersistedState } from './persisted-state';
 import { SegmentedChips } from './tabs';
 
@@ -9,14 +9,26 @@ export type ThemeMode = 'system' | 'light' | 'dark';
 const STORAGE_KEY = 'theme';
 const DARK_QUERY = '(prefers-color-scheme: dark)';
 
+/** Anything but an explicit light or dark follows the system, as theme-init.js does. */
+function normalize(mode: unknown): ThemeMode {
+  return mode === 'light' || mode === 'dark' ? mode : 'system';
+}
+
 function apply(mode: ThemeMode) {
   const dark = mode === 'dark' || (mode === 'system' && window.matchMedia(DARK_QUERY).matches);
   document.documentElement.classList.toggle('dark', dark);
 }
 
-/** The current mode and a setter that stores it; the page repaints at once. */
-export function useThemeMode(): [ThemeMode, (mode: ThemeMode) => void] {
-  const [mode, setMode] = usePersistedState<ThemeMode>(STORAGE_KEY, 'system');
+const ThemeModeContext = createContext<[ThemeMode, (mode: ThemeMode) => void] | null>(null);
+
+/**
+ * Wraps the app once. The one owner of the choice and of the operating-system
+ * listener, so every control shows the same mode and "system" keeps following
+ * the OS whichever controls are mounted.
+ */
+export function ThemeModeProvider({ children }: { children: ReactNode }) {
+  const [stored, setMode] = usePersistedState<ThemeMode>(STORAGE_KEY, 'system');
+  const mode = normalize(stored);
 
   useEffect(() => {
     apply(mode);
@@ -31,7 +43,18 @@ export function useThemeMode(): [ThemeMode, (mode: ThemeMode) => void] {
     };
   }, [mode]);
 
-  return [mode, setMode];
+  const value = useMemo(
+    (): [ThemeMode, (mode: ThemeMode) => void] => [mode, setMode],
+    [mode, setMode],
+  );
+  return <ThemeModeContext.Provider value={value}>{children}</ThemeModeContext.Provider>;
+}
+
+/** The current mode and a setter that stores it; the page repaints at once. */
+export function useThemeMode(): [ThemeMode, (mode: ThemeMode) => void] {
+  const value = useContext(ThemeModeContext);
+  if (!value) throw new Error('useThemeMode needs a ThemeModeProvider');
+  return value;
 }
 
 const OPTIONS = [

@@ -1,13 +1,6 @@
 import { useRef, type ReactNode } from 'react';
 import { Button } from './button';
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from './shadcn/alert-dialog';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from './shadcn/dialog';
 
 /** Props for {@link ConfirmDialog}. */
 export interface ConfirmDialogProps {
@@ -20,7 +13,7 @@ export interface ConfirmDialogProps {
   confirmLabel: string;
   cancelLabel?: string;
   onConfirm: () => void;
-  /** Called by Cancel and Escape. */
+  /** Called by Cancel, Escape and a click on the backdrop. */
   onCancel: () => void;
   /** While true both buttons are disabled and Escape is ignored. */
   busy?: boolean;
@@ -30,7 +23,9 @@ export interface ConfirmDialogProps {
 
 /**
  * Confirm sheet for device commands (R2): a question title, a body saying what moves, and a
- * near-black confirm button. Modal: focus is trapped, Escape cancels, focus returns on close.
+ * near-black confirm button. Modal: focus is trapped, Escape or a backdrop click cancels, focus
+ * returns on close. A Base UI dialog with the alertdialog role rather than its AlertDialog, which
+ * ignores backdrop clicks.
  */
 export function ConfirmDialog({
   open,
@@ -45,18 +40,29 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   const cancelRef = useRef<HTMLButtonElement>(null);
   return (
-    <AlertDialog
+    <Dialog
       open={open}
       onOpenChange={next => {
         if (!next && !busy) onCancel();
       }}
     >
-      <AlertDialogContent initialFocus={cancelRef} aria-busy={busy || undefined}>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription render={<div />}>{children}</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
+      <DialogContent
+        role="alertdialog"
+        showCloseButton={false}
+        initialFocus={cancelRef}
+        aria-busy={busy || undefined}
+        className="max-h-[calc(100vh-32px)] w-[calc(100%-32px)] max-w-[440px] gap-4 overflow-y-auto sm:max-w-[440px]"
+      >
+        <div className="grid gap-1.5">
+          <DialogTitle className="text-[18px] leading-snug font-semibold">{title}</DialogTitle>
+          <DialogDescription
+            render={<div />}
+            className="flex flex-col gap-2 text-base text-muted-foreground"
+          >
+            {children}
+          </DialogDescription>
+        </div>
+        <div className="flex flex-wrap justify-end gap-2">
           <Button
             ref={cancelRef}
             variant="secondary"
@@ -74,8 +80,8 @@ export function ConfirmDialog({
           >
             {confirmLabel}
           </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

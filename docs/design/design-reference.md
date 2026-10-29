@@ -78,7 +78,7 @@ On the web, `tokens.css` holds every token twice: light under `:root` and dark u
 
 ## 3. Shared components
 
-Build these once (`apps/web/src/shared/ui/`, `MyPetkit/Shared/`) and use them everywhere. On the web they are shadcn/ui components on Base UI (`shared/ui/shadcn/`), edited to these rules: app shell → Sidebar and Sheet; table → Table; buttons → Button; device command → Alert Dialog; step-up → Dialog and Field; settings section → Card and Field; empty, error, loading → Empty, Alert, Skeleton (no pulse); pills → Badge; ratio bar → Progress; toasts on Base UI's Toast primitive and selects native, because Sonner and Base UI's Select inject `<style>`, which the CSP blocks. The drum mark, status mark, figure container and day strip stay hand-written.
+Build these once (`apps/web/src/shared/ui/`, `MyPetkit/Shared/`) and use them everywhere. On the web they are shadcn/ui components on Base UI (`shared/ui/shadcn/`), edited to these rules: app shell → Sidebar and Sheet; table → Table; buttons → Button; device command → Dialog with the alertdialog role (Base UI's AlertDialog ignores a backdrop click, which cancels here); step-up → Dialog and Field; settings section → Card and Field; empty, error, loading → Empty, Alert, Skeleton (no pulse); pills → Badge; ratio bar → Progress; toasts on Base UI's Toast primitive and selects native, because Sonner and Base UI's Select inject `<style>`, which the CSP blocks. The drum mark, status mark, figure container and day strip stay hand-written.
 
 | Component | Artboard to copy | Rules |
 |---|---|---|

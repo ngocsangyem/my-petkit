@@ -78,7 +78,7 @@ export { LogLevelText, Table } from './table';
 export type { LogLevel, LogLevelTextProps, TableColumn, TableProps } from './table';
 export { SegmentedChips, Tabs } from './tabs';
 export type { SegmentedChipsProps, TabItem, TabsProps } from './tabs';
-export { ThemeModeControl, useThemeMode } from './theme-mode';
+export { ThemeModeControl, ThemeModeProvider, useThemeMode } from './theme-mode';
 export type { ThemeMode } from './theme-mode';
 export { ToastProvider, useToast } from './toast';
 export { useModalFocus } from './use-modal-focus';

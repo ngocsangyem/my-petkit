@@ -72,9 +72,8 @@ export function StepUpDialog() {
   return (
     <Dialog
       open={open}
-      disablePointerDismissal
       onOpenChange={next => {
-        // Escape cancels, except while the password is being checked.
+        // Escape and a click outside cancel, except while the password is being checked.
         if (!next && !busy) finish(false);
       }}
     >

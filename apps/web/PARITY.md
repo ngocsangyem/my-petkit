@@ -139,3 +139,7 @@ the API does not provide yet:
 - Pets: no weight-over-14-days chart and no per-pet "samples / last seen".
 - Log: no "Last hour" chart; the hub has kinds, not log levels.
 - Capture: no per-file "started" or "device".
+- Keyboard: the timeline filter chips and the Appearance chips are one Tab stop,
+  moved through with the arrow keys (a toolbar), where each chip used to be its
+  own Tab stop.
+- Client tokens: the list is a table with a Phone column, as the setup tables are.
