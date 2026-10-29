@@ -19,26 +19,76 @@ dependency or a configured zone name.
 """
 from __future__ import annotations
 
+import logging
+import math
 from datetime import date, datetime, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from my_petkit.utils import clock
 
+log = logging.getLogger(__name__)
+
 #: The wire format the panel's date picker and `?date=` parameter both use.
 DATE_FORMAT = "%Y-%m-%d"
 
+#: `timezone()` accepts only offsets strictly inside +-24h.
+_MAX_OFFSET_MINUTES = 24 * 60
 
-def cloud_timestamp(when: float | None = None) -> str:
-    """A UTC instant in the format PetKit's cloud puts on the wire.
+#: Offsets already warned about, so a bad one logs once, not every 30 s report.
+_warned_offsets: set[str] = set()
 
-    `2026-07-15T05:19:42.000+0000` — milliseconds, and a `+0000` offset with no
-    colon. NOT `datetime.isoformat()`, which produces `+00:00` and would be a
-    different string to whatever parses it on the device. Confirmed against
-    captured `dev_state_report` and `dev_schedule_get` replies.
+
+def _fixed_offset_zone(offset_hours: float | None) -> timezone:
+    """A fixed-offset zone for `offset_hours` east of UTC, whole minutes; UTC if unusable.
+
+    Rounded to whole minutes so `%z` always renders the `+HHMM` a device parses,
+    never the sub-minute `+HHMMSS` variant. None means "no offset to speak for"
+    and is plain UTC.
+
+    NaN, an infinity or anything at or beyond +-24h also gives UTC, with a
+    warning, instead of raising: an offset can come from a panel override or a
+    device report, and one loaded back from disk is not re-validated, so a bad
+    value must not take down the reply it is stamped on.
     """
-    now = datetime.fromtimestamp(when, timezone.utc) if when is not None \
-        else datetime.now(timezone.utc)
+    if offset_hours is None:
+        return timezone.utc
+    # Checked after scaling: a huge finite offset overflows to inf in `* 60`.
+    scaled = offset_hours * 60
+    minutes = round(scaled) if math.isfinite(scaled) else None
+    if minutes is None or abs(minutes) >= _MAX_OFFSET_MINUTES:
+        key = repr(offset_hours)
+        if key not in _warned_offsets:
+            _warned_offsets.add(key)
+            log.warning("UTC offset %s hours is not usable; rendering the time in UTC", key)
+        return timezone.utc
+    return timezone(timedelta(minutes=minutes))
+
+
+def cloud_timestamp(when: float | None = None,
+                    offset_hours: float | None = None) -> str:
+    """An instant in the format PetKit's cloud puts on the wire, at an offset.
+
+    `2026-08-19T15:45:51.170+0200` — milliseconds, and a `+HHMM` offset with no
+    colon. NOT `datetime.isoformat()`, which produces `+02:00` and would be a
+    different string to whatever parses it on the device.
+
+    `offset_hours` is the UTC offset to render the instant AT — the device's own
+    (`Device.timezone_offset`). It is NOT cosmetic. `dev_state_report`'s reply is
+    where the firmware reads its timezone: it parses this `time`, extracts the
+    offset (`get_ctime_timezone`) and sets its RTC from it, and its scheduled
+    feeds fire against that RTC. Confirmed on a live D4H2 — the real cloud
+    answered `+0200` and a meal fired on the wall-clock minute, while a `+0000`
+    answer set the box to UTC and fired every meal two hours late. Stored epochs
+    stay UTC; only the wire string is localized.
+
+    Omitted (or None) keeps the historical UTC `+0000`, for a caller with no
+    device to speak for. An unusable offset also falls back to UTC
+    (`_fixed_offset_zone`).
+    """
+    tz = _fixed_offset_zone(offset_hours)
+    now = datetime.fromtimestamp(when, tz) if when is not None \
+        else datetime.now(tz)
     return (now.strftime("%Y-%m-%dT%H:%M:%S.")
             + f"{now.microsecond // 1000:03d}"
             + now.strftime("%z"))

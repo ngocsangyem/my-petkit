@@ -11,9 +11,9 @@ import time
 
 import pytest
 
-from my_petkit.utils import clock
+from my_petkit.utils import clock, timeutil
 from my_petkit.utils.timeutil import (
-    local_day_bounds, local_day_start, local_offset_hours,
+    cloud_timestamp, local_day_bounds, local_day_start, local_offset_hours,
     offset_hours_for_locale, parse_date,
 )
 
@@ -149,3 +149,49 @@ def test_unusable_locale_returns_none_for_fallback(bad):
     caller drops to the numeric sources. `UTC` has no slash and is handled by
     the numeric path's 0.0 anyway."""
     assert offset_hours_for_locale(bad, _SUMMER) is None
+
+
+def test_cloud_timestamp_defaults_to_utc():
+    """No offset given -> the historical UTC/`+0000`, for an unidentified
+    device we cannot speak an offset for. `_SUMMER` is UTC midnight."""
+    assert cloud_timestamp(_SUMMER) == "2026-07-26T00:00:00.000+0000"
+
+
+def test_cloud_timestamp_localizes_to_the_offset():
+    """UTC midnight is 02:00 at +2, and the offset is stamped `+0200`.
+
+    This is the `dev_state_report` `time` field the firmware reads to set its
+    RTC: served `+0000` on a UTC+2 box it fires every scheduled meal two hours
+    late, so the wall-clock must really move, not just the suffix be relabelled.
+    """
+    assert cloud_timestamp(_SUMMER, offset_hours=2.0) == "2026-07-26T02:00:00.000+0200"
+
+
+@pytest.mark.parametrize("offset,suffix", [
+    (0.0, "+0000"),
+    (-7.0, "-0700"),      # west of UTC (PDT)
+    (5.75, "+0545"),      # quarter-hour zone -> whole-minute +HHMM, never sub-minute
+    (5.5, "+0530"),       # half-hour zone
+    (14.0, "+1400"),      # the far end of api_timezone's valid range
+])
+def test_cloud_timestamp_offset_is_hhmm(offset, suffix):
+    """`+HHMM`, no colon and no seconds -- the shape the firmware parses."""
+    assert cloud_timestamp(_SUMMER, offset_hours=offset).endswith(suffix)
+
+
+@pytest.mark.parametrize("bad", [
+    float("nan"), float("inf"), float("-inf"),
+    24.0, -24.0, 30.0,    # `timezone()` takes only offsets strictly inside +-24h
+    23.9999,              # rounds to a whole 24h
+    1e308,                # finite, but overflows to inf once scaled to minutes
+])
+def test_cloud_timestamp_falls_back_to_utc_for_an_unusable_offset(bad, caplog, monkeypatch):
+    """An offset loaded back from disk is not re-validated, and `timezone()`
+    raises on NaN, an infinity or +-24h. The reply it is stamped on must still
+    go out, so the time is rendered in UTC and the bad value is logged once,
+    not on every 30-second report."""
+    monkeypatch.setattr(timeutil, "_warned_offsets", set())
+    assert cloud_timestamp(_SUMMER, offset_hours=bad) == "2026-07-26T00:00:00.000+0000"
+    assert cloud_timestamp(_SUMMER, offset_hours=bad) == "2026-07-26T00:00:00.000+0000"
+    warnings = [r for r in caplog.records if "not usable" in r.getMessage()]
+    assert len(warnings) == 1
