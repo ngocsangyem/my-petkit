@@ -17,6 +17,7 @@ from my_petkit.devices.base import Device
 from my_petkit.http.handlers._common import (
     device_id, device_serial, no_device_response, request_device,
 )
+from my_petkit.utils.logtext import one_line
 
 log = logging.getLogger(__name__)
 
@@ -58,7 +59,7 @@ def _resolve_or_create_device(request: web.Request) -> Device | None:
     sn = device_serial(request)
     if petkit_id is None:
         log.warning("iot_device_info: no device for id=%s sn=%s (X-Device=%s)",
-                    petkit_id, sn, request.get("x_device", {}))
+                    petkit_id, one_line(sn), one_line(request.get("x_device", {})))
         return None
 
     registry = request.app["registry"]

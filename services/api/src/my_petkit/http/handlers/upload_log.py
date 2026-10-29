@@ -37,6 +37,7 @@ from aiohttp import web
 from my_petkit.devices import payloads
 from my_petkit.http.handlers._common import request_device
 from my_petkit.utils.coerce import to_int
+from my_petkit.utils.logtext import one_line
 
 log = logging.getLogger(__name__)
 
@@ -98,7 +99,7 @@ async def handle_upload_log_done(request: web.Request) -> web.Response:
     if reason:
         summary += f" ({reason})"
     log.info("Device %s reported a log upload: size=%s reason=%s key=%s",
-             petkit_id, size, reason or "-", key)
+             one_line(petkit_id), one_line(size), one_line(reason or "-"), one_line(key))
 
     # `event_hub`, not `hub`: the device-facing app wires it under that name
     # (main.py) and every other handler here agrees. This asked for `hub`, which

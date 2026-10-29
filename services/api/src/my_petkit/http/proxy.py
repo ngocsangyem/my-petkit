@@ -45,6 +45,7 @@ from aiohttp import web
 from my_petkit.http import upstream_allowlist
 from my_petkit.http.dns import UpstreamResolver
 from my_petkit.http.redact import Redaction, RedactionPolicy, cloud_error, redact_body
+from my_petkit.utils.logtext import one_line
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
     from my_petkit.devices.base import Device
@@ -313,6 +314,11 @@ async def forward(
     target_url = f"{upstream}{request.path}"
     if request.query_string:
         target_url += f"?{request.query_string}"
+    # The device chooses the path; it must never choose the host. `request.path`
+    # always starts with `/`, so this holds, and checking the built URL keeps it
+    # holding if that ever changes.
+    if not upstream_allowlist.is_allowed_upstream_url(target_url):
+        return None
 
     headers = {h: request.headers[h] for h in _FORWARD_HEADERS if h in request.headers}
 
@@ -323,7 +329,12 @@ async def forward(
             url=target_url,
             headers=headers,
             data=body if body else None,
-            ssl=False,
+            # Verified against the public CA store: every PetKit API host
+            # presents a publicly trusted chain, so an unverified connection
+            # would only help someone on the path impersonate the cloud and
+            # collect the device's credential. `proxy_dns` changes which
+            # address is dialled, never the name the certificate is checked for.
+            ssl=True,
             # A redirect would carry the device's credential to a host the
             # allowlist never saw.
             allow_redirects=False,
@@ -333,7 +344,7 @@ async def forward(
     except Exception as e:
         # Includes the timeout. Logged at WARNING and not ERROR: with proxy mode
         # on this is a routine outcome, and the device is served regardless.
-        log.warning("PROXY %s %s failed: %s", request.method, target_url, e)
+        log.warning("PROXY %s %s failed: %s", request.method, one_line(target_url), e)
         _record_outcome(request.app, ok=False)
         return None
 
@@ -341,7 +352,8 @@ async def forward(
     redacted = redact_body(raw, endpoint=request.path, policy=policy)
     error = cloud_error(raw)
 
-    log.info("PROXY %s %s -> %s [%d]%s%s", request.method, request.path, target_url,
+    log.info("PROXY %s %s -> %s [%d]%s%s", request.method, one_line(request.path),
+             one_line(target_url),
              resp.status,
              f" error:{error.get('code')}" if error else "",
              f" redacted:{','.join(r.rule for r in redacted.records)}" if redacted.records else "")

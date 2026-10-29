@@ -42,6 +42,8 @@ from typing import Awaitable, Callable
 
 from aiohttp import web
 
+from my_petkit.utils.logtext import one_line
+
 log = logging.getLogger(__name__)
 
 Handler = Callable[[web.Request], Awaitable[web.StreamResponse]]
@@ -156,5 +158,5 @@ async def never_fail_middleware(request: web.Request, handler: Handler) -> web.S
         raise
     except Exception:
         log.exception("Unhandled error in %s %s - answering empty success so the "
-                      "device does not retry forever", request.method, request.path)
+                      "device does not retry forever", request.method, one_line(request.path))
         return web.json_response({"result": {}})

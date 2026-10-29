@@ -774,6 +774,8 @@ reviewer can find every place the suite was touched.
 - added: tests/test_web_app_serving.py::test_app_without_a_slash_redirects_relatively_so_ingress_keeps_its_prefix
 - added: tests/test_web_app_serving.py::test_without_a_build_the_app_says_how_to_build_it
 - added: tests/test_web_app_serving.py::test_info_reports_the_entry_of_the_build_the_server_would_serve
+- added: tests/test_event_content_repair_is_linear.py::test_an_unterminated_string_of_escaped_quotes_is_repaired_in_linear_time
+- added: tests/test_event_content_repair_is_linear.py::test_a_bare_token_is_still_quoted_and_text_inside_strings_is_left_alone
 - added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[shared/web_build.py]
 - added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[web/spa.py]
 - added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[shared/web_build.py]

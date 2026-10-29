@@ -53,7 +53,8 @@ and they are why it must stay on a LAN or VPN you control and never face the int
 What is closed: the plain MQTT listener binds loopback unless `mqtt_plain_expose` is set; an MQTT
 client without a device-shaped id is accepted only from loopback; the server dials a device only
 at a registered device's reported private, ULA or WireGuard address (`utils/outbound_guard.py`);
-proxy mode forwards only to PetKit and Aliyun hosts; ffmpeg reads only local files and pipes.
+proxy mode forwards only to PetKit and Aliyun hosts, and its HTTP leg verifies the PetKit
+certificate against the public CA store; ffmpeg reads only local files and pipes.
 Two gaps sit beside those gates: go2rtc fetches a camera stream with its own HTTP client, whose
 redirect handling we do not control (the address it is given is guarded), and the Aliyun MQTT
 host proxy mode connects to is learned from the cloud's own reply rather than checked against

@@ -41,6 +41,7 @@ from my_petkit.utils.coerce import to_int
 from my_petkit.utils.const import DEVICE_TYPES_FEEDER_DUAL, DEVICE_TYPES_FEEDER_NEXT_GEN
 from my_petkit.http.handlers.feed import _build_latest as _feed_latest
 from my_petkit.http.handlers.feed import _compute_next_tick as _feed_next_tick
+from my_petkit.utils.logtext import one_line
 from my_petkit.utils.timeutil import local_day_start
 
 log = logging.getLogger(__name__)
@@ -493,13 +494,14 @@ def handle_ha_command(device: Device, entity: EntityDef, payload: str) -> Comman
     if entity.value_path.startswith(LOCAL_VALUE_PREFIX):
         value = _coerce_number(payload) if comp != "switch" else _coerce_switch(payload)
         if value is None:
-            log.warning("Could not coerce payload %r for entity '%s'", payload, entity.key)
+            log.warning("Could not coerce payload %s for entity '%s'",
+                        one_line(repr(payload)), entity.key)
             return None
         if comp == "number" and not _within_bounds(entity, value):
             raise Refused(f"{entity.name} must be {_bounds_text(entity)}")
         device.config.setdefault("local", {})[field] = value
         log.info("Local %s=%s for device %d (no device command)",
-                 field, value, device.petkit_id)
+                 field, one_line(value), device.petkit_id)
         return None
 
     # `surplus_level` writes a PAIR, not a single field: `surplusControl`
@@ -509,7 +511,8 @@ def handle_ha_command(device: Device, entity: EntityDef, payload: str) -> Comman
     if comp == "select" and entity.key == "surplus_level":
         value = _select_value(entity, payload)
         if value is None:
-            log.warning("Could not coerce payload %r for entity '%s'", payload, entity.key)
+            log.warning("Could not coerce payload %s for entity '%s'",
+                        one_line(repr(payload)), entity.key)
             return None
         settings = device.config.setdefault("settings", {})
         settings["surplusControl"] = value
@@ -519,7 +522,7 @@ def handle_ha_command(device: Device, entity: EntityDef, payload: str) -> Comman
             settings["surplusStandard"] = level
             params["surplusStandard"] = level
         log.info("Setting surplusControl=%s (surplusStandard=%s) for device %d",
-                 value, level, device.petkit_id)
+                 one_line(value), level, device.petkit_id)
         return (PROPERTY_SET_SUFFIX, make_mqtt_property_set(params))
 
     if comp == "switch":
@@ -537,7 +540,7 @@ def handle_ha_command(device: Device, entity: EntityDef, payload: str) -> Comman
         # setting as it was and says why.
         if value is not None and not _within_bounds(entity, value):
             log.warning("Refusing %s=%s for device %d: not %s",
-                        field, value, device.petkit_id, _bounds_text(entity))
+                        field, one_line(value), device.petkit_id, _bounds_text(entity))
             raise Refused(f"{entity.name} must be {_bounds_text(entity)}")
     elif comp == "time":
         # No range check of its own: `_coerce_time` already refuses anything
@@ -548,9 +551,11 @@ def handle_ha_command(device: Device, entity: EntityDef, payload: str) -> Comman
         value = _select_value(entity, payload)
 
     if value is None:
-        log.warning("Could not coerce payload %r for entity '%s'", payload, entity.key)
+        log.warning("Could not coerce payload %s for entity '%s'",
+                    one_line(repr(payload)), entity.key)
         return None
 
     device.config.setdefault("settings", {})[field] = value
-    log.info("Setting %s=%s for device %d (optimistic + MQTT)", field, value, device.petkit_id)
+    log.info("Setting %s=%s for device %d (optimistic + MQTT)",
+             field, one_line(value), device.petkit_id)
     return (PROPERTY_SET_SUFFIX, make_mqtt_property_set({field: value}))

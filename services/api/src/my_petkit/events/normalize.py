@@ -41,6 +41,7 @@ from my_petkit.devices.state_parsers import (apply_consumable_state,
 from my_petkit.events import codes, decode
 from my_petkit.utils.coerce import to_float, to_int
 from my_petkit.utils.dicts import first_of
+from my_petkit.utils.logtext import one_line
 
 if TYPE_CHECKING:
     from my_petkit.devices.base import Device
@@ -91,8 +92,8 @@ def classify_event_kind(event_type: str, content: dict | None = None,
     et = str(event_type or "")
     if et and et not in _warned_event_types:
         _warned_event_types.add(et)
-        log.warning("Unknown event_type %r from device - shown as a generic event. "
-                    "Add it to the table in events/codes.py.", et)
+        log.warning("Unknown event_type %s from device - shown as a generic event. "
+                    "Add it to the table in events/codes.py.", one_line(repr(et)))
     return codes.KIND_OTHER
 
 
@@ -138,9 +139,12 @@ def is_detail_event(event_type: str, device_type: str | None = None) -> bool:
 # escapes) so nothing inside one is ever a candidate: a value such as
 # "err: timeout, retry" otherwise had quotes injected into it, the repaired
 # text no longer parsed, and the payload lost everything the repair exists to
-# save. An unterminated string matches nothing here, but then the repaired
-# text cannot parse either and `_as_dict` still returns `{}`.
-_BARE_VALUE = re.compile(r'("(?:[^"\\]|\\.)*")'
+# save. An unterminated string runs to the end of the text: matched that way it
+# is consumed in one pass, where a pattern requiring the closing quote failed
+# at every later quote and re-scanned the rest each time (quadratic; a device
+# payload of 32k escaped quotes took 15 s). Either way the repaired text cannot
+# parse and `_as_dict` returns `{}`. A lone trailing backslash is part of it.
+_BARE_VALUE = re.compile(r'("(?:[^"\\]|\\.?)*(?:"|\Z))'
                          r'|(:\s*)([A-Za-z_0-9][A-Za-z_0-9.\-]*)(\s*[,}\]])', re.S)
 # Strict JSON number grammar. NOT `float()`: Python accepts underscore digit
 # separators, so `4_10000001_1784743819` would look like a valid number and
@@ -713,8 +717,9 @@ def _resolve_category(info: dict) -> str:
         # uncategorised file in an "Other" folder, which is exactly how the
         # SHIT_PICTURE waste gallery went unnoticed.
         _warned_module_types.add(module_type)
-        log.warning("Unknown moduleType %r from device - media will be uncategorised. "
-                    "Add it to _MODULE_TYPE_TO_CATEGORY (events/normalize.py).", module_type)
+        log.warning("Unknown moduleType %s from device - media will be uncategorised. "
+                    "Add it to _MODULE_TYPE_TO_CATEGORY (events/normalize.py).",
+                    one_line(repr(module_type)))
     return category
 
 
