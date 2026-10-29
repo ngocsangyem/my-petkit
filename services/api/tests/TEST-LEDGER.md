@@ -820,6 +820,17 @@ reviewer can find every place the suite was touched.
 - added: tests/test_http.py::test_state_report_time_is_utc_for_an_unidentified_device
 - added: tests/test_http.py::test_state_report_time_is_utc_for_an_out_of_range_offset
 
+### An MQTT 5.0 CONNECT is refused with a v5-shaped CONNACK (reason 0x84); every other CONNACK is amqtt's
+
+- added: tests/test_mqtt_protocol_compat.py::test_install_is_idempotent
+- added: tests/test_mqtt_protocol_compat.py::test_v5_connect_refused_for_version_gets_v5_connack
+- added: tests/test_mqtt_protocol_compat.py::test_v31_connect_refused_for_version_keeps_311_connack
+- added: tests/test_mqtt_protocol_compat.py::test_v5_connect_other_refusal_is_not_rewritten
+- added: tests/test_mqtt_protocol_compat.py::test_no_connect_seen_leaves_build_stock
+- added: tests/test_mqtt_protocol_compat.py::test_v5_refusal_is_still_a_connack
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[mqtt/protocol_compat.py]
+  — the per-module clock check gains the new module.
+
 ## Removed
 
 None.

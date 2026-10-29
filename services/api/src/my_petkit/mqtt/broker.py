@@ -25,6 +25,7 @@ from amqtt.contexts import ListenerConfig
 
 from my_petkit.config import _supervisor_host_ip
 from my_petkit.devices.registry import DeviceRegistry
+from my_petkit.mqtt import protocol_compat
 from my_petkit.mqtt.auth import AliyunAuthPlugin, parse_client_id
 
 if TYPE_CHECKING:
@@ -231,6 +232,11 @@ async def start_broker(
             log.info("MQTT TLS listener enabled on port %d", tls_port)
         else:
             log.warning("TLS requested but no cert available - TLS listener not started")
+
+    # A device on newer firmware opens with an MQTT 5.0 CONNECT. We still speak
+    # only 3.1.1, but refusing it in a shape its client can read turns a
+    # ten-second timeout into an immediate fallback. See protocol_compat.
+    protocol_compat.install()
 
     config = BrokerConfig(
         listeners=listeners,

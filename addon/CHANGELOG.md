@@ -37,6 +37,18 @@
   is not a usable value (NaN, infinite, 24 h or more), still gets UTC. Ported
   from petkit-local PR #30, with the UTC fallback suggested in its review.
 
+- **A device that opens with MQTT 5.0 is refused at once, not after ten
+  seconds.** T6 firmware 951 sends a v5 CONNECT. The broker speaks only 3.1.1
+  and refused it with a 3.1.1 CONNACK, which a v5 client cannot parse (v5 adds a
+  property length after the reason code), so the device sat out its own connect
+  timeout instead: 10.2 s measured on the wire against a real T6, where PetKit's
+  cloud refuses the same client in 0.7 s. That timeout is most of the window in
+  which the box has no MQTT session and its commands wait for the HTTP
+  heartbeat. The refusal is now sent in v5 shape (reason `0x84`, Unsupported
+  Protocol Version), so the client's fallback to 3.1.1 fires immediately. MQTT 5
+  is still not spoken; every other CONNACK is unchanged. Ported from upstream
+  petkit-local PR 41.
+
 - **Uploaded sounds reach the device again.** `dev_sound_get` crashed on every
   call and answered `{"result": {}}`, so a sound uploaded in the panel was
   never offered to the feeder. It now lists the uploaded sounds, and answers
