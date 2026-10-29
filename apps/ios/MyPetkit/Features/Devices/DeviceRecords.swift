@@ -202,7 +202,7 @@ struct BleAccessoryList: Decodable, Sendable {
 }
 
 /// A pet from `GET /api/pets`, with the first face photo as its picture.
-struct PetRecord: Decodable, Identifiable, Hashable, Sendable {
+struct HomePetRecord: Decodable, Identifiable, Hashable, Sendable {
     struct Face: Decodable, Hashable, Sendable {
         let id: Int
         let url: String
@@ -220,7 +220,7 @@ struct PetRecord: Decodable, Identifiable, Hashable, Sendable {
 }
 
 struct PetList: Decodable, Sendable {
-    let pets: [PetRecord]
+    let pets: [HomePetRecord]
 }
 
 /// One session of `GET /api/timeline`, only the fields the strip and counts read.

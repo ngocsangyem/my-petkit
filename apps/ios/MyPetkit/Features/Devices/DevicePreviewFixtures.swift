@@ -112,8 +112,8 @@ enum DevicePreviewFixtures {
     }
 
     static let pets = [
-        PetRecord(id: 1, name: "Miso", weight: 5.42),
-        PetRecord(id: 2, name: "Mochi", weight: 3.86),
+        HomePetRecord(id: 1, name: "Miso", weight: 5.42),
+        HomePetRecord(id: 2, name: "Mochi", weight: 3.86),
     ]
 
     static var sessions: [TimelineSessionRecord] {

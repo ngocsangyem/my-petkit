@@ -23,7 +23,7 @@ struct DevicesAPI {
         return list.accessories
     }
 
-    func pets() async throws -> [PetRecord] {
+    func pets() async throws -> [HomePetRecord] {
         let list: PetList = try await get("/api/pets")
         return list.pets
     }

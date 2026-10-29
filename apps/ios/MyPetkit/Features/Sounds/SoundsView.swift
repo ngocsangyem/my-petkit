@@ -30,7 +30,7 @@ struct SoundsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                PushedScreenHeader(title: "Sounds", lede: lede, actionImage: "plus",
+                ScheduleScreenHeader(title: "Sounds", lede: lede, actionImage: "plus",
                                    actionLabel: "Upload a sound", action: startUpload)
                 VStack(alignment: .leading, spacing: Theme.Space.gap) { content }
                     .padding(.horizontal, Theme.Space.screenEdge)

@@ -31,7 +31,7 @@ struct SchedulesView: View {
         SwiftUI.TimelineView(.everyMinute) { context in
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    PushedScreenHeader(title: title, lede: lede(now: context.date),
+                    ScheduleScreenHeader(title: title, lede: lede(now: context.date),
                                        actionImage: addAction == nil ? nil : "plus",
                                        actionLabel: addLabel, action: addAction)
                     VStack(alignment: .leading, spacing: Theme.Space.gap) { content(now: context.date) }

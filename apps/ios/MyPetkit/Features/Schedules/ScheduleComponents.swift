@@ -3,7 +3,7 @@ import SwiftUI
 
 /// The header of a screen pushed from a device: back and one action in the
 /// bar, then the title and one line of lede.
-struct PushedScreenHeader: View {
+struct ScheduleScreenHeader: View {
     @Environment(\.dismiss) private var dismiss
     let title: String
     var lede: Text?

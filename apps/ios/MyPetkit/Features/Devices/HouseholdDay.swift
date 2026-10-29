@@ -30,7 +30,7 @@ struct HouseholdDay {
     let lanes: [DayStripLane]
 
     init(devices: [DeviceRecord], accessories: [BleAccessoryRecord], sessions: [TimelineSessionRecord],
-         pets: [PetRecord], now: Date) {
+         pets: [HomePetRecord], now: Date) {
         var zones: [Int: TimeZone] = [:]
         for device in devices {
             if let zone = DeviceFacts.zone(device.timezoneInfo) { zones[device.id] = zone }

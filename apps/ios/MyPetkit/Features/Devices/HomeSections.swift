@@ -15,7 +15,7 @@ extension FindingTone {
 /// The cats, first on Home: photo, name, weight, and today's visits.
 struct PetTiles: View {
     @Environment(TabRouter.self) private var router
-    let pets: Loadable<[PetRecord]>
+    let pets: Loadable<[HomePetRecord]>
     let days: [Int: PetDay]
     let retry: () -> Void
 
@@ -37,7 +37,7 @@ struct PetTiles: View {
         }
     }
 
-    private func tile(_ pet: PetRecord, tintIndex: Int) -> some View {
+    private func tile(_ pet: HomePetRecord, tintIndex: Int) -> some View {
         Card(padding: 8) {
             PetPhoto(name: pet.name, photoPath: pet.photoPath, tintIndex: tintIndex)
                 .frame(height: 120)

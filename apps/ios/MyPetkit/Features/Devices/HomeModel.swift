@@ -14,7 +14,7 @@ final class HomeModel {
     /// Details by device id; a card shows its summary until its detail arrives.
     private(set) var details: [Int: DeviceRecord] = [:]
     private(set) var accessories: Loadable<[BleAccessoryRecord]> = .loading
-    private(set) var pets: Loadable<[PetRecord]> = .loading
+    private(set) var pets: Loadable<[HomePetRecord]> = .loading
     private(set) var sessions: Loadable<[TimelineSessionRecord]> = .loading
     /// True when the device list failed because the server did not answer at all.
     private(set) var unreachable = false
@@ -25,7 +25,7 @@ final class HomeModel {
 
     /// A model already holding `devices` etc., for previews.
     init(devices: Loadable<[DeviceRecord]>, accessories: [BleAccessoryRecord] = [],
-         pets: Loadable<[PetRecord]>, sessions: Loadable<[TimelineSessionRecord]>) {
+         pets: Loadable<[HomePetRecord]>, sessions: Loadable<[TimelineSessionRecord]>) {
         self.devices = devices
         for device in devices.value ?? [] { details[device.id] = device }
         self.accessories = .loaded(accessories)
