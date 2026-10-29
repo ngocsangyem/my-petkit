@@ -4,7 +4,8 @@ import { Button, Select, StackedField, TextInput } from '@/shared/ui';
 import { deviceKeys } from '../api';
 import { pairBle } from '../api-calls';
 import { useDeviceCall } from '../hooks/use-device-call';
-import { FeedbackLine } from './panel-parts';
+import { Collapsible } from '@/shared/ui/shadcn/collapsible';
+import { DisclosureFrame, FeedbackLine } from './panel-parts';
 
 type BleType = components['schemas']['BleAccessoryPairRequest']['ble_type'];
 
@@ -75,8 +76,8 @@ export function BlePairForm({ parentId }: { parentId: number }) {
   };
 
   return (
-    <div className="devices-stack">
-      <div className="devices-form-grid">
+    <div className="flex min-w-0 flex-col gap-2.5">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-x-4 gap-y-3">
         <StackedField label="Accessory">
           <Select
             options={TYPES}
@@ -101,29 +102,30 @@ export function BlePairForm({ parentId }: { parentId: number }) {
           <TextInput placeholder="serial or a label" {...field('sn')} />
         </StackedField>
       </div>
-      <details className="devices-disclosure">
-        <summary className="devices-disclosure__summary">Advanced</summary>
-        <div className="devices-form-grid devices-disclosure__body">
-          <StackedField
-            label="Identifier"
-            hint="Becomes its Home Assistant device id. Leave blank unless you want the id PetKit's app gave it."
-          >
-            <TextInput mono inputMode="numeric" placeholder="chosen for you" {...field('id')} />
-          </StackedField>
-          <StackedField
-            label="Poll interval (s)"
-            hint="How often the relay opens a Bluetooth session to read it."
-          >
-            <TextInput inputMode="numeric" {...field('interval')} />
-          </StackedField>
-          <StackedField
-            label="Scan type"
-            hint="14 is the only value read off a real pairing (a W5). If an accessory never reports, try another number here."
-          >
-            <TextInput inputMode="numeric" placeholder="default" {...field('scan')} />
-          </StackedField>
-        </div>
-      </details>
+      <Collapsible>
+        <DisclosureFrame summary="Advanced">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-x-4 gap-y-3">
+            <StackedField
+              label="Identifier"
+              hint="Becomes its Home Assistant device id. Leave blank unless you want the id PetKit's app gave it."
+            >
+              <TextInput mono inputMode="numeric" placeholder="chosen for you" {...field('id')} />
+            </StackedField>
+            <StackedField
+              label="Poll interval (s)"
+              hint="How often the relay opens a Bluetooth session to read it."
+            >
+              <TextInput inputMode="numeric" {...field('interval')} />
+            </StackedField>
+            <StackedField
+              label="Scan type"
+              hint="14 is the only value read off a real pairing (a W5). If an accessory never reports, try another number here."
+            >
+              <TextInput inputMode="numeric" placeholder="default" {...field('scan')} />
+            </StackedField>
+          </div>
+        </DisclosureFrame>
+      </Collapsible>
       <div>
         <Button onClick={submit} disabled={call.busy}>
           Pair accessory

@@ -10,7 +10,7 @@ export function EntityValue({ entity }: { entity: AnyEntity }) {
   return (
     <>
       {text}
-      {unit && <span className="devices-unit"> {unit}</span>}
+      {unit && <span className="text-muted-foreground"> {unit}</span>}
     </>
   );
 }
@@ -58,7 +58,7 @@ export function EntityTable({ label, sensors, all }: EntityTableProps) {
   const [showAll, setShowAll] = useState(false);
   const rows = showAll ? all : sensors;
   return (
-    <div className="devices-stack">
+    <div className="flex min-w-0 flex-col gap-2.5">
       <Table
         label={label}
         variant="compact"
@@ -71,7 +71,7 @@ export function EntityTable({ label, sensors, all }: EntityTableProps) {
         small
         checked={showAll}
         onCheckedChange={setShowAll}
-        label={<span className="devices-muted">Show every entity ({all.length})</span>}
+        label={<span className="text-muted-foreground">Show every entity ({all.length})</span>}
       />
     </div>
   );

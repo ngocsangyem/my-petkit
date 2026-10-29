@@ -90,10 +90,10 @@ export function ScheduleEditor({ deviceId, target, draft, onDraft }: ScheduleEdi
   }
 
   return (
-    <div className="sched-editor">
+    <div className="flex min-w-0 flex-col gap-2">
       {body}
       {draft && (
-        <div className="sched-editor__footer">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <Button
             variant="secondary"
             disabled={problem !== null || save.isPending}
@@ -125,16 +125,16 @@ export function ScheduleEditor({ deviceId, target, draft, onDraft }: ScheduleEdi
           >
             Discard
           </Button>
-          {problem && <span className="sched-editor__problem">{problem}</span>}
+          {problem && <span className="text-sm text-negative">{problem}</span>}
         </div>
       )}
       {save.isError && (
-        <p className="sched-editor__problem" role="alert">
+        <p className="text-sm text-negative" role="alert">
           Not saved: {errorMessage(save.error)}
         </p>
       )}
       {notice && (
-        <p className="sched-muted" role="status">
+        <p className="text-sm text-muted-foreground" role="status">
           {notice}
         </p>
       )}

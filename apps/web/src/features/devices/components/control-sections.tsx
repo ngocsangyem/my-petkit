@@ -137,7 +137,7 @@ export function AiSection({
           onSet={value => call.run(() => setEntity(device.id, e.key, value), refreshFor(device.id))}
         />
       ))}
-      {verdict && <p className="devices-note">{verdict}</p>}
+      {verdict && <p className="text-sm text-muted-foreground">{verdict}</p>}
       <FeedbackLine feedback={call.feedback} />
     </SettingsSection>
   );

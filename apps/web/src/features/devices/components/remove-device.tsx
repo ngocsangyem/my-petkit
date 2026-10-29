@@ -11,8 +11,8 @@ export function RemoveDevice({ device }: { device: DeviceDetail }) {
   const [asking, setAsking] = useState(false);
   const label = `${device.type.toUpperCase()} ${device.sn || String(device.id)}`;
   return (
-    <div className="devices-stack">
-      <p className="devices-note">
+    <div className="flex min-w-0 flex-col gap-2.5">
+      <p className="text-sm text-muted-foreground">
         Permanently deletes this device from the registry and removes its Home Assistant entities.
         Events and media are kept. A device that is still running signs up again on its own.
       </p>

@@ -6,14 +6,14 @@ import { Fact } from './panel-parts';
 
 function Text({ value, mono }: { value: string; mono?: boolean }) {
   if (!value) return <Missing />;
-  return mono ? <code className="devices-mono">{value}</code> : <>{value}</>;
+  return mono ? <code className="font-mono text-sm wrap-anywhere">{value}</code> : <>{value}</>;
 }
 
 /** Identity and traffic of one device: serial, MAC, firmware, counters, MQTT names. */
 export function DeviceFacts({ device: d }: { device: DeviceDetail }) {
   const ago = (v: DeviceDetail['last_heartbeat']) => relativeTime(epochSeconds(v));
   return (
-    <dl className="devices-facts">
+    <dl className="m-0 grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-x-6 gap-y-3">
       <Fact label="Serial">
         <Text value={d.sn} mono />
       </Fact>

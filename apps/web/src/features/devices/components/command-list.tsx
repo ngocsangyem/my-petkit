@@ -58,18 +58,18 @@ export function CommandList({ commands, target, route, refresh, extra }: Command
   };
 
   return (
-    <div className="devices-stack">
-      <div className="devices-command-row">
+    <div className="flex min-w-0 flex-col gap-2.5">
+      <div className="flex flex-wrap items-center gap-2">
         {extra}
         {routine.map(button)}
       </div>
       {destructive.length > 0 && (
-        <div className="devices-command-group" role="group" aria-label="Cannot be undone">
-          <span className="devices-note">Cannot be undone</span>
-          <div className="devices-command-row">{destructive.map(button)}</div>
+        <div className="grid gap-1.5" role="group" aria-label="Cannot be undone">
+          <span className="text-sm text-muted-foreground">Cannot be undone</span>
+          <div className="flex flex-wrap items-center gap-2">{destructive.map(button)}</div>
         </div>
       )}
-      <p className="devices-note">Each command asks before it runs.</p>
+      <p className="text-xs text-muted-foreground">Each command asks before it runs.</p>
       <FeedbackLine feedback={call.feedback} />
       <ConfirmDialog
         open={asking !== null}

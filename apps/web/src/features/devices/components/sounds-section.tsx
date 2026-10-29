@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { errorMessage } from '@/shared/api/errors';
 import { formatBytes } from '@/shared/format/format';
 import { Button, ConfirmDialog, ErrorBlock, Skeleton, Table } from '@/shared/ui';
+import { Input } from '@/shared/ui/shadcn/input';
 import { type Sound, deviceKeys, useSounds } from '../api';
 import { deleteSound, playSound, selectSound, uploadSound } from '../api-calls';
 import { useDeviceCall } from '../hooks/use-device-call';
@@ -47,7 +48,7 @@ export function SoundsSection({ deviceId }: { deviceId: number }) {
     );
   }
   return (
-    <div className="devices-stack">
+    <div className="flex min-w-0 flex-col gap-2.5">
       <Table<Sound>
         label="Custom sounds"
         variant="compact"
@@ -69,7 +70,7 @@ export function SoundsSection({ deviceId }: { deviceId: number }) {
             hiddenHeader: true,
             alignEnd: true,
             cell: s => (
-              <span className="devices-command-row devices-command-row--end">
+              <span className="flex flex-wrap items-center gap-2 justify-end">
                 <Button
                   size="small"
                   disabled={call.busy}
@@ -99,12 +100,13 @@ export function SoundsSection({ deviceId }: { deviceId: number }) {
           },
         ]}
       />
-      <label className="devices-upload">
-        <span className="devices-muted">
+      <label className="flex flex-col gap-1.5 text-sm">
+        <span className="text-muted-foreground">
           Upload a sound (audio, up to 2 MB, at most {MAX_SOUNDS}; {list.length} stored)
         </span>
-        <input
+        <Input
           type="file"
+          className="w-auto max-w-full"
           accept="audio/*"
           disabled={call.busy || list.length >= MAX_SOUNDS}
           onChange={e => {

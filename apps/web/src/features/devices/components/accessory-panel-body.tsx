@@ -42,9 +42,9 @@ export function AccessoryPanelBody({
 
   return (
     <>
-      <dl className="devices-facts">
+      <dl className="m-0 grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-x-6 gap-y-3">
         <Fact label="Bluetooth address">
-          <code className="devices-mono">{a.mac}</code>
+          <code className="font-mono text-sm wrap-anywhere">{a.mac}</code>
         </Fact>
         <Fact label="Relayed by">
           {a.parent_name ? `${a.parent_name} #${a.link_with}` : <Missing />}
@@ -53,12 +53,12 @@ export function AccessoryPanelBody({
         <Fact label="Last reading">{last ? relativeTime(last) : 'never'}</Fact>
         <Fact label="Poll interval">{a.interval} s</Fact>
         <Fact label="Scan type">
-          <code className="devices-mono">{a.wire_entry.type}</code>
+          <code className="font-mono text-sm wrap-anywhere">{a.wire_entry.type}</code>
         </Fact>
       </dl>
 
       {a.scan_type_is_guessed && (
-        <p className="devices-note devices-raised">
+        <p className="rounded-lg bg-raised px-4 py-3 text-sm text-muted-foreground">
           The scan type for this model is a guess. Nobody has captured what a real {type} pairing
           carries, so {a.wire_entry.type} is borrowed from its product line. If this accessory never
           reports, unpair it and pair again with a different scan type under Advanced, and please
@@ -66,7 +66,7 @@ export function AccessoryPanelBody({
         </p>
       )}
 
-      <section className="devices-stack" aria-label="Commands">
+      <section className="flex min-w-0 flex-col gap-2.5" aria-label="Commands">
         <BlockHeading title="Commands" />
         <CommandList
           target={type}
@@ -87,7 +87,7 @@ export function AccessoryPanelBody({
             run: () => setBleEntity(a.petkit_id, e.key, ''),
           }))}
         />
-        <p className="devices-note">
+        <p className="text-sm text-muted-foreground">
           Read now asks the relay to open a Bluetooth session; otherwise that happens on a timer up
           to the poll interval away.
         </p>
@@ -112,7 +112,7 @@ export function AccessoryPanelBody({
         </SettingsSection>
       )}
 
-      <section className="devices-stack" aria-label="State">
+      <section className="flex min-w-0 flex-col gap-2.5" aria-label="State">
         <BlockHeading title="State" />
         {sensors.length ? (
           <>
@@ -128,7 +128,7 @@ export function AccessoryPanelBody({
             </Disclosure>
           </>
         ) : (
-          <p className="devices-note">
+          <p className="text-sm text-muted-foreground">
             Nothing reported yet. An accessory only speaks when its parent is asked to open a
             Bluetooth session to it.
           </p>

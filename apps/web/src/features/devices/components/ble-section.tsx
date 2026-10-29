@@ -63,7 +63,7 @@ export function BleSection({
   const importer = useDeviceCall();
   const pairKey = `d${device.id}:blepair`;
   return (
-    <section className="devices-stack" aria-label="Bluetooth accessories">
+    <section className="flex min-w-0 flex-col gap-2.5" aria-label="Bluetooth accessories">
       <BlockHeading title="Bluetooth accessories" aside="Relayed by this device" />
       <Table<Child>
         label="Paired accessories"
@@ -96,7 +96,7 @@ export function BleSection({
         ]}
       />
       <FeedbackLine feedback={unpair.call.feedback} />
-      <div className="devices-command-row">
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           disabled={importer.busy}
           onClick={() =>
@@ -109,7 +109,7 @@ export function BleSection({
           {importer.busy ? 'Asking PetKit…' : 'Import from PetKit'}
         </Button>
       </div>
-      <p className="devices-note">
+      <p className="text-sm text-muted-foreground">
         Asks PetKit which accessories this device owns and copies each one’s Bluetooth address and
         pairing secret across. Nothing is sent to PetKit until you press it.
       </p>

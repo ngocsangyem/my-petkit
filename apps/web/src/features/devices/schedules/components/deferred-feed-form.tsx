@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { errorMessage } from '@/shared/api/errors';
 import { Button, TimeInput } from '@/shared/ui';
+import { Input } from '@/shared/ui/shadcn/input';
 import { useAddDeferredFeed } from '../api';
 import { deviceToday } from '../schedule-clock';
-import { PortionInput } from './portion-input';
+import { InlineControlField, PortionInput } from './portion-input';
 
 /** The most portions one one-off feed asks for, as the legacy form allowed. */
 const MAX_ONE_OFF_PORTIONS = 20;
@@ -17,6 +18,7 @@ interface DeferredFeedFormProps {
 
 /** Date, time and portions of a new one-off feed; the date starts at today on the device's clock. */
 export function DeferredFeedForm({ deviceId, dual, offset }: DeferredFeedFormProps) {
+  const id = useId();
   const add = useAddDeferredFeed(deviceId);
   const today = deviceToday(offset);
   const [date, setDate] = useState(today);
@@ -46,30 +48,29 @@ export function DeferredFeedForm({ deviceId, dual, offset }: DeferredFeedFormPro
 
   return (
     <form
-      className="sched-entry"
+      className="flex flex-col gap-2 rounded-lg border border-border p-3"
       aria-label="Schedule a one-off feed"
       onSubmit={e => {
         e.preventDefault();
         submit();
       }}
     >
-      <div className="sched-row__values">
-        <label className="sched-portion">
-          <span>Date</span>
-          <input
+      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+        <InlineControlField id={`${id}-date`} label="Date">
+          <Input
+            id={`${id}-date`}
             type="date"
-            className="ui-control ui-control--time"
+            className="w-auto"
             min={today}
             value={date}
             onChange={e => {
               setDate(e.target.value);
             }}
           />
-        </label>
-        <label className="sched-portion">
-          <span>Time</span>
-          <TimeInput value={time} onValueChange={setTime} />
-        </label>
+        </InlineControlField>
+        <InlineControlField id={`${id}-time`} label="Time">
+          <TimeInput id={`${id}-time`} value={time} onValueChange={setTime} />
+        </InlineControlField>
         <PortionInput
           label={dual ? 'Hopper 1' : 'Portions'}
           max={MAX_ONE_OFF_PORTIONS}
@@ -84,12 +85,12 @@ export function DeferredFeedForm({ deviceId, dual, offset }: DeferredFeedFormPro
         </Button>
       </div>
       {(problem !== null || add.isError) && (
-        <p className="sched-editor__problem" role="alert">
+        <p className="text-sm text-negative" role="alert">
           {problem ?? `Not scheduled: ${errorMessage(add.error)}`}
         </p>
       )}
       {notice && (
-        <p className="sched-muted" role="status">
+        <p className="text-sm text-muted-foreground" role="status">
           {notice}
         </p>
       )}

@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { cn } from 'cn';
 import { Button } from '@/shared/ui';
+import { Textarea } from '@/shared/ui/shadcn/textarea';
 import { type DeviceDetail, deviceKeys } from '../api';
 import { sendRaw, setEntity } from '../api-calls';
 import { useDeviceCall } from '../hooks/use-device-call';
 import type { DeviceEntity } from '../lib/entity-sections';
-import { FeedbackLine } from './panel-parts';
+import { dirtyClass, FeedbackLine } from './panel-parts';
 
 /**
  * Worked examples for the raw-command box. A placeholder would vanish the moment
@@ -76,13 +78,13 @@ export function RawCommand({ deviceId }: { deviceId: number }) {
     );
   };
   return (
-    <div className="devices-stack">
-      <p className="devices-note">
+    <div className="flex min-w-0 flex-col gap-2.5">
+      <p className="text-sm text-muted-foreground">
         Publishes verbatim; nothing is added. Sent over MQTT if the device has a session, else
         queued for its heartbeat. Needs step-up.
       </p>
-      <textarea
-        className="ui-control devices-textarea devices-mono"
+      <Textarea
+        className="field-sizing-fixed resize-y p-2 font-mono text-xs"
         rows={6}
         spellCheck={false}
         aria-label="Raw command JSON"
@@ -91,11 +93,11 @@ export function RawCommand({ deviceId }: { deviceId: number }) {
           setText(e.target.value);
         }}
       />
-      <div className="devices-command-row">
+      <div className="flex flex-wrap items-center gap-2">
         <Button onClick={send} disabled={call.busy}>
           Send raw
         </Button>
-        <span className="devices-muted">Load an example:</span>
+        <span className="text-muted-foreground">Load an example:</span>
         {RAW_EXAMPLES.map(x => (
           <Button
             key={x.label}
@@ -137,9 +139,12 @@ function ScheduleJson({ device, entity }: { device: DeviceDetail; entity: Device
       });
   };
   return (
-    <div className="devices-stack">
-      <textarea
-        className={`ui-control devices-textarea devices-mono${draft !== null ? ' devices-dirty' : ''}`}
+    <div className="flex min-w-0 flex-col gap-2.5">
+      <Textarea
+        className={cn(
+          'field-sizing-fixed resize-y p-2 font-mono text-xs',
+          dirtyClass(draft !== null),
+        )}
         rows={4}
         spellCheck={false}
         aria-label={`${entity.name} JSON`}
@@ -148,11 +153,11 @@ function ScheduleJson({ device, entity }: { device: DeviceDetail; entity: Device
           setDraft(e.target.value);
         }}
       />
-      <div className="devices-command-row">
+      <div className="flex flex-wrap items-center gap-2">
         <Button size="small" onClick={save} disabled={call.busy}>
           Save {entity.name}
         </Button>
-        {draft !== null && <span className="devices-muted">Not sent yet</span>}
+        {draft !== null && <span className="text-muted-foreground">Not sent yet</span>}
       </div>
       <FeedbackLine feedback={call.feedback} />
     </div>
@@ -172,10 +177,10 @@ export function ScheduleRawJson({
   entities: readonly DeviceEntity[];
 }) {
   return (
-    <div className="devices-stack">
+    <div className="flex min-w-0 flex-col gap-2.5">
       {entities.map(e => (
-        <div key={e.key} className="devices-stack">
-          <span className="devices-label">{e.name}</span>
+        <div key={e.key} className="flex min-w-0 flex-col gap-2.5">
+          <span className="text-sm font-medium">{e.name}</span>
           <ScheduleJson device={device} entity={e} />
         </div>
       ))}

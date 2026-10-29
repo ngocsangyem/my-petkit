@@ -41,11 +41,11 @@ export function FeedEditor({ value, onChange, dual }: FeedEditorProps) {
     );
 
   return (
-    <div className="sched-list">
+    <div className="flex min-w-0 flex-col gap-2">
       {groups.map((group, gi) => (
-        <div className="sched-entry" key={gi}>
-          <div className="sched-row">
-            <div className="sched-row__values">
+        <div className="flex flex-col gap-2 rounded-lg border border-border p-3" key={gi}>
+          <div className="flex min-h-(--pk-row-height-compact) flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg bg-raised px-3 py-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
               <WeekdayBar
                 label={`Days of meal set ${gi + 1}`}
                 days={group.re}
@@ -56,7 +56,7 @@ export function FeedEditor({ value, onChange, dual }: FeedEditorProps) {
                 }}
               />
             </div>
-            <div className="sched-row__actions">
+            <div className="flex items-center gap-1">
               <Button
                 variant="destructive"
                 size="small"
@@ -79,8 +79,11 @@ export function FeedEditor({ value, onChange, dual }: FeedEditorProps) {
                 });
               };
               return (
-                <div className="sched-row" key={mi}>
-                  <div className="sched-row__values">
+                <div
+                  className="flex min-h-(--pk-row-height-compact) flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg bg-raised px-3 py-2"
+                  key={mi}
+                >
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
                     <TimeInput
                       aria-label={`${name} time`}
                       value={secToClock(meal.t)}
@@ -108,7 +111,7 @@ export function FeedEditor({ value, onChange, dual }: FeedEditorProps) {
                       />
                     )}
                   </div>
-                  <div className="sched-row__actions">
+                  <div className="flex items-center gap-1">
                     <Button
                       variant="destructive"
                       size="small"
@@ -126,7 +129,7 @@ export function FeedEditor({ value, onChange, dual }: FeedEditorProps) {
               );
             })
           ) : (
-            <p className="sched-muted">No meals on these days.</p>
+            <p className="text-sm text-muted-foreground">No meals on these days.</p>
           )}
           <div>
             <Button
