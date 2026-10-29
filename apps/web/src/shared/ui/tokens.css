@@ -5,79 +5,79 @@
  */
 :root {
   /* Surfaces and ink */
-  --ground: #f2f6f5;
-  --surface: #ffffff;
-  --raised: #f5f7f7;
-  --active: #e8eded;
-  --border: #e3e8e7;
-  --rule: #eef1f1;
-  --control: #cdd3d2;
-  --text: #131416;
-  --text-hover: #2a2c2f;
-  --muted: #5d6262;
-  --on-dark: #ffffff;
+  --pk-ground: #f2f6f5;
+  --pk-surface: #ffffff;
+  --pk-raised: #f5f7f7;
+  --pk-active: #e8eded;
+  --pk-border: #e3e8e7;
+  --pk-rule: #eef1f1;
+  --pk-control: #cdd3d2;
+  --pk-text: #131416;
+  --pk-text-hover: #2a2c2f;
+  --pk-muted: #5d6262;
+  --pk-on-dark: #ffffff;
 
   /* Data and status */
-  --accent: #0f6e66;
-  --accent-hover: #0a4f4a;
-  --chart2: #2f70bb;
-  --chart3: #a86f0c;
-  --positive: #1e7b4f;
-  --warning: #92400e;
-  --negative: #c4242a;
-  --log-info-edge: #d9dedd;
-  --fountain-reporting: #cfe5e2;
+  --pk-accent: #0f6e66;
+  --pk-accent-hover: #0a4f4a;
+  --pk-chart2: #2f70bb;
+  --pk-chart3: #a86f0c;
+  --pk-positive: #1e7b4f;
+  --pk-warning: #92400e;
+  --pk-negative: #c4242a;
+  --pk-log-info-edge: #d9dedd;
+  --pk-fountain-reporting: #cfe5e2;
 
   /* Pills: background / ink */
-  --pill-positive-bg: #dcfae5;
-  --pill-positive-ink: #04250e;
-  --pill-negative-bg: #ffedea;
-  --pill-negative-ink: #831c1e;
-  --pill-warning-bg: #fffbeb;
-  --pill-warning-ink: #92400e;
-  --pill-neutral-bg: #e8eded;
-  --pill-neutral-ink: #353736;
+  --pk-pill-positive-bg: #dcfae5;
+  --pk-pill-positive-ink: #04250e;
+  --pk-pill-negative-bg: #ffedea;
+  --pk-pill-negative-ink: #831c1e;
+  --pk-pill-warning-bg: #fffbeb;
+  --pk-pill-warning-ink: #92400e;
+  --pk-pill-neutral-bg: #e8eded;
+  --pk-pill-neutral-ink: #353736;
 
   /* Per-pet identity tint, assigned by pet index: tint / ink */
-  --pet-0-tint: #e4edf8;
-  --pet-0-ink: #24548f;
-  --pet-1-tint: #f8eedb;
-  --pet-1-ink: #7a4f08;
+  --pk-pet-0-tint: #e4edf8;
+  --pk-pet-0-ink: #24548f;
+  --pk-pet-1-tint: #f8eedb;
+  --pk-pet-1-ink: #7a4f08;
 
   /* Overlays: only sheets, menus and dialogs carry a shadow */
-  --overlay-shadow: 0 8px 24px rgba(19, 20, 22, 0.12);
-  --overlay-backdrop: rgba(19, 20, 22, 0.32);
-  --swatch-edge: rgba(19, 20, 22, 0.08);
+  --pk-overlay-shadow: 0 8px 24px rgba(19, 20, 22, 0.12);
+  --pk-overlay-backdrop: rgba(19, 20, 22, 0.32);
+  --pk-swatch-edge: rgba(19, 20, 22, 0.08);
 
   /* Radius */
-  --radius-sheet: 16px;
-  --radius-dialog: 12px;
-  --radius-card: 8px;
-  --radius-control: 6px;
-  --radius-lane: 4px;
-  --radius-pill: 999px;
+  --pk-radius-sheet: 16px;
+  --pk-radius-dialog: 12px;
+  --pk-radius-card: 8px;
+  --pk-radius-control: 6px;
+  --pk-radius-lane: 4px;
+  --pk-radius-pill: 999px;
 
   /* Spacing */
-  --gap: 24px;
-  --pad: 24px;
-  --sheet-inset: 8px;
-  --row-height: 56px;
-  --row-height-compact: 48px;
-  --control-height: 32px;
-  --control-height-small: 28px;
-  --control-height-large: 36px;
-  --sidebar-width: 228px;
-  --topbar-height: 48px;
-  --settings-label-width: 360px;
+  --pk-gap: 24px;
+  --pk-pad: 24px;
+  --pk-sheet-inset: 8px;
+  --pk-row-height: 56px;
+  --pk-row-height-compact: 48px;
+  --pk-control-height: 32px;
+  --pk-control-height-small: 28px;
+  --pk-control-height-large: 36px;
+  --pk-sidebar-width: 228px;
+  --pk-topbar-height: 48px;
+  --pk-settings-label-width: 360px;
 
   /* Type */
-  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
-  --text-title: 22px;
-  --text-section: 16px;
-  --text-figure: 28px;
-  --text-body: 14px;
-  --text-small: 13px;
-  --text-caption: 12px;
-  --line-height: 1.45;
+  --pk-font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --pk-font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --pk-text-title: 22px;
+  --pk-text-section: 16px;
+  --pk-text-figure: 28px;
+  --pk-text-body: 14px;
+  --pk-text-small: 13px;
+  --pk-text-caption: 12px;
+  --pk-line-height: 1.45;
 }

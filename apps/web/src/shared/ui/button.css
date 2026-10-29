@@ -4,13 +4,13 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: var(--control-height);
+  height: var(--pk-control-height);
   padding: 0 12px;
   border: 1px solid transparent;
-  border-radius: var(--radius-control);
+  border-radius: var(--pk-radius-control);
   background: transparent;
-  font-family: var(--font-sans);
-  font-size: var(--text-body);
+  font-family: var(--pk-font-sans);
+  font-size: var(--pk-text-body);
   font-weight: 500;
   line-height: 1;
   white-space: nowrap;
@@ -18,58 +18,58 @@
 }
 
 .ui-button--small {
-  height: var(--control-height-small);
+  height: var(--pk-control-height-small);
   padding: 0 10px;
-  font-size: var(--text-small);
+  font-size: var(--pk-text-small);
 }
 
 .ui-button--large {
-  height: var(--control-height-large);
+  height: var(--pk-control-height-large);
   padding: 0 14px;
 }
 
 .ui-button--primary {
-  background: var(--text);
-  color: var(--on-dark);
+  background: var(--pk-text);
+  color: var(--pk-on-dark);
 }
 
 .ui-button--primary:hover:not(:disabled) {
-  background: var(--text-hover);
-  color: var(--on-dark);
+  background: var(--pk-text-hover);
+  color: var(--pk-on-dark);
 }
 
 .ui-button--secondary {
-  border-color: var(--control);
-  background: var(--surface);
-  color: var(--text);
+  border-color: var(--pk-control);
+  background: var(--pk-surface);
+  color: var(--pk-text);
 }
 
 .ui-button--secondary:hover:not(:disabled) {
-  background: var(--raised);
-  color: var(--text);
+  background: var(--pk-raised);
+  color: var(--pk-text);
 }
 
 .ui-button--destructive {
   padding: 0 4px;
-  color: var(--negative);
+  color: var(--pk-negative);
 }
 
 .ui-button--danger-final {
-  background: var(--negative);
-  color: var(--on-dark);
+  background: var(--pk-negative);
+  color: var(--pk-on-dark);
 }
 
 .ui-button--danger-final:hover:not(:disabled) {
-  color: var(--on-dark);
+  color: var(--pk-on-dark);
 }
 
 .ui-button--text {
   padding: 0 4px;
-  color: var(--accent);
+  color: var(--pk-accent);
 }
 
 .ui-button--text:hover:not(:disabled) {
-  color: var(--accent-hover);
+  color: var(--pk-accent-hover);
 }
 
 .ui-button:disabled {

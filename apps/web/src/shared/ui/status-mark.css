@@ -16,19 +16,19 @@
 }
 
 .ui-status--online {
-  color: var(--positive);
+  color: var(--pk-positive);
 }
 
 .ui-status--polling {
-  color: var(--chart2);
+  color: var(--pk-chart2);
 }
 
 .ui-status--offline {
-  color: var(--negative);
+  color: var(--pk-negative);
 }
 
 .ui-status--unknown {
-  color: var(--muted);
+  color: var(--pk-muted);
 }
 
 .ui-status--unknown .ui-status__dot {
@@ -37,18 +37,18 @@
 
 /* The Live label stays muted; only the dot carries the state. */
 .ui-live {
-  color: var(--muted);
+  color: var(--pk-muted);
 }
 
 .ui-live--live .ui-status__dot {
-  color: var(--positive);
+  color: var(--pk-positive);
 }
 
 .ui-live--connecting .ui-status__dot {
-  color: var(--muted);
+  color: var(--pk-muted);
   background: transparent;
 }
 
 .ui-live--offline .ui-status__dot {
-  color: var(--negative);
+  color: var(--pk-negative);
 }

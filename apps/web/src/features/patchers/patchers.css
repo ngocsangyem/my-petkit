@@ -4,28 +4,28 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--muted);
-  font-size: var(--text-small);
+  color: var(--pk-muted);
+  font-size: var(--pk-text-small);
 }
 
 .patchers-muted {
-  color: var(--muted);
-  font-size: var(--text-small);
+  color: var(--pk-muted);
+  font-size: var(--pk-text-small);
 }
 
 .patchers-mono {
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
+  font-family: var(--pk-font-mono);
+  font-size: var(--pk-text-caption);
 }
 
 .patchers-warning {
-  color: var(--warning);
-  font-size: var(--text-small);
+  color: var(--pk-warning);
+  font-size: var(--pk-text-small);
 }
 
 .patchers-error {
-  color: var(--negative);
-  font-size: var(--text-small);
+  color: var(--pk-negative);
+  font-size: var(--pk-text-small);
 }
 
 .patchers-list {
@@ -44,7 +44,7 @@
 
 .patchers-list__title,
 .patchers-panel__title {
-  font-size: var(--text-section);
+  font-size: var(--pk-text-section);
   font-weight: 600;
 }
 
@@ -61,26 +61,26 @@
 .patchers-cell__what {
   display: -webkit-box;
   overflow: hidden;
-  color: var(--muted);
-  font-size: var(--text-caption);
+  color: var(--pk-muted);
+  font-size: var(--pk-text-caption);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
 
 .patchers-tone--positive {
-  color: var(--positive);
+  color: var(--pk-positive);
 }
 
 .patchers-tone--warning {
-  color: var(--warning);
+  color: var(--pk-warning);
 }
 
 .patchers-tone--muted {
-  color: var(--muted);
+  color: var(--pk-muted);
 }
 
 .patchers-tone--accent {
-  color: var(--accent);
+  color: var(--pk-accent);
 }
 
 .patchers-panel {
@@ -89,8 +89,8 @@
   gap: 14px;
   max-width: 640px;
   padding: 20px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
+  border: 1px solid var(--pk-border);
+  border-radius: var(--pk-radius-card);
 }
 
 .patchers-panel__description {
@@ -111,7 +111,7 @@
 }
 
 .patchers-field__label {
-  font-size: var(--text-small);
+  font-size: var(--pk-text-small);
   font-weight: 500;
 }
 
@@ -119,8 +119,8 @@
   height: auto;
   padding: 8px 10px;
   resize: vertical;
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
+  font-family: var(--pk-font-mono);
+  font-size: var(--pk-text-caption);
   line-height: 1.5;
 }
 
@@ -129,10 +129,10 @@
   margin: 0;
   padding: 10px 12px;
   overflow: auto;
-  border-radius: var(--radius-card);
-  background: var(--raised);
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
+  border-radius: var(--pk-radius-card);
+  background: var(--pk-raised);
+  font-family: var(--pk-font-mono);
+  font-size: var(--pk-text-caption);
   line-height: 1.5;
   white-space: pre-wrap;
   overflow-wrap: anywhere;

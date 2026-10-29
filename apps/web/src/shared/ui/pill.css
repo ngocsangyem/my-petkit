@@ -4,29 +4,29 @@
   align-items: center;
   height: 20px;
   padding: 0 8px;
-  border-radius: var(--radius-pill);
-  font-size: var(--text-caption);
+  border-radius: var(--pk-radius-pill);
+  font-size: var(--pk-text-caption);
   font-weight: 500;
   line-height: 1;
   white-space: nowrap;
 }
 
 .ui-pill--positive {
-  background: var(--pill-positive-bg);
-  color: var(--pill-positive-ink);
+  background: var(--pk-pill-positive-bg);
+  color: var(--pk-pill-positive-ink);
 }
 
 .ui-pill--negative {
-  background: var(--pill-negative-bg);
-  color: var(--pill-negative-ink);
+  background: var(--pk-pill-negative-bg);
+  color: var(--pk-pill-negative-ink);
 }
 
 .ui-pill--warning {
-  background: var(--pill-warning-bg);
-  color: var(--pill-warning-ink);
+  background: var(--pk-pill-warning-bg);
+  color: var(--pk-pill-warning-ink);
 }
 
 .ui-pill--neutral {
-  background: var(--pill-neutral-bg);
-  color: var(--pill-neutral-ink);
+  background: var(--pk-pill-neutral-bg);
+  color: var(--pk-pill-neutral-ink);
 }

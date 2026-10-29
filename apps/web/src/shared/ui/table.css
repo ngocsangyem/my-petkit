@@ -3,8 +3,8 @@
 }
 
 .ui-table-wrap--log {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
+  border: 1px solid var(--pk-border);
+  border-radius: var(--pk-radius-card);
 }
 
 .ui-table {
@@ -15,8 +15,8 @@
 
 .ui-table th {
   padding: 0 12px 8px 0;
-  color: var(--muted);
-  font-size: var(--text-caption);
+  color: var(--pk-muted);
+  font-size: var(--pk-text-caption);
   font-weight: 500;
   text-align: left;
   white-space: nowrap;
@@ -33,12 +33,12 @@
 }
 
 .ui-table tbody tr {
-  height: var(--row-height);
-  border-top: 1px solid var(--rule);
+  height: var(--pk-row-height);
+  border-top: 1px solid var(--pk-rule);
 }
 
 .ui-table tbody tr:hover {
-  background: var(--raised);
+  background: var(--pk-raised);
 }
 
 .ui-table .ui-table__empty-row,
@@ -56,12 +56,12 @@
 }
 
 .ui-table .ui-table__mono {
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
+  font-family: var(--pk-font-mono);
+  font-size: var(--pk-text-caption);
 }
 
 .ui-table .ui-table__muted {
-  color: var(--muted);
+  color: var(--pk-muted);
 }
 
 .ui-table .ui-table__nowrap {
@@ -71,7 +71,7 @@
 /* Compact rows, e.g. inside a raised settings panel (edge colour then matches the panel). */
 .ui-table--compact tbody tr {
   height: 44px;
-  border-top-color: var(--border);
+  border-top-color: var(--pk-border);
 }
 
 .ui-table--compact td {
@@ -89,7 +89,7 @@
 }
 
 .ui-table__row--selected td:first-child {
-  border-left-color: var(--accent);
+  border-left-color: var(--pk-accent);
 }
 
 /* Log variant: framed, mono body, 30px rows. */
@@ -102,7 +102,7 @@
 }
 
 .ui-table--log tbody {
-  font-family: var(--font-mono);
+  font-family: var(--pk-font-mono);
   font-size: 12.5px;
 }
 
@@ -124,27 +124,27 @@
 
 .ui-table__row--debug td:first-child,
 .ui-table__row--info td:first-child {
-  border-left-color: var(--log-info-edge);
+  border-left-color: var(--pk-log-info-edge);
 }
 
 .ui-table__row--warn td:first-child {
-  border-left-color: var(--chart3);
+  border-left-color: var(--pk-chart3);
 }
 
 .ui-table__row--error td:first-child {
-  border-left-color: var(--negative);
+  border-left-color: var(--pk-negative);
 }
 
 .ui-level-text {
-  font-family: var(--font-sans);
-  font-size: var(--text-caption);
-  color: var(--muted);
+  font-family: var(--pk-font-sans);
+  font-size: var(--pk-text-caption);
+  color: var(--pk-muted);
 }
 
 .ui-level-text--warn {
-  color: var(--warning);
+  color: var(--pk-warning);
 }
 
 .ui-level-text--error {
-  color: var(--negative);
+  color: var(--pk-negative);
 }

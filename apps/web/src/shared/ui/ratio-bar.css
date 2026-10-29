@@ -23,7 +23,7 @@
   height: 6px;
   overflow: hidden;
   border-radius: 3px;
-  background: var(--rule);
+  background: var(--pk-rule);
 }
 
 .ui-ratio__fill {
@@ -32,15 +32,15 @@
 }
 
 .ui-ratio__fill--accent {
-  background: var(--accent);
+  background: var(--pk-accent);
 }
 
 .ui-ratio__fill--warning {
-  background: var(--warning);
+  background: var(--pk-warning);
 }
 
 .ui-ratio__fill--negative {
-  background: var(--negative);
+  background: var(--pk-negative);
 }
 
 .ui-ratio__label {
@@ -48,11 +48,11 @@
 }
 
 .ui-ratio__label--warning {
-  color: var(--warning);
+  color: var(--pk-warning);
 }
 
 .ui-ratio__label--negative {
-  color: var(--negative);
+  color: var(--pk-negative);
 }
 
 @media (max-width: 900px) {

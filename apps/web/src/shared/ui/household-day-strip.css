@@ -24,8 +24,8 @@
 .ui-strip__axis {
   position: relative;
   height: 18px;
-  color: var(--muted);
-  font-size: var(--text-caption);
+  color: var(--pk-muted);
+  font-size: var(--pk-text-caption);
   font-variant-numeric: tabular-nums;
 }
 
@@ -50,15 +50,15 @@
   top: 0;
   padding: 0 4px;
   transform: translateX(-50%);
-  background: var(--surface);
-  color: var(--accent);
+  background: var(--pk-surface);
+  color: var(--pk-accent);
   font-weight: 600;
 }
 
 .ui-strip__name {
   min-width: 0;
   overflow: hidden;
-  color: var(--muted);
+  color: var(--pk-muted);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -67,7 +67,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text);
+  color: var(--pk-text);
   font-weight: 500;
 }
 
@@ -82,8 +82,8 @@
 .ui-strip__lane {
   position: relative;
   height: var(--lane-height);
-  border-radius: var(--radius-lane);
-  background: var(--raised);
+  border-radius: var(--pk-radius-lane);
+  background: var(--pk-raised);
 }
 
 .ui-strip__lane--clip {
@@ -100,11 +100,11 @@
 }
 
 .ui-pet-ink-0 {
-  color: var(--pet-0-ink);
+  color: var(--pk-pet-0-ink);
 }
 
 .ui-pet-ink-1 {
-  color: var(--pet-1-ink);
+  color: var(--pk-pet-1-ink);
 }
 
 .ui-strip__meal {
@@ -112,19 +112,19 @@
   top: var(--meal-top);
   width: 8px;
   height: 8px;
-  border: 1.5px solid var(--text);
-  background: var(--surface);
+  border: 1.5px solid var(--pk-text);
+  background: var(--pk-surface);
 }
 
 .ui-strip__meal--fed {
-  background: var(--text);
+  background: var(--pk-text);
 }
 
 .ui-strip__band {
   position: absolute;
   top: var(--band-top);
   height: 12px;
-  background: var(--fountain-reporting);
+  background: var(--pk-fountain-reporting);
 }
 
 .ui-strip__hatch {
@@ -134,7 +134,7 @@
 }
 
 .ui-strip__hatch-line {
-  fill: var(--negative);
+  fill: var(--pk-negative);
 }
 
 .ui-strip__now {
@@ -142,7 +142,7 @@
   top: 0;
   bottom: 0;
   width: 1px;
-  background: var(--accent);
+  background: var(--pk-accent);
   pointer-events: none;
 }
 
@@ -154,8 +154,8 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  color: var(--muted);
-  font-size: var(--text-caption);
+  color: var(--pk-muted);
+  font-size: var(--pk-text-caption);
 }
 
 .ui-strip-legend li {
@@ -173,17 +173,17 @@
 .ui-strip-legend__meal {
   width: 8px;
   height: 8px;
-  border: 1.5px solid var(--text);
+  border: 1.5px solid var(--pk-text);
 }
 
 .ui-strip-legend__meal.ui-strip__meal--fed {
-  background: var(--text);
+  background: var(--pk-text);
 }
 
 .ui-strip-legend__band {
   width: 14px;
   height: 8px;
-  background: var(--fountain-reporting);
+  background: var(--pk-fountain-reporting);
 }
 
 @media (max-width: 900px) {

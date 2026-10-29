@@ -3,45 +3,45 @@
 .pets-page {
   display: flex;
   flex-direction: column;
-  gap: var(--gap);
+  gap: var(--pk-gap);
   min-width: 0;
 }
 
 .pets-muted {
-  color: var(--muted);
+  color: var(--pk-muted);
 }
 
 .pets-small {
-  font-size: var(--text-small);
+  font-size: var(--pk-text-small);
 }
 
 .pets-mono {
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
+  font-family: var(--pk-font-mono);
+  font-size: var(--pk-text-caption);
 }
 
 /* The outcome line. Kept in the tree so screen readers hear it; takes no room when empty. */
 .pets-notice {
   margin: 0;
-  font-size: var(--text-small);
+  font-size: var(--pk-text-small);
 }
 
 .pets-notice:empty {
-  margin-top: calc(-1 * var(--gap));
+  margin-top: calc(-1 * var(--pk-gap));
 }
 
 .pets-notice--error,
 .pets-form-error,
 .pets-crop-error {
   margin: 0;
-  color: var(--negative);
-  font-size: var(--text-small);
+  color: var(--pk-negative);
+  font-size: var(--pk-text-small);
 }
 
 .pets-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--gap);
+  gap: var(--pk-gap);
   align-items: start;
 }
 
@@ -52,8 +52,8 @@
   gap: 16px;
   min-width: 0;
   padding: 20px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
+  border: 1px solid var(--pk-border);
+  border-radius: var(--pk-radius-card);
 }
 
 .pets-card__top {
@@ -66,7 +66,7 @@
   flex: none;
   width: 112px;
   height: 112px;
-  border-radius: var(--radius-card);
+  border-radius: var(--pk-radius-card);
   object-fit: cover;
 }
 
@@ -74,18 +74,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--text-figure);
+  font-size: var(--pk-text-figure);
   font-weight: 600;
 }
 
 .pets-tint-0 {
-  background: var(--pet-0-tint);
-  color: var(--pet-0-ink);
+  background: var(--pk-pet-0-tint);
+  color: var(--pk-pet-0-ink);
 }
 
 .pets-tint-1 {
-  background: var(--pet-1-tint);
-  color: var(--pet-1-ink);
+  background: var(--pk-pet-1-tint);
+  color: var(--pk-pet-1-ink);
 }
 
 .pets-card__main {
@@ -102,13 +102,13 @@
   justify-content: space-between;
   align-items: baseline;
   gap: 8px;
-  font-size: var(--text-small);
+  font-size: var(--pk-text-small);
 }
 
 .pets-card__name {
   margin: 0;
   overflow-wrap: anywhere;
-  font-size: var(--text-section);
+  font-size: var(--pk-text-section);
   font-weight: 600;
 }
 
@@ -155,7 +155,7 @@
   display: block;
   width: 40px;
   height: 40px;
-  border-radius: var(--radius-control);
+  border-radius: var(--pk-radius-control);
   object-fit: cover;
 }
 
@@ -169,10 +169,10 @@
   width: 20px;
   height: 20px;
   padding: 0;
-  border: 1px solid var(--control);
+  border: 1px solid var(--pk-control);
   border-radius: 50%;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--pk-surface);
+  color: var(--pk-text);
 }
 
 .pets-face-add {
@@ -182,15 +182,15 @@
   width: 40px;
   height: 40px;
   padding: 0;
-  border: 1px solid var(--control);
-  border-radius: var(--radius-control);
-  background: var(--surface);
-  color: var(--muted);
+  border: 1px solid var(--pk-control);
+  border-radius: var(--pk-radius-control);
+  background: var(--pk-surface);
+  color: var(--pk-muted);
 }
 
 .pets-face__remove:hover,
 .pets-face-add:hover {
-  background: var(--raised);
+  background: var(--pk-raised);
 }
 
 /* Recognition per device */
@@ -208,9 +208,9 @@
   justify-content: space-between;
   align-items: center;
   gap: 8px 16px;
-  min-height: var(--row-height-compact);
+  min-height: var(--pk-row-height-compact);
   padding: 8px 0;
-  border-bottom: 1px solid var(--rule);
+  border-bottom: 1px solid var(--pk-rule);
 }
 
 .pets-recognition__text {
@@ -246,7 +246,7 @@
 
 .pets-unbound__head h2 {
   margin: 0;
-  font-size: var(--text-section);
+  font-size: var(--pk-text-section);
   font-weight: 600;
 }
 

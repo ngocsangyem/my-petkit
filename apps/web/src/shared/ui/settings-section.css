@@ -1,6 +1,6 @@
 .ui-settings-section {
   display: grid;
-  grid-template-columns: var(--settings-label-width) minmax(0, 1fr);
+  grid-template-columns: var(--pk-settings-label-width) minmax(0, 1fr);
   gap: 32px;
   align-items: start;
 }
@@ -8,30 +8,30 @@
 .ui-settings-section + .ui-settings-section {
   margin-top: 8px;
   padding-top: 32px;
-  border-top: 1px solid var(--rule);
+  border-top: 1px solid var(--pk-rule);
 }
 
 .ui-settings-section__intro {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  max-width: var(--settings-label-width);
+  max-width: var(--pk-settings-label-width);
 }
 
 .ui-settings-section__title {
-  font-size: var(--text-section);
+  font-size: var(--pk-text-section);
   font-weight: 500;
 }
 
 .ui-settings-section__description {
-  color: var(--muted);
+  color: var(--pk-muted);
 }
 
 .ui-settings-section__panel {
   min-width: 0;
   padding: 16px;
-  border-radius: var(--radius-sheet);
-  background: var(--raised);
+  border-radius: var(--pk-radius-sheet);
+  background: var(--pk-raised);
 }
 
 .ui-settings-row {
@@ -47,7 +47,7 @@
 }
 
 .ui-settings-row + .ui-settings-row {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--pk-border);
 }
 
 .ui-settings-row--toggle {
@@ -88,14 +88,14 @@
 }
 
 .ui-settings-row__description {
-  color: var(--muted);
-  font-size: var(--text-small);
+  color: var(--pk-muted);
+  font-size: var(--pk-text-small);
 }
 
 .ui-settings-row__key {
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
+  color: var(--pk-muted);
+  font-family: var(--pk-font-mono);
+  font-size: var(--pk-text-caption);
 }
 
 @media (max-width: 900px) {

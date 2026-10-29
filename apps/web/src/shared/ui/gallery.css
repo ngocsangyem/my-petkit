@@ -1,7 +1,7 @@
 .gallery {
   display: flex;
   flex-direction: column;
-  gap: var(--gap);
+  gap: var(--pk-gap);
 }
 
 .gallery-section,
@@ -42,7 +42,7 @@
 .gallery-two {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-  gap: var(--gap);
+  gap: var(--pk-gap);
   align-items: start;
 }
 
@@ -51,16 +51,16 @@
 }
 
 .gallery-sub {
-  color: var(--muted);
-  font-size: var(--text-caption);
+  color: var(--pk-muted);
+  font-size: var(--pk-text-caption);
 }
 
 .gallery-warning {
-  color: var(--warning);
+  color: var(--pk-warning);
 }
 
 .gallery-negative {
-  color: var(--negative);
+  color: var(--pk-negative);
 }
 
 .gallery-search {

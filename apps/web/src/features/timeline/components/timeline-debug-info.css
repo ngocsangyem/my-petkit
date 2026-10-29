@@ -1,8 +1,8 @@
 /* Debug info: what the device actually reported, with each field's evidence grade. */
 
 .tl-debug {
-  color: var(--muted);
-  font-size: var(--text-small);
+  color: var(--pk-muted);
+  font-size: var(--pk-text-small);
 }
 
 .tl-debug > summary,
@@ -20,8 +20,8 @@
 
 .tl-dbg__event {
   padding: 6px 10px;
-  border-radius: var(--radius-control);
-  background: var(--raised);
+  border-radius: var(--pk-radius-control);
+  background: var(--pk-raised);
 }
 
 .tl-dbg {
@@ -29,12 +29,12 @@
   flex-direction: column;
   gap: 6px;
   padding-top: 8px;
-  color: var(--text);
+  color: var(--pk-text);
 }
 
 .tl-dbg h4 {
   margin: 4px 0 0;
-  font-size: var(--text-small);
+  font-size: var(--pk-text-small);
   font-weight: 600;
 }
 
@@ -45,20 +45,20 @@
 .tl-dbg__table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--text-caption);
+  font-size: var(--pk-text-caption);
   overflow-wrap: anywhere;
 }
 
 .tl-dbg__table td {
   padding: 3px 6px 3px 0;
-  border-top: 1px solid var(--rule);
+  border-top: 1px solid var(--pk-rule);
   vertical-align: top;
 }
 
 .tl-dbg code,
 .tl-dbg pre {
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
+  font-family: var(--pk-font-mono);
+  font-size: var(--pk-text-caption);
 }
 
 .tl-dbg pre {
@@ -75,7 +75,7 @@
   align-items: center;
   gap: 8px;
   padding-top: 6px;
-  color: var(--text);
+  color: var(--pk-text);
 }
 
 .tl-grade {
@@ -83,21 +83,21 @@
 }
 
 .tl-grade--confirmed {
-  color: var(--positive);
+  color: var(--pk-positive);
 }
 
 .tl-grade--inferred {
-  color: var(--chart2);
+  color: var(--pk-chart2);
 }
 
 .tl-grade--unverified {
-  color: var(--warning);
+  color: var(--pk-warning);
 }
 
 .tl-grade--conflicted {
-  color: var(--negative);
+  color: var(--pk-negative);
 }
 
 .tl-grade--unknown {
-  color: var(--muted);
+  color: var(--pk-muted);
 }

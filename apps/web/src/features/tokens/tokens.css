@@ -21,7 +21,7 @@
 }
 
 .tokens-row + .tokens-row {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--pk-border);
 }
 
 .tokens-row__text {
@@ -36,24 +36,24 @@
 }
 
 .tokens-muted {
-  color: var(--muted);
-  font-size: var(--text-small);
+  color: var(--pk-muted);
+  font-size: var(--pk-text-small);
 }
 
 .tokens-caption {
-  color: var(--muted);
-  font-size: var(--text-caption);
+  color: var(--pk-muted);
+  font-size: var(--pk-text-caption);
 }
 
 .tokens-error {
   padding-top: 8px;
-  color: var(--negative);
-  font-size: var(--text-small);
+  color: var(--pk-negative);
+  font-size: var(--pk-text-small);
 }
 
 .tokens-mono {
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
+  font-family: var(--pk-font-mono);
+  font-size: var(--pk-text-caption);
   overflow-wrap: anywhere;
 }
 
@@ -76,7 +76,7 @@
 .tokens-facts--ruled {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--pk-border);
 }
 
 .tokens-actions {
@@ -92,11 +92,11 @@
   gap: 12px;
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--pk-border);
 }
 
 .tokens-pairing__title {
-  font-size: var(--text-section);
+  font-size: var(--pk-text-section);
   font-weight: 600;
 }
 
@@ -104,8 +104,8 @@
   display: flex;
   justify-content: center;
   padding: 16px;
-  border-radius: var(--radius-card);
-  background: var(--surface);
+  border-radius: var(--pk-radius-card);
+  background: var(--pk-surface);
 }
 
 .tokens-qr {
@@ -115,11 +115,11 @@
 }
 
 .tokens-qr__ground {
-  fill: var(--surface);
+  fill: var(--pk-surface);
 }
 
 .tokens-qr__ink {
-  fill: var(--text);
+  fill: var(--pk-text);
 }
 
 .tokens-code {

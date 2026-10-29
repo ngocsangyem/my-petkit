@@ -1,8 +1,8 @@
 .capture-notice {
   display: block;
   min-height: 18px;
-  color: var(--muted);
-  font-size: var(--text-small);
+  color: var(--pk-muted);
+  font-size: var(--pk-text-small);
 }
 
 .capture-notice:empty {
@@ -13,9 +13,9 @@
 .capture-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--gap);
+  gap: var(--pk-gap);
   align-items: start;
-  margin-top: var(--gap);
+  margin-top: var(--pk-gap);
 }
 
 @media (max-width: 900px) {
@@ -34,7 +34,7 @@
 
 .capture-files__title {
   margin: 0;
-  font-size: var(--text-section);
+  font-size: var(--pk-text-section);
   font-weight: 600;
 }
 
@@ -50,7 +50,7 @@
 }
 
 .capture-pick:hover {
-  color: var(--accent);
+  color: var(--pk-accent);
 }
 
 .capture-pick[aria-pressed='true'] {
@@ -64,13 +64,13 @@
   gap: 10px 16px;
   margin: 0;
   padding: 16px;
-  border-radius: var(--radius-card);
-  background: var(--raised);
-  font-size: var(--text-small);
+  border-radius: var(--pk-radius-card);
+  background: var(--pk-raised);
+  font-size: var(--pk-text-small);
 }
 
 .capture-facts dt {
-  color: var(--muted);
+  color: var(--pk-muted);
 }
 
 .capture-facts dd {
@@ -78,8 +78,8 @@
 }
 
 .capture-facts__path {
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
+  font-family: var(--pk-font-mono);
+  font-size: var(--pk-text-caption);
   overflow-wrap: anywhere;
 }
 
@@ -93,8 +93,8 @@
 
 .capture-tail__name {
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: var(--text-body);
+  font-family: var(--pk-font-mono);
+  font-size: var(--pk-text-body);
   font-weight: 500;
   overflow-wrap: anywhere;
 }
@@ -106,8 +106,8 @@
 
 .capture-tail__caption {
   margin: 0;
-  color: var(--muted);
-  font-size: var(--text-caption);
+  color: var(--pk-muted);
+  font-size: var(--pk-text-caption);
 }
 
 .capture-tail__records {
@@ -116,10 +116,10 @@
   margin: 0;
   padding: 14px 16px;
   overflow: auto;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
+  border: 1px solid var(--pk-border);
+  border-radius: var(--pk-radius-card);
+  font-family: var(--pk-font-mono);
+  font-size: var(--pk-text-caption);
   line-height: 1.6;
   white-space: pre;
 }

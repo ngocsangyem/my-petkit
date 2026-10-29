@@ -3,19 +3,19 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: var(--gap);
+  margin-bottom: var(--pk-gap);
   padding: 10px 14px;
-  background: var(--pill-warning-bg);
-  color: var(--pill-warning-ink);
-  border-radius: var(--radius-card);
-  font-size: var(--text-small);
+  background: var(--pk-pill-warning-bg);
+  color: var(--pk-pill-warning-ink);
+  border-radius: var(--pk-radius-card);
+  font-size: var(--pk-text-small);
 }
 
 .server-unreachable {
-  margin: 0 0 var(--gap);
+  margin: 0 0 var(--pk-gap);
   padding: 10px 14px;
-  background: var(--raised);
-  border-radius: var(--radius-card);
-  color: var(--muted);
-  font-size: var(--text-small);
+  background: var(--pk-raised);
+  border-radius: var(--pk-radius-card);
+  color: var(--pk-muted);
+  font-size: var(--pk-text-small);
 }

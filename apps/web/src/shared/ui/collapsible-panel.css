@@ -1,12 +1,12 @@
 .ui-collapsible {
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
+  border: 1px solid var(--pk-border);
+  border-radius: var(--pk-radius-card);
 }
 
 .ui-collapsible__heading {
-  font-size: var(--text-section);
+  font-size: var(--pk-text-section);
 }
 
 .ui-collapsible__toggle {
@@ -16,22 +16,22 @@
   width: 100%;
   padding: 20px;
   border: 0;
-  border-radius: var(--radius-card);
+  border-radius: var(--pk-radius-card);
   background: transparent;
-  color: var(--text);
+  color: var(--pk-text);
   text-align: left;
 }
 
 .ui-collapsible__title {
-  font-size: var(--text-section);
+  font-size: var(--pk-text-section);
   font-weight: 600;
 }
 
 .ui-collapsible__summary {
   min-width: 0;
   overflow: hidden;
-  color: var(--muted);
-  font-size: var(--text-small);
+  color: var(--pk-muted);
+  font-size: var(--pk-text-small);
   font-weight: 400;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -41,7 +41,7 @@
   flex: none;
   align-self: center;
   margin-left: auto;
-  color: var(--muted);
+  color: var(--pk-muted);
   transform: rotate(-90deg);
 }
 

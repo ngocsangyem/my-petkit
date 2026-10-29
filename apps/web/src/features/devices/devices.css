@@ -4,7 +4,7 @@
 .devices-panels {
   display: flex;
   flex-direction: column;
-  gap: var(--gap);
+  gap: var(--pk-gap);
 }
 
 .devices-panels {
@@ -19,7 +19,7 @@
 }
 
 .devices-section-title {
-  font-size: var(--text-section);
+  font-size: var(--pk-text-section);
   font-weight: 600;
 }
 
@@ -31,7 +31,7 @@
 }
 
 .devices-block-heading h3 {
-  font-size: var(--text-section);
+  font-size: var(--pk-text-section);
   font-weight: 600;
 }
 
@@ -39,37 +39,37 @@
 .devices-muted,
 .devices-note,
 .devices-unit {
-  color: var(--muted);
+  color: var(--pk-muted);
 }
 
 .devices-note,
 .devices-block-heading__aside {
-  font-size: var(--text-small);
+  font-size: var(--pk-text-small);
 }
 
 .devices-label {
-  font-size: var(--text-small);
+  font-size: var(--pk-text-small);
   font-weight: 500;
 }
 
 .devices-mono {
-  font-family: var(--font-mono);
-  font-size: var(--text-small);
+  font-family: var(--pk-font-mono);
+  font-size: var(--pk-text-small);
   overflow-wrap: anywhere;
 }
 
 .devices-warning {
-  color: var(--warning);
+  color: var(--pk-warning);
 }
 
 .devices-negative {
-  color: var(--negative);
+  color: var(--pk-negative);
 }
 
 .devices-raised {
   padding: 12px 16px;
-  border-radius: var(--radius-card);
-  background: var(--raised);
+  border-radius: var(--pk-radius-card);
+  background: var(--pk-raised);
 }
 
 /* Panel header: the summary keeps the status mark and model visible while collapsed. */
@@ -84,12 +84,12 @@
 /* The status line under a block; kept at its height so an answer never shifts the layout. */
 .devices-feedback {
   min-height: 18px;
-  color: var(--muted);
-  font-size: var(--text-small);
+  color: var(--pk-muted);
+  font-size: var(--pk-text-small);
 }
 
 .devices-feedback--error {
-  color: var(--negative);
+  color: var(--pk-negative);
 }
 
 .devices-command-row {
@@ -121,11 +121,11 @@
 
 /* An edit typed but not sent: an accent edge, so it never passes for the device's value. */
 .devices-dirty {
-  border-color: var(--accent);
+  border-color: var(--pk-accent);
 }
 
 .devices-disclosure {
-  border-top: 1px solid var(--rule);
+  border-top: 1px solid var(--pk-rule);
   padding-top: 12px;
 }
 
@@ -146,10 +146,10 @@
   margin: 0;
   padding: 12px;
   overflow: auto;
-  border-radius: var(--radius-card);
-  background: var(--raised);
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
+  border-radius: var(--pk-radius-card);
+  background: var(--pk-raised);
+  font-family: var(--pk-font-mono);
+  font-size: var(--pk-text-caption);
   white-space: pre;
 }
 
@@ -157,7 +157,7 @@
   width: 100%;
   height: auto;
   padding: 8px;
-  font-size: var(--text-caption);
+  font-size: var(--pk-text-caption);
   resize: vertical;
 }
 
@@ -169,8 +169,8 @@
 }
 
 .devices-fact dt {
-  color: var(--muted);
-  font-size: var(--text-caption);
+  color: var(--pk-muted);
+  font-size: var(--pk-text-caption);
   font-weight: 500;
 }
 
@@ -192,7 +192,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 8px 0;
-  border-bottom: 1px solid var(--rule);
+  border-bottom: 1px solid var(--pk-rule);
   font-variant-numeric: tabular-nums;
 }
 
@@ -208,8 +208,8 @@
 }
 
 .devices-stream-row__label {
-  color: var(--muted);
-  font-size: var(--text-small);
+  color: var(--pk-muted);
+  font-size: var(--pk-text-small);
 }
 
 .devices-stream-row__url {
@@ -227,13 +227,13 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: var(--text-small);
+  font-size: var(--pk-text-small);
 }
 
 .devices-row-link {
   display: flex;
   flex-direction: column;
-  color: var(--text);
+  color: var(--pk-text);
 }
 
 .devices-row-link__name {
@@ -241,8 +241,8 @@
 }
 
 .devices-row-link__model {
-  color: var(--muted);
-  font-size: var(--text-small);
+  color: var(--pk-muted);
+  font-size: var(--pk-text-small);
 }
 
 .devices-strip-scroll {

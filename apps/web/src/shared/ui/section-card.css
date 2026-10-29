@@ -4,8 +4,8 @@
   gap: 12px;
   min-width: 0;
   padding: 20px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
+  border: 1px solid var(--pk-border);
+  border-radius: var(--pk-radius-card);
 }
 
 .ui-card__header {
@@ -25,6 +25,6 @@
 }
 
 .ui-card__aside {
-  color: var(--muted);
-  font-size: var(--text-small);
+  color: var(--pk-muted);
+  font-size: var(--pk-text-small);
 }

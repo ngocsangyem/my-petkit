@@ -4,9 +4,9 @@
 
 .ui-drum-mark__ring {
   fill: none;
-  stroke: var(--accent);
+  stroke: var(--pk-accent);
 }
 
 .ui-drum-mark__fill {
-  fill: var(--accent);
+  fill: var(--pk-accent);
 }
