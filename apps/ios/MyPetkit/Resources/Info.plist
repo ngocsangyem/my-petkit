@@ -22,6 +22,8 @@
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Bluetooth sends a new device your Wi-Fi details and this server's address. Nothing else is sent.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>The camera reads the pairing code on your my-petkit dashboard.</string>
 	<key>UIAppFonts</key>

@@ -181,13 +181,15 @@ struct DeviceCardPlaceholder: View {
     }
 }
 
-/// Home with no device yet. Adding one (provisioning) is not in this build, so
-/// the card explains instead of offering a button that would do nothing.
+/// Home with no device yet: the one action is adding one over Bluetooth.
 struct NoDevicesCard: View {
+    let add: () -> Void
+
     var body: some View {
         Card {
             EmptyBlock(title: "Add your first device",
-                       message: "Point a litter box, feeder or fountain at this server and it appears here.") {
+                       message: "Put a litter box, feeder or fountain in pairing mode and send it your Wi-Fi from this phone.",
+                       actionTitle: "Add a device", action: add) {
                 HStack(spacing: 10) {
                     DeviceDrawing(kind: .litterBox, height: 72)
                     DeviceDrawing(kind: .feederDual, height: 72)

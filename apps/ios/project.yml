@@ -30,6 +30,8 @@ targets:
         product: PetkitCore
       - package: PetkitKit
         product: PetkitAPI
+      - package: PetkitKit
+        product: PetkitBLE
     configFiles:
       Debug: MyPetkit/Config/Signing.xcconfig
       Release: MyPetkit/Config/Signing.xcconfig
@@ -47,6 +49,8 @@ targets:
       - target: MyPetkit
       - package: PetkitKit
         product: PetkitCore
+      - package: PetkitKit
+        product: PetkitBLE
       - package: SnapshotTesting
     settings:
       base:
