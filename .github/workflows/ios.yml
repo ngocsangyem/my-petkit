@@ -1,0 +1,58 @@
+name: ios
+
+# The iOS app (apps/ios): SwiftLint (no force unwrap/try/cast outside tests,
+# no colour or font-size literal outside the theme), the PetkitKit package
+# tests, then the app and its hosted tests on the iOS Simulator. The tests
+# that need a running server skip themselves here.
+#
+# Third-party actions are pinned to a commit SHA. To update one, resolve the
+# tag yourself: gh api repos/<owner>/<repo>/commits/<tag> --jq .sha
+
+on:
+  push:
+    paths:
+      - apps/ios/**
+      - packages/contracts/**
+      - .github/workflows/ios.yml
+  pull_request:
+    paths:
+      - apps/ios/**
+      - packages/contracts/**
+      - .github/workflows/ios.yml
+  workflow_call:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: apps/ios
+
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Tools
+        run: brew install xcodegen swiftlint
+
+      - name: SwiftLint
+        run: swiftlint lint --strict
+
+      - name: PetkitKit tests
+        run: swift test --package-path PetkitKit
+
+      - name: Generate the Xcode project
+        run: xcodegen generate
+
+      - name: Build and test the app (iOS Simulator)
+        run: >
+          xcodebuild test
+          -project MyPetkit.xcodeproj -scheme MyPetkit
+          -destination 'platform=iOS Simulator,name=iPhone 16'
+          -skipPackagePluginValidation
+          CODE_SIGNING_ALLOWED=NO

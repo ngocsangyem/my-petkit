@@ -1,0 +1,2 @@
+// Copy to Signing.local.xcconfig (git-ignored) to build for a device.
+DEVELOPMENT_TEAM = ABCDE12345

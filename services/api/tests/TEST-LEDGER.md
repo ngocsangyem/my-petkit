@@ -893,3 +893,12 @@ None.
 | `conftest.py` | re-exports the `authed_client` fixture from `conftest_auth.py` | auth migration | 05 |
 | `test_w7h.py::test_the_job_buttons_send_actions_the_firmware_accepts`, `test_w7h.py::test_no_button_sends_an_action_that_is_not_a_job` | `fountain_water_change` dropped from the buttons checked: the button and its action are removed because `start_action: 5` crashes the device | behaviour change | – |
 | `test_entities.py::test_entity_count_per_device_type_is_unchanged` | W7H 84 -> 83 for the removed Water Change button | behaviour change | – |
+
+### Media serves the byte ranges the iOS media loader asks for
+
+The app plays media through an AVAssetResourceLoader over its pinned session:
+a two-byte probe for type and total length, then open-ended ranges.
+
+- added: tests/test_media_range_requests.py::test_the_two_byte_probe_reports_type_and_total_length
+- added: tests/test_media_range_requests.py::test_an_open_ended_range_reads_to_the_end
+- added: tests/test_media_range_requests.py::test_a_range_past_the_end_is_refused_not_served_whole
