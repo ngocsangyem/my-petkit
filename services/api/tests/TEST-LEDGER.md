@@ -893,10 +893,3 @@ None.
 | `conftest.py` | re-exports the `authed_client` fixture from `conftest_auth.py` | auth migration | 05 |
 | `test_w7h.py::test_the_job_buttons_send_actions_the_firmware_accepts`, `test_w7h.py::test_no_button_sends_an_action_that_is_not_a_job` | `fountain_water_change` dropped from the buttons checked: the button and its action are removed because `start_action: 5` crashes the device | behaviour change | – |
 | `test_entities.py::test_entity_count_per_device_type_is_unchanged` | W7H 84 -> 83 for the removed Water Change button | behaviour change | – |
-
-### The user plane's certificate fingerprint is logged at start-up
-
-A client pairing by hand, before any admin exists to show a QR code, compares
-the fingerprint it is about to pin with this line.
-
-- added: tests/test_user_plane_logs_certificate_fingerprint.py::test_start_up_logs_the_fingerprint_a_client_will_pin
