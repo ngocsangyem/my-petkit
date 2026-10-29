@@ -29,12 +29,15 @@ struct SchedulesView: View {
     var body: some View {
         // The app has its own `TimelineView` (the Timeline tab), hence the module name.
         SwiftUI.TimelineView(.everyMinute) { context in
+            // A prepared model is drawn at a fixed moment, so the now line in
+            // previews and snapshots does not move with the wall clock.
+            let now = loadsFromServer ? context.date : DevicePreviewFixtures.now
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    ScheduleScreenHeader(title: title, lede: lede(now: context.date),
+                    ScheduleScreenHeader(title: title, lede: lede(now: now),
                                        actionImage: addAction == nil ? nil : "plus",
                                        actionLabel: addLabel, action: addAction)
-                    VStack(alignment: .leading, spacing: Theme.Space.gap) { content(now: context.date) }
+                    VStack(alignment: .leading, spacing: Theme.Space.gap) { content(now: now) }
                         .padding(.horizontal, Theme.Space.screenEdge)
                         .padding(.bottom, Theme.Space.pad)
                 }
