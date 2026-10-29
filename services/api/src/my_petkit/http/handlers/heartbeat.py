@@ -46,6 +46,7 @@ from aiohttp import web
 
 from my_petkit.http.handlers._common import request_device
 from my_petkit.utils.coerce import to_bool
+from my_petkit.utils.logtext import one_line
 
 if TYPE_CHECKING:
     from my_petkit.devices.base import Device
@@ -204,7 +205,7 @@ def note_iot_status(device: Device, request: web.Request) -> None:
     device.mqtt_connected = False
     log.info("Heartbeat %s (id=%d): device reports iotStatus=%s - clearing "
              "mqtt_connected, commands go back to the heartbeat queue",
-             device.device_type, device.petkit_id, raw)
+             device.device_type, device.petkit_id, one_line(raw))
     hub = request.app.get("event_hub")
     if hub is not None:
         hub.publish("connect", device.petkit_id,

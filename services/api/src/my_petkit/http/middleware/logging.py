@@ -20,6 +20,7 @@ from my_petkit.http.handlers._common import device_id, request_device
 from my_petkit.http.middleware import API_PREFIX, PROXY_OUTCOME, Handler
 from my_petkit.http.middleware.body import BODY_DROPPED, REQUEST_BODY
 from my_petkit.utils.capture import capture_record
+from my_petkit.utils.logtext import one_line
 
 log = logging.getLogger(__name__)
 
@@ -72,7 +73,8 @@ async def logging_middleware(request: web.Request, handler: Handler) -> web.Stre
         req_body = raw.decode("utf-8", "replace") if raw else None
         dt = request.get("device_type", "?")
         pid = request.get("x_device", {}).get("id", "?")
-        log.info("%s %s [%s id=%s] -> %d", request.method, request.path, dt, pid, resp.status)
+        log.info("%s %s [%s id=%s] -> %d", request.method, one_line(request.path),
+                 one_line(dt), one_line(pid), resp.status)
         hub = request.app.get("event_hub")
         if hub is not None:
             did = device_id(request)

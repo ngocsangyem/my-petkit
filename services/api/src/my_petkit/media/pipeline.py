@@ -18,6 +18,7 @@ from urllib.parse import urlparse
 from my_petkit.events import ingest
 from my_petkit.media import crypto, layout, transcode
 from my_petkit.utils.jsonio import read_bytes
+from my_petkit.utils.logtext import one_line
 
 if TYPE_CHECKING:
     from my_petkit.ai.pets import PetRegistry
@@ -109,7 +110,7 @@ def _claim_unique_path(path: str) -> str:
     candidate, n = path, 1
     while True:
         try:
-            fd = os.open(candidate, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+            fd = os.open(candidate, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
         except FileExistsError:
             n += 1
             candidate = f"{base} ({n}){ext}"
@@ -242,7 +243,7 @@ async def process_file_info(device: Device, info: dict, config: dict, store: Eve
     if (filed and filed.get("status") == "ready" and filed.get("media_path")
             and await asyncio.to_thread(os.path.isfile, filed["media_path"])):
         log.info("file_info for device %d: %s is already filed at %s - replay ignored, "
-                 "including any re-uploaded bytes", device.petkit_id, row["file_id"],
+                 "including any re-uploaded bytes", device.petkit_id, one_line(row["file_id"]),
                  filed["media_path"])
         return filed["media_path"]
     await store.upsert_media(row)
@@ -253,8 +254,8 @@ async def process_file_info(device: Device, info: dict, config: dict, store: Eve
     # with no capability simply isn't gated.
     capability = ingest.capability_for_category(row["category"])
     if device.is_camera and capability and capability not in device.enabled_capabilities():
-        log.info("Skipping %s: capability %r disabled for device %d",
-                 row["file_id"], row["category"], device.petkit_id)
+        log.info("Skipping %s: capability %s disabled for device %d",
+                 one_line(row["file_id"]), one_line(repr(row["category"])), device.petkit_id)
         await store.upsert_media({"file_id": row["file_id"], "status": "skipped"})
         return None
 
@@ -266,7 +267,7 @@ async def process_file_info(device: Device, info: dict, config: dict, store: Eve
     src = await asyncio.to_thread(_locate_raw_file, raw_root, info)
     if not src:
         log.warning("file_info for device %d: no matching raw upload found (fileId=%s)",
-                   device.petkit_id, row["file_id"])
+                   device.petkit_id, one_line(row["file_id"]))
         await store.upsert_media({"file_id": row["file_id"], "status": "missing"})
         return None
 

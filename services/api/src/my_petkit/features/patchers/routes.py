@@ -43,6 +43,7 @@ from my_petkit.shared.panel_request import _device_or_404, _json_body
 from my_petkit.shared.background_tasks import _spawn_background
 from my_petkit.shared.appkeys import BRIDGE, CFG, HUB, REGISTRY
 from my_petkit.shared.tiers import Tier, tier
+from my_petkit.utils.logtext import one_line
 
 if TYPE_CHECKING:
     from my_petkit.devices.base import Device
@@ -178,7 +179,8 @@ async def api_patcher_apply(request: web.Request) -> web.Response:
             hub.publish("patcher", did, f"[{patcher_id}] cancelled (shutting down)")
             raise
         except Exception as e:
-            log.exception("Patcher %s %s failed for device %d", patcher_id, action, did)
+            log.exception("Patcher %s %s failed for device %d",
+                          one_line(patcher_id), one_line(action), did)
             hub.publish("patcher", did, f"[{patcher_id}] FAILED: {e}")
 
     _spawn_background(request.app, _run(), name=f"patcher-{patcher_id}-{action}-{did}")

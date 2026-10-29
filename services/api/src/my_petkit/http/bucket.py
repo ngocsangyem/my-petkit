@@ -23,6 +23,7 @@ from aiohttp import web
 
 from my_petkit.utils.const import DEVICE_LOG_KEY_PREFIX
 from my_petkit.utils.jsonio import atomic_write_bytes
+from my_petkit.utils.logtext import one_line
 from my_petkit.utils.paths import UnsafePathError, safe_join
 
 if TYPE_CHECKING:
@@ -175,8 +176,8 @@ def _resolve_key(request: web.Request, *, for_write: bool = False) -> str | None
     path = request.match_info["path"]
     route = _route(request.app, path)
     if route is None:
-        log.warning("BUCKET %s: rejected key %r (device logs not accepted)",
-                    request.method, path)
+        log.warning("BUCKET %s: rejected key %s (device logs not accepted)",
+                    request.method, one_line(repr(path)))
         return None
     _kind, root, rel_parts = route
 
@@ -187,7 +188,7 @@ def _resolve_key(request: web.Request, *, for_write: bool = False) -> str | None
         # different string than the one we open.
         dest = safe_join(root, *rel_parts)
     except UnsafePathError as e:
-        log.warning("BUCKET %s: rejected key %r (%s)", request.method, path, e)
+        log.warning("BUCKET %s: rejected key %s (%s)", request.method, one_line(repr(path)), e)
         return None
 
     # An empty key -- `PUT /`, `PUT /.`, `PUT //` -- resolves to the root. That
@@ -202,7 +203,8 @@ def _resolve_key(request: web.Request, *, for_write: bool = False) -> str | None
     # resolve to the log root, pass, and stage up to client_max_size bytes in
     # /data next to petkit.db.
     if for_write and dest == os.path.realpath(root):
-        log.warning("BUCKET %s: rejected key %r (names the bucket root)", request.method, path)
+        log.warning("BUCKET %s: rejected key %s (names the bucket root)",
+                    request.method, one_line(repr(path)))
         return None
 
     return dest
@@ -280,10 +282,11 @@ async def handle_put(request: web.Request) -> web.Response:
 
     etag = await _store_upload(dest, body)
     if etag is None:
-        log.warning("BUCKET PUT /%s: key names an existing directory", path)
+        log.warning("BUCKET PUT /%s: key names an existing directory", one_line(path))
         return _denied()
 
-    log.info("BUCKET PUT /%s (%d bytes, %s) -> %s", path, len(body), content_type, dest)
+    log.info("BUCKET PUT /%s (%d bytes, %s) -> %s",
+             one_line(path), len(body), one_line(content_type), dest)
     _notify(request, path, len(body))
 
     return web.Response(
@@ -310,10 +313,10 @@ async def handle_post(request: web.Request) -> web.Response:
     body = await request.read()
     content_type = request.content_type or "application/octet-stream"
 
-    log.info("BUCKET POST /%s (%d bytes, %s)", path, len(body), content_type)
+    log.info("BUCKET POST /%s (%d bytes, %s)", one_line(path), len(body), one_line(content_type))
 
     if body and await _store_upload(dest, body) is None:
-        log.warning("BUCKET POST /%s: key names an existing directory", path)
+        log.warning("BUCKET POST /%s: key names an existing directory", one_line(path))
         return _denied()
 
     return web.Response(

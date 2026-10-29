@@ -60,6 +60,7 @@ from my_petkit.http.handlers.stubs import (
     handle_attire_over,
 )
 from my_petkit.patchers.common import STAGE_DIR
+from my_petkit.utils.logtext import one_line
 from my_petkit.utils.paths import UnsafePathError, safe_join
 
 if TYPE_CHECKING:
@@ -208,5 +209,5 @@ async def handle_catchall(request: web.Request) -> web.Response:
         ``{"result": {}}`` — an empty success, because a 404 would put the
         firmware into an endless retry loop.
     """
-    log.warning("Unhandled: %s %s", request.method, request.path)
+    log.warning("Unhandled: %s %s", request.method, one_line(request.path))
     return web.json_response({"result": {}})

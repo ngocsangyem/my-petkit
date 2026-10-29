@@ -26,6 +26,7 @@ from my_petkit.events import ingest
 from my_petkit.http.handlers._common import request_device
 from my_petkit.media import pipeline
 from my_petkit.utils.capture import capture_record
+from my_petkit.utils.logtext import one_line
 
 if TYPE_CHECKING:
     from my_petkit.devices.base import Device
@@ -183,4 +184,4 @@ async def _process(
         # Nothing awaits this task, so an escaping exception would only surface
         # as asyncio's "exception was never retrieved" at GC time, if at all.
         log.exception("media pipeline failed for device %d file %s",
-                     device.petkit_id, info.get("fileId") or info.get("file_id"))
+                     device.petkit_id, one_line(info.get("fileId") or info.get("file_id")))

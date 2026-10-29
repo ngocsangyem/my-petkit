@@ -23,6 +23,7 @@ from my_petkit.http.proxy import forward, resolve_upstream
 from my_petkit.http.redact import RedactionPolicy
 from my_petkit.media.crypto import resolve_key_string
 from my_petkit.utils.capture import capture_record
+from my_petkit.utils.logtext import one_line
 
 log = logging.getLogger(__name__)
 
@@ -196,7 +197,7 @@ async def proxy_middleware(request: web.Request, handler: Handler) -> web.Stream
     if _is_heartbeat(request.path):
         if carries_commands(local):
             log.debug("Not forwarding %s: it is delivering a queued command",
-                      request.path)
+                      one_line(request.path))
             return local
 
     if _reports_a_local_log_upload(request, config):
@@ -209,13 +210,13 @@ async def proxy_middleware(request: web.Request, handler: Handler) -> web.Stream
         # there is nothing upstream can usefully say about an object it cannot
         # see, and a doctored `key` would be a lie rather than a redaction.
         log.debug("Not forwarding %s: it reports an upload to our own bucket",
-                  request.path)
+                  one_line(request.path))
         return local
 
     if (config.get("proxy_block_log_upload", True)
             and request.path.rstrip("/").rsplit("/", 1)[-1] in GUARDED_LOCAL_ENDPOINTS):
         log.debug("Not forwarding %s: the log-upload guard withholds it",
-                  request.path)
+                  one_line(request.path))
         return local
 
     device = request_device(request)
@@ -239,7 +240,7 @@ async def proxy_middleware(request: web.Request, handler: Handler) -> web.Stream
             log.warning(
                 "PROXY: not forwarding %s — %s resolves to %s, which is this add-on. "
                 "Your DNS redirects it here. Set an upstream DNS server in Setup to "
-                "reach the real server.", request.path, upstream, looped)
+                "reach the real server.", one_line(request.path), upstream, looped)
             hub = request.app.get("event_hub")
             if hub is not None:
                 hub.record_upstream("dns_loop")
@@ -259,7 +260,7 @@ async def proxy_middleware(request: web.Request, handler: Handler) -> web.Stream
 
         if not exchange.usable:
             log.info("PROXY: upstream gave nothing usable for %s (status %d%s), "
-                     "serving locally", request.path, exchange.status,
+                     "serving locally", one_line(request.path), exchange.status,
                      f", error {exchange.error.get('code')}" if exchange.error else "")
             return local
 
@@ -267,7 +268,7 @@ async def proxy_middleware(request: web.Request, handler: Handler) -> web.Stream
     except asyncio.CancelledError:
         raise
     except Exception:
-        log.exception("PROXY: failed on %s, serving the local answer", request.path)
+        log.exception("PROXY: failed on %s, serving the local answer", one_line(request.path))
         return local
 
 
@@ -352,7 +353,7 @@ async def _record_exchange(request: web.Request, device, exchange, *,
         _capture_exchange(request, exchange, body=body, local=local)
         _remember_upstream_credentials(request, device, exchange)
     except Exception:
-        log.exception("PROXY: could not record the exchange for %s", request.path)
+        log.exception("PROXY: could not record the exchange for %s", one_line(request.path))
 
 
 def _capture_exchange(request: web.Request, exchange, *,
@@ -429,6 +430,7 @@ def _remember_upstream_credentials(request: web.Request, device, exchange) -> No
     # warning to say why — worse than simply not having the credentials.
     if not all(creds.get(k) for k in ("mqtt_host", "product_key",
                                       "device_name", "device_secret")):
-        log.debug("Incomplete upstream MQTT credentials from %s, ignoring", request.path)
+        log.debug("Incomplete upstream MQTT credentials from %s, ignoring",
+                  one_line(request.path))
         return
     store.put(device.petkit_id, creds)

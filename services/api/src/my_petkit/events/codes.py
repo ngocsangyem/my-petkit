@@ -68,6 +68,7 @@ from my_petkit.utils.const import (
     DEVICE_TYPES_ALL, DEVICE_TYPES_FEEDER, DEVICE_TYPES_LITTER,
     DEVICE_TYPES_PURIFIER, DEVICE_TYPES_WATER_FOUNTAIN,
 )
+from my_petkit.utils.logtext import one_line
 
 log = logging.getLogger(__name__)
 
@@ -1327,7 +1328,7 @@ def _warn_if_outside_families(code: EventCode, key: str, codename: str) -> None:
         return
     _WARNED_OUTSIDE_FAMILIES.add((codename, key))
     log.warning("Event code %s (%s) reported by %s, which is outside its families %s",
-                key, code.label, codename, sorted(code.families))
+                one_line(key), code.label, codename, sorted(code.families))
 
 
 def codes_for(device_type: str | None) -> dict[str, EventCode]:

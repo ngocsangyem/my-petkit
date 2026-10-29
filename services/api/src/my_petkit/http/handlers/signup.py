@@ -20,6 +20,7 @@ from aiohttp import web
 from my_petkit.devices import payloads
 from my_petkit.http.handlers._common import device_field, device_id, device_serial
 from my_petkit.utils.coerce import to_float
+from my_petkit.utils.logtext import one_line
 
 log = logging.getLogger(__name__)
 
@@ -131,7 +132,7 @@ async def handle_signup(request: web.Request) -> web.Response:
         # still a device that will retry forever, but there is no id to invent
         # that would survive the next request.
         log.warning("Signup from a %s with no id and no MAC; cannot register it",
-                    device_type)
+                    one_line(device_type))
         return web.json_response({"error": "missing device id"}, status=400)
 
     known = registry.get(petkit_id) is not None
@@ -150,16 +151,17 @@ async def handle_signup(request: web.Request) -> web.Response:
         # comparing it against the app or a capture needs to know that.
         device.config["locally_assigned_id"] = True
         registry.mark_dirty()
-        log.info("Registered a %s that had no id of its own: minted %d from its "
+        log.info("Registered a %s that had no id of its own: minted %s from its "
                  "MAC (%s). The same device will always get this id back.",
-                 device_type, petkit_id, mac or "no mac")
+                 one_line(device_type), one_line(petkit_id), one_line(mac or "no mac"))
 
     bt_mac = device_field(request, "bt_mac")
     if bt_mac and not device.config.get("bt_mac"):
         device.config["bt_mac"] = bt_mac
         registry.mark_dirty()
     _remember_where_it_thinks_it_is(request, device, registry)
-    log.info("Signup: %s id=%d sn=%s fw=%s", device_type, petkit_id, sn, firmware)
+    log.info("Signup: %s id=%s sn=%s fw=%s", one_line(device_type), one_line(petkit_id),
+             one_line(sn), one_line(firmware))
 
     on_signup = request.app.get("on_signup")
     if on_signup:

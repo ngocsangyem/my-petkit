@@ -22,6 +22,8 @@ from typing import Awaitable, Callable
 
 from aiohttp import web
 
+from my_petkit.utils.logtext import one_line
+
 log = logging.getLogger(__name__)
 
 Handler = Callable[[web.Request], Awaitable[web.StreamResponse]]
@@ -76,8 +78,8 @@ async def body_middleware(request: web.Request, handler: Handler) -> web.StreamR
 
     # Content-Length is the device's own claim and absent when chunked; logged
     # as given, to size the limit by, and trusted for nothing else.
-    log.warning("Dropped the body of %s %r from %s: %s (Content-Length %s); answered "
-                "empty success, nothing parsed", request.method, request.path,
-                request.remote, reason, request.content_length)
+    log.warning("Dropped the body of %s %s from %s: %s (Content-Length %s); answered "
+                "empty success, nothing parsed", request.method, one_line(repr(request.path)),
+                one_line(request.remote), reason, request.content_length)
     request[BODY_DROPPED] = reason
     return web.json_response({"result": {}})
