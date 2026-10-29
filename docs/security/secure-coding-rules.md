@@ -1,111 +1,111 @@
 # Secure coding rules: my-petkit
 
-Nguồn: tài liệu quy ước của plan rebuild (phần C), chép vào repo ở phase 01. Cổng CI tương ứng: `docs/code-standards.md` mục "CI gates".
+Source: the conventions document of the rebuild plan (part C), copied into the repo in phase 01. Matching CI gates: `docs/code-standards.md`, section "CI gates".
 
-## Phần C: Bảo mật cho dự án mã nguồn mở
+## Part C: Security for an open-source project
 
-### C0. Mô hình mối đe dọa (rút gọn)
-**Giả định cơ bản: kẻ tấn công đọc được toàn bộ source, CI và lịch sử issue.** Hệ quả:
-- Không có bảo mật nào dựa vào việc giấu code.
-- Mọi secret sinh riêng cho từng bản cài.
-- Mọi lỗ đã biết phải được sửa và phát hành nhanh.
+### C0. Threat model (condensed)
+**Base assumption: the attacker can read all of the source, the CI and the issue history.** Consequences:
+- No security relies on hiding code.
+- Every secret is generated per install.
+- Every known hole must be fixed and released quickly.
 
-| Kẻ tấn công | Vị trí | Mục tiêu | Lớp phòng chính |
+| Attacker | Position | Goal | Main defense |
 |---|---|---|---|
-| Internet | Trước user plane (mode cloud) | Chiếm admin, đọc video, ra lệnh thiết bị, root thiết bị qua patcher | Auth + rate limit + TLS + tier/step-up (C1). Device plane không nằm trên internet |
-| Thiết bị khác trong LAN | Device plane, user plane local | Giả thiết bị, lấy secret qua `dev_signup`, đẩy lệnh qua MQTT | Bind interface, MQTT chỉ cho client không theo kiểu Aliyun đi qua loopback, cap kích thước. Phần còn lại là giới hạn của firmware: ghi rõ trong `security.md` |
-| Trang web độc hại trong trình duyệt của chủ nhà | User plane | CSRF, đọc WS | `SameSite=Strict`, kiểm Origin cho mọi method không an toàn và mọi WS, bắt buộc JSON, CSP |
-| Thiết bị bị chiếm / payload độc | Device plane → server | Khai thác parser, ffmpeg, path traversal, SSRF qua IP báo lên | Coerce, safe_join, ffmpeg hardening, SSRF guard, fuzzing (C2–C4) |
-| Chuỗi cung ứng | CI, dependency, image | Chèn mã vào bản phát hành | Pin SHA, lock có hash, ký image, SBOM, provenance (C6) |
+| Internet | In front of the user plane (cloud mode) | Take over admin, read video, command devices, root devices via patchers | Auth + rate limit + TLS + tier/step-up (C1). The device plane is not on the internet |
+| Another device on the LAN | Device plane, local user plane | Impersonate a device, obtain secrets via `dev_signup`, push commands via MQTT | Interface binding, MQTT lets only non-Aliyun-style clients through over loopback, size caps. The rest is a firmware limitation: documented in `security.md` |
+| Malicious web page in the owner's browser | User plane | CSRF, reading the WS | `SameSite=Strict`, Origin check on every unsafe method and every WS, JSON required, CSP |
+| Compromised device / malicious payload | Device plane → server | Exploit parsers, ffmpeg, path traversal, SSRF via a reported IP | Coerce, safe_join, ffmpeg hardening, SSRF guard, fuzzing (C2–C4) |
+| Supply chain | CI, dependencies, image | Inject code into a release | SHA pinning, hashed locks, image signing, SBOM, provenance (C6) |
 
 ### C1. User plane
-- **Từ chối mặc định.** Mọi route khai báo tier. Test duyệt toàn bộ router, route nào thiếu tier thì fail. Chỉ `public-static` và `signed-media` được miễn token.
-- **Secret sinh lúc cài**: khóa ký session, khóa HMAC cho signed URL, cert TLS. Sinh khi chạy lần đầu, lưu quyền 0600 trong data dir. **Không bao giờ có default hard-code.**
-- **Mật khẩu**: argon2id. So sánh token và chữ ký bằng `hmac.compare_digest`. Ngẫu nhiên bằng `secrets`.
-- **Header bảo mật**:
-  - `Content-Security-Policy: default-src 'self'; frame-ancestors 'self'` (mode add-on cho phép origin HA để Ingress nhúng được, phải xác minh trước);
+- **Deny by default.** Every route declares a tier. A test walks the whole router and fails on any route without a tier. Only `public-static` and `signed-media` are exempt from tokens.
+- **Secrets generated at install**: session signing key, HMAC key for signed URLs, TLS cert. Generated on first run, stored with mode 0600 in the data dir. **Never a hard-coded default.**
+- **Passwords**: argon2id. Compare tokens and signatures with `hmac.compare_digest`. Randomness from `secrets`.
+- **Security headers**:
+  - `Content-Security-Policy: default-src 'self'; frame-ancestors 'self'` (add-on mode allows the HA origin so Ingress can embed it, to be verified first);
   - `X-Content-Type-Options: nosniff`;
   - `Referrer-Policy: no-referrer`;
-  - `Strict-Transport-Security` khi chạy TLS.
-- **CORS** tắt.
-- **Hiện thực (đã có trong code)**:
-  - Tier khai báo trên handler bằng `@tier(...)` (`shared/tiers.py`); middleware `features/auth/middleware.py` từ chối route thiếu tier. Ngoài `public-static` và `signed-media`, chỉ ba route trao đổi bí mật lấy credential được miễn token (tier `credential`: `/api/auth/setup`, `/login`, `/pairing/redeem`), có rate limit; test liệt kê đúng ba route này.
-  - **Ingress**: chỉ tin khi request đến `ingress_port` (= `web_port`, chỉ ở mode add-on) **và** peer TCP đúng `172.30.32.2`. Nguồn: tài liệu developer của Home Assistant, "Presenting your app" → Ingress (`docs/apps/presentation.md`, repo `home-assistant/developers.home-assistant`, commit `8da484e`): "Only connections from `172.30.32.2` must be allowed". Header (`X-Ingress-Path`, `X-Forwarded-*`, `X-Hass-Source`) không bao giờ được tin.
-  - **`frame-ancestors 'self'` đủ cho Ingress**: Supervisor proxy panel dưới `/api/hassio_ingress/<token>/` trên chính origin của HA, nên trang HA nhúng panel là `'self'`. Không cần ghi origin HA. Vẫn kiểm trên HA thật.
-  - Tài liệu index của panel cũ dùng CSP rộng hơn (`legacy_panel_csp`): một inline script cho phép theo hash, `style-src 'unsafe-inline'` cho ~90 thuộc tính `style=`, ảnh `blob:`/`data:`. Bỏ khi dashboard mới thay panel cũ.
-  - Origin/Host: mọi method không an toàn và mọi WS upgrade. Host phải là IP literal, `localhost` hoặc tên trong `user_hosts`; Origin (nếu có) phải trùng đúng host:port. Cookie/Ingress mà không có Origin thì bị từ chối; client token (không tự gửi kèm) thì được.
-  - Lỗi 5xx: thông điệp của handler bị thay bằng correlation id, trừ 502/503/504 là thông điệp mô tả upstream do handler viết có chủ ý.
-- **Input**: schema chặt, từ chối field lạ. Giới hạn độ dài chuỗi, kích thước body và số phần tử mảng. Định dạng đặc biệt (SSH pubkey, IANA timezone, tên file âm thanh) validate bằng allowlist, không dùng blocklist.
-- **Output**: chỉ JSON. Web render qua React, không bao giờ chèn HTML thô. Mọi chuỗi đến từ thiết bị là dữ liệu không tin cậy.
+  - `Strict-Transport-Security` when running TLS.
+- **CORS** off.
+- **Implementation (already in the code)**:
+  - Tiers are declared on handlers with `@tier(...)` (`shared/tiers.py`); the middleware `features/auth/middleware.py` rejects routes without a tier. Besides `public-static` and `signed-media`, only three routes that exchange a secret for a credential are exempt from tokens (tier `credential`: `/api/auth/setup`, `/login`, `/pairing/redeem`), and they are rate limited; a test lists exactly these three routes.
+  - **Ingress**: trusted only when the request arrives on `ingress_port` (= `web_port`, add-on mode only) **and** the TCP peer is exactly `172.30.32.2`. Source: Home Assistant developer docs, "Presenting your app" → Ingress (`docs/apps/presentation.md`, repo `home-assistant/developers.home-assistant`, commit `8da484e`): "Only connections from `172.30.32.2` must be allowed". Headers (`X-Ingress-Path`, `X-Forwarded-*`, `X-Hass-Source`) are never trusted.
+  - **`frame-ancestors 'self'` is enough for Ingress**: the Supervisor proxies the panel under `/api/hassio_ingress/<token>/` on HA's own origin, so the HA page embedding the panel is `'self'`. No need to list the HA origin. Still to be checked on real HA.
+  - The old panel's index document uses a broader CSP (`legacy_panel_csp`): one inline script allowed by hash, `style-src 'unsafe-inline'` for ~90 `style=` attributes, `blob:`/`data:` images. Removed once the new dashboard replaces the old panel.
+  - Origin/Host: every unsafe method and every WS upgrade. Host must be an IP literal, `localhost` or a name in `user_hosts`; Origin (if present) must match host:port exactly. Cookie/Ingress without an Origin is rejected; a client token (not sent automatically) is allowed.
+  - 5xx errors: the handler's message is replaced by a correlation id, except 502/503/504, which are upstream-describing messages the handler writes on purpose.
+- **Input**: strict schemas, unknown fields rejected. Limit string length, body size and array element count. Special formats (SSH pubkey, IANA timezone, sound file names) are validated with allowlists, never blocklists.
+- **Output**: JSON only. The web renders via React and never inserts raw HTML. Every string coming from a device is untrusted data.
 
-### C2. Thực thi lệnh, file, ffmpeg
-- **Lệnh**: không bao giờ `shell=True` hay `os.system`. Chuỗi `run_cmd` gửi xuống thiết bị chỉ ghép từ hằng số cộng tham số đã validate bằng allowlist (đường dẫn cố định, pubkey đúng định dạng, phần mở rộng `.mp3|.aac|.wav`). Có test chèn ký tự `;|&$\`` phải bị từ chối.
-- **File**: mọi đường dẫn từ input qua `safe_join`. Không phục vụ file ngoài media root. Thư mục `.raw`/`tmp` không lộ ra user plane.
-- **ffmpeg**: input từ thiết bị là dữ liệu không tin cậy.
+### C2. Command execution, files, ffmpeg
+- **Commands**: never `shell=True` or `os.system`. `run_cmd` strings sent to a device are built only from constants plus parameters validated by allowlist (fixed paths, correctly formatted pubkey, extension `.mp3|.aac|.wav`). A test injecting the characters `;|&$\`` must be rejected.
+- **Files**: every path from input goes through `safe_join`. No file outside the media root is served. The `.raw`/`tmp` directories are not exposed to the user plane.
+- **ffmpeg**: input from devices is untrusted data.
   - `-nostdin -protocol_whitelist file,pipe`;
-  - cap kích thước và thời lượng;
-  - giữ timeout sẵn có;
-  - pin phiên bản ffmpeg trong image, quét CVE theo image.
+  - cap size and duration;
+  - keep the existing timeouts;
+  - pin the ffmpeg version in the image, scan CVEs per image.
 
-### C3. SSRF và kết nối ra ngoài
-- **Đích là thiết bị**: mọi kết nối server tự khởi tạo tới thiết bị (go2rtc, đọc ngược của patcher, talk 9010) đi qua một module `utils/outbound_guard.py` duy nhất. Module nằm ở `utils/outbound_guard.py` (không phải `shared/`): protocol core (`media/`, `patchers/`) không được import `shared/` theo contract import-linter, còn feature thì import được `utils/`. Chỉ cho phép khi đủ hai điều kiện:
-  - IP thuộc dải private, ULA hoặc subnet WireGuard đã cấu hình;
-  - IP thuộc về thiết bị đã đăng ký.
+### C3. SSRF and outbound connections
+- **Device targets**: every connection the server initiates to a device (go2rtc, patcher read-back, talk 9010) goes through a single module, `utils/outbound_guard.py`. The module lives in `utils/outbound_guard.py` (not `shared/`): the protocol core (`media/`, `patchers/`) may not import `shared/` under the import-linter contract, while features may import `utils/`. A connection is allowed only when both conditions hold:
+  - the IP is in a private range, ULA or a configured WireGuard subnet;
+  - the IP belongs to a registered device.
 
-  `request.remote` chỉ là gợi ý, không phải bằng chứng.
-- **Proxy upstream**: `proxy_upstream` và `proxy_dns` chỉ nhận host trong allowlist của PetKit/Aliyun theo vùng. Đổi giá trị thuộc tier R3.
-- Không tự theo redirect khi kết nối ra ngoài.
+  `request.remote` is only a hint, not proof.
+- **Upstream proxy**: `proxy_upstream` and `proxy_dns` accept only hosts on the per-region PetKit/Aliyun allowlist. Changing the value is tier R3.
+- Never follow redirects automatically on outbound connections.
 
-### C4. Device plane: firmware chịu được gì thì siết cái đó
-- Bind interface theo config (bảng listener của phase 11). 1883 chỉ nghe loopback.
-- Cap kích thước body và upload. Bucket giữ cap 50 MB như gốc; với các route khác, kiểm lại cap 1 MiB và lỗi 413 (phase 04).
-- **Fuzzing** bằng `hypothesis` cho:
-  - các parser của device plane: `parse_x_device`, normalize HTTP/MQTT, frame BLE W5/CTW3, JSON bare-token repair, decode khung provisioning;
-  - yêu cầu: không raise, không treo, không cấp phát vô hạn.
-- Hàng đợi có giới hạn, vì gốc có hàng đợi lệnh không giới hạn.
-- Crypto mà protocol bắt buộc (AES-CBC, MD5 sign, HMAC kiểu Aliyun) nằm riêng trong `utils/crypto.py`, ghi rõ "do firmware bắt buộc". Không dùng chúng cho bất cứ việc gì khác.
+### C4. Device plane: tighten as far as the firmware tolerates
+- Bind interfaces per config (the listener table of phase 11). 1883 listens only on loopback.
+- Cap body and upload size. The bucket keeps the original's 50 MB cap; for other routes, re-check the 1 MiB cap and the 413 error (phase 04).
+- **Fuzzing** with `hypothesis` for:
+  - the device-plane parsers: `parse_x_device`, HTTP/MQTT normalize, W5/CTW3 BLE frames, JSON bare-token repair, provisioning frame decoding;
+  - requirements: no raise, no hang, no unbounded allocation.
+- Bounded queues, because the original has an unbounded command queue.
+- Crypto that the protocol mandates (AES-CBC, MD5 sign, Aliyun-style HMAC) lives separately in `utils/crypto.py`, clearly marked "required by firmware". Never use it for anything else.
 
-### C5. Dữ liệu
-- Data dir 0700, file 0600, `umask 077`.
-- `auth.db` tách riêng.
-- Secret không bao giờ đi vào response mà không qua redaction.
-- Capture và device log thuộc tier R3, có cảnh báo khi xem.
-- Không commit capture, data, cert hay key (`.gitignore` gốc cộng phần bổ sung, gitleaks).
+### C5. Data
+- Data dir 0700, files 0600, `umask 077`.
+- `auth.db` kept separate.
+- Secrets never go into a response without redaction.
+- Captures and device logs are tier R3, with a warning when viewed.
+- Never commit captures, data, certs or keys (the original `.gitignore` plus additions, gitleaks).
 
-### C6. Supply chain, CI, phát hành
-- **Action**: pin theo SHA, `permissions` tối thiểu. Không dùng `pull_request_target` với secret. PR từ fork không bao giờ chạm tới job publish.
-- **Dependency**:
-  - lock có hash (Python `--require-hashes`, `pnpm --frozen-lockfile`, `Package.resolved`);
+### C6. Supply chain, CI, releases
+- **Actions**: pinned by SHA, minimal `permissions`. No `pull_request_target` with secrets. PRs from forks never reach the publish job.
+- **Dependencies**:
+  - hashed locks (Python `--require-hashes`, `pnpm --frozen-lockfile`, `Package.resolved`);
   - Dependabot;
-  - `pip-audit`, `osv-scanner`, `pnpm audit` **chặn merge** khi có lỗ high/critical;
-  - thêm dependency mới phải ghi lý do trong PR.
-- **SAST**: CodeQL (Python, JS/TS, Swift), Semgrep với ruleset chuẩn cộng rule riêng:
-  - cấm `shell=True`, `os.system`, `pickle`, `yaml.load`, `eval`;
-  - cấm `app["…"]` chuỗi trần trong `features/`;
-  - cấm `dangerouslySetInnerHTML`.
+  - `pip-audit`, `osv-scanner`, `pnpm audit` **block merge** on high/critical holes;
+  - adding a new dependency requires a stated reason in the PR.
+- **SAST**: CodeQL (Python, JS/TS, Swift), Semgrep with the standard ruleset plus custom rules:
+  - ban `shell=True`, `os.system`, `pickle`, `yaml.load`, `eval`;
+  - ban bare-string `app["…"]` in `features/`;
+  - ban `dangerouslySetInnerHTML`.
 - **Image**:
-  - multi-arch, quét bằng Trivy hoặc Grype trong CI;
-  - **ký bằng cosign keyless (GitHub OIDC)**;
-  - SBOM (syft) và provenance attestation đính kèm;
-  - docs hướng dẫn `cosign verify`.
+  - multi-arch, scanned with Trivy or Grype in CI;
+  - **signed with cosign keyless (GitHub OIDC)**;
+  - SBOM (syft) and provenance attestation attached;
+  - docs explain `cosign verify`.
 - **Container** (compose/VPS):
   - non-root;
-  - `read_only: true` với tmpfs cho `/tmp`;
+  - `read_only: true` with tmpfs for `/tmp`;
   - `no-new-privileges`;
-  - `cap_drop: [ALL]` cộng `NET_BIND_SERVICE`;
+  - `cap_drop: [ALL]` plus `NET_BIND_SERVICE`;
   - healthcheck.
 
-  Add-on chạy root vì Supervisor sở hữu `/data`; ghi rõ trong `security.md`.
+  The add-on runs as root because the Supervisor owns `/data`; documented in `security.md`.
 - **Repo**:
-  - branch protection trên `main`: bắt buộc PR, CI xanh, không force-push;
-  - bật secret scanning với push protection;
-  - bật Private Vulnerability Reporting.
+  - branch protection on `main`: PR required, CI green, no force-push;
+  - secret scanning with push protection enabled;
+  - Private Vulnerability Reporting enabled.
 
-### C7. Quy trình xử lý lỗ hổng
-- `SECURITY.md` ghi:
-  - kênh báo cáo riêng tư (GitHub advisory);
-  - phiên bản được hỗ trợ (bản mới nhất);
-  - mục tiêu phản hồi.
-- Lỗ bảo mật được sửa trong advisory riêng tư, phát hành bản vá, rồi mới công bố.
-- Không thảo luận chi tiết khai thác trong issue công khai.
-- Mỗi PR chạm vào auth, `features/patchers`, `features/setup`, `outbound_guard`, `http/`, `mqtt/auth.py` hoặc workflow CI phải qua checklist review bảo mật (`docs/security/review-checklist.md`).
+### C7. Vulnerability handling process
+- `SECURITY.md` states:
+  - the private reporting channel (GitHub advisory);
+  - supported versions (the latest release);
+  - response targets.
+- Security holes are fixed in a private advisory, a patch release is published, and only then is it disclosed.
+- Exploit details are not discussed in public issues.
+- Every PR touching auth, `features/patchers`, `features/setup`, `outbound_guard`, `http/`, `mqtt/auth.py` or CI workflows must go through the security review checklist (`docs/security/review-checklist.md`).
