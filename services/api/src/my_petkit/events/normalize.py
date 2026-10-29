@@ -143,8 +143,9 @@ def is_detail_event(event_type: str, device_type: str | None = None) -> bool:
 # is consumed in one pass, where a pattern requiring the closing quote failed
 # at every later quote and re-scanned the rest each time (quadratic; a device
 # payload of 32k escaped quotes took 15 s). Either way the repaired text cannot
-# parse and `_as_dict` returns `{}`. A lone trailing backslash is part of it.
-_BARE_VALUE = re.compile(r'("(?:[^"\\]|\\.?)*(?:"|\Z))'
+# parse and `_as_dict` returns `{}`. A lone trailing backslash is part of it;
+# its own alternative (`\\\Z`) keeps every character matched one way only.
+_BARE_VALUE = re.compile(r'("(?:[^"\\]|\\.|\\\Z)*(?:"|\Z))'
                          r'|(:\s*)([A-Za-z_0-9][A-Za-z_0-9.\-]*)(\s*[,}\]])', re.S)
 # Strict JSON number grammar. NOT `float()`: Python accepts underscore digit
 # separators, so `4_10000001_1784743819` would look like a valid number and
