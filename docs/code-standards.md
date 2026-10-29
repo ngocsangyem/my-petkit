@@ -1,174 +1,174 @@
 # Code standards: my-petkit
 
-Nguồn: tài liệu quy ước của plan rebuild, chép vào repo ở phase 01. Quy tắc bảo mật (phần C) nằm ở `docs/security/secure-coding-rules.md`.
+Source: the conventions document of the rebuild plan, copied into the repo in phase 01. Security rules (part C) live in `docs/security/secure-coding-rules.md`.
 
-## Phần A: Cấu trúc theo feature
+## Part A: Feature-based structure
 
-### A1. Hai vùng trong API
+### A1. Two areas in the API
 ```
 services/api/src/my_petkit/
 ├── <protocol core>      main/ config.py http/ mqtt/ devices/ events/ media/ ha/ patchers/ ai/ utils/
-│                        Giữ nguyên cấu trúc gốc. Firmware nói chuyện với vùng này.
-├── features/            USER PLANE: mỗi thư mục một feature, tự chứa đủ phần của nó
+│                        Keeps the original structure. Firmware talks to this area.
+├── features/            USER PLANE: one folder per feature, each self-contained
 │   ├── auth/            routes.py service.py schemas.py store.py tiers.py
 │   ├── devices/         (state, entity, command, timezone, delete)
-│   ├── schedules/       (lịch 4 kind, deferred feed)
+│   ├── schedules/       (4 schedule kinds, deferred feed)
 │   ├── sounds/
 │   ├── timeline/
-│   ├── media/           (phục vụ file, signed URL)
+│   ├── media/           (file serving, signed URL)
 │   ├── live/            (HLS/MSE/WebRTC proxy)
 │   ├── talk/
-│   ├── pets/            (faces, import cloud)
-│   ├── ble/             (phụ kiện, pairing)
+│   ├── pets/            (faces, cloud import)
+│   ├── ble/             (accessories, pairing)
 │   ├── patchers/
 │   ├── capture/
 │   ├── logs/            (live log WS, device logs)
 │   └── setup/           (settings, guards, blocked, retention)
-├── web/                 composition root: panel.py (giữ tên gốc; route table và thứ tự đăng ký), middleware/, spa.py, hub.py, appkeys.py
-└── shared/              thứ dùng chung giữa các feature: errors.py, pagination.py, redact_client.py
+├── web/                 composition root: panel.py (original name kept; route table and registration order), middleware/, spa.py, hub.py, appkeys.py
+└── shared/              things shared between features: errors.py, pagination.py, redact_client.py
 ```
 
-Lý do giữ protocol core nguyên trạng:
-- `events/codes.py` gom 7 namespace vào một file có chủ đích, vì chỉ khi nằm chung mới thấy được chỗ chúng va nhau (`ARCHITECTURE.md` gốc).
-- Giữ cây thư mục gần gốc thì mới port được các phát hiện protocol mới từ upstream.
+Why the protocol core is kept as-is:
+- `events/codes.py` deliberately gathers 7 namespaces into one file, because only when they sit together can you see where they collide (original `ARCHITECTURE.md`).
+- Keeping the directory tree close to the original is what makes new protocol findings from upstream portable.
 
-### A2. Bố cục bên trong một feature
-| File | Trách nhiệm | Không được |
+### A2. Layout inside a feature
+| File | Responsibility | Must not |
 |---|---|---|
-| `routes.py` | Handler aiohttp mỏng: parse request qua `schemas`, gọi `service`, trả response. Mỗi handler khai báo tier | Chứa logic nghiệp vụ, truy cập `app[...]` bằng chuỗi trần |
-| `service.py` | Logic của feature. Gọi protocol core qua API công khai của nó | Import `aiohttp.web`, biết về HTTP |
-| `schemas.py` | Validate request (từ chối field lạ và giá trị quá dài). Định hình response, gồm cả redaction | Trả nguyên `device.state` |
-| `tiers.py` (hoặc khai báo trong routes) | Map route → `R0 \| R0* \| R1 \| R2 \| R3 \| signed-media \| public-static` | Để route không có tier |
-| `tests/features/<name>/` | Test của feature, gồm test bảo mật của feature đó | Mock chính thứ đang được test |
+| `routes.py` | Thin aiohttp handlers: parse the request via `schemas`, call `service`, return the response. Every handler declares a tier | Contain business logic, access `app[...]` with a bare string |
+| `service.py` | The feature's logic. Calls the protocol core through its public API | Import `aiohttp.web`, know about HTTP |
+| `schemas.py` | Validate requests (reject unknown fields and overlong values). Shape responses, including redaction | Return `device.state` verbatim |
+| `tiers.py` (or declared in routes) | Map route → `R0 \| R0* \| R1 \| R2 \| R3 \| signed-media \| public-static` | Leave a route without a tier |
+| `tests/features/<name>/` | The feature's tests, including that feature's security tests | Mock the very thing under test |
 
-### A3. Quy tắc phụ thuộc (bắt buộc bằng `import-linter` trong CI)
-- `features/*` được import protocol core và `shared/`.
-- Protocol core **không bao giờ** import `features/` hay `web/`. Đây là bản mở rộng của quy tắc gốc "devices không biết HA tồn tại".
-- Các feature không import lẫn nhau. Thứ cần dùng chung thì đưa vào `shared/`.
-- `web/panel.py` là nơi duy nhất ráp các feature lại, và giữ nguyên các thứ tự đăng ký route quan trọng của gốc.
-- **Thời điểm**: tái cấu trúc user plane sang `features/` diễn ra ở đầu phase 05, sau khi phase 04 đã sửa bug có duyệt. Nếu làm sớm hơn, việc đổi sang hằng `appkeys` sẽ tự sửa V2/V3 trước khi được duyệt.
+### A3. Dependency rules (enforced by `import-linter` in CI)
+- `features/*` may import the protocol core and `shared/`.
+- The protocol core **never** imports `features/` or `web/`. This extends the original rule "devices does not know HA exists".
+- Features do not import each other. Anything that must be shared goes into `shared/`.
+- `web/panel.py` is the only place that assembles the features, and it keeps the original's significant route registration orders.
+- **Timing**: restructuring the user plane into `features/` happens at the start of phase 05, after phase 04 has fixed the approved bugs. Doing it earlier would make the switch to `appkeys` constants fix V2/V3 before they were approved.
 
-### A4. Web và iOS
-- **Web**: `apps/web/src/features/<name>/` gồm `components/`, `hooks/`, `api.ts`, `<name>.test.tsx`. Thứ dùng chung đặt ở `src/shared/` (ui, format, ws). Feature không import lẫn nhau.
+### A4. Web and iOS
+- **Web**: `apps/web/src/features/<name>/` holds `components/`, `hooks/`, `api.ts`, `<name>.test.tsx`. Shared things go in `src/shared/` (ui, format, ws). Features do not import each other.
 - **iOS**:
-  - `MyPetkit/Features/<Name>/` gồm `<Name>View.swift`, `<Name>Model.swift` (`@Observable`), cùng các subview.
-  - Logic test được không cần UI nằm trong `PetkitKit`: `PetkitAPI`, `PetkitCore`, `PetkitBLE`.
-- Tên feature giống nhau ở cả ba nơi (API, web, iOS), để tìm một tính năng là ra cả ba.
-- **Giao diện**: theo `design/design-reference.md` (trong repo: `docs/design/`).
-  - Token màu, chữ và khoảng cách chỉ khai báo một lần: `apps/web/src/shared/ui/tokens.css` và `PetkitCore/Theme/`.
-  - Component dùng chung đặt ở `src/shared/ui/` và `MyPetkit/Shared/`.
-  - Mỗi màn dựng theo artboard ghi trong bảng §4.
-  - Các luật cứng ở §6 chặn khi review.
+  - `MyPetkit/Features/<Name>/` holds `<Name>View.swift`, `<Name>Model.swift` (`@Observable`), plus the subviews.
+  - Logic that can be tested without UI lives in `PetkitKit`: `PetkitAPI`, `PetkitCore`, `PetkitBLE`.
+- Feature names are the same in all three places (API, web, iOS), so searching for one feature finds all three.
+- **UI**: follows `design/design-reference.md` (in the repo: `docs/design/`).
+  - Color, type and spacing tokens are declared only once: `apps/web/src/shared/ui/tokens.css` and `PetkitCore/Theme/`.
+  - Shared components go in `src/shared/ui/` and `MyPetkit/Shared/`.
+  - Each screen is built from the artboard listed in the table in §4.
+  - The hard rules in §6 block at review.
 
 ---
 
-## Phần B: Quy ước code
+## Part B: Code conventions
 
-### B1. Đặt tên và kích thước file
-| Ngôn ngữ | File | Ghi chú |
+### B1. Naming and file size
+| Language | File | Notes |
 |---|---|---|
-| Python | `snake_case.py`, tên dài và mô tả rõ | Module Python không dùng được kebab-case |
-| TypeScript | `kebab-case.ts`, component `kebab-case.tsx` export `PascalCase` | |
-| Swift | `PascalCase.swift` theo type chính | |
+| Python | `snake_case.py`, long and descriptive names | Python modules cannot use kebab-case |
+| TypeScript | `kebab-case.ts`, components `kebab-case.tsx` exporting `PascalCase` | |
+| Swift | `PascalCase.swift` after the main type | |
 
-Giới hạn kích thước file:
-- **Code mới: ≤ 200 dòng.** Vượt thì tách theo ranh giới thật.
-- Ngoại lệ có lý do, phải ghi trong `docs/code-standards.md`:
-  - `events/codes.py` và `devices/payloads.py` (bảng protocol);
-  - code sinh tự động;
-  - file test fixture.
+File size limits:
+- **New code: ≤ 200 lines.** Over that, split along real boundaries.
+- Justified exceptions, which must be recorded in `docs/code-standards.md`:
+  - `events/codes.py` and `devices/payloads.py` (protocol tables);
+  - generated code;
+  - test fixture files.
 
-### B2. Format, lint và type
-| | Code mới (`features/`, `web/`, `shared/`, `auth`) | Code port (protocol core) |
+### B2. Format, lint and types
+| | New code (`features/`, `web/`, `shared/`, `auth`) | Ported code (protocol core) |
 |---|---|---|
-| Format | `ruff format` bắt buộc | **Không reformat**, để diff được với upstream |
-| Lint | ruff: `F, E, W, B, S, UP, SIM, RUF, PL, PT, ASYNC, BLE, TRY` | Rule gốc `F, E9, B, PLC0415`, **cộng `S` (bảo mật) và `ASYNC` ngay từ phase 02**. Hit cũ ghi vào baseline, không cho phát sinh hit mới |
-| Type | `mypy --strict` | `mypy` thường. Mỗi module port được siết dần sang strict qua commit riêng, golden check phải xanh |
-| TS | `strict`, `noUncheckedIndexedAccess`, ESLint + `eslint-plugin-security`, cấm `any`, cấm `dangerouslySetInnerHTML` | – |
-| Swift | Swift 6 strict concurrency, SwiftLint. Cấm `!` force unwrap và `try!` ngoài test | – |
+| Format | `ruff format` required | **Do not reformat**, so it stays diffable against upstream |
+| Lint | ruff: `F, E, W, B, S, UP, SIM, RUF, PL, PT, ASYNC, BLE, TRY` | Original rules `F, E9, B, PLC0415`, **plus `S` (security) and `ASYNC` from phase 02 onward**. Existing hits go into the baseline; no new hits allowed |
+| Type | `mypy --strict` | Plain `mypy`. Each ported module is tightened to strict gradually in its own commit, and the golden check must stay green |
+| TS | `strict`, `noUncheckedIndexedAccess`, ESLint + `eslint-plugin-security`, no `any`, no `dangerouslySetInnerHTML` | – |
+| Swift | Swift 6 strict concurrency, SwiftLint. No `!` force unwrap and no `try!` outside tests | – |
 
-Cấu hình hiện tại (`services/api/pyproject.toml`): bộ ruff mở rộng được `select` cho toàn repo rồi
-`per-file-ignores` với pattern phủ định cho mọi file KHÔNG thuộc danh sách code mới, vì ruff không
-chọn rule theo đường dẫn được. `mypy --strict` áp qua `[[tool.mypy.overrides]]` (liệt kê từng cờ
-của strict, vì `strict` không phải option theo module). `ruff format --check` chạy trong CI trên
-cùng danh sách. Danh sách hiện tại: `features/auth/`, `shared/{errors,redact_client,request_auth,tiers}.py`,
-`utils/user_tls.py`. Module port nằm trong `shared/` (`panel_request.py`, `live_settings.py`, …)
-vẫn theo baseline cho tới khi được siết riêng. Thêm file mới vào user plane thì thêm vào cả ba chỗ.
+Current configuration (`services/api/pyproject.toml`): the extended ruff set is `select`ed for the whole repo, then
+`per-file-ignores` with a negated pattern covers every file NOT on the new-code list, because ruff cannot
+select rules by path. `mypy --strict` is applied via `[[tool.mypy.overrides]]` (listing each strict
+flag, because `strict` is not a per-module option). `ruff format --check` runs in CI on
+the same list. The current list: `features/auth/`, `shared/{errors,redact_client,request_auth,tiers}.py`,
+`utils/user_tls.py`. Ported modules living in `shared/` (`panel_request.py`, `live_settings.py`, …)
+stay on the baseline until they are tightened individually. Adding a new file to the user plane means adding it in all three places.
 
-### B3. Comment, lỗi, log
-- **Comment** giải thích **vì sao**: invariant, ràng buộc của firmware, bằng chứng (capture, hàm firmware, commit).
-  - Không ghi mã phase hay finding (R1, V4, H12…) trong code, test name hay commit message.
-  - Docstring "WHY" của code gốc giữ nguyên văn, vì git history của gốc đã bị squash và đó là nguồn duy nhất.
-- **Lỗi ở user plane**:
-  - Envelope cố định `{"error": {"code": "<slug>", "message": "<an toàn để hiển thị>"}}`.
-  - Không lộ stack trace, đường dẫn file, SQL hay giá trị secret.
-  - Lỗi không lường trước trả 500 kèm `code: internal` và một correlation id. Chi tiết chỉ nằm trong log.
-- **Lỗi ở device plane**: giữ invariant gốc. Không bao giờ trả 4xx/5xx cho thiết bị, input từ thiết bị không bao giờ làm raise (`utils/coerce`, `safe_join`).
-- **Log**:
-  - Log có cấu trúc (key=value).
-  - Không log secret, token, mật khẩu, chữ ký, payload nguyên văn hay SSID. Mọi giá trị có thể nhạy cảm phải qua helper redact.
-  - Loại ký tự điều khiển khỏi chuỗi đến từ thiết bị, chống log injection.
+### B3. Comments, errors, logs
+- **Comments** explain **why**: invariants, firmware constraints, evidence (capture, firmware function, commit).
+  - No phase or finding codes (R1, V4, H12…) in code, test names or commit messages.
+  - The original code's "WHY" docstrings are kept verbatim, because the original's git history was squashed and they are the only source.
+- **User-plane errors**:
+  - Fixed envelope `{"error": {"code": "<slug>", "message": "<safe to display>"}}`.
+  - Never expose stack traces, file paths, SQL or secret values.
+  - Unexpected errors return 500 with `code: internal` and a correlation id. Details live only in the log.
+- **Device-plane errors**: keep the original invariant. Never return 4xx/5xx to a device; device input never raises (`utils/coerce`, `safe_join`).
+- **Logs**:
+  - Structured logs (key=value).
+  - Never log secrets, tokens, passwords, signatures, raw payloads or SSIDs. Every potentially sensitive value must go through a redaction helper.
+  - Strip control characters from strings coming from devices, to prevent log injection.
 
-### B4. Test
-- Tên test mô tả kịch bản, ví dụ `test_stitch_keeps_chunks_when_db_swap_fails`.
-- Mỗi bug fix có test tái hiện trước khi sửa.
-- Mọi feature có ít nhất:
-  - happy path;
-  - test thiếu token trả 401;
-  - test input sai trả lỗi đúng envelope;
-  - test với route R3: thiếu step-up thì bị chặn.
-- Fixture từ capture phải che secret trước khi commit (gitleaks quét cả `tests/`).
-- Không mock thứ đang test. Chỉ dựng giả ở ranh giới ngoài: thiết bị, cloud PetKit, HA broker.
+### B4. Tests
+- Test names describe the scenario, e.g. `test_stitch_keeps_chunks_when_db_swap_fails`.
+- Every bug fix has a reproducing test written before the fix.
+- Every feature has at least:
+  - a happy path;
+  - a test that a missing token returns 401;
+  - a test that bad input returns the correct error envelope;
+  - for R3 routes, a test that a missing step-up is blocked.
+- Fixtures from captures must have secrets masked before commit (gitleaks scans `tests/` too).
+- Do not mock the thing under test. Fake only at the outer boundaries: devices, the PetKit cloud, the HA broker.
 
 ### B5. Git
-- Conventional commits, không nhắc tới AI.
-- Mỗi commit một thay đổi. Commit refactor tách khỏi commit đổi hành vi.
-- Merge vào `main` chỉ qua PR, CI phải xanh (branch protection, xem C6).
+- Conventional commits, no mention of AI.
+- One change per commit. Refactor commits are separate from behavior-changing commits.
+- Merging into `main` only via PR, with CI green (branch protection, see C6).
 
-### Ngoại lệ kích thước file (B1)
-- `events/codes.py`, `devices/payloads.py`: bảng protocol, cố ý lớn (xem `AGENTS.md`).
-- Code port từ upstream nói chung: giữ nguyên để còn diff được với upstream; chỉ tách khi phase tái cấu trúc yêu cầu.
-- Code sinh tự động (client OpenAPI) và file test fixture.
+### File size exceptions (B1)
+- `events/codes.py`, `devices/payloads.py`: protocol tables, deliberately large (see `AGENTS.md`).
+- Code ported from upstream in general: kept as-is so it stays diffable against upstream; split only when a restructuring phase requires it.
+- Generated code (OpenAPI client) and test fixture files.
 
 ## CI gates
-| Gate | Công cụ | Chặn merge |
+| Gate | Tool | Blocks merge |
 |---|---|---|
-| Test API | pytest, test ID khớp baseline | Có |
-| Golden device | `scripts/golden_device_responses.py` | Có |
-| Lint/format/type | ruff, ruff format (code mới), mypy | Có |
-| Quy tắc phụ thuộc | import-linter | Có |
-| Web | ESLint, tsc, vitest, build | Có |
-| iOS | SwiftLint, swift test, xcodebuild | Có |
-| Contract | spec ⊆ router, client sinh không lệch | Có |
-| SAST | CodeQL, Semgrep | Có (high/critical) |
-| Dependency | pip-audit, osv-scanner, pnpm audit | Có (high/critical) |
-| Secret | gitleaks và GitHub push protection | Có |
-| Image | Trivy/Grype | Có (critical) với release |
-| Fuzz | hypothesis (chạy ngắn mỗi PR, chạy dài hằng đêm) | Có (bản ngắn) |
+| API tests | pytest, test IDs match the baseline | Yes |
+| Golden device | `scripts/golden_device_responses.py` | Yes |
+| Lint/format/type | ruff, ruff format (new code), mypy | Yes |
+| Dependency rules | import-linter | Yes |
+| Web | ESLint, tsc, vitest, build | Yes |
+| iOS | SwiftLint, swift test, xcodebuild | Yes |
+| Contract | spec ⊆ router, generated client does not drift | Yes |
+| SAST | CodeQL, Semgrep | Yes (high/critical) |
+| Dependency | pip-audit, osv-scanner, pnpm audit | Yes (high/critical) |
+| Secret | gitleaks and GitHub push protection | Yes |
+| Image | Trivy/Grype | Yes (critical) for releases |
+| Fuzz | hypothesis (short run on every PR, long run nightly) | Yes (short run) |
 
-## Thư viện validate schema: `pydantic` v2 (đã chốt 2026-10-28)
-Quy tắc: chỉ dùng thư viện có **binary wheel** cho cả ba target của image (Python 3.12):
-musl amd64, musl aarch64 (Alpine) và glibc armv7. Không có thì viết validator tay trên `utils/coerce`.
+## Schema validation library: `pydantic` v2 (decided 2026-10-28)
+Rule: only use libraries that have a **binary wheel** for all three image targets (Python 3.12):
+musl amd64, musl aarch64 (Alpine) and glibc armv7. Otherwise write a hand validator on top of `utils/coerce`.
 
-Bằng chứng, chạy `pip download --only-binary=:all: --python-version 3.12 --implementation cp`
-kèm đủ tag tương thích của từng target (pip không tự nới một `--platform` tường minh xuống tag cũ
-hơn, nên phải liệt kê `musllinux_1_1` bên cạnh `musllinux_1_2`, và `manylinux_2_17`…`2_36` cho armv7):
+Evidence: run `pip download --only-binary=:all: --python-version 3.12 --implementation cp`
+with every compatible tag for each target (pip does not relax an explicit `--platform` down to older
+tags on its own, so `musllinux_1_1` must be listed next to `musllinux_1_2`, and `manylinux_2_17`…`2_36` for armv7):
 
-| Gói (bản mới nhất) | musl amd64 | musl aarch64 | glibc armv7 |
+| Package (latest version) | musl amd64 | musl aarch64 | glibc armv7 |
 |---|---|---|---|
 | `pydantic` 2.14.1 + `pydantic-core` 2.50.1 | `musllinux_1_1_x86_64` | `musllinux_1_1_aarch64` | `manylinux_2_17_armv7l` |
-| `msgspec` 0.22.0 | `musllinux_1_2_x86_64` | `musllinux_1_2_aarch64` | **không có** |
+| `msgspec` 0.22.0 | `musllinux_1_2_x86_64` | `musllinux_1_2_aarch64` | **none** |
 
-- Chọn `pydantic` v2: là ứng viên duy nhất đủ wheel cho cả ba target. `msgspec` loại vì armv7 phải
-  build từ source.
-- Bẫy đã gặp khi kiểm: chỉ truyền `--platform musllinux_1_2_*` thì pip không thấy wheel
-  `musllinux_1_1` của `pydantic-core` và lặng lẽ lùi về `pydantic` 1.10. Luôn liệt kê đủ tag.
-- Dùng cho code mới của user plane (`features/auth/schemas.py`): `extra="forbid"`, giới hạn độ dài
-  chuỗi. Code port giữ `utils/coerce`.
-- `argon2-cffi` (bắt buộc cho mật khẩu) có wheel musl cho amd64/aarch64 nhưng **không có wheel
-  armv7**: `argon2-cffi-bindings` build từ source trên armv7 glibc. Đây không phải yêu cầu build mới:
-  `cffi` (phụ thuộc của `cryptography`) cũng không có wheel armv7 và đã build từ source ở đó, nên
-  image armv7 vốn cần sẵn toolchain C.
+- `pydantic` v2 chosen: it is the only candidate with wheels for all three targets. `msgspec` was ruled out because armv7 would have to
+  build from source.
+- Trap hit while checking: passing only `--platform musllinux_1_2_*` makes pip miss the
+  `musllinux_1_1` wheel of `pydantic-core` and silently fall back to `pydantic` 1.10. Always list every tag.
+- Used for new user-plane code (`features/auth/schemas.py`): `extra="forbid"`, string length
+  limits. Ported code keeps `utils/coerce`.
+- `argon2-cffi` (required for passwords) has musl wheels for amd64/aarch64 but **no armv7
+  wheel**: `argon2-cffi-bindings` builds from source on armv7 glibc. This is not a new build requirement:
+  `cffi` (a dependency of `cryptography`) has no armv7 wheel either and already builds from source there, so
+  the armv7 image already needs a C toolchain.
 
-## Câu hỏi chưa giải đáp
-- CSP `frame-ancestors` cho HA Ingress: origin chính xác cần cho phép, xác minh trên HA thật ở phase 11.
+## Unresolved questions
+- CSP `frame-ancestors` for HA Ingress: the exact origin to allow, to be verified on real HA in phase 11.
