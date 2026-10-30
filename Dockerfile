@@ -50,7 +50,7 @@ ARG TARGETARCH
 # QEMU: its output is static files, identical for every target. Tailwind v4's
 # native binary is resolved for that platform (musl, since this is Alpine) by
 # the lockfile's optional dependencies.
-FROM --platform=$BUILDPLATFORM node:22-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914 AS web
+FROM --platform=$BUILDPLATFORM node:25-alpine@sha256:bdf2cca6fe3dabd014ea60163eca3f0f7015fbd5c7ee1b0e9ccb4ced6eb02ef4 AS web
 WORKDIR /src/apps/web
 RUN npm install --global --no-fund --no-audit pnpm@12.14.0
 COPY apps/web/package.json apps/web/pnpm-lock.yaml apps/web/pnpm-workspace.yaml ./
