@@ -128,15 +128,23 @@ export function withAlias(current: string | null | undefined, ref: number): numb
  */
 export function importSummary(results: readonly ImportResult[]): string {
   const imported = results.filter(r => r.outcome === 'imported');
+  // A box holds at most 15 cats; the server skips the rest rather than failing the import.
+  const full = results.filter(r => r.outcome === 'device full').length;
+  const skipped = full
+    ? ` ${plural(full, 'pet')} not added: the box already recognises the most cats it can hold.`
+    : '';
   if (imported.length === 0) {
-    return 'Nothing new: PetKit lists no pets this device does not already have.';
+    return full
+      ? `Nothing imported.${skipped}`
+      : 'Nothing new: PetKit lists no pets this device does not already have.';
   }
   const photos = imported.reduce((n, r) => n + (r.faces_imported ?? 0), 0);
   const offered = imported.reduce((n, r) => n + (r.faces_offered ?? 0), 0);
   const named = imported.reduce((n, r) => n + (r.bound_events ?? 0), 0);
   return (
     `Imported ${plural(imported.length, 'pet')}, ${photos} of ${plural(offered, 'photo')}` +
-    (named ? `, named ${plural(named, 'past event')}.` : '.')
+    (named ? `, named ${plural(named, 'past event')}.` : '.') +
+    skipped
   );
 }
 

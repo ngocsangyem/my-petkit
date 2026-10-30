@@ -47,6 +47,9 @@ function routes(extra: Record<string, MockReply> = {}): Record<string, MockReply
       return {
         body: timeline('2026-10-28', [
           {
+            pet_source: 'device',
+            passing: false,
+            unbound_pet_ref: null,
             kind: 'visit',
             id: 1,
             related_event: 'e1',

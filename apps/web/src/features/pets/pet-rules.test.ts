@@ -97,6 +97,21 @@ describe('pet model', () => {
     expect(importSummary([{ pet_ref: 1, outcome: 'already yours' }])).toMatch(/^Nothing new/);
   });
 
+  it('says how many pets an import skipped because the box is full', () => {
+    expect(importSummary([{ pet_ref: 1, outcome: 'device full' }])).toBe(
+      'Nothing imported. 1 pet not added: the box already recognises the most cats it can hold.',
+    );
+    expect(
+      importSummary([
+        { pet_ref: 1, outcome: 'imported', faces_imported: 1, faces_offered: 1, bound_events: 0 },
+        { pet_ref: 2, outcome: 'device full' },
+        { pet_ref: 3, outcome: 'device full' },
+      ]),
+    ).toBe(
+      'Imported 1 pet, 1 of 1 photo. 2 pets not added: the box already recognises the most cats it can hold.',
+    );
+  });
+
   it('writes the finding line from loaded, waiting and unbound counts', () => {
     const mochi = pet({ id: 2, name: 'Mochi', faces: [{ id: 21, url: 'x' }] });
     const line = findingLine([pet(), mochi], [deviceDetail({}, [11, 12])], 2);

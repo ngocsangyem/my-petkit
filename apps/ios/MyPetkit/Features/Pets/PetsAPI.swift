@@ -40,8 +40,13 @@ struct PetsAPI {
         _ = try await client.createPet(body: .json(.init(name: name, deviceIds: deviceIDs))).ok
     }
 
-    func rename(petID: Int, name: String) async throws {
-        _ = try await client.updatePet(path: .init(id: petID), body: .json(.init(name: name))).ok
+    /// Sends only what changed: re-sending an unchanged weight would stamp
+    /// `weight_updated_at` as if somebody had typed it now.
+    func update(petID: Int, _ change: PetUpdate) async throws {
+        _ = try await client.updatePet(path: .init(id: petID), body: .json(.init(
+            name: change.name, deviceIds: change.deviceIDs, weightG: change.weightG,
+            weightToleranceG: change.toleranceG, weightMatch: change.matchesByWeight
+        ))).ok
     }
 
     func delete(petID: Int) async throws {
@@ -77,7 +82,8 @@ struct PetsAPI {
         let results = try await client.importPetsFromPetkit(body: .json(.init(deviceId: deviceID))).ok.body.json.results
         return PetRules.importSummary(results.map {
             PetImportOutcome(imported: $0.outcome == .imported, facesImported: $0.facesImported ?? 0,
-                             facesOffered: $0.facesOffered ?? 0, boundEvents: $0.boundEvents ?? 0)
+                             facesOffered: $0.facesOffered ?? 0, boundEvents: $0.boundEvents ?? 0,
+                             deviceFull: $0.outcome == .deviceFull)
         })
     }
 
@@ -144,7 +150,11 @@ extension PetRecord {
             deviceIDs: PetRules.parseIDList(pet.deviceIdsJson),
             aliasIDs: PetRules.parseIDList(pet.devicePetIdsJson),
             weight: pet.weight,
-            faces: row.value2.faces.map { PetFaceRef(id: $0.id, path: MediaPath.absolute($0.url)) }
+            faces: row.value2.faces.map { PetFaceRef(id: $0.id, path: MediaPath.absolute($0.url)) },
+            weightG: pet.weightG,
+            weightUpdatedAt: pet.weightUpdatedAt,
+            toleranceG: pet.weightToleranceG,
+            matchesByWeight: (pet.weightMatch ?? 1) != 0
         )
     }
 }

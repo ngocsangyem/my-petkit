@@ -26,6 +26,7 @@ private struct TimelineScreen: View {
 
     @State private var cover: TimelineCover?
     @State private var detail: TimelineEntry?
+    @State private var changeCat: TimelineEntry?
 
     var body: some View {
         ScreenScroll {
@@ -54,7 +55,14 @@ private struct TimelineScreen: View {
             TimelineDetailSheet(entry: entry, tzOffset: model.day.value?.tzOffset ?? 0,
                                 tintIndex: model.petTint(id: entry.petID),
                                 deviceType: model.device(id: entry.deviceID)?.deviceType,
-                                loadDetail: { try await model.eventDetail(id: $0) })
+                                loadDetail: { try await model.eventDetail(id: $0) },
+                                catCandidates: model.catCandidates(for: entry),
+                                saveCat: { try await model.setVisitPet(entry, $0) })
+        }
+        .sheet(item: $changeCat) { entry in
+            TimelineChangeCatSheet(entry: entry, tzOffset: model.day.value?.tzOffset ?? 0,
+                                   candidates: model.catCandidates(for: entry),
+                                   save: { try await model.setVisitPet(entry, $0) })
         }
         .timelineCovers($cover)
     }
@@ -132,12 +140,13 @@ private struct TimelineScreen: View {
     }
 
     private func open(_ action: TimelineAction) {
-        if case .detail(let entry) = action {
-            detail = entry
-        } else {
-            cover = TimelineCover(action)
+        switch action {
+        case .detail(let entry): detail = entry
+        case .changeCat(let entry): changeCat = entry
+        case .play, .gallery: cover = TimelineCover(action)
         }
     }
+
 }
 
 /// A 36pt filter chip; pets carry their photo.

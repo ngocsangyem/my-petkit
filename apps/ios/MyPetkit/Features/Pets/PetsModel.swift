@@ -114,8 +114,8 @@ final class PetsModel {
         selectedID = pets.value?.last { $0.name == name }?.id ?? selectedID
     }
 
-    func rename(_ pet: PetRecord, to name: String) async throws {
-        try await requireAPI().rename(petID: pet.id, name: name)
+    func update(_ pet: PetRecord, _ change: PetUpdate) async throws {
+        try await requireAPI().update(petID: pet.id, change)
         await loadPets()
     }
 
@@ -155,11 +155,16 @@ final class PetsModel {
 }
 
 extension PetsModel {
+    /// 2026-10-28 13:58 at UTC+7, the artboard's "updated 13:58".
+    nonisolated static let fixtureWeightUpdatedAt: Double = 1_793_170_680
+
     static func fixture() -> PetsModel {
         let miso = PetRecord(id: 1, name: "Miso", deviceIDs: [10], aliasIDs: [], weight: 5430,
                              faces: [PetFaceRef(id: 1, path: "/api/pets/1/faces/1/photo"),
-                                     PetFaceRef(id: 2, path: "/api/pets/1/faces/2/photo")])
-        let mochi = PetRecord(id: 2, name: "Mochi", deviceIDs: [10], aliasIDs: [], weight: nil, faces: [])
+                                     PetFaceRef(id: 2, path: "/api/pets/1/faces/2/photo")],
+                             weightG: 5430, weightUpdatedAt: fixtureWeightUpdatedAt)
+        let mochi = PetRecord(id: 2, name: "Mochi", deviceIDs: [10], aliasIDs: [], weight: nil, faces: [],
+                              weightG: 3860, toleranceG: 200)
         let box = PetDevice(id: 10, name: "Litter box", deviceType: "t6", supportsAI: true, cachedFaceIDs: ["1", "2"])
         let feeder = PetDevice(id: 11, name: "Kitchen feeder", deviceType: "d4h", supportsAI: false)
         let days = ["2026-10-22", "2026-10-23", "2026-10-24", "2026-10-25", "2026-10-26", "2026-10-27", "2026-10-28"]

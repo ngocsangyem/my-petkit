@@ -7,12 +7,12 @@ enum TimelineCover: Identifiable {
     case play(title: String, sources: [TimelineVideoSource])
     case gallery(TimelineFormat.StillGroup)
 
-    /// Nil for the actions that are not full-screen (the detail sheet).
+    /// Nil for the actions that are not full-screen (the sheets).
     init?(_ action: TimelineAction) {
         switch action {
         case .play(let title, let sources): self = .play(title: title, sources: sources)
         case .gallery(let group): self = .gallery(group)
-        case .detail: return nil
+        case .detail, .changeCat: return nil
         }
     }
 

@@ -15,7 +15,8 @@ enum TimelineJSON {
             date: date, tzOffset: int(json["tz_offset"]) ?? 0,
             toiletingCount: count("toileting"), feedingCount: count("feeding"),
             drinkingCount: count("drinking"), faultCount: count("fault"),
-            entries: entries.sorted { $0.sortTime > $1.sortTime }
+            entries: entries.sorted { $0.sortTime > $1.sortTime },
+            passingCount: count("passing")
         )
     }
 
@@ -42,7 +43,10 @@ enum TimelineJSON {
                              isDetail: bool(step["detail"]) ?? false, media: media(step["media"]), index: offset)
             },
             media: media(json["media"]) ?? TimelineMedia(),
-            index: index
+            index: index,
+            petSource: string(json["pet_source"]),
+            passing: bool(json["passing"]) ?? false,
+            unboundPetRef: int(json["unbound_pet_ref"])
         )
     }
 

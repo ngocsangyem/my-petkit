@@ -30,6 +30,7 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any, AsyncIterable
 
+from my_petkit.ai.pet_weights import attribute_visit
 from my_petkit.devices.registry import DeviceRegistry
 from my_petkit.devices.state_parsers import apply_consumable_state, normalize_property_params
 from my_petkit.ha.categories import get_setting_fields
@@ -501,7 +502,12 @@ class MQTTBridge:
             # becomes `pet_id` (see ai/pets.py::resolve_pet_ref).
             if self._pet_registry is not None:
                 row["pet_id"] = await self._pet_registry.resolve_pet_ref(row.get("pet_ref"))
-            await self._event_store.upsert_event(row)
+            row_id = await self._event_store.upsert_event(row)
+            # Weight rules, as on the HTTP path.
+            if self._pet_registry is not None:
+                matched = await attribute_visit(self._event_store, device.petkit_id, row_id)
+                if row.get("pet_id") is None:
+                    row["pet_id"] = matched
             if self._hub is not None:
                 self._hub.publish("event", device.petkit_id, f"{event_type} ({row['event_kind']})")
             if row.get("pet_id") is not None and self._pet_registry is not None and self._ha_publisher:

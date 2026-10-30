@@ -56,6 +56,13 @@ final class PetRulesTests: XCTestCase {
         XCTAssertEqual(PetRules.importSummary([PetImportOutcome(imported: true, facesImported: 1, facesOffered: 1,
                                                                 boundEvents: 0)]),
                        "Imported 1 pet, 1 of 1 photo.")
+        let full = PetImportOutcome(imported: false, facesImported: 0, facesOffered: 0, boundEvents: 0,
+                                    deviceFull: true)
+        XCTAssertEqual(PetRules.importSummary([full]),
+                       "Nothing imported. 1 pet left out: the device already holds 15 cats.")
+        XCTAssertEqual(PetRules.importSummary(results + [full, full]),
+                       "Imported 1 pet, 2 of 3 photos, named 4 past events. "
+                       + "2 pets left out: the device already holds 15 cats.")
     }
 
     func testValidNameAndAverage() {

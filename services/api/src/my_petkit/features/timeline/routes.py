@@ -11,6 +11,7 @@ averaging 1.2 kB.
 """
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from aiohttp import web
@@ -24,6 +25,19 @@ from my_petkit.shared.panel_request import _pet_fields, _pets_by_id
 from my_petkit.shared.media_slots import _has_media, _session_media_urls
 from my_petkit.shared.appkeys import CFG, EVENT_STORE, REGISTRY
 from my_petkit.shared.tiers import Tier, tier
+
+
+def _unbound_ref(pets: dict[int, dict[str, Any]], pet_ref: Any) -> int | None:
+    """`pet_ref` when it is neither one of our pets nor bound to one, else None."""
+    if pet_ref is None or pet_ref in pets:
+        return None
+    for pet in pets.values():
+        try:
+            if pet_ref in json.loads(pet.get("device_pet_ids_json") or "[]"):
+                return None
+        except (json.JSONDecodeError, TypeError):
+            continue
+    return int(pet_ref)
 
 
 @tier(GET=Tier.R0_SENSITIVE)
@@ -106,6 +120,13 @@ async def api_timeline(request: web.Request) -> web.Response:
             "display_ts": s.get("display_ts") or s.get("ts"),
             "pet_id": s.get("pet_id"), "event_type": s.get("event_type"),
             **_pet_fields(pets, s.get("pet_id")),
+            # Who decided the pet (`device`, `weight`, `manual`, or None), so a
+            # client can say "by weight" and offer to change it; `passing` is
+            # a visit too light to be any registered cat.
+            "pet_source": s.get("pet_source"), "passing": bool(s.get("passing")),
+            # The identity the box reported, when it is one no pet holds yet:
+            # what "apply to later visits" in the change-pet sheet would bind.
+            "unbound_pet_ref": _unbound_ref(pets, s.get("pet_ref")),
             # A visit builds its own summary line (duration/weight); every
             # other card is titled by its event's label, now decoded from the
             # content too, so a lone cleaning reads "Manual cleaning completed"

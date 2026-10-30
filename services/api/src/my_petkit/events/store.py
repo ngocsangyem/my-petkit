@@ -20,6 +20,11 @@ from typing import Any
 from sqlalchemy import delete, select, update
 
 from my_petkit.events.models import Event, Media
+from my_petkit.events.store_visits import (
+    PET_SOURCE_DEVICE,
+    PET_SOURCE_MANUAL,
+    VisitQueries,
+)
 from my_petkit.events.store_base import (
     BUSY_TIMEOUT_MS as BUSY_TIMEOUT_MS,  # re-exported: callers import it from here
     MAX_FACES_PER_PET as MAX_FACES_PER_PET,  # re-exported: callers import it from here
@@ -36,7 +41,7 @@ from my_petkit.events.store_pets import PetQueries
 log = logging.getLogger(__name__)
 
 
-class EventStore(MediaQueries, PetQueries, BlockedAttemptQueries, StoreBase):
+class EventStore(MediaQueries, PetQueries, VisitQueries, BlockedAttemptQueries, StoreBase):
     """Async facade over the `events`, `media` and `pets` tables.
 
     Construction is synchronous and does no I/O; `connect()` creates the
@@ -73,6 +78,9 @@ class EventStore(MediaQueries, PetQueries, BlockedAttemptQueries, StoreBase):
             if json_key in data and not isinstance(data[json_key], str):
                 data[json_key] = json.dumps(data[json_key])
 
+        if data.get("pet_id") is not None and not data.get("pet_source"):
+            data["pet_source"] = PET_SOURCE_DEVICE
+
         async with self._write() as session:
             existing = None
             if data.get("event_uid"):
@@ -80,10 +88,26 @@ class EventStore(MediaQueries, PetQueries, BlockedAttemptQueries, StoreBase):
                     select(Event).where(Event.device_id == data.get("device_id"),
                                         Event.event_uid == data["event_uid"]))
             if existing is not None:
+                # A retry never takes an attribution away: a resend that could
+                # not resolve a pet leaves whoever was decided, and nothing a
+                # device sends overrides a pet the user picked.
+                if data.get("pet_id") is None or existing.pet_source == PET_SOURCE_MANUAL:
+                    data.pop("pet_id", None)
+                    data.pop("pet_source", None)
                 for key, value in data.items():
                     setattr(existing, key, value)
                 await session.flush()
                 return existing.id
+
+            # A later report of a visit the user already attributed joins it.
+            if data.get("related_event"):
+                manual = await session.scalar(
+                    select(Event).where(Event.device_id == data.get("device_id"),
+                                        Event.related_event == data["related_event"],
+                                        Event.pet_source == PET_SOURCE_MANUAL).limit(1))
+                if manual is not None:
+                    data.update(pet_id=manual.pet_id, pet_source=PET_SOURCE_MANUAL,
+                                passing=manual.passing)
 
             obj = Event(created_at=_created_at(row), **data)
             session.add(obj)

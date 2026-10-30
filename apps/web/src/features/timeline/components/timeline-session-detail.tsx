@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { cn } from 'cn';
-import { Missing } from '@/shared/ui';
+import { Button, Missing } from '@/shared/ui';
+import type { TimelinePet } from '../api';
 import {
   clockTime,
   formatVisitDuration,
@@ -13,6 +14,9 @@ import {
   type MediaSlots,
   type TimelineSession,
 } from '../timeline-model';
+import { canChangeCat } from '../visit-pet-model';
+import { ChangeCatSheet } from './change-cat-sheet';
+import { PetSourceTag } from './pet-source-tag';
 import { TimelineDebugInfo, type DebugEntry } from './timeline-debug-info';
 import { TimelineMediaViewer } from './timeline-media-viewer';
 import { StillGallery, StillTiles } from './timeline-still-gallery';
@@ -65,9 +69,19 @@ function viewerMedia(s: TimelineSession, stepId: number | null): MediaSlots | nu
   return s.sub_events.map(e => e.media).find(hasMedia) ?? null;
 }
 
-/** Everything about the selected session: its video, steps, facts, captures and Debug info. */
-export function TimelineSessionDetail({ session: s }: { session: TimelineSession }) {
+export interface TimelineSessionDetailProps {
+  session: TimelineSession;
+  /** The household's pets, the candidates when a visit's cat is changed. */
+  pets: readonly TimelinePet[];
+}
+
+/**
+ * Everything about the selected session: its video, steps, facts, captures and Debug info, and
+ * for a visit the way to say which cat it really was.
+ */
+export function TimelineSessionDetail({ session: s, pets }: TimelineSessionDetailProps) {
   const [stepMedia, setStepMedia] = useState<number | null>(null);
+  const [changing, setChanging] = useState(false);
   const [gallery, setGallery] = useState<{ paths: string[]; title: string } | null>(null);
   const isVisit = s.kind === 'visit';
   const entered = s.display_ts ?? s.ts;
@@ -91,9 +105,21 @@ export function TimelineSessionDetail({ session: s }: { session: TimelineSession
       className="flex min-w-0 flex-col gap-3.5 rounded-lg border border-border p-5"
       aria-label="Selected event"
     >
-      <div className="flex flex-col gap-1">
-        <h2 className="m-0 text-lg font-semibold">{sessionSentence(s)}</h2>
-        {subline && <span className="text-sm text-muted-foreground">{subline}</span>}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-col gap-1">
+          <h2 className="m-0 text-lg font-semibold">{sessionSentence(s)}</h2>
+          {subline && <span className="text-sm text-muted-foreground">{subline}</span>}
+        </div>
+        {canChangeCat(s) && (
+          <Button
+            className="shrink-0"
+            onClick={() => {
+              setChanging(true);
+            }}
+          >
+            Change cat
+          </Button>
+        )}
       </div>
       {media && (
         <TimelineMediaViewer key={String(stepMedia)} media={media} onOpenStill={openStill} />
@@ -136,12 +162,26 @@ export function TimelineSessionDetail({ session: s }: { session: TimelineSession
         <Pair
           label="Matched"
           value={s.pet_name}
-          fallback={<span className="text-muted-foreground">Nobody recognised</span>}
+          action={s.pet_name ? <PetSourceTag session={s} /> : null}
+          fallback={
+            <span className="text-muted-foreground">
+              {s.passing ? 'No cat, just passing' : 'Nobody recognised'}
+            </span>
+          }
         />
         {s.device_name && <Pair label="Device" value={s.device_name} />}
       </dl>
       <StillTiles groups={stillGroups(s)} onOpen={openStill} />
       <TimelineDebugInfo entries={debugEntries(s)} />
+      {changing && canChangeCat(s) && (
+        <ChangeCatSheet
+          session={s}
+          pets={pets}
+          onClose={() => {
+            setChanging(false);
+          }}
+        />
+      )}
       <StillGallery
         gallery={gallery}
         onClose={() => {

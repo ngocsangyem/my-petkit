@@ -1,15 +1,20 @@
 import PetkitCore
 import SwiftUI
 
-/// Edit one cat: its name, its face photos and which devices hold them, and
-/// removal. Reads the pet from the model so a saved change shows at once.
+/// Edit one cat: its name, registered weight and weight matching, its face
+/// photos, which devices hold them, and removal. Everything but the photos
+/// and removal is a draft saved by Done. Reads the pet from the model so a
+/// saved change shows at once.
 struct PetEditView: View {
     @Environment(ServerSession.self) private var session
     @Environment(\.dismiss) private var dismiss
     let model: PetsModel
     let petID: Int
+    /// "Now" for the "updated" line; fixed in snapshots.
+    var now = Date()
 
-    @State private var name = ""
+    @State private var draft: PetEditDraft?
+    @State private var pickingTolerance = false
     @State private var busy = false
     @State private var error: String?
     @State private var choosingFace = false
@@ -29,7 +34,12 @@ struct PetEditView: View {
         }
         .background(Theme.Color.ground.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
-        .onAppear { name = pet?.name ?? "" }
+        .onAppear { if draft == nil, let pet { draft = PetEditDraft(pet: pet) } }
+        .sheet(isPresented: $pickingTolerance) {
+            if let draft {
+                PetToleranceSheet(petName: pet?.name ?? "", current: draft.toleranceG) { self.draft?.toleranceG = $0 }
+            }
+        }
         .petFaceAdder(isChoosing: $choosingFace, petName: pet?.name ?? "") { jpeg in
             guard let pet else { return }
             try await session.call(purpose: "Add a face photo") { try await model.addFace(to: pet, jpeg: jpeg) }
@@ -69,17 +79,13 @@ struct PetEditView: View {
                         .font(Theme.Font.small).foregroundStyle(Theme.Color.muted)
                 }
             }
-            Card {
-                LabeledField(label: "Name") {
-                    TextField("Name", text: $name).textInputAutocapitalization(.words).submitLabel(.done)
-                        .onSubmit { save(pet) }
-                }
-                if let error {
-                    Text(error).font(Theme.Font.small).foregroundStyle(Theme.Color.negative)
-                }
+            if let error {
+                Text(error).font(Theme.Font.small).foregroundStyle(Theme.Color.negative).padding(.horizontal, 4)
             }
+            PetProfileCard(draft: binding(pet), pet: pet, now: now) { save(pet) }
+            PetRecognitionSection(draft: binding(pet)) { pickingTolerance = true }
             PetFacesCard(pet: pet, add: { choosingFace = true }, delete: { faceToDelete = $0 })
-            devices(pet)
+            PetDevicesSection(draft: binding(pet), pet: pet, pets: model.pets.value ?? [], devices: model.devices)
             Card(padding: 0) {
                 Button { confirmsRemove = true } label: {
                     SettingsRow(title: "Remove \(pet.name)", isDestructive: true)
@@ -93,51 +99,34 @@ struct PetEditView: View {
         .padding(.bottom, Theme.Space.pad)
     }
 
-    @ViewBuilder
-    private func devices(_ pet: PetRecord) -> some View {
-        let assigned = model.devices.filter { pet.deviceIDs.contains($0.id) }
-        if !assigned.isEmpty {
-            SectionHeader("Devices")
-            Card {
-                ForEach(Array(assigned.enumerated()), id: \.element.id) { index, device in
-                    if index > 0 { RowRule() }
-                    HStack(spacing: 12) {
-                        DeviceDrawing(kind: DeviceKind(deviceType: device.deviceType), height: 36)
-                            .frame(width: 44)
-                            .accessibilityHidden(true)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(device.name.isEmpty ? "Device \(device.id)" : device.name).font(Theme.Font.body)
-                            Text(PetRules.deviceFaceLine(device: device, faceIDs: pet.faces.map(\.id)))
-                                .font(Theme.Font.small).monospacedDigit().foregroundStyle(Theme.Color.muted)
-                        }
-                        Spacer(minLength: 0)
-                    }
-                    .accessibilityElement(children: .combine)
-                }
-            }
-            Text("A box loads the photos the next time it asks the server; until then it matches against what it holds.")
-                .font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted).padding(.horizontal, 4)
-        }
+    /// The draft as a binding; before `onAppear` fills it, the pet's own values.
+    private func binding(_ pet: PetRecord) -> Binding<PetEditDraft> {
+        Binding(get: { draft ?? PetEditDraft(pet: pet) }, set: { draft = $0 })
     }
 
     private func save(_ pet: PetRecord) {
-        guard let valid = PetRules.validName(name) else {
-            error = "A cat needs a name."
+        let current = draft ?? PetEditDraft(pet: pet)
+        let change: PetUpdate
+        do {
+            change = try current.changes(from: pet)
+        } catch {
+            self.error = error.localizedDescription
             return
         }
-        guard valid != pet.name else {
+        guard !change.isEmpty else {
             dismiss()
             return
         }
+        let added = model.devices.filter { current.addedDeviceIDs(from: pet).contains($0.id) }
         busy = true
         error = nil
         Task {
             defer { busy = false }
             do {
-                try await session.call(purpose: "Rename \(pet.name)") { try await model.rename(pet, to: valid) }
+                try await session.call(purpose: "Save \(pet.name)") { try await model.update(pet, change) }
                 dismiss()
             } catch {
-                self.error = Loadable<Void>.message(for: error)
+                self.error = PetWeightRules.saveErrorMessage(error, addedDevices: added)
             }
         }
     }

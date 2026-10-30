@@ -41,7 +41,15 @@ final class TimelineModel {
         date = fixture.date
     }
 
-    var chips: [TimelineChip] { TimelineFilterRules.chips(pets: pets, devices: devices) }
+    var chips: [TimelineChip] {
+        TimelineFilterRules.chips(pets: pets, devices: devices, passingCount: TimelineFilterRules.passingChipCount(
+            dayCount: day.value?.passingCount, filter: filter))
+    }
+
+    /// The household pets offered for a visit, nearest weight first.
+    func catCandidates(for entry: TimelineEntry) -> [TimelineCatCandidate] {
+        TimelineChangeCatRules.candidates(pets: pets, visitGrams: TimelineChangeCatRules.visitGrams(entry))
+    }
 
     var shownDate: String? { day.value?.date ?? date ?? serverToday }
 
@@ -145,6 +153,20 @@ final class TimelineModel {
             try? await Task.sleep(for: .milliseconds(400))
             guard !Task.isCancelled else { return }
             await self?.loadDay()
+        }
+    }
+
+    /// Names the cat of a visit, then reloads the day; the pets too when a
+    /// registered weight or an identity changed with it.
+    func setVisitPet(_ entry: TimelineEntry, _ request: TimelineVisitPetRequest) async throws {
+        guard let api, let eventID = entry.eventID else { throw URLError(.cannotConnectToHost) }
+        try await api.setVisitPet(eventID: eventID, request)
+        if request.useWeight || request.applyToRef {
+            async let subjects: Void = loadSubjects(api)
+            async let day: Void = loadDay()
+            _ = await (subjects, day)
+        } else {
+            await loadDay()
         }
     }
 

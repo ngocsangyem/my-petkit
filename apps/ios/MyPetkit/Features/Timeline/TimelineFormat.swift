@@ -61,7 +61,7 @@ enum TimelineFormat {
     static func sentence(_ entry: TimelineEntry) -> String {
         if entry.isVisit {
             if let name = entry.petName, !name.isEmpty { return "\(name) used the litter box" }
-            return "Litter-box visit"
+            return entry.passing ? "Light visit" : "A cat used the litter box"
         }
         if let label = entry.label, !label.isEmpty { return label }
         return kindTag(entry.eventKind)
@@ -72,12 +72,14 @@ enum TimelineFormat {
         entry.eventKind == "error"
     }
 
-    /// "13:58 · 1 min 55 s · 5.43 kg · waste 42 g".
+    /// "13:58 · 1 min 55 s · 5.43 kg · waste 42 g"; a visit nobody named ends
+    /// "not recognised" (a weight match carries its own "by weight" tag).
     static func metaLine(_ entry: TimelineEntry, tzOffset: Int) -> String {
         var parts = [clock(entry.displayTs ?? entry.ts, tzOffset: tzOffset)]
         if entry.isVisit {
             parts.append(duration(entry.durationSec))
             parts.append(weight(entry.weight))
+            if !entry.hasPet, !entry.passing { parts.append("not recognised") }
         }
         if !entry.isVisit, !entry.deviceName.isEmpty { parts.append(entry.deviceName) }
         return (parts.compactMap { $0 } + entry.bits).joined(separator: " · ")

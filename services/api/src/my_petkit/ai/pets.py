@@ -33,6 +33,11 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
+#: How many pets one device is handed for recognition. PetKit's app refuses a
+#: sixteenth cat on a box ("Pet_identify_home_limit_tip"); the firmware limit
+#: behind it is not known, so this follows the app rather than probing it.
+MAX_PETS_PER_DEVICE = 15
+
 # The generated name is substituted into the URL the device is handed
 # (`http://{host}/faces/{name}` in discern_pic_payload), which is built WITHOUT
 # percent-encoding. sanitize_filename's blacklist is right for media paths but
@@ -340,7 +345,10 @@ class PetRegistry:
             ]
             if discern:
                 entries.append({"id": pet["id"], "discern": discern})
-        return {"result": {"list": entries}}
+        # The panel refuses a sixteenth pet on a device; this also holds for a
+        # database that got there some other way. Oldest pets with photos first:
+        # a pet with nothing to match against must not take a slot.
+        return {"result": {"list": entries[:MAX_PETS_PER_DEVICE]}}
 
     # --- ingestion hooks --------------------------------------------------
 

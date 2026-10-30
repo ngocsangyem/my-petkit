@@ -11,8 +11,7 @@ checklist of the panel ledger (§11.2). A row is ticked only when it works in
   `docs/design/screenshots/<artboard>.webp` for layout, hierarchy, spacing and
   colour. "rendered" means the snapshot exists but the comparison is still to do.
 
-Live view and talk (phase 10) and the pet weight/matching work (phase 14) are
-not in this table. Provisioning
+Live view and talk (phase 10) are not in this table. Provisioning
 over Bluetooth has its own section below.
 
 ## Routes
@@ -66,10 +65,10 @@ over Bluetooth has its own section below.
 | pets | `GET /api/pets/{id}/faces/{face_id}/photo` | `getPetFacePhoto` | PetPhoto | 9162169 |
 | pets | `GET /api/pets/{id}/faces` | `listPetFaces` | — | n/a: faces arrive with `listPets`/`getPet` |
 | pets | `GET /api/pets/{id}` | `getPet` | Pets › bind | 9162169 |
-| pets | `GET /api/pets` | `listPets` | Pets, Home, Timeline chips | 9162169 |
-| pets | `POST /api/pets/import` | `importPetsFromPetkit` | Pets › import | 9162169 |
+| pets | `GET /api/pets` | `listPets` | Pets, Home, Timeline chips; registered weights for the change-cat sheet | 9162169, a00f562 |
+| pets | `POST /api/pets/import` | `importPetsFromPetkit` | Pets › import ("device full" results counted in the summary) | 9162169, a00f562 |
 | pets | `POST /api/pets/{id}/faces` | `addPetFace` | Pets › add face (224² JPEG) | 9162169 |
-| pets | `POST /api/pets/{id}` | `updatePet` | Pets › rename, bind | 9162169 |
+| pets | `POST /api/pets/{id}` | `updatePet` | Pets › bind; Pet edit › Done: name, registered weight (kg), match by weight, tolerance, devices, changed fields only; 409 `too_many_pets` names the full box | 9162169, a00f562 |
 | pets | `POST /api/pets` | `createPet` | Pets › add | 9162169 |
 | schedules | `DELETE /api/devices/{id}/deferred-feed/{feed_id}` | `deleteDeferredFeed` | Schedules › One-off | 6e65187 |
 | schedules | `GET /api/devices/{id}/deferred-feed` | `listDeferredFeeds` | Schedules › One-off | 6e65187 |
@@ -87,7 +86,8 @@ over Bluetooth has its own section below.
 | sounds | `POST /api/devices/{id}/sounds/{sound_id}/select` | `selectDeviceSound` | Sounds | c130c6b |
 | sounds | `POST /api/devices/{id}/sounds` | `uploadDeviceSound` | Sounds | c130c6b |
 | timeline | `GET /api/timeline/{id}` | `getTimelineEventDetail` | Timeline › detail sheet | 9162169 |
-| timeline | `GET /api/timeline` | `getTimeline` | Timeline, Home, Pets (visits per day) | 9162169 |
+| timeline | `GET /api/timeline` | `getTimeline` | Timeline (incl. "Light visits · N" chip, `filter=passing`; "not recognised" and "by weight" on rows), Home, Pets (visits per day) | 9162169, a00f562 |
+| timeline | `PUT /api/timeline/{id}/pet` | `setVisitPet` | Timeline › Change cat (long press on a visit, or the detail sheet): pet, "No cat, just passing", use weight, later visits of the reported identity; server sentence on refusal (`implausible_weight`, `ref_not_bindable`, ...). Sent by hand, see below | a00f562 |
 
 ## Screens
 
@@ -111,7 +111,8 @@ over Bluetooth has its own section below.
 | `ios-ble-pair` | Pair an accessory | 3df5495 | ✓ |
 | `ios-timeline` | Timeline | 9162169 | ✓ |
 | `ios-pets` | Pets | 9162169 | ✓ |
-| `ios-pet-edit` | Name, face photos per device, remove only (rest is phase 14) | 9162169 | not snapshotted |
+| `ios-pet-edit` | Name, registered weight with "updated", match by weight with the real 2 × tolerance sentence, tolerance wheel, face photos, per-device switches with "N of 15 cats on this box", remove. The artboard's "Hide light visits" switch is deliberately not built: light visits are a Timeline chip | 9162169, a00f562 | ✓ (screen snapshot `ios-pet-edit`, component `pet-edit-recognition-devices`) |
+| `ios-change-cat` | Change-cat sheet over the Timeline: candidates nearest weight first with "closest weight", no cat, use-weight switch, later-visits switch (only when the box reported an unbound identity), footnote | a00f562 | ✓ (screen snapshot `ios-change-cat`, component `change-cat-recognised`) |
 | `ios-settings` | Server tab | 64097d1 | ✓ |
 | `ios-logs` | Logs: server and device | 64097d1 | rendered |
 | `ios-server-setup` | Server setup | 64097d1 | rendered |
@@ -177,6 +178,10 @@ the contract is corrected and regenerated:
 - `pet_ref` and `parent_event` are typed the opposite way to what the server sends.
 - `LogsHubEvent.device_id` is typed integer; the contract allows a string.
 - `{"timezone": null}` (clear the override) is dropped by the generated request.
+- `VisitPetResult.pet` (`oneOf [Pet, null]`) is dropped by the generator, and "no pet" must go as an
+  explicit `"pet_id": null`, so `setVisitPet` is sent by hand (`TimelineAPI.setVisitPet`).
+- `PetUpdateRequest.weight_g: null` is dropped too, so the edit screen can correct a registered
+  weight but not clear it.
 - `AutoPackRule.quietHours` (`oneOf [schema, null]`, required) is dropped by the generator, whose
   decoder then refuses it as an unknown key; "no quiet hours" must also go as an explicit `null`.
   The litter-automation routes are read and written by hand (`LitterAutomationRecords.swift`).

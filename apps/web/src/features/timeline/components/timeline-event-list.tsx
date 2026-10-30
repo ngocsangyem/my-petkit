@@ -17,6 +17,7 @@ import {
   type TimelineSubEvent,
 } from '../timeline-model';
 import { PetAvatar } from './pet-avatar';
+import { PetSourceTag } from './pet-source-tag';
 
 // The time column is a fixed grid track and times follow the reader's locale, so a 12-hour
 // "1:23 PM" needs a wider track than "13:23". Sized once from what the locale resolves to,
@@ -88,6 +89,7 @@ function EventGroup({ session: s, selected, onSelect, showDevice, columns }: Eve
         <span className="flex min-w-0 flex-col">
           <span className="inline-flex flex-wrap items-center gap-2">
             {sessionSentence(s)}
+            <PetSourceTag session={s} />
             {s.event_kind === 'error' && <Pill tone="negative">Alert</Pill>}
           </span>
           {s.bits.length > 0 && (

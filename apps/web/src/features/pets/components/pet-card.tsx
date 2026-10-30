@@ -12,9 +12,11 @@ import {
   type DeviceSummary,
   type Pet,
 } from '../pet-model';
+import { gramsToKgText } from '../pet-weight-model';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/shadcn/avatar';
 import { FaceStrip } from './face-strip';
 import { PetNameEditor } from './pet-name-editor';
+import { PetWeightDialog } from './pet-weight-dialog';
 
 /** Each pet's identity tint, by slot; the same pair the household day strip uses. */
 const TINTS = [
@@ -28,13 +30,24 @@ interface PetCardProps {
   index: number;
   devices: readonly DeviceSummary[];
   aiDetails: readonly DeviceDetail[];
+  /** How many pets each device recognises, for the per-box limit. */
+  load: ReadonlyMap<number, number>;
   onAddPhoto: () => void;
   notify: (text: string, error?: boolean) => void;
 }
 
 /** One pet: photo, status, figures, face photos, the devices it is assigned to, and its actions. */
-export function PetCard({ pet, index, devices, aiDetails, onAddPhoto, notify }: PetCardProps) {
+export function PetCard({
+  pet,
+  index,
+  devices,
+  aiDetails,
+  load,
+  onAddPhoto,
+  notify,
+}: PetCardProps) {
   const [editing, setEditing] = useState(false);
+  const [weighing, setWeighing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [removeFace, setRemoveFace] = useState<number | null>(null);
   const rename = useRenamePet();
@@ -115,6 +128,12 @@ export function PetCard({ pet, index, devices, aiDetails, onAddPhoto, notify }: 
         </span>
       </div>
 
+      <p className="text-sm text-muted-foreground tabular-nums">
+        {pet.weight_g === null
+          ? 'No registered weight'
+          : `Registered weight ${gramsToKgText(pet.weight_g)} kg`}
+      </p>
+
       <p className="text-sm text-muted-foreground">
         {deviceIds.length === 0
           ? 'No devices assigned'
@@ -146,6 +165,13 @@ export function PetCard({ pet, index, devices, aiDetails, onAddPhoto, notify }: 
           Rename
         </Button>
         <Button
+          onClick={() => {
+            setWeighing(true);
+          }}
+        >
+          Weight
+        </Button>
+        <Button
           variant="destructive"
           onClick={() => {
             setConfirmDelete(true);
@@ -154,6 +180,18 @@ export function PetCard({ pet, index, devices, aiDetails, onAddPhoto, notify }: 
           Delete
         </Button>
       </div>
+
+      {weighing && (
+        <PetWeightDialog
+          pet={pet}
+          devices={devices}
+          load={load}
+          notify={notify}
+          onClose={() => {
+            setWeighing(false);
+          }}
+        />
+      )}
 
       <ConfirmDialog
         open={confirmDelete}

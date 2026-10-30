@@ -56,7 +56,7 @@ final class TimelineFormatTests: XCTestCase {
 
     func testVisitSentenceNamesThePet() {
         XCTAssertEqual(TimelineFormat.sentence(entry()), "Miso used the litter box")
-        XCTAssertEqual(TimelineFormat.sentence(entry(petName: nil)), "Litter-box visit")
+        XCTAssertEqual(TimelineFormat.sentence(entry(petName: nil)), "A cat used the litter box")
     }
 
     func testEventSentenceUsesLabelThenKind() {

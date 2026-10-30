@@ -830,7 +830,7 @@ async def test_timeline_filters_by_pet():
             # not hers
             assert mine["counts"] == {"all": 1, "pet": 0, "toileting": 1,
                                       "drinking": 0, "feeding": 0, "cleaning": 0,
-                                      "health_alert": 0, "fault": 0}
+                                      "health_alert": 0, "fault": 0, "passing": 0}
 
             # a pet id nobody matches empties the view rather than ignoring it
             none = await (await c.get("/api/timeline?pet=99999")).json()

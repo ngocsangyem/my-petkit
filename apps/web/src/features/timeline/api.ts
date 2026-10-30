@@ -1,10 +1,11 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { components } from '@/api/schema';
 import { api, unwrap } from '@/shared/api/client';
 import type { FilterKey } from './timeline-model';
 
 export type TimelineDevice = components['schemas']['DeviceSummary'];
 export type TimelinePet = components['schemas']['PetWithFaces'];
+export type VisitPetRequest = components['schemas']['VisitPetRequest'];
 
 export interface TimelineQuery {
   date: string;
@@ -79,6 +80,29 @@ export function useTimelinePets() {
       } catch {
         return [];
       }
+    },
+  });
+}
+
+/** The Pets screen's cache root; spelled out because features do not import each other. */
+const PETS_SCREEN_KEY = ['pets'] as const;
+
+/**
+ * Change which pet a visit belongs to (or mark it as nobody). Only the server's record moves;
+ * nothing goes to the box. The day is refetched either way, and the pets too when the visit's
+ * reading became a registered weight.
+ */
+export function useSetVisitPet() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, body }: { id: number; body: VisitPetRequest }) =>
+      unwrap(api.PUT('/api/timeline/{id}/pet', { params: { path: { id } }, body })),
+    onSettled: async (_data, _error, { body }) => {
+      const pending = [client.invalidateQueries({ queryKey: timelineKeys.all })];
+      if (body.use_weight || body.apply_to_ref) {
+        pending.push(client.invalidateQueries({ queryKey: PETS_SCREEN_KEY }));
+      }
+      await Promise.all(pending);
     },
   });
 }

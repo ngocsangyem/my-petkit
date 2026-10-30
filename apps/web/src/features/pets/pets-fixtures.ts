@@ -65,6 +65,10 @@ export function pet(over: Partial<Pet> = {}): Pet {
     face_id: null,
     photo_path: null,
     weight: null,
+    weight_g: 5430,
+    weight_updated_at: null,
+    weight_tolerance_g: null,
+    weight_match: 1,
     created_at: 1761600000,
     faces: [
       { id: 11, url: 'api/pets/1/faces/11/photo' },
