@@ -117,7 +117,7 @@ legacy panel ledger's §11.1. Talk has no web client in the old panel and gets n
 | devices | Timezone, capabilities, AI and log-upload toggles | devices.js | 28c8703 | ✓ |
 | devices | BLE accessories: pair, unpair, command, poll, import from cloud | devices.js | 28c8703 | ✓ |
 | devices | Household day strip, positions in the device's time zone | — (new) | 28c8703 | ✓ |
-| devices | Force continue on a litter box paused for a cat nearby: offered only when every guard passes, password then confirm with the guard checklist, refusal shown in the block (new, not in the old panel) | — (new) | 86591f4 | n/a: no web artboard; copy from `ios-device-t6-paused` |
+| devices | Force continue on a litter box paused for a cat nearby: offered only when every guard passes, confirm with the guard checklist (step-up prompt when the server asks for one), refusal shown in the block (new, not in the old panel) | — (new) | 86591f4 | n/a: no web artboard; copy from `ios-device-t6-paused` |
 | devices | T6 auto-pack rule (experimental): on/off with a confirmation, trigger, threshold, quiet hours, and the server's status line (new, not in the old panel) | — (new) | 86591f4 | n/a: no web artboard |
 | timeline | Day picker, kind chips with counts before filtering, device and pet filters | timeline.js | abd0764 | ✓ |
 | timeline | Visit cards with sub-events, lazy video, waste/health gallery, "assembling…" | timeline.js, media.js | abd0764 | ✓ |

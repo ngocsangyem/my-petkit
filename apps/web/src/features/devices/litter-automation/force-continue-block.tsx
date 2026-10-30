@@ -1,8 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { CheckIcon, XIcon } from 'lucide-react';
 import { useState } from 'react';
-import { promptForCredential } from '@/shared/api/credential-prompt';
-import { errorMessage } from '@/shared/api/errors';
+import { ApiError, errorMessage } from '@/shared/api/errors';
 import { Button, ConfirmDialog, Icon, RiskNotice, StepUpPill, useToast } from '@/shared/ui';
 import { Alert, AlertDescription } from '@/shared/ui/shadcn/alert';
 import { deviceKeys } from '../api';
@@ -24,10 +23,10 @@ interface ForceContinueBlockProps {
 /**
  * Force continue on a box paused for a cat near the entrance (R3). The button
  * exists only while the server offers it, that is while every guard passes. A
- * click asks for the password first, so the red confirm is the last thing
- * before the drum turns; the server re-checks every guard and answers a 409
- * with one sentence when one fails (or a 503 when the command could not be
- * sent), shown here in an alert.
+ * click opens the confirm; without a fresh step-up the API client asks for the
+ * password and replays the send, as for every R3 action. The server re-checks
+ * every guard and answers a 409 with one sentence when one fails (or a 503
+ * when the command could not be sent), shown here in an alert.
  */
 export function ForceContinueBlock({ deviceId, forceContinue }: ForceContinueBlockProps) {
   const queryClient = useQueryClient();
@@ -42,11 +41,8 @@ export function ForceContinueBlock({ deviceId, forceContinue }: ForceContinueBlo
   if (!forceContinue.supported) return null;
   if (!offered && !quietBlockers && !refusal && !confirming) return null;
 
-  const start = async () => {
+  const start = () => {
     setRefusal(null);
-    // An explicit prompt rather than waiting for a 403: the password comes
-    // before the confirmation, never between it and the device moving.
-    if (!(await promptForCredential('step-up'))) return;
     setConfirming(true);
   };
 
@@ -56,7 +52,9 @@ export function ForceContinueBlock({ deviceId, forceContinue }: ForceContinueBlo
       const result = await sendForceContinue(deviceId);
       toast(`Continue cleaning · ${actionDeliveryText(result.delivered)}`);
     } catch (error) {
-      setRefusal(errorMessage(error));
+      // A cancelled password prompt is the person's own choice, not a refusal to show.
+      const cancelled = error instanceof ApiError && error.code === 'step_up_required';
+      if (!cancelled) setRefusal(errorMessage(error));
     } finally {
       setBusy(false);
       setConfirming(false);
@@ -73,7 +71,7 @@ export function ForceContinueBlock({ deviceId, forceContinue }: ForceContinueBlo
             aside="The box stopped because it saw a cat near the entrance."
           />
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="secondary" disabled={busy} onClick={() => void start()}>
+            <Button variant="secondary" disabled={busy} onClick={start}>
               Force continue
             </Button>
             <StepUpPill>Step-up</StepUpPill>

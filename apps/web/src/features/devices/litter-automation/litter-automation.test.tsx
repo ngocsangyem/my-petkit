@@ -89,15 +89,13 @@ describe('Force continue', () => {
     expect(screen.queryByRole('button', { name: 'Force continue' })).not.toBeInTheDocument();
   });
 
-  it('asks for the password, then confirms, then sends', async () => {
+  it('confirms, then sends, with no password while the step-up is fresh', async () => {
     const user = userEvent.setup();
     const calls = render({
       [VIEW]: { body: view() },
-      'POST /api/auth/step-up': { body: { ok: true } },
       [FORCE]: { body: { ok: true, delivered: 'mqtt', suffix: 'continue', envelope: {} } },
     });
     await user.click(await screen.findByRole('button', { name: 'Force continue' }));
-    await passStepUp(user);
 
     const confirm = await screen.findByRole('alertdialog', { name: 'Continue cleaning now?' });
     expect(sent(calls, 'POST', '/force-continue')).toHaveLength(0);
@@ -114,30 +112,82 @@ describe('Force continue', () => {
     await waitFor(() => {
       expect(sent(calls, 'POST', '/force-continue')).toHaveLength(1);
     });
-    const order = calls.map(c => new URL(c.url).pathname);
-    expect(order.findIndex(p => p.endsWith('/auth/step-up'))).toBeLessThan(
-      order.findIndex(p => p.endsWith('/force-continue')),
-    );
+    expect(sent(calls, 'POST', '/auth/step-up')).toHaveLength(0);
+    expect(screen.queryByRole('dialog', { name: "Confirm it's you to continue?" })).toBeNull();
   });
 
-  it('sends nothing when the password prompt is cancelled', async () => {
+  it('asks for the password when the server wants a step-up, then replays the send', async () => {
+    const user = userEvent.setup();
+    let attempts = 0;
+    const calls = render({
+      [VIEW]: { body: view() },
+      'POST /api/auth/step-up': { body: { ok: true } },
+      [FORCE]: () =>
+        ++attempts === 1
+          ? {
+              status: 403,
+              body: { error: { code: 'step_up_required', message: 'Step-up required.' } },
+            }
+          : { body: { ok: true, delivered: 'mqtt', suffix: 'continue', envelope: {} } },
+    });
+    await user.click(await screen.findByRole('button', { name: 'Force continue' }));
+    const confirm = await screen.findByRole('alertdialog', { name: 'Continue cleaning now?' });
+    await user.click(within(confirm).getByRole('button', { name: 'Continue cleaning' }));
+    await passStepUp(user);
+
+    await waitFor(() => {
+      expect(sent(calls, 'POST', '/force-continue')).toHaveLength(2);
+    });
+    const order = calls
+      .filter(c => c.method === 'POST')
+      .map(c => new URL(c.url).pathname.replace(/^.*\/api\//, ''));
+    expect(order).toEqual([
+      `devices/${ID}/force-continue`,
+      'auth/step-up',
+      `devices/${ID}/force-continue`,
+    ]);
+    const block = screen.getByRole('region', { name: 'Force continue' });
+    expect(within(block).queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('sends nothing when the confirm is dismissed', async () => {
     const user = userEvent.setup();
     const calls = render({ [VIEW]: { body: view() } });
     await user.click(await screen.findByRole('button', { name: 'Force continue' }));
+    const confirm = await screen.findByRole('alertdialog', { name: 'Continue cleaning now?' });
+    await user.click(within(confirm).getByRole('button', { name: 'Not now' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    });
+    expect(calls.filter(c => c.method === 'POST')).toHaveLength(0);
+  });
+
+  it('shows no refusal when the password prompt is cancelled', async () => {
+    const user = userEvent.setup();
+    const calls = render({
+      [VIEW]: { body: view() },
+      [FORCE]: {
+        status: 403,
+        body: { error: { code: 'step_up_required', message: 'Step-up required.' } },
+      },
+    });
+    await user.click(await screen.findByRole('button', { name: 'Force continue' }));
+    const confirm = await screen.findByRole('alertdialog', { name: 'Continue cleaning now?' });
+    await user.click(within(confirm).getByRole('button', { name: 'Continue cleaning' }));
     const stepUp = await screen.findByRole('dialog', { name: "Confirm it's you to continue?" });
     await user.click(within(stepUp).getByRole('button', { name: 'Cancel' }));
     await waitFor(() => {
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     });
-    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
-    expect(sent(calls, 'POST', '/force-continue')).toHaveLength(0);
+    expect(sent(calls, 'POST', '/force-continue')).toHaveLength(1);
+    const block = screen.getByRole('region', { name: 'Force continue' });
+    expect(within(block).queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('shows the server sentence when a guard refuses at send time', async () => {
     const user = userEvent.setup();
     render({
       [VIEW]: { body: view() },
-      'POST /api/auth/step-up': { body: { ok: true } },
       [FORCE]: {
         status: 409,
         body: {
@@ -149,7 +199,6 @@ describe('Force continue', () => {
       },
     });
     await user.click(await screen.findByRole('button', { name: 'Force continue' }));
-    await passStepUp(user);
     const confirm = await screen.findByRole('alertdialog', { name: 'Continue cleaning now?' });
     await user.click(within(confirm).getByRole('button', { name: 'Continue cleaning' }));
     const block = screen.getByRole('region', { name: 'Force continue' });
@@ -161,7 +210,6 @@ describe('Force continue', () => {
     const user = userEvent.setup();
     render({
       [VIEW]: { body: view() },
-      'POST /api/auth/step-up': { body: { ok: true } },
       [FORCE]: {
         status: 503,
         body: {
@@ -173,7 +221,6 @@ describe('Force continue', () => {
       },
     });
     await user.click(await screen.findByRole('button', { name: 'Force continue' }));
-    await passStepUp(user);
     const confirm = await screen.findByRole('alertdialog', { name: 'Continue cleaning now?' });
     await user.click(within(confirm).getByRole('button', { name: 'Continue cleaning' }));
     const block = screen.getByRole('region', { name: 'Force continue' });
