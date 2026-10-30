@@ -192,3 +192,37 @@ export function timeline(date: string, sessions: components['schemas']['Timeline
     sessions,
   };
 }
+
+type LitterAutomation = components['schemas']['LitterAutomationView'];
+
+/** A T6 paused for a cat near the entrance with every guard passing, and an auto-pack rule off. */
+export const litterAutomation: LitterAutomation = {
+  forceContinue: { supported: true, offered: true, blockers: [] },
+  autoPack: {
+    supported: true,
+    rule: {
+      enabled: false,
+      trigger: 'after_cleanings',
+      cleanings: 5,
+      at: '09:00',
+      quietHours: { start: '22:00', end: '07:00' },
+    },
+    status: {
+      enabledAt: null,
+      pendingSince: null,
+      lastAttemptAt: null,
+      retries: 0,
+      lastResult: null,
+      lastPackedAt: null,
+      heldBackBy: null,
+      disabledReason: null,
+      awaitingBinClear: false,
+    },
+  },
+};
+
+/** A device that supports neither feature. */
+export const noLitterAutomation: LitterAutomation = {
+  forceContinue: { supported: false, offered: false, blockers: [] },
+  autoPack: { supported: false },
+};

@@ -2,13 +2,21 @@
 // water fountain that went quiet at 06:10, and a K3 spray relayed by the box.
 // Built from the screen tests' fixture helpers so the shapes stay the contract's.
 import type { components } from '@/api/schema';
-import { NOW, detail, entity, summary } from '@/features/devices/devices-fixtures';
+import {
+  NOW,
+  detail,
+  entity,
+  litterAutomation,
+  noLitterAutomation,
+  summary,
+} from '@/features/devices/devices-fixtures';
 import { DAY_START } from '@/features/timeline/timeline-fixtures';
 
 type Accessory = components['schemas']['BleAccessory'];
 type AccessoryEntity = components['schemas']['BleAccessoryEntity'];
 type Detail = components['schemas']['DeviceDetail'];
 type Sound = components['schemas']['Sound'];
+type LitterAutomation = components['schemas']['LitterAutomationView'];
 
 /** Epoch seconds of `h:m:s` on the fixtures' day, Asia/Saigon. */
 export const at = (h: number, m: number, s = 0) => DAY_START + h * 3600 + m * 60 + s;
@@ -239,5 +247,27 @@ export function liveInfo(id: number): LiveInfo {
     reason: null,
     modes: ['mse', 'hls'],
     hls_url: `/api/live/${id}/stream.m3u8?exp=0&sig=preview`,
+  };
+}
+
+/** The T6 paused for a cat near the entrance, with an auto-pack rule on that last packed at 08:40. */
+export function litterAutomationFor(id: number): LitterAutomation {
+  if (id !== LITTER_ID) return noLitterAutomation;
+  const { rule, status } = litterAutomation.autoPack;
+  if (!rule || !status) return litterAutomation;
+  return {
+    ...litterAutomation,
+    autoPack: {
+      supported: true,
+      rule: { ...rule, enabled: true },
+      status: {
+        ...status,
+        enabledAt: at(6, 0),
+        lastAttemptAt: at(8, 39),
+        lastPackedAt: at(8, 40),
+        lastResult: 'packed',
+        heldBackBy: 'not_due',
+      },
+    },
   };
 }
