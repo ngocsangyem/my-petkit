@@ -22,6 +22,11 @@ updates:
     directory: /apps/ios/PetkitKit
     schedule:
       interval: weekly
+    ignore:
+      # 1.14 needs Swift tools 6.2; the macos-15 runners build with Xcode 16.4
+      # (Swift 6.1). Lift this when CI moves to Xcode 26.
+      - dependency-name: github.com/apple/swift-openapi-generator
+        versions: [">= 1.14.0"]
 
   - package-ecosystem: docker
     directory: /
