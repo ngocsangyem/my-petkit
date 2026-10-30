@@ -13,9 +13,16 @@ struct PetRecord: Hashable, Sendable, Identifiable {
     var name: String
     var deviceIDs: [Int]
     var aliasIDs: [Int]
-    /// Registered weight, stored by the server as given.
+    /// Legacy free-form weight, stored by the server as given.
     var weight: Double?
     var faces: [PetFaceRef]
+    /// Registered weight in whole grams; what the weight rules read.
+    var weightG: Int?
+    var weightUpdatedAt: Double?
+    /// Nil is the server's default (`PetRules.defaultToleranceG`).
+    var toleranceG: Int?
+    /// Visits the camera did not recognise may be matched to this pet by weight.
+    var matchesByWeight = true
 
     /// The photo that stands for the pet: its first face, as the server's
     /// timeline does (`pet_photo_url` is the first face too).
@@ -47,6 +54,8 @@ struct PetImportOutcome: Hashable, Sendable {
     let facesImported: Int
     let facesOffered: Int
     let boundEvents: Int
+    /// Left out because the device already holds as many cats as it can.
+    var deviceFull = false
 }
 
 /// Pure rules of the Pets screens. Mirrors the web app's `pet-model.ts`.
@@ -134,14 +143,19 @@ enum PetRules {
     /// (it has to be a real JPEG), and the bound count is history just named.
     static func importSummary(_ results: [PetImportOutcome]) -> String {
         let imported = results.filter(\.imported)
+        let full = results.filter(\.deviceFull).count
+        let fullNote = full > 0
+            ? " \(plural(full, "pet")) left out: the device already holds \(PetWeightRules.maxPetsPerDevice) cats."
+            : ""
         guard !imported.isEmpty else {
+            if full > 0 { return "Nothing imported." + fullNote }
             return "Nothing new: PetKit lists no pets this device does not already have."
         }
         let photos = imported.reduce(0) { $0 + $1.facesImported }
         let offered = imported.reduce(0) { $0 + $1.facesOffered }
         let named = imported.reduce(0) { $0 + $1.boundEvents }
         let head = "Imported \(plural(imported.count, "pet")), \(photos) of \(plural(offered, "photo"))"
-        return named > 0 ? "\(head), named \(plural(named, "past event"))." : "\(head)."
+        return (named > 0 ? "\(head), named \(plural(named, "past event"))." : "\(head).") + fullNote
     }
 
     /// Visits per day on average over the days that have a count.

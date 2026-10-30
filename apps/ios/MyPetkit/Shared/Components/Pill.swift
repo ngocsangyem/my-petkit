@@ -1,20 +1,22 @@
 import PetkitCore
 import SwiftUI
 
-/// A 22pt pill beside a value or title.
+/// A 22pt pill beside a value or title; the compact 18pt one sits inside a
+/// line of small text.
 struct Pill: View {
     enum Tone { case positive, negative, warning, neutral }
 
     let text: String
     var tone: Tone = .neutral
+    var isCompact = false
 
     var body: some View {
         let (background, foreground) = colors
         Text(text)
-            .font(Theme.Font.pill)
+            .font(isCompact ? Theme.Font.tab : Theme.Font.pill)
             .foregroundStyle(foreground)
-            .padding(.horizontal, 9)
-            .frame(height: Theme.Space.pill)
+            .padding(.horizontal, isCompact ? 7 : 9)
+            .frame(height: isCompact ? 18 : Theme.Space.pill)
             .background(background, in: Capsule())
     }
 

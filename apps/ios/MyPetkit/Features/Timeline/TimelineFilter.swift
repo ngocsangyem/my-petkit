@@ -1,10 +1,12 @@
 import Foundation
 
-/// The one chip selected above the day: everything, one pet or one device.
+/// The one chip selected above the day: everything, one pet, one device, or
+/// the light visits `all` leaves out.
 enum TimelineFilter: Hashable, Sendable {
     case all
     case pet(Int)
     case device(Int)
+    case passing
 }
 
 /// A pet or device the chips can name.
@@ -14,6 +16,8 @@ struct TimelineSubject: Hashable, Sendable, Identifiable {
     /// Absolute server path of a pet's photo; nil for devices.
     var photoPath: String?
     var deviceType: String?
+    /// A pet's registered weight in grams, when it has one.
+    var weightG: Int?
 }
 
 /// One chip in the row.
@@ -30,15 +34,22 @@ struct TimelineChip: Hashable, Sendable, Identifiable {
 struct TimelineQuery: Hashable, Sendable {
     var device: Int?
     var pet: Int?
+    /// The route's `filter`; `all` is every session except light visits.
+    var filter = "all"
 }
 
 enum TimelineFilterRules {
-    /// "All", then each pet, then each device, in the order the server lists them.
-    static func chips(pets: [TimelineSubject], devices: [TimelineSubject]) -> [TimelineChip] {
+    /// "All", then each pet, then "Light visits · N" when `passingCount` is
+    /// given, then each device, in the order the server lists them.
+    static func chips(pets: [TimelineSubject], devices: [TimelineSubject],
+                      passingCount: Int? = nil) -> [TimelineChip] {
         var chips = [TimelineChip(filter: .all, title: "All")]
         for (index, pet) in pets.enumerated() {
             chips.append(TimelineChip(filter: .pet(pet.id), title: displayName(pet.name, fallback: "Pet \(pet.id)"),
                                       photoPath: pet.photoPath, tintIndex: index))
+        }
+        if let passingCount {
+            chips.append(TimelineChip(filter: .passing, title: "Light visits · \(passingCount)"))
         }
         for device in devices {
             chips.append(TimelineChip(filter: .device(device.id),
@@ -57,6 +68,7 @@ enum TimelineFilterRules {
         case .all: TimelineQuery()
         case .pet(let id): TimelineQuery(pet: id)
         case .device(let id): TimelineQuery(device: id)
+        case .passing: TimelineQuery(filter: "passing")
         }
     }
 
@@ -69,7 +81,14 @@ enum TimelineFilterRules {
 
     /// Keeps the selection when its chip still exists; a pet deleted or a
     /// device removed since falls back to "All" instead of an empty day.
+    /// "Light visits" depends on the day, not on a list, so it is always kept.
     static func reconciled(_ filter: TimelineFilter, chips: [TimelineChip]) -> TimelineFilter {
-        chips.contains { $0.filter == filter } ? filter : .all
+        filter == .passing || chips.contains { $0.filter == filter } ? filter : .all
+    }
+
+    /// The light-visits chip shows while the day has some, or while it is selected.
+    static func passingChipCount(dayCount: Int?, filter: TimelineFilter) -> Int? {
+        let count = dayCount ?? 0
+        return count > 0 || filter == .passing ? count : nil
     }
 }

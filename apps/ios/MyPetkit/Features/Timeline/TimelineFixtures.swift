@@ -7,8 +7,8 @@ enum TimelineFixtures {
     static let dayStart: Double = 1_793_120_400
 
     static let pets = [
-        TimelineSubject(id: 1, name: "Miso"),
-        TimelineSubject(id: 2, name: "Mochi"),
+        TimelineSubject(id: 1, name: "Miso", weightG: 5430),
+        TimelineSubject(id: 2, name: "Mochi", weightG: 3860),
     ]
 
     static let devices = [
@@ -55,6 +55,32 @@ enum TimelineFixtures {
             visit(5, pet: (2, "Mochi"), minute: 227, stats: (92, 3870),
                   media: TimelineMedia(playback: "playback/5.ts")),
         ]
+    )
+
+    /// 14:31, nobody recognised, the scale read 5.40 kg; the box reported an
+    /// identity no pet holds.
+    static let unrecognised: TimelineEntry = {
+        let ts = dayStart + 871 * 60
+        return TimelineEntry(kind: "visit", eventID: 6, deviceID: 10, deviceName: "Litter box", ts: ts, displayTs: ts,
+                             petID: nil, petName: nil, petPhotoPath: nil, label: nil, eventKind: "toilet_visit",
+                             eventType: "10", durationSec: 122, weight: 5400, bits: [], steps: [],
+                             media: TimelineMedia(), index: 6, unboundPetRef: 7_301_552)
+    }()
+
+    /// 11:05, Mochi matched by weight only.
+    static let byWeight: TimelineEntry = {
+        let ts = dayStart + 665 * 60
+        return TimelineEntry(kind: "visit", eventID: 7, deviceID: 10, deviceName: "Litter box", ts: ts, displayTs: ts,
+                             petID: 2, petName: "Mochi", petPhotoPath: nil, label: nil, eventKind: "toilet_visit",
+                             eventType: "10", durationSec: nil, weight: 3860, bits: [], steps: [],
+                             media: TimelineMedia(), index: 7, petSource: "weight")
+    }()
+
+    /// A day with an unrecognised visit, a weight match and two light visits,
+    /// as the change-cat artboard draws it behind the sheet.
+    static let reassignDay = TimelineDayResult(
+        date: "2026-10-28", tzOffset: 25_200, toiletingCount: 2, feedingCount: 0, drinkingCount: 0, faultCount: 0,
+        entries: [unrecognised, byWeight], passingCount: 2
     )
 
     static let detail = TimelineEventDetail(

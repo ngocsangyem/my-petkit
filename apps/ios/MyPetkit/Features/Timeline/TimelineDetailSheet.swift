@@ -10,6 +10,15 @@ struct TimelineDetailSheet: View {
     let deviceType: String?
     /// Loads the stored detail; nil in previews.
     let loadDetail: ((Int) async throws -> TimelineEventDetail)?
+    /// Pets offered by "Change cat", and what saves the answer; nil hides it.
+    var catCandidates: [TimelineCatCandidate] = []
+    var saveCat: ((TimelineVisitPetRequest) async throws -> Void)?
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var changingCat = false
+    /// The header still names the old cat once a change is saved, so the
+    /// detail closes with the change sheet; the day behind shows the new one.
+    @State private var savedChange = false
 
     @State private var cover: TimelineCover?
     @State private var detail: Loadable<TimelineEventDetail> = .loading
@@ -32,6 +41,18 @@ struct TimelineDetailSheet: View {
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(Theme.Radius.sheetTop)
         .timelineCovers($cover)
+        .sheet(isPresented: $changingCat, onDismiss: closeIfChanged) {
+            if let saveCat {
+                TimelineChangeCatSheet(entry: entry, tzOffset: tzOffset, candidates: catCandidates) { request in
+                    try await saveCat(request)
+                    savedChange = true
+                }
+            }
+        }
+    }
+
+    private func closeIfChanged() {
+        if savedChange { dismiss() }
     }
 
     private func open(_ action: TimelineAction) {
@@ -45,8 +66,16 @@ struct TimelineDetailSheet: View {
                 Text(TimelineFormat.sentence(entry)).font(Theme.Font.section)
                     .foregroundStyle(TimelineFormat.isAlert(entry) ? Theme.Color.negative : Theme.Color.text)
                     .accessibilityAddTraits(.isHeader)
-                Text(TimelineFormat.metaLine(entry, tzOffset: tzOffset)).font(Theme.Font.small)
-                    .monospacedDigit().foregroundStyle(Theme.Color.muted)
+                TimelineMetaLine(entry: entry, tzOffset: tzOffset)
+            }
+            Spacer(minLength: 8)
+            if saveCat != nil, TimelineChangeCatRules.canChange(entry) {
+                Button("Change cat") { changingCat = true }
+                    .font(Theme.Font.control)
+                    .foregroundStyle(Theme.Color.text)
+                    .padding(.horizontal, 14)
+                    .frame(height: Theme.Space.chip)
+                    .background(Theme.Color.surface, in: Capsule())
             }
         }
         .padding(.top, 8)

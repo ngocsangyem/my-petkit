@@ -6,9 +6,12 @@ enum TimelineAction {
     case play(title: String, sources: [TimelineVideoSource])
     case gallery(TimelineFormat.StillGroup)
     case detail(TimelineEntry)
+    /// "Who used the box?" for a stored visit.
+    case changeCat(TimelineEntry)
 }
 
-/// The 36pt leading mark of a card: the pet's photo, else the device drawing.
+/// The 36pt leading mark of a card: the pet's photo, a "?" for a visit
+/// nobody was named for, else the device drawing.
 struct TimelineLeadingMark: View {
     let entry: TimelineEntry
     let tintIndex: Int
@@ -19,6 +22,11 @@ struct TimelineLeadingMark: View {
             PetPhoto(name: name, photoPath: entry.petPhotoPath, tintIndex: tintIndex)
                 .frame(width: 36, height: 36)
                 .clipShape(Circle())
+        } else if entry.isVisit {
+            Text("?").font(Theme.Font.bodyMedium).foregroundStyle(Theme.Color.muted)
+                .frame(width: 36, height: 36)
+                .background(Theme.Color.raised, in: Circle())
+                .accessibilityHidden(true)
         } else {
             DeviceDrawing(kind: DeviceKind(deviceType: deviceType ?? ""), height: 30)
                 .frame(width: 36, height: 36)
@@ -78,8 +86,7 @@ struct TimelineLatestCard: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(TimelineFormat.sentence(entry)).font(Theme.Font.bodyMedium.weight(.semibold))
                             .foregroundStyle(Theme.Color.text)
-                        Text(TimelineFormat.metaLine(entry, tzOffset: tzOffset)).font(Theme.Font.small)
-                            .monospacedDigit().foregroundStyle(Theme.Color.muted)
+                        TimelineMetaLine(entry: entry, tzOffset: tzOffset)
                         TimelineVideoNote(media: entry.media)
                     }
                     Spacer(minLength: 0)
@@ -90,6 +97,7 @@ struct TimelineLatestCard: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .modifier(TimelineChangeCatMenu(entry: entry, open: open))
             TimelineStillPills(entry: entry, open: open)
                 .padding(.horizontal, Theme.Space.pad)
                 .padding(.bottom, 14)
@@ -161,8 +169,7 @@ struct TimelineRow: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(TimelineFormat.sentence(entry)).font(Theme.Font.bodyMedium)
                                 .foregroundStyle(TimelineFormat.isAlert(entry) ? Theme.Color.negative : Theme.Color.text)
-                            Text(TimelineFormat.metaLine(entry, tzOffset: tzOffset)).font(Theme.Font.small)
-                                .monospacedDigit().foregroundStyle(Theme.Color.muted)
+                            TimelineMetaLine(entry: entry, tzOffset: tzOffset)
                             TimelineVideoNote(media: entry.media)
                         }
                         Spacer(minLength: 0)
@@ -170,6 +177,7 @@ struct TimelineRow: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .modifier(TimelineChangeCatMenu(entry: entry, open: open))
                 TimelineStillPills(entry: entry, open: open).padding(.leading, 48)
             }
             thumbnail

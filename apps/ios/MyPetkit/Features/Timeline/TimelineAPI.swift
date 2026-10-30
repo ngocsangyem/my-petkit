@@ -18,13 +18,13 @@ struct TimelineAPI {
     /// the day at its local midnight; the app never does. `tz` tells it the
     /// phone's zone (the current contract ignores it and uses its own zone).
     func day(date: String?, query: TimelineQuery) async throws -> TimelineDayResult {
-        var items = [URLQueryItem(name: "filter", value: "all"),
+        var items = [URLQueryItem(name: "filter", value: query.filter),
                      URLQueryItem(name: "tz", value: TimeZone.current.identifier)]
         if let date { items.append(URLQueryItem(name: "date", value: date)) }
         if let device = query.device { items.append(URLQueryItem(name: "device", value: String(device))) }
         if let pet = query.pet { items.append(URLQueryItem(name: "pet", value: String(pet))) }
         let json = try await session.call(purpose: "Show the timeline") {
-            try await getJSON(path: "/api/timeline", query: items)
+            try await requestJSON(path: "/api/timeline", query: items)
         }
         guard let result = TimelineJSON.day(json) else { throw URLError(.cannotParseResponse) }
         return result
@@ -33,7 +33,8 @@ struct TimelineAPI {
     func pets() async throws -> [TimelineSubject] {
         try await session.client.listPets().ok.body.json.pets.map {
             TimelineSubject(id: $0.value1.id, name: $0.value1.name,
-                            photoPath: $0.value2.faces.first.map { MediaPath.absolute($0.url) })
+                            photoPath: $0.value2.faces.first.map { MediaPath.absolute($0.url) },
+                            weightG: $0.value1.weightG)
         }
     }
 
@@ -46,15 +47,24 @@ struct TimelineAPI {
     /// Everything stored about one event.
     func eventDetail(id: Int) async throws -> TimelineEventDetail {
         let json = try await session.call(purpose: "Show this event") {
-            try await getJSON(path: "/api/timeline/\(id)", query: [])
+            try await requestJSON(path: "/api/timeline/\(id)", query: [])
         }
         return TimelineEventDetail(json: json)
     }
 
-    /// A GET over the paired session with the bearer token; a refusal is
+    /// `PUT /api/timeline/{id}/pet` (R1): which cat a visit belongs to. Sent by
+    /// hand like the reads: "nobody" must go as an explicit `"pet_id": null`,
+    /// and the answer's `pet` (`oneOf [Pet, null]`) is not needed here.
+    func setVisitPet(eventID: Int, _ body: TimelineVisitPetRequest) async throws {
+        _ = try await requestJSON(path: "/api/timeline/\(eventID)/pet", query: [], method: "PUT",
+                                  body: JSONEncoder().encode(body))
+    }
+
+    /// A request over the paired session with the bearer token; a refusal is
     /// thrown as the same `APIError` the generated client throws, so the
     /// block shows the server's own sentence.
-    private func getJSON(path: String, query: [URLQueryItem]) async throws -> JSONValue {
+    private func requestJSON(path: String, query: [URLQueryItem], method: String = "GET",
+                             body: Data? = nil) async throws -> JSONValue {
         guard let base = session.url(forPath: path),
               var components = URLComponents(url: base, resolvingAgainstBaseURL: true) else {
             throw URLError(.badURL)
@@ -62,6 +72,11 @@ struct TimelineAPI {
         if !query.isEmpty { components.queryItems = query }
         guard let url = components.url else { throw URLError(.badURL) }
         var request = URLRequest(url: url)
+        request.httpMethod = method
+        if let body {
+            request.httpBody = body
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
         request.setValue("Bearer \(session.paired.token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         let (data, response) = try await session.urlSession.data(for: request)

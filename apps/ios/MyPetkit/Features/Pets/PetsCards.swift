@@ -43,7 +43,7 @@ struct PetWeightCard: View {
         Card {
             Text("Weight").font(Theme.Font.section).accessibilityAddTraits(.isHeader)
             FigureGrid(figures: [
-                Figure(label: "Registered", value: kilograms(pet.weight), unit: "kg"),
+                Figure(label: "Registered", value: kilograms(pet.weightG.map(Double.init) ?? pet.weight), unit: "kg"),
                 Figure(label: lastLabel, value: kilograms(week?.lastWeight), unit: "kg"),
             ])
         }

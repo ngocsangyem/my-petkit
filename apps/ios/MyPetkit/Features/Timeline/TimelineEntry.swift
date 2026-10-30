@@ -54,10 +54,18 @@ struct TimelineEntry: Hashable, Sendable, Identifiable {
     let steps: [TimelineStep]
     let media: TimelineMedia
     let index: Int
+    /// Who decided `petID`: `device`, `weight` or `manual`; nil when nobody did.
+    var petSource: String?
+    /// Too light to be any registered cat; listed only under "Light visits".
+    var passing = false
+    /// The identity the box reported when no pet holds it yet.
+    var unboundPetRef: Int?
 
     var id: String { eventID.map { "s\($0)" } ?? "i\(index)" }
     var isVisit: Bool { kind == "visit" }
     var sortTime: Double { displayTs ?? ts ?? 0 }
+    var hasPet: Bool { petName.map { !$0.isEmpty } ?? false }
+    var isMatchedByWeight: Bool { petSource == "weight" && hasPet }
 }
 
 /// What the timeline route answers for one server day.
@@ -72,4 +80,6 @@ struct TimelineDayResult: Hashable, Sendable {
     let faultCount: Int
     /// Newest first.
     let entries: [TimelineEntry]
+    /// Light visits that day; `all` leaves them out, their own chip lists them.
+    var passingCount = 0
 }

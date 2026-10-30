@@ -100,6 +100,7 @@ struct SettingToggleRow: View {
         Toggle(isOn: $isOn) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(Theme.Font.body).foregroundStyle(Theme.Color.text)
+                    .fixedSize(horizontal: false, vertical: true)
                 if let footnote {
                     Text(footnote).font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted)
                         .fixedSize(horizontal: false, vertical: true)
