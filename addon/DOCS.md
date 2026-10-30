@@ -63,6 +63,7 @@ effect immediately, and persist to `/data/settings_overrides.json`.
 | `8099` | *(unmapped)* | The web panel over plain HTTP, for Ingress. Only the Supervisor's own address is trusted here; anything else needs a client token. |
 | `8443` | `8443` | The user plane over TLS (self-signed certificate). Every request needs the admin password or a paired client token. This is where the iOS app connects. |
 | `8554` | *(unmapped)* | Camera RTSP from the bundled go2rtc. Home Assistant reaches it over the internal network, so map it only to watch the stream from elsewhere on the LAN — and note 8554 clashes with the go2rtc app. |
+| `8555` TCP+UDP | *(unmapped)* | WebRTC live video. Map both to the same host port and set `webrtc_candidates` (see below); leave unmapped to watch over MSE and HLS only. 8555 on the host clashes with the go2rtc app. |
 
 Remapping a port is honoured where it can be: the host port `80/tcp` is
 published on goes into the address devices are handed, and the same for the
@@ -164,6 +165,25 @@ Two things worth knowing:
 There is no snapshot URL: the device answers every path with the same video
 stream, so the MQTT camera entity stays empty and the sensor carries the URL
 instead.
+
+## Watching live in the app
+
+Once a camera serves the local stream, the web app's device panel and the iOS
+app's device screen show a **Live** view. It goes through this app's own
+authenticated API, which fronts the bundled go2rtc, so nothing extra needs a
+port: the browser watches over MSE (or HLS), and the iOS app over HLS.
+
+WebRTC (lower delay, and what the iOS app prefers) carries its media outside
+the API, straight to go2rtc, so it needs one more step:
+
+1. Map `8555/tcp` and `8555/udp` to the same free host port, e.g. `18555`.
+2. Set `webrtc_candidates` to the host's LAN IP and that port, e.g.
+   `192.168.1.20:18555` (several, comma-separated, if viewers reach the host by
+   different addresses).
+
+Without it, WebRTC is simply not offered and the media port stays closed.
+A live HLS link lasts one viewing session, about an hour; the apps fetch a new
+one when it runs out.
 
 ## Panning the T6 camera
 
