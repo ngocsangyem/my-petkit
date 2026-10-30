@@ -1,22 +1,19 @@
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { cn } from 'cn';
-import { Button, Missing } from '@/shared/ui';
-import type { TimelinePet } from '../api';
+import { Button, Card } from '@/shared/ui';
 import {
   clockTime,
   formatVisitDuration,
   formatWeight,
   hasMedia,
   sessionSentence,
-  splitFact,
   stillGroups,
   subEventLabel,
   type MediaSlots,
   type TimelineSession,
 } from '../timeline-model';
 import { canChangeCat } from '../visit-pet-model';
-import { ChangeCatSheet } from './change-cat-sheet';
-import { PetSourceTag } from './pet-source-tag';
+import { SessionFacts, SessionFigures } from './timeline-session-facts';
 import { TimelineDebugInfo, type DebugEntry } from './timeline-debug-info';
 import { TimelineMediaViewer } from './timeline-media-viewer';
 import { StillGallery, StillTiles } from './timeline-still-gallery';
@@ -35,32 +32,6 @@ function debugEntries(s: TimelineSession): DebugEntry[] {
   return entries;
 }
 
-interface PairProps {
-  label: string;
-  value: string | null;
-  muted?: boolean;
-  action?: ReactNode;
-  fallback?: ReactNode;
-}
-
-/** One fact row: muted label left, value right; a missing value is a muted em dash. */
-function Pair({ label, value, muted, action, fallback }: PairProps) {
-  return (
-    <div className="flex justify-between gap-3">
-      <dt
-        className={cn(
-          'inline-flex flex-wrap items-baseline gap-2 text-muted-foreground',
-          muted && 'text-sm',
-        )}
-      >
-        {label}
-        {action}
-      </dt>
-      <dd className="m-0 text-right">{value ?? fallback ?? <Missing />}</dd>
-    </div>
-  );
-}
-
 /** Which media the viewer shows: the session's own, else the first step that carries a video. */
 function viewerMedia(s: TimelineSession, stepId: number | null): MediaSlots | null {
   const step = stepId === null ? undefined : s.sub_events.find(e => e.id === stepId);
@@ -69,125 +40,91 @@ function viewerMedia(s: TimelineSession, stepId: number | null): MediaSlots | nu
   return s.sub_events.map(e => e.media).find(hasMedia) ?? null;
 }
 
+/** "1:55", the visit's length on the picture's caption pill; null when unknown. */
+function captionLength(seconds: number | null): string | null {
+  if (seconds === null || !Number.isFinite(seconds) || seconds < 0) return null;
+  const total = Math.round(seconds);
+  return `${String(Math.floor(total / 60))}:${String(total % 60).padStart(2, '0')}`;
+}
+
 export interface TimelineSessionDetailProps {
   session: TimelineSession;
-  /** The household's pets, the candidates when a visit's cat is changed. */
-  pets: readonly TimelinePet[];
+  /** Opens "Who used the box?" for this visit. */
+  onChangeCat: (session: TimelineSession & { id: number }) => void;
 }
 
 /**
- * Everything about the selected session: its video, steps, facts, captures and Debug info, and
- * for a visit the way to say which cat it really was.
+ * The selected session as one card: its picture first (video, or the snapshot), the source
+ * switch, the sentence with "Change cat", the figures, every step, the captures and Debug info.
  */
-export function TimelineSessionDetail({ session: s, pets }: TimelineSessionDetailProps) {
+export function TimelineSessionDetail({ session: s, onChangeCat }: TimelineSessionDetailProps) {
   const [stepMedia, setStepMedia] = useState<number | null>(null);
-  const [changing, setChanging] = useState(false);
   const [gallery, setGallery] = useState<{ paths: string[]; title: string } | null>(null);
   const isVisit = s.kind === 'visit';
-  const entered = s.display_ts ?? s.ts;
-  const duration = formatVisitDuration(s.duration_sec);
-  const weight = formatWeight(s.weight);
-  const left =
-    isVisit && entered !== null && s.duration_sec !== null ? entered + s.duration_sec : null;
-  const range = [clockTime(entered), left !== null ? clockTime(left) : null]
-    .filter(Boolean)
-    .join(' to ');
-  const subline = [range, isVisit ? duration : null, isVisit ? weight : null]
-    .filter(Boolean)
-    .join(' · ');
   const media = viewerMedia(s, stepMedia);
+  const subline = isVisit
+    ? null
+    : [clockTime(s.display_ts ?? s.ts), s.device_name || null].filter(Boolean).join(' · ');
   const openStill = (paths: string[], title: string) => {
     setGallery({ paths, title });
   };
 
   return (
-    <section
-      className="flex min-w-0 flex-col gap-3.5 rounded-lg border border-border p-5"
+    <Card
+      as="section"
+      padding="none"
+      className={cn('flex flex-col gap-3.5 px-2 pb-5', media ? 'pt-2' : 'pt-5')}
       aria-label="Selected event"
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 flex-col gap-1">
-          <h2 className="m-0 text-lg font-semibold">{sessionSentence(s)}</h2>
-          {subline && <span className="text-sm text-muted-foreground">{subline}</span>}
-        </div>
-        {canChangeCat(s) && (
-          <Button
-            className="shrink-0"
-            onClick={() => {
-              setChanging(true);
-            }}
-          >
-            Change cat
-          </Button>
-        )}
-      </div>
       {media && (
-        <TimelineMediaViewer key={String(stepMedia)} media={media} onOpenStill={openStill} />
-      )}
-      <dl className="m-0 flex flex-col gap-1.5">
-        <Pair label={isVisit ? 'Entered' : 'At'} value={clockTime(entered, true)} />
-        {left !== null && <Pair label="Left" value={clockTime(left, true)} />}
-        {s.sub_events.map((e, i) => (
-          <Pair
-            key={e.id ?? `s${String(i)}`}
-            label={subEventLabel(e)}
-            muted={e.detail}
-            value={clockTime(e.ts, true)}
-            action={
-              e.id !== null && hasMedia(e.media) ? (
-                <button
-                  type="button"
-                  className="cursor-pointer border-0 bg-transparent p-0 text-xs text-data focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:underline"
-                  aria-pressed={stepMedia === e.id}
-                  onClick={() => {
-                    setStepMedia(stepMedia === e.id ? null : e.id);
-                  }}
-                >
-                  Show media
-                </button>
-              ) : null
-            }
-          />
-        ))}
-        {s.bits.map(b => {
-          const f = splitFact(b);
-          return (
-            <Pair
-              key={b}
-              label={f.label.charAt(0).toUpperCase() + f.label.slice(1)}
-              value={f.value ?? 'yes'}
-            />
-          );
-        })}
-        <Pair
-          label="Matched"
-          value={s.pet_name}
-          action={s.pet_name ? <PetSourceTag session={s} /> : null}
-          fallback={
-            <span className="text-muted-foreground">
-              {s.passing ? 'No cat, just passing' : 'Nobody recognised'}
-            </span>
-          }
+        <TimelineMediaViewer
+          key={String(stepMedia)}
+          media={media}
+          onOpenStill={openStill}
+          caption={isVisit ? captionLength(s.duration_sec) : null}
         />
-        {s.device_name && <Pair label="Device" value={s.device_name} />}
-      </dl>
-      <StillTiles groups={stillGroups(s)} onOpen={openStill} />
-      <TimelineDebugInfo entries={debugEntries(s)} />
-      {changing && canChangeCat(s) && (
-        <ChangeCatSheet
+      )}
+      <div className="flex flex-col gap-3 px-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-col gap-1">
+            <h2 className="[overflow-wrap:anywhere]">{sessionSentence(s)}</h2>
+            {subline && <span className="text-sm text-muted-foreground">{subline}</span>}
+          </div>
+          {canChangeCat(s) && (
+            <Button
+              size="small"
+              className="shrink-0"
+              onClick={() => {
+                onChangeCat(s);
+              }}
+            >
+              Change cat
+            </Button>
+          )}
+        </div>
+        {isVisit && (
+          <SessionFigures
+            session={s}
+            duration={formatVisitDuration(s.duration_sec)}
+            weight={formatWeight(s.weight)}
+          />
+        )}
+        <SessionFacts
           session={s}
-          pets={pets}
-          onClose={() => {
-            setChanging(false);
+          stepMedia={stepMedia}
+          onStepMedia={id => {
+            setStepMedia(stepMedia === id ? null : id);
           }}
         />
-      )}
+        <StillTiles groups={stillGroups(s)} onOpen={openStill} />
+        <TimelineDebugInfo entries={debugEntries(s)} />
+      </div>
       <StillGallery
         gallery={gallery}
         onClose={() => {
           setGallery(null);
         }}
       />
-    </section>
+    </Card>
   );
 }
