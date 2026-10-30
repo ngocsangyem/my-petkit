@@ -66,15 +66,15 @@ Type is IBM Plex Sans 400, 500 and 600. IBM Plex Mono 400 and 500 is used only f
 
 | Role | Web | iOS |
 |---|---|---|
-| Title | 22/600 | 24/600 |
+| Title | 28/600 (24 under 900px; §8) | 24/600 |
 | Section | 16/600 | 16/600 |
-| Figure | 28/400 | 28/400 |
+| Figure | 30/500 (§8) | 28/400 |
 | Body | 14 | 15 |
 | Small | 12–13 | 12–13 |
 
 Nothing is smaller than 11px. Every number uses `font-variant-numeric: tabular-nums` on the web and `.monospacedDigit()` on iOS.
 
-On the web, `tokens.css` holds every token twice: light under `:root` and dark under `.dark` (§7.5 and §8.4). `theme.css` maps shadcn's theme variables onto them; the type scale uses Tailwind's size names (`text-xs` caption 12, `text-sm` small 13, `text-base` body 14, `text-lg` section 16, `text-xl` title 22, `text-3xl` figure 28).
+On the web, `tokens.css` holds every token twice: light under `:root` and dark under `.dark` (§7.5 and §8.4). `theme.css` maps shadcn's theme variables onto them; the type scale uses Tailwind's size names (`text-xs` caption 12, `text-sm` small 13, `text-base` body 14, `text-md` lede and fields 15, `text-lg` section 17, `text-xl` dialog title 22, `text-2xl` page title 28, `text-3xl` figure 30), per §8.
 
 ## 3. Shared components
 
@@ -266,6 +266,8 @@ Drawn only on `ios-devices-dark`. The other screens take their dark colours from
 
 The web dashboard now uses the iOS v3 language, so the two clients look like one product. v3 replaces the web visual layer: §2's colour values stay, §3's web components and §6's rules change as listed below. The web v2 artboards and screenshots are kept in `archive-v2/`. Source: `tools/web-v3/` (`web.css` on top of `tools/ios-v3/head.css`, one body per screen, `build_artboards.py` wraps them). Rebuild with `python3 tools/web-v3/build_artboards.py artboards`.
 
+Synced into the repository on 2026-10-31: `apps/web` implements every board in §8.3, checked at 1440 and 390 in light and dark (the per-screen ticks and deliberate deviations are in `apps/web/PARITY.md`).
+
 ### 8.1 What changed from web v2
 
 - **Frame.** A 248px sidebar on `ground` (`#edf2f1`) with the mark, pill nav items (Home, Timeline, Pets · Server: Logs, Add a device, Settings · Advanced, needs step-up: Capture, Patchers) and a foot panel with the live dot, address and "TLS pinned". The active item is a white pill. Under 900px the sidebar becomes a top bar with a menu button.
@@ -313,3 +315,5 @@ The web dashboard now uses the iOS v3 language, so the two clients look like one
 ### 8.4 Dark mode (web)
 
 Drawn on `web-home-dark`. Same mapping as §7.5, extended to the frame: the active nav pill, secondary buttons and chips use `#1a1c1e`; panels, lanes, inputs and the sidebar foot use `#232628`; primary buttons and selected chips invert to `#f2f4f4` on `#0e0f10`; the day-strip pet ticks lighten to `#8fb4e6` (Miso) and `#e0b26a` (Mochi); the fountain band becomes `#1f3a37`; `warning` text becomes `#f0b35a`. Approved by the user on 2026-10-30. Phase 09.5 uses these values for the tokens §7.5 does not cover, instead of proposing its own.
+
+The web video frame (`live-ground`) is `#1b1d1e` in both modes, as the artboards' video block draws it, instead of iOS's `#0e0f10`, which equals the dark ground (set 2026-10-31).
