@@ -41,7 +41,8 @@
   --sidebar-foreground: var(--pk-text);
   --sidebar-primary: var(--pk-text);
   --sidebar-primary-foreground: var(--pk-on-dark);
-  --sidebar-accent: var(--pk-active);
+  /* The active nav item is a white pill on the ground (§8.1). */
+  --sidebar-accent: var(--pk-surface);
   --sidebar-accent-foreground: var(--pk-text);
   --sidebar-border: var(--pk-border);
   --sidebar-ring: var(--pk-accent);
@@ -83,6 +84,22 @@
   /* Design tokens with no shadcn counterpart, for components we write. */
   --color-ground: var(--pk-ground);
   --color-raised: var(--pk-raised);
+  --color-tint: var(--pk-tint);
+  --color-segment: var(--pk-segment);
+  --color-track: var(--pk-track);
+  --color-lede: var(--pk-lede);
+  --color-switch-off: var(--pk-switch-off);
+  --color-switch-thumb: var(--pk-switch-thumb);
+  --color-fill-secondary: var(--pk-fill-secondary);
+  --color-fill-field: var(--pk-fill-field);
+  --color-drawing-stroke: var(--pk-drawing-stroke);
+  --color-drawing-fill: var(--pk-drawing-fill);
+  --color-drawing-base: var(--pk-drawing-base);
+  --color-litter: var(--pk-litter);
+  --color-food: var(--pk-food);
+  --color-water: var(--pk-water);
+  --color-caption: var(--pk-caption-bg);
+  --color-caption-ink: var(--pk-caption-ink);
   --color-active: var(--pk-active);
   --color-rule: var(--pk-rule);
   --color-control: var(--pk-control);
@@ -107,21 +124,29 @@
   --color-live-control: var(--pk-live-control);
   --color-live-text: var(--pk-live-text);
 
-  /* Radii are set outright, not derived from one --radius. */
+  /*
+   * Radii are set outright, not derived from one --radius, on Tailwind's own
+   * size names so class merging (cn) can override them: sm lane 8, md field
+   * and inner panel 14, lg tile 16 (quick actions, warning boxes, toasts, the
+   * sidebar foot), xl card 20, 2xl dialog and sheet 24; controls use
+   * rounded-full.
+   */
   --radius-sm: var(--pk-radius-lane);
-  --radius-md: var(--pk-radius-control);
-  --radius-lg: var(--pk-radius-card);
-  --radius-xl: var(--pk-radius-dialog);
-  --radius-2xl: var(--pk-radius-sheet);
+  --radius-md: var(--pk-radius-panel);
+  --radius-lg: var(--pk-radius-tile);
+  --radius-xl: var(--pk-radius-card);
+  --radius-2xl: var(--pk-radius-dialog);
 
   --shadow-overlay: var(--pk-overlay-shadow);
+  --shadow-sheet: var(--pk-sheet-shadow);
 
   --font-sans: var(--pk-font-sans);
   --font-mono: var(--pk-font-mono);
   /*
    * The design's type scale on Tailwind's own size names, so class merging
    * (cn) knows they are sizes, not colours: xs caption 12, sm small 13,
-   * base body 14, lg section 16, xl title 22, 3xl figure 28.
+   * base body 14, md lede 15, lg section 17, xl dialog title 22, 2xl page
+   * title 28, 3xl figure 30.
    */
   --text-xs: var(--pk-text-caption);
   --text-xs--line-height: var(--pk-line-height);
@@ -129,10 +154,14 @@
   --text-sm--line-height: var(--pk-line-height);
   --text-base: var(--pk-text-body);
   --text-base--line-height: var(--pk-line-height);
+  --text-md: var(--pk-text-lede);
+  --text-md--line-height: var(--pk-line-height);
   --text-lg: var(--pk-text-section);
   --text-lg--line-height: 1.35;
-  --text-xl: var(--pk-text-title);
+  --text-xl: var(--pk-text-dialog);
   --text-xl--line-height: 1.3;
+  --text-2xl: var(--pk-text-title);
+  --text-2xl--line-height: 1.2;
   --text-3xl: var(--pk-text-figure);
   --text-3xl--line-height: 1.15;
 }

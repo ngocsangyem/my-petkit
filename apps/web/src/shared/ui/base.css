@@ -35,6 +35,13 @@
   h1 {
     font-size: var(--pk-text-title);
     font-weight: 600;
+    line-height: 1.2;
+  }
+
+  @media (max-width: 900px) {
+    h1 {
+      font-size: var(--pk-text-title-phone);
+    }
   }
 
   h2 {
