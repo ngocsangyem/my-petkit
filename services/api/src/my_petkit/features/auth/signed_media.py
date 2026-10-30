@@ -95,8 +95,9 @@ class MediaSigner:
             # The URI stays as the playlist wrote it, its own query included,
             # minus any `exp`/`sig` it carried: the middleware reads the first
             # of each, and those must be ours.
-            kept = "&".join(p for p in own_query.split("&")
-                            if p and p.split("=", 1)[0] not in ("exp", "sig"))
+            kept = "&".join(
+                p for p in own_query.split("&") if p and p.split("=", 1)[0] not in ("exp", "sig")
+            )
             ours = self.query(target, ttl)
             return f"{relative}?{kept}&{ours}" if kept else f"{relative}?{ours}"
 
@@ -123,7 +124,7 @@ def _signing_scope(playlist_path: str) -> str | None:
     if playlist_path.startswith(SIGNABLE_PREFIX):
         return SIGNABLE_PREFIX
     if playlist_path.startswith(LIVE_PREFIX):
-        device = playlist_path[len(LIVE_PREFIX):].split("/", 1)[0]
+        device = playlist_path[len(LIVE_PREFIX) :].split("/", 1)[0]
         return f"{LIVE_PREFIX}{device}/" if device.isdigit() else None
     return None
 

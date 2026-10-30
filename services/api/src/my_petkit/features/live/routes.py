@@ -48,12 +48,13 @@ HLS_LINK_TTL_SECONDS = 300
 #: one viewing session; the client fetches a new link after it.
 HLS_SESSION_TTL_SECONDS = 3600
 
-#: The files go2rtc's HLS session serves under `/api/hls/`.
+#: The files go2rtc's HLS session serves: `{name: (upstream path, content type)}`.
+#: The upstream path is this literal, never the request's own spelling.
 _HLS_FILES = {
-    "playlist.m3u8": "application/vnd.apple.mpegurl",
-    "segment.ts": "video/mp2t",
-    "init.mp4": "video/mp4",
-    "segment.m4s": "video/iso.segment",
+    "playlist.m3u8": ("/api/hls/playlist.m3u8", "application/vnd.apple.mpegurl"),
+    "segment.ts": ("/api/hls/segment.ts", "video/mp2t"),
+    "init.mp4": ("/api/hls/init.mp4", "video/mp4"),
+    "segment.m4s": ("/api/hls/segment.m4s", "video/iso.segment"),
 }
 #: go2rtc's session id is 8 alphanumerics; `n` is a segment number it ignores.
 _HLS_ID = re.compile(r"[A-Za-z0-9]{1,32}")
@@ -127,10 +128,15 @@ async def api_live_info(request: web.Request) -> web.Response:
     })
 
 
-async def _fetch(url: str) -> tuple[int, str, bytes]:
-    """`(status, content type, body)` of one go2rtc API GET."""
+async def _fetch(path: str, params: dict[str, str]) -> tuple[int, str, bytes]:
+    """`(status, content type, body)` of one GET to go2rtc's loopback API.
+
+    The host is fixed and `path` is always a literal from this module; only
+    validated values travel, as query parameters.
+    """
     async with aiohttp.ClientSession(timeout=_UPSTREAM_TIMEOUT) as session:
-        async with session.get(url, allow_redirects=False) as resp:
+        async with session.get(f"http://{API_ADDR}{path}", params=params,
+                               allow_redirects=False) as resp:
             return resp.status, resp.content_type, await resp.read()
 
 
@@ -144,9 +150,9 @@ def _resigned(request: web.Request, body: bytes) -> web.Response:
                         headers={"Cache-Control": "no-store"})
 
 
-async def _upstream_or_refuse(url: str) -> bytes:
+async def _upstream_or_refuse(path: str, params: dict[str, str]) -> bytes:
     try:
-        status, _, body = await _fetch(url)
+        status, _, body = await _fetch(path, params)
     except (aiohttp.ClientError, asyncio.TimeoutError) as e:
         log.warning("live: go2rtc did not answer: %s", e)
         raise api_error(502, "upstream_unavailable", "The live stream did not answer.") from None
@@ -163,8 +169,7 @@ async def _upstream_or_refuse(url: str) -> bytes:
 async def api_live_hls_master(request: web.Request) -> web.Response:
     """The HLS master playlist: starts a go2rtc HLS session for this device."""
     device, _ = _watchable(request)
-    body = await _upstream_or_refuse(
-        f"http://{API_ADDR}/api/stream.m3u8?src={stream_name(device)}")
+    body = await _upstream_or_refuse("/api/stream.m3u8", {"src": stream_name(device)})
     return _resigned(request, body)
 
 
@@ -175,17 +180,17 @@ async def api_live_hls_file(request: web.Request) -> web.Response:
     Only go2rtc's own file names and its `id` / `n` parameters are passed on.
     """
     _watchable(request)
-    name = request.match_info["name"]
-    content_type = _HLS_FILES.get(name)
-    session_id = request.query.get("id", "")
-    if content_type is None or not _HLS_ID.fullmatch(session_id):
+    file = _HLS_FILES.get(request.match_info["name"])
+    session = _HLS_ID.fullmatch(request.query.get("id", ""))
+    if file is None or session is None:
         raise api_error(404, "not_found", "Not found.")
-    query = f"id={session_id}"
+    upstream_path, content_type = file
+    params = {"id": session.group(0)}
     n = request.query.get("n", "")
     if n.isdigit():
-        query += f"&n={n}"
-    body = await _upstream_or_refuse(f"http://{API_ADDR}/api/hls/{name}?{query}")
-    if name.endswith(".m3u8"):
+        params["n"] = str(int(n))
+    body = await _upstream_or_refuse(upstream_path, params)
+    if upstream_path.endswith(".m3u8"):
         return _resigned(request, body)
     return web.Response(body=body, content_type=content_type,
                         headers={"Cache-Control": "no-store"})
