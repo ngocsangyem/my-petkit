@@ -18,7 +18,10 @@ reverse-engineered protocol core is ported from it; see `NOTICE.md` and `UPSTREA
 |---|---|---|
 | **Home Assistant add-on** | HAOS / Supervised | Add this repository in the add-on store. The dashboard opens through Ingress; the iOS app pairs over the TLS user-plane port with a QR code. |
 | **Local container** | Any Docker host on the LAN (`deploy/local/`) | Self-signed TLS, pinned by the iOS app through the pairing QR. |
-| **Cloud / VPS** | A VPS reached over WireGuard or Tailscale (`deploy/cloud/`) | Only the user plane is public, behind TLS. The device plane stays on the LAN side of the tunnel. |
+| **Cloud / VPS** | A VPS reached over WireGuard (`deploy/cloud/`) | Only the user plane is public, behind Caddy and a Let's Encrypt certificate. The device plane listens only on the tunnel. |
+
+All three run the same signed multi-architecture image; `docs/deploy.md` covers tags, verifying the
+signature and rolling back, and `docs/remote-access.md` covers Tailscale and Cloudflare Tunnel.
 
 ## Repository layout
 
@@ -38,6 +41,7 @@ docs/              architecture, code standards, security rules, design referenc
 - `AGENTS.md`: invariants of the protocol core. Read before changing `events/` or `devices/`.
 - `docs/code-standards.md`, `docs/security/secure-coding-rules.md`: rules every change follows.
 - `docs/design/design-reference.md`: tokens, components and artboards for the web and iOS UI.
+- `docs/deploy.md`, `docs/remote-access.md`: running the image and reaching it from outside.
 - `SECURITY.md`: how to report a vulnerability.
 
 ## Licence

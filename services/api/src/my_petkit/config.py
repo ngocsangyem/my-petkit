@@ -382,6 +382,10 @@ class Config:
     #: any other name in `Host` is refused on writes and WebSocket upgrades,
     #: which is what stops a DNS-rebinding page from posting here.
     user_hosts: str = ""
+    #: The address the iOS pairing QR code sends a phone to, when the user
+    #: plane sits behind a proxy with a trusted certificate
+    #: (`https://petkit.example.com`). Empty means `https://<api_url host>:<user_port>`.
+    user_url: str = ""
     #: go2rtc's RTSP listener, `host:port` or `:port` for every interface. Home
     #: Assistant's camera reaches it as `rtsp://local-<slug>:8554`.
     rtsp_bind: str = ":8554"
@@ -433,6 +437,20 @@ class Config:
                 ipaddress.ip_address(host.strip("[]"))
             except ValueError:
                 raise ValueError(f"rtsp_bind={self.rtsp_bind!r} host is not an IP address") from None
+
+    def validate_user_url(self) -> None:
+        """Refuse a `user_url` the iOS app would reject or misread.
+
+        The app accepts only an https origin; a path would be dropped, so a
+        proxy that serves the panel under a prefix cannot work and is refused
+        here rather than at pairing time.
+        """
+        if not self.user_url:
+            return
+        url = urlparse(self.user_url)
+        if (url.scheme != "https" or not url.hostname or url.username or url.password
+                or url.path not in ("", "/") or url.query or url.fragment):
+            raise ValueError(f"user_url={self.user_url!r} is not an https origin")
 
     def validate_webrtc(self) -> None:
         """Refuse a WebRTC port or candidate go2rtc would misread or drop.
@@ -647,6 +665,7 @@ class Config:
         c.mqtt_strict_auth = _opt_bool(opts, "mqtt_strict_auth", c.mqtt_strict_auth)
         c.user_port = _opt_int(opts, "user_port", c.user_port)
         c.user_hosts = str(opts.get("user_hosts") or "").strip()
+        c.user_url = str(opts.get("user_url") or "").strip()
         c.webrtc_port = _opt_int(opts, "webrtc_port", c.webrtc_port)
         c.webrtc_candidates = [
             part.strip() for part in str(opts.get("webrtc_candidates") or "").split(",")

@@ -1,0 +1,40 @@
+# WireGuard on the HOME ROUTER (OpenWrt, pfSense/OPNsense, a UniFi gateway,
+# MikroTik, or a Linux box that IS the router). Shown in wg-quick syntax; enter
+# the same values in your router's WireGuard screen.
+#
+# The tunnel must end on the router the devices use as their default gateway.
+# Then a device's reply to the VPS goes back the way the request came, with no
+# routing to set up on the devices. Ending it on another machine on the LAN is
+# possible but advanced: every device's replies would reach the router first
+# and be dropped as asymmetric unless you add static routes and loosen
+# connection tracking there.
+
+[Interface]
+Address = 10.66.0.2/24
+PrivateKey = <home router private key>
+MTU = 1420
+
+[Peer]
+PublicKey = <VPS public key>
+Endpoint = 203.0.113.10:51820
+# Only the VPS's tunnel address. The router does NOT send its internet traffic
+# through the VPS.
+AllowedIPs = 10.66.0.1/32
+# Keeps the router's NAT mapping open so the VPS can reach the devices at any
+# time, not only right after a device spoke.
+PersistentKeepalive = 25
+
+# Router settings that are not part of this file:
+#
+# 1. NO masquerade/NAT from the LAN into this tunnel. The VPS must see the
+#    device's real address. On OpenWrt: put wg0 in its own firewall zone with
+#    "Masquerading" OFF.
+# 2. Forwarding: allow wg0 -> LAN only from 10.66.0.1, and only to the devices'
+#    addresses (give them DHCP reservations) on the ports the server dials:
+#    tcp 8888, 8889 (patcher read-back), 9010 (talk), and the camera's stream
+#    port. Allow LAN -> wg0 to 10.66.0.1 on tcp 80, 443, 9000. With Home
+#    Assistant on the LAN, also allow wg0 -> its address on tcp 1883 from
+#    10.66.0.1 (MY_PETKIT_HA_MQTT_HOST in .env), or the HA bridge cannot
+#    connect.
+# 3. MSS clamping on the wg0 zone (OpenWrt: "MSS clamping" ON), or the
+#    equivalent iptables rule from wg0.conf.example.

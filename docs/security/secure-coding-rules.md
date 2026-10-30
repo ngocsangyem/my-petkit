@@ -101,7 +101,11 @@ Source: the conventions document of the rebuild plan (part C), copied into the r
   - non-root;
   - `read_only: true` with tmpfs for `/tmp`;
   - `no-new-privileges`;
-  - `cap_drop: [ALL]` plus `NET_BIND_SERVICE`;
+  - `cap_drop: [ALL]` with no capability added back; ports 80 and 443 are bound
+    through the `net.ipv4.ip_unprivileged_port_start=0` sysctl in the
+    container's own network namespace, because Docker gives a non-root process
+    no ambient capabilities and `no-new-privileges` blocks file capabilities
+    (`docs/deploy.md`, "Container privileges");
   - healthcheck.
 
   The add-on runs as root because the Supervisor owns `/data`; documented in `security.md`.

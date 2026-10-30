@@ -1,0 +1,26 @@
+# Public HTTPS for the dashboard and the iOS app, with a certificate Caddy gets
+# from Let's Encrypt. The iOS app trusts it through the system store, which is
+# what a public name needs: the app pins a self-signed certificate only for an
+# IP address or a `.local` name.
+
+{$MY_PETKIT_DOMAIN} {
+	# The user plane's own TLS listener, on the compose network only. Its
+	# certificate is self-signed and generated per install, so there is nothing
+	# public to verify it against; the hop never leaves this host's bridge
+	# network.
+	reverse_proxy https://my-petkit:8443 {
+		transport http {
+			tls_insecure_skip_verify
+		}
+	}
+
+	# Signed media links carry their signature and expiry in the query string,
+	# and a log line outlives the link. Caddy already leaves out Authorization
+	# and Cookie headers.
+	log {
+		output stdout
+		format filter {
+			request>uri regexp "\?.*$" "?[redacted]"
+		}
+	}
+}

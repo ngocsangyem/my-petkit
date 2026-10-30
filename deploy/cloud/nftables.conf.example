@@ -1,0 +1,54 @@
+#!/usr/sbin/nft -f
+# Host firewall for the VPS: default-drop on everything the HOST itself
+# answers. Docker's published ports never reach this input chain (Docker DNATs
+# them in its own iptables-nft tables and they are FORWARDed to the
+# container), which is exactly why docker-compose.yml binds every published
+# port to a specific address, and why the forward chain below ties the
+# tunnel address to wg0.
+#
+# Load with: nft -f /etc/nftables.conf   (and enable nftables.service)
+# Keep a second SSH session open while you test it.
+#
+# Never `systemctl restart` or `stop` nftables: Debian's unit stops with
+# `nft flush ruleset`, which also wipes Docker's rules, and the device plane
+# and Caddy stop answering until `systemctl restart docker`. Reload with
+# `nft -f /etc/nftables.conf` instead.
+
+table inet my_petkit_host {
+	chain input {
+		type filter hook input priority 0; policy drop;
+
+		ct state established,related accept
+		ct state invalid drop
+		iif "lo" accept
+
+		# ICMP and ICMPv6, including the neighbour discovery IPv6 needs.
+		meta l4proto { icmp, ipv6-icmp } accept
+
+		# SSH. Narrow to your own address if it is stable.
+		tcp dport 22 accept
+
+		# WireGuard from the home router.
+		udp dport 51820 accept
+
+		# Inside the tunnel, the host itself answers nothing but ping; the
+		# device ports are published to the container.
+	}
+
+	chain forward {
+		type filter hook forward priority 0; policy accept;
+
+		# The device plane is published on the tunnel address, but Docker's
+		# DNAT matches the destination only, and Linux accepts a local
+		# address on any interface: a neighbour on the provider's network
+		# could send to 10.66.0.1 through eth0 and reach ports 80, 443 and
+		# 9000. `ct original` is the address before DNAT, and a drop here is
+		# final whatever Docker's own chains accept. Keep this address equal
+		# to MY_PETKIT_WG_ADDRESS.
+		ct original ip daddr 10.66.0.1 iifname != "wg0" drop
+	}
+
+	chain output {
+		type filter hook output priority 0; policy accept;
+	}
+}

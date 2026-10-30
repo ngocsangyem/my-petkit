@@ -1,0 +1,120 @@
+# Running my-petkit on your LAN without the Home Assistant add-on system:
+# HA Container, HA Core, or no Home Assistant at all.
+#
+#   cp .env.example .env && $EDITOR .env
+#   docker compose up -d
+#   docker compose logs my-petkit | grep -i "setup token"   # first start only
+#
+# The values that are yours live in `.env`, so they stay out of the repository
+# and a `git pull` never conflicts with them. Compose refuses to start until the
+# required ones are set.
+#
+# The container runs as an unprivileged user with a read-only root filesystem,
+# no capabilities and no way to gain any. It still binds the device ports 80
+# and 443 inside its own network namespace, which the `sysctls` line allows
+# without a capability. (A capability would not survive here: Docker gives a
+# non-root process no ambient capabilities, and `no-new-privileges` blocks file
+# capabilities.) That is also why this uses a bridge network rather than the
+# host's: the sysctl cannot be set on the host namespace.
+
+name: my-petkit
+
+services:
+  my-petkit:
+    # Published by .github/workflows/publish.yml; the same image the add-on
+    # pulls, one multi-architecture package (amd64, arm64, armv7).
+    #   :latest  the newest release
+    #   :2.1.0   a release you pin
+    #   :dev     the last commit on main; use `docker compose up -d --pull always`
+    # Check its signature before trusting it: docs/deploy.md, "Verify the image".
+    image: ghcr.io/ngocsangyem/my-petkit:${MY_PETKIT_TAG:-latest}
+    # To build it yourself instead, comment out `image:` and uncomment this,
+    # then `docker compose up -d --build` (needs BuildKit, the default since
+    # Docker 23).
+    # build: ../..
+    container_name: my-petkit
+    restart: unless-stopped
+    init: true
+
+    user: "10001:10001"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: "0"
+
+    environment:
+      TZ: ${MY_PETKIT_TIMEZONE:-UTC}
+
+    ports:
+      # Device HTTP API. Keep host 80: an ESP32 model provisioned with another
+      # port reaches Wi-Fi and then fails to reach the server, and a device
+      # redirected by DNS dials 80 with nowhere to tell it otherwise.
+      - "80:80"
+      # Device MQTT over TLS. 443 is where the firmware looks.
+      - "443:443"
+      # Media uploads. The device PUTs its photos and video here.
+      - "9000:9000"
+      # The user plane over TLS: web dashboard and iOS app. Every request needs
+      # the admin password or a paired client token.
+      - "8443:8443"
+      # Camera RTSP from the bundled go2rtc, for Home Assistant's Generic
+      # Camera (rtsp://THIS-HOST:8554/<device-id>). Loopback only by default;
+      # drop the `127.0.0.1:` prefix if Home Assistant runs on another machine.
+      # Use another host port if you also run go2rtc, which owns 8554.
+      - "127.0.0.1:8554:8554"
+      # WebRTC live video, TCP and UDP on the same port. Leave these two lines
+      # in and set MY_PETKIT_WEBRTC_CANDIDATES in `.env` to use it; without
+      # candidates the container does not listen here and the apps fall back
+      # to MSE and HLS.
+      - "8555:8555/tcp"
+      - "8555:8555/udp"
+      # 1883 (plain MQTT) is deliberately not published: it is the internal
+      # listener the Home Assistant bridge uses, bound to loopback.
+      # 8099 (the Ingress panel) has no use without the Supervisor.
+
+    volumes:
+      # Device identities, settings, the event database, certificates and the
+      # user plane's keys. Back this up.
+      - data:/data
+      # Recordings and snapshots.
+      - media:/media/petkit
+
+    command:
+      - python3
+      - -m
+      - my_petkit.main
+      - --data-dir=/data
+      # The address the DEVICE calls. It feeds the API address, the MQTT broker
+      # the device is told about and the bucket it uploads to, so it must be
+      # this machine's LAN IP and the host side of the 80 mapping.
+      - --api-url=${MY_PETKIT_API_URL:?not set. Copy .env.example to .env and fill it in.}
+      - --mqtt-tls
+      - --mqtt-tls-port=443
+      - --user-port=8443
+      # Host names browsers may use for the dashboard (IP addresses and
+      # localhost are always allowed). Empty is fine.
+      - --user-hosts=${MY_PETKIT_USER_HOSTS:-}
+      - --timezone=${MY_PETKIT_TIMEZONE:-UTC}
+      - --webrtc-candidates=${MY_PETKIT_WEBRTC_CANDIDATES:-}
+      # Your Home Assistant MQTT broker, so entities appear via MQTT discovery.
+      # Empty runs without Home Assistant; the dashboard and the local cloud
+      # work regardless. A broker that needs credentials: add
+      # --ha-mqtt-user and --ha-mqtt-pass lines here.
+      - --ha-mqtt-host=${MY_PETKIT_HA_MQTT_HOST:-}
+
+    healthcheck:
+      # The user plane is the one listener every mode binds on loopback too.
+      test: ["CMD", "python3", "-c", "import socket; socket.create_connection(('127.0.0.1', 8443), 3).close()"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+
+volumes:
+  data:
+  media:

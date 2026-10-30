@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **One signed image for every way of running it.** The add-on, the new
+  `deploy/local` compose file and the new `deploy/cloud` VPS recipe (WireGuard
+  to the home router, Caddy in front of the user plane) all pull
+  `ghcr.io/ngocsangyem/my-petkit`, built from the repository root with the web
+  dashboard inside. Each release is scanned for vulnerabilities, signed with
+  cosign and ships an SBOM; `docs/deploy.md` shows how to verify it. Outside
+  the add-on the container runs as an unprivileged user with a read-only root
+  filesystem and no capabilities. New flags `--webrtc-port`,
+  `--webrtc-candidates` and `--wireguard-subnets` set what the add-on options
+  set, and `my-petkit admin set-password` works inside the container.
 - **Live camera video in the web app and the iOS app.** A camera serving the
   local stream can be watched over MSE or HLS through the add-on's own
   authenticated API, which fronts the bundled go2rtc; go2rtc's API stays on

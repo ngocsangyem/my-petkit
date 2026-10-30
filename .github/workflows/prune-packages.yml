@@ -1,0 +1,156 @@
+name: prune-packages
+
+# `dev` moves on every push to main and leaves the version it used to point at
+# behind, untagged. Those accumulate quietly. This deletes them.
+#
+# THE HAZARD THIS IS BUILT AROUND: a multi-architecture image is a manifest list
+# whose per-platform children are themselves untagged versions. "Delete every
+# untagged version" therefore deletes the innards of the released image and
+# leaves a released version and `latest` pointing at nothing. So this never works from
+# "untagged" alone — it resolves every tag first and treats everything they
+# reference as keepable, whether tagged or not.
+#
+# Signatures and attestations can be untagged too: a cosign signature or SBOM
+# stored as an OCI referrer names the image it belongs to in its `subject`, and
+# no tag points at it. An untagged version whose subject is kept is kept.
+# Where the registry has no referrers API, cosign stores them under a TAG named
+# after the image digest (`sha256-<hex>.sig`, `sha256-<hex>`). Being tagged, they
+# would never go, so one whose image is no longer kept is pruned like an
+# untagged version.
+#
+# Third-party actions are pinned to a commit SHA, not a tag. `@v4` is a moving
+# tag: whoever controls that repository can point it at new code, which then
+# runs here — and this job holds `packages: write`, i.e. the right to DELETE.
+# To update one, resolve the tag yourself rather than trusting the comment:
+#
+#   gh api repos/docker/login-action/commits/v4.6.0 --jq .sha
+
+on:
+  schedule:
+    # Weekly. Nothing here is urgent; the cost of not running is disk nobody
+    # pays for.
+    - cron: "0 4 * * 0"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "List what would go, delete nothing"
+        type: boolean
+        default: true
+      keep_days:
+        description: "Never touch an untagged version younger than this"
+        default: "14"
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete untagged versions nothing points at
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run == false && 'false' || 'true' }}
+          KEEP_DAYS: ${{ inputs.keep_days || '14' }}
+        run: |
+          set -euo pipefail
+          case "$KEEP_DAYS" in
+            ''|*[!0-9]*) echo "::error::keep_days must be a whole number of days"; exit 1 ;;
+          esac
+          owner="${GITHUB_REPOSITORY%%/*}"
+          package="${GITHUB_REPOSITORY##*/}"
+          image="ghcr.io/$(echo "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')"
+
+          versions=$(gh api --paginate \
+            "/users/${owner}/packages/container/${package}/versions" \
+            --jq '.[] | {id, created: .created_at, digest: .name,
+                         tags: (.metadata.container.tags // [])}' \
+            | jq -s '.') || {
+              echo "::error::could not list package versions. A user-owned package may"
+              echo "::error::need a PAT with read:packages/delete:packages rather than"
+              echo "::error::GITHUB_TOKEN — see the run log above for the API error."
+              exit 1
+            }
+
+          # Everything a tag can reach: the manifest list itself and, for a
+          # multi-arch image, each per-platform child it names.
+          keep=$(mktemp)
+          jq -r '.[] | .tags[]' <<<"$versions" | sort -u > "$RUNNER_TEMP/tags"
+          while IFS= read -r tag; do
+            # A signature's own tag names an image; it keeps nothing, and one
+            # that fails to resolve must not turn the whole run into keep-all.
+            case "$tag" in sha256-*) continue ;; esac
+            echo "resolving tag: $tag"
+            manifest=$(docker manifest inspect "${image}:${tag}" 2>/dev/null) || {
+              echo "::warning::could not resolve ${image}:${tag}; keeping everything it might reference"
+              jq -r '.[] | .digest' <<<"$versions" >> "$keep"
+              continue
+            }
+            jq -r '.manifests[]?.digest // empty' <<<"$manifest" >> "$keep"
+            docker manifest inspect -v "${image}:${tag}" 2>/dev/null \
+              | jq -r '.. | .digest? // empty' >> "$keep" || true
+          done < "$RUNNER_TEMP/tags"
+          sort -u "$keep" -o "$keep"
+          echo "referenced digests: $(wc -l < "$keep")"
+
+          cutoff=$(date -u -d "-${KEEP_DAYS} days" +%s)
+          doomed=$(jq -r '.[] | select(.tags | length == 0)
+                          | [.id, .digest, .created] | @tsv' <<<"$versions")
+
+          # Signatures stored under a digest tag, whose image is gone.
+          orphans=$(jq -r '.[] | select(.tags | length > 0)
+                           | select(all(.tags[]; test("^sha256-[0-9a-f]{64}(\\.[a-z]+)?$")))
+                           | [.id, .digest, .created, (.tags[0] | capture("^sha256-(?<h>[0-9a-f]{64})").h)]
+                           | @tsv' <<<"$versions")
+          while IFS=$'\t' read -r id digest created subject; do
+            [ -n "${id:-}" ] || continue
+            if grep -qxF "sha256:${subject}" "$keep"; then continue; fi
+            printf '%s\t%s\t%s\n' "$id" "$digest" "$created"
+          done <<<"$orphans" > "$RUNNER_TEMP/orphans"
+          echo "signature tags for images no longer kept: $(wc -l < "$RUNNER_TEMP/orphans")"
+          doomed=$(printf '%s\n%s' "$doomed" "$(cat "$RUNNER_TEMP/orphans")")
+
+          count=0
+          while IFS=$'\t' read -r id digest created; do
+            [ -n "${id:-}" ] || continue
+            if grep -qxF "$digest" "$keep"; then continue; fi
+            if [ "$(date -u -d "$created" +%s)" -gt "$cutoff" ]; then continue; fi
+            subject=$(docker buildx imagetools inspect --raw "${image}@${digest}" 2>/dev/null \
+              | jq -r '.subject.digest // empty') || subject=""
+            if [ -n "$subject" ] && grep -qxF "$subject" "$keep"; then continue; fi
+            count=$((count + 1))
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "would delete: $digest  ($created)"
+            else
+              echo "deleting:     $digest  ($created)"
+              gh api -X DELETE "/users/${owner}/packages/container/${package}/versions/${id}"
+            fi
+          done <<<"$doomed"
+
+          echo "untagged, unreferenced, older than ${KEEP_DAYS}d: ${count}"
+          if [ "$DRY_RUN" = "true" ]; then echo "dry run — nothing was deleted"; fi
+
+      # Only the tags that existed before the prune: there is no `latest`
+      # until the first release.
+      - name: Prove the released tags still resolve
+        run: |
+          set -eu
+          image="ghcr.io/$(echo "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')"
+          failed=0
+          while IFS= read -r tag; do
+            case "$tag" in sha256-*) continue ;; esac
+            if docker manifest inspect "${image}:${tag}" > /dev/null; then
+              echo "${tag}: still resolves"
+            else
+              echo "::error::${tag} no longer resolves after pruning"
+              failed=1
+            fi
+          done < "$RUNNER_TEMP/tags"
+          exit "$failed"

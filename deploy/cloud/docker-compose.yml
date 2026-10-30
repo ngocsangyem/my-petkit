@@ -1,0 +1,124 @@
+# my-petkit on a VPS, reached by your devices over a WireGuard tunnel to your
+# home router and by you over HTTPS. Read README.md in this directory first:
+# the tunnel has to be up before this file is any use.
+#
+#   cp .env.example .env && $EDITOR .env
+#   docker compose up -d
+#
+# What listens where (checked by the nmap step in README.md):
+#
+#   | Port                 | Host address        | Who reaches it            |
+#   |----------------------|---------------------|---------------------------|
+#   | 80, 443, 9000 (tcp)  | WireGuard address   | your devices, via the tunnel |
+#   | 80, 443 (tcp)        | public address      | Caddy: ACME, the dashboard, the iOS app |
+#   | 8555 (tcp + udp)     | public address      | WebRTC media (signalling goes through Caddy) |
+#   | 8443, 8099, 1883, 8554, 1984 | not published | inside the containers only |
+#
+# Every published port names a host address. Docker writes its own iptables
+# rules for a published port, ahead of ufw, so a bare "80:80" would put the
+# device plane on the public interface whatever the host firewall says.
+
+name: my-petkit
+
+services:
+  my-petkit:
+    image: ghcr.io/ngocsangyem/my-petkit:${MY_PETKIT_TAG:-latest}
+    container_name: my-petkit
+    restart: unless-stopped
+    init: true
+
+    # Unprivileged, read-only, no capabilities; the sysctl lets it bind 80 and
+    # 443 inside its own network namespace without one. See
+    # deploy/local/docker-compose.yml for why a capability would not work.
+    user: "10001:10001"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: "0"
+
+    environment:
+      TZ: ${MY_PETKIT_TIMEZONE:-UTC}
+
+    ports:
+      # The device plane, on the tunnel only. If wg0 is down this address does
+      # not exist and Docker refuses to start the container ("cannot assign
+      # requested address"), which is the intended failure: README.md orders
+      # Docker after wg-quick@wg0.
+      - "${MY_PETKIT_WG_ADDRESS:?not set}:80:80"
+      - "${MY_PETKIT_WG_ADDRESS:?not set}:443:443"
+      - "${MY_PETKIT_WG_ADDRESS:?not set}:9000:9000"
+      # WebRTC media. Public, because a phone on mobile data has to reach it;
+      # what it carries is negotiated through the authenticated API.
+      - "${MY_PETKIT_PUBLIC_BIND:-${MY_PETKIT_PUBLIC_ADDRESS:?not set}}:8555:8555/tcp"
+      - "${MY_PETKIT_PUBLIC_BIND:-${MY_PETKIT_PUBLIC_ADDRESS:?not set}}:8555:8555/udp"
+
+    volumes:
+      - data:/data
+      - media:/media/petkit
+
+    command:
+      - python3
+      - -m
+      - my_petkit.main
+      - --data-dir=/data
+      # Devices are told to call the server's WireGuard address. They reach
+      # it through their default gateway, the home router, which routes it into
+      # the tunnel.
+      - --api-url=http://${MY_PETKIT_WG_ADDRESS:?not set}/6/
+      - --mqtt-tls
+      - --mqtt-tls-port=443
+      - --user-port=8443
+      # The dashboard's public name, so the Host and Origin checks accept it.
+      - --user-hosts=${MY_PETKIT_DOMAIN:?not set}
+      # Where the iOS pairing QR code sends the phone: Caddy's public name,
+      # which the app trusts through the system rather than a pin. Without it
+      # the code would carry the WireGuard address, which no phone can reach.
+      - --user-url=https://${MY_PETKIT_DOMAIN:?not set}
+      - --timezone=${MY_PETKIT_TIMEZONE:-UTC}
+      - --webrtc-candidates=${MY_PETKIT_PUBLIC_ADDRESS:?not set}:8555
+      # Only needed when the home subnet is NOT a private range (RFC 1918 or
+      # IPv6 ULA); devices are dialled only inside a private range or this.
+      - --wireguard-subnets=${MY_PETKIT_EXTRA_DEVICE_SUBNETS:-}
+      - --ha-mqtt-host=${MY_PETKIT_HA_MQTT_HOST:-}
+
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import socket; socket.create_connection(('127.0.0.1', 8443), 3).close()"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+
+  caddy:
+    image: caddy:2-alpine@sha256:eb4d35b7452d1ab6171fbdbe8d9275b2301dad6dad92115d91e19fb9b24d510f
+    container_name: my-petkit-caddy
+    restart: unless-stopped
+    depends_on:
+      - my-petkit
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      # Caddy runs as root in its image, so this capability is effective.
+      - NET_BIND_SERVICE
+    environment:
+      MY_PETKIT_DOMAIN: ${MY_PETKIT_DOMAIN:?not set}
+    ports:
+      - "${MY_PETKIT_PUBLIC_BIND:-${MY_PETKIT_PUBLIC_ADDRESS:?not set}}:80:80"
+      - "${MY_PETKIT_PUBLIC_BIND:-${MY_PETKIT_PUBLIC_ADDRESS:?not set}}:443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  data:
+  media:
+  caddy-data:
+  caddy-config:

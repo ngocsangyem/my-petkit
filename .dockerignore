@@ -1,0 +1,16 @@
+# An allowlist: the build context is the repository root, which also holds
+# runtime data, plans, the iOS app and local virtualenvs. Only what the
+# Dockerfile copies is sent to the builder.
+*
+!apps/web/
+!services/api/requirements.lock
+!services/api/src/
+
+# Re-excluded inside the allowed trees.
+apps/web/node_modules
+apps/web/dist
+apps/web/.claude
+**/__pycache__
+**/*.pyc
+**/.DS_Store
+**/data/
