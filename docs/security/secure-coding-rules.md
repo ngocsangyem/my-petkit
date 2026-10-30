@@ -37,7 +37,9 @@ Source: the conventions document of the rebuild plan (part C), copied into the r
   - 5xx errors: the handler's message is replaced by a correlation id, except 502/503/504, which are upstream-describing messages the handler writes on purpose.
 - **Live video** (`features/live`): go2rtc's API stays on `127.0.0.1:1984` with no auth of its own, and clients reach it only through the live routes.
   - HLS uses signed links: the master link lasts five minutes, and the URIs inside a live playlist last one hour, which caps one viewing session.
-  - MSE runs over a WebSocket bridge that forwards only `{"type": "mse", "value": ...}`.
+  - A playlist only re-signs URIs inside its own tree: `/api/media/` for recorded media, and `/api/live/{id}/` for one camera. A `../` in a playlist can never mint a link for the other tree or for another camera.
+  - Signatures are not tied to a session. A live link already handed out keeps working after its token is revoked or the user signs out, for up to about 65 minutes (five minutes for the link, one hour for the playlist URIs). Only a signed-in principal can mint a link.
+  - MSE runs over a WebSocket bridge that forwards only `{"type": "mse", "value": ...}`, and only once per connection: go2rtc adds a consumer for every such message.
   - WebRTC signaling is tier R0\*.
   - The stream name sent to go2rtc is always one the server configured, never client input, because go2rtc dials an unknown `src` as a source URL.
   - **WebRTC media does not pass through our auth.** It flows straight from the viewer to go2rtc's WebRTC port (TCP and UDP) and is protected by DTLS/SRTP. A session only exists once an offer has been accepted through the authenticated signaling route.

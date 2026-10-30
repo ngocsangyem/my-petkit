@@ -149,13 +149,13 @@ async def _upstream_or_refuse(url: str) -> bytes:
         status, _, body = await _fetch(url)
     except (aiohttp.ClientError, asyncio.TimeoutError) as e:
         log.warning("live: go2rtc did not answer: %s", e)
-        raise api_error(502, "stream_failed", "The live stream did not answer.") from None
+        raise api_error(502, "upstream_unavailable", "The live stream did not answer.") from None
     if status == 404:
         # A finished HLS session, or a stream that dropped between checks.
         raise api_error(404, "not_found", "This live session has ended.")
     if status != 200:
         log.warning("live: go2rtc answered %s", status)
-        raise api_error(502, "stream_failed", "The live stream did not answer.")
+        raise api_error(502, "upstream_unavailable", "The live stream did not answer.")
     return body
 
 
@@ -202,10 +202,8 @@ async def api_live_webrtc(request: web.Request) -> web.Response:
     if not sidecar.webrtc_enabled:
         raise api_error(409, "webrtc_unavailable",
                         "WebRTC is not set up on this server; use MSE or HLS.")
-    if (request.content_length or 0) > _MAX_OFFER_BYTES:
-        raise api_error(413, "payload_too_large", "The offer is too large.")
     try:
-        offer = json.loads(await request.content.read(_MAX_OFFER_BYTES + 1))
+        offer = json.loads(await _read_capped(request, _MAX_OFFER_BYTES))
     except ValueError:
         offer = None
     if (not isinstance(offer, dict) or offer.get("type") != "offer"
@@ -219,12 +217,28 @@ async def api_live_webrtc(request: web.Request) -> web.Response:
                 answer = await resp.json(content_type=None) if status == 200 else None
     except (aiohttp.ClientError, asyncio.TimeoutError, ValueError) as e:
         log.warning("live: WebRTC signaling failed: %s", e)
-        raise api_error(502, "stream_failed", "The live stream did not answer.") from None
+        raise api_error(502, "upstream_unavailable", "The live stream did not answer.") from None
     if (not isinstance(answer, dict) or answer.get("type") != "answer"
             or not isinstance(answer.get("sdp"), str)):
         log.warning("live: go2rtc refused the WebRTC offer (%s)", status)
-        raise api_error(502, "stream_failed", "The live stream refused the offer.")
+        raise api_error(502, "upstream_unavailable", "The live stream refused the offer.")
     return web.json_response({"type": "answer", "sdp": answer["sdp"]})
+
+
+async def _read_capped(request: web.Request, limit: int) -> bytes:
+    """The whole body, or 413 once it passes `limit`.
+
+    `content.read(n)` returns whatever has arrived so far, so a body that comes
+    in several TCP segments would be cut short; this reads to the end.
+    """
+    if (request.content_length or 0) > limit:
+        raise api_error(413, "payload_too_large", "The offer is too large.")
+    body = bytearray()
+    async for chunk in request.content.iter_chunked(8192):
+        body.extend(chunk)
+        if len(body) > limit:
+            raise api_error(413, "payload_too_large", "The offer is too large.")
+    return bytes(body)
 
 
 def _mse_request(data: str) -> str | None:
@@ -261,10 +275,17 @@ async def _pump_to_client(upstream: aiohttp.ClientWebSocketResponse,
 
 async def _pump_to_upstream(ws: web.WebSocketResponse,
                             upstream: aiohttp.ClientWebSocketResponse) -> None:
+    """Forward the client's first valid `mse` request, and nothing after it.
+
+    go2rtc adds a consumer for every `mse` message it receives, so a repeat
+    would multiply the stream down this one socket.
+    """
+    requested = False
     async for msg in ws:
         if msg.type == aiohttp.WSMsgType.TEXT:
-            forward = _mse_request(msg.data)
+            forward = None if requested else _mse_request(msg.data)
             if forward is not None:
+                requested = True
                 await upstream.send_str(forward)
         elif msg.type in (aiohttp.WSMsgType.CLOSE, aiohttp.WSMsgType.ERROR):
             break

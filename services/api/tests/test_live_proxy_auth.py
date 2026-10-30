@@ -324,3 +324,88 @@ async def test_mse_bridges_only_the_mse_request(tmp_path, go2rtc):
     assert (path, query, origin) == ("/api/ws", {"src": str(CAMERA_ID)}, None)
     frames = [entry[1] for entry in go2rtc if entry[0] == "frame"]
     assert frames == [json.dumps({"type": "mse", "value": "avc1.640029"})]
+
+
+async def test_an_offer_arriving_in_pieces_is_read_whole(tmp_path, go2rtc):
+    """A real offer is several KB and may arrive in more than one TCP segment."""
+    sdp = "v=0\r\n" + "a=candidate:x\r\n" * 600
+    client = await _client(_panel(tmp_path, FakeSidecar(webrtc=True)))
+
+    async def pieces():
+        body = json.dumps({"type": "offer", "sdp": sdp}).encode()
+        for i in range(0, len(body), 1000):
+            yield body[i:i + 1000]
+
+    try:
+        r = await client.post(f"/api/live/{CAMERA_ID}/webrtc", data=pieces(),
+                              headers={"Content-Type": "application/json"})
+        assert r.status == 200, await r.text()
+    finally:
+        await client.close()
+    assert go2rtc[0][2]["sdp"] == sdp
+
+
+async def test_an_oversized_offer_is_413_even_without_a_length(tmp_path, go2rtc):
+    client = await _client(_panel(tmp_path, FakeSidecar(webrtc=True)))
+
+    async def huge():
+        yield b'{"type":"offer","sdp":"'
+        for _ in range(70):
+            yield b"x" * 1024
+        yield b'"}'
+
+    try:
+        r = await client.post(f"/api/live/{CAMERA_ID}/webrtc", data=huge(),
+                              headers={"Content-Type": "application/json"})
+        assert r.status == 413, await r.text()
+    finally:
+        await client.close()
+    assert go2rtc == []
+
+
+async def test_mse_forwards_only_the_first_request(tmp_path, go2rtc):
+    """go2rtc adds a consumer per `mse` message, so a repeat would multiply the
+    stream down one socket."""
+    client = await _client(_panel(tmp_path))
+    try:
+        sock = await client.ws_connect(f"/api/live/{CAMERA_ID}/mse")
+        for _ in range(3):
+            await sock.send_str(json.dumps({"type": "mse", "value": "avc1.640029"}))
+        assert await sock.receive_json(timeout=5) == {"type": "mse", "value": "video/mp4"}
+        assert (await sock.receive_bytes(timeout=5)) == b"INIT"
+        await sock.close()
+    finally:
+        await client.close()
+    assert [e for e in go2rtc if e[0] == "frame"] == [
+        ("frame", json.dumps({"type": "mse", "value": "avc1.640029"}))]
+
+
+async def test_live_links_last_five_minutes_and_their_playlist_uris_an_hour(tmp_path, go2rtc,
+                                                                            monkeypatch):
+    import time as time_module
+    now = int(time_module.time())
+    app = _panel(tmp_path)
+    owner = await _client(app)
+    try:
+        url = (await (await owner.get(f"/api/devices/{CAMERA_ID}/live")).json())["hls_url"]
+        master = await (await owner.get(url)).text()
+    finally:
+        await owner.close()
+    link_exp = int(_query(url)["exp"][0])
+    uri_exp = int(_query([ln for ln in master.splitlines() if ln.startswith("hls/")][0])["exp"][0])
+    assert link_exp - now == pytest.approx(live.HLS_LINK_TTL_SECONDS, abs=5)
+    assert uri_exp - now == pytest.approx(live.HLS_SESSION_TTL_SECONDS, abs=5)
+
+
+async def test_go2rtc_not_answering_is_a_502_that_says_so(tmp_path, monkeypatch):
+    # Nothing listens on this port: the sidecar says it runs, but its API is gone.
+    monkeypatch.setattr(live, "API_ADDR", "127.0.0.1:9")
+    client = await _client(_panel(tmp_path, FakeSidecar(webrtc=True)))
+    try:
+        for r in (await client.get(f"/api/live/{CAMERA_ID}/stream.m3u8"),
+                  await client.post(f"/api/live/{CAMERA_ID}/webrtc",
+                                    json={"type": "offer", "sdp": "v=0"})):
+            assert r.status == 502
+            assert (await r.json())["error"]["code"] == "upstream_unavailable"
+    finally:
+        await client.close()

@@ -240,7 +240,11 @@ async def auth_middleware(request: web.Request, handler: _Handler) -> web.Stream
     if refusal is not None:
         return refusal
     request[REQUEST_AUTH] = ctx or AuthContext("anonymous", "none")
-    request[URL_SIGNER] = auth.signer.signed_url
+    if ctx is not None and ctx.method != "signature":
+        # Only a real principal may mint links; a signed link must not be
+        # able to sign more, and an anonymous credential request has no one
+        # to sign for.
+        request[URL_SIGNER] = auth.signer.signed_url
     if tier is Tier.SIGNED_MEDIA:
         request[PLAYLIST_SIGNER] = auth.signer.sign_playlist
     if tier is Tier.R3:

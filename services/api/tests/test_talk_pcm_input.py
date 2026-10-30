@@ -118,3 +118,49 @@ async def test_an_unknown_format_is_refused_without_starting_ffmpeg(tmp_path, de
 def test_webm_stays_the_default_and_probes_its_input():
     assert talk._INPUT_ARGS[talk.WEBM] == ()
     assert talk._INPUT_ARGS[talk.PCM_S16LE] == ("-f", "s16le", "-ar", "16000", "-ac", "1")
+
+
+async def test_a_malformed_or_mid_session_format_change_is_refused(tmp_path, device_sink,
+                                                                   monkeypatch):
+    started = []
+
+    class FakeStdin:
+        def is_closing(self):
+            return False
+
+        def write(self, data):
+            pass
+
+        async def drain(self):
+            pass
+
+        def write_eof(self):
+            pass
+
+    class FakeProc:
+        stdin = FakeStdin()
+        returncode = None
+
+        async def wait(self):
+            return 0
+
+    async def fake_exec(*args, **kwargs):
+        started.append(args)
+        return FakeProc()
+
+    monkeypatch.setattr(talk.asyncio, "create_subprocess_exec", fake_exec)
+    client = authed_test_client(_panel(tmp_path))
+    await client.start_server()
+    try:
+        sock = await client.ws_connect(f"/api/devices/{DEVICE_ID}/talk")
+        await sock.send_str(json.dumps({"type": "talk_start", "format": []}))
+        assert (await sock.receive_json(timeout=5))["type"] == "error"
+        await sock.send_str(json.dumps({"type": "talk_start"}))
+        assert await sock.receive_json(timeout=5) == {"type": "talking"}
+        await sock.send_str(json.dumps({"type": "talk_start", "format": "pcm_s16le"}))
+        assert (await sock.receive_json(timeout=5))["type"] == "error"
+        await sock.close()
+    finally:
+        await client.close()
+    # One ffmpeg, set up for webm; the PCM request never reached it.
+    assert len(started) == 1 and "s16le" not in started[0]

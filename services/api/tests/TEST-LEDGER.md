@@ -913,12 +913,20 @@ randomized test lands there, only the fixed vectors in `provisioning-protocol.te
 - added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/live/__init__.py]
 - added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/live/routes.py]
   — the per-module clock and app-key checks pick up the new `features/live` package.
+- added: tests/test_live_proxy_auth.py::test_an_offer_arriving_in_pieces_is_read_whole
+- added: tests/test_live_proxy_auth.py::test_an_oversized_offer_is_413_even_without_a_length
+- added: tests/test_live_proxy_auth.py::test_mse_forwards_only_the_first_request
+- added: tests/test_live_proxy_auth.py::test_live_links_last_five_minutes_and_their_playlist_uris_an_hour
+- added: tests/test_live_proxy_auth.py::test_go2rtc_not_answering_is_a_502_that_says_so
+- added: tests/test_signed_media_urls.py::test_a_playlist_signs_only_inside_its_own_tree
+- added: tests/test_signed_media_urls.py::test_a_uris_own_exp_and_sig_are_replaced_by_ours
 
 ### Talk: raw 16 kHz mono PCM input for the iOS app, checked with ffprobe
 
 - added: tests/test_talk_pcm_input.py::test_pcm_input_reaches_the_device_as_16khz_mono_adts_aac
 - added: tests/test_talk_pcm_input.py::test_an_unknown_format_is_refused_without_starting_ffmpeg
 - added: tests/test_talk_pcm_input.py::test_webm_stays_the_default_and_probes_its_input
+- added: tests/test_talk_pcm_input.py::test_a_malformed_or_mid_session_format_change_is_refused
 
 ## Removed
 

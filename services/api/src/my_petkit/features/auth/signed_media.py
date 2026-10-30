@@ -83,18 +83,22 @@ class MediaSigner:
     ) -> str:
         """Re-sign every relative URI in an HLS playlist served from `playlist_path`."""
         base = posixpath.dirname(playlist_path)
+        scope = _signing_scope(playlist_path)
 
         def signed(uri: str) -> str:
             if "://" in uri or uri.startswith("/"):
                 return uri
             relative, _, own_query = uri.partition("?")
             target = posixpath.normpath(posixpath.join(base, unquote(relative)))
-            if not target.startswith(SIGNABLE_PREFIXES):
+            if scope is None or not target.startswith(scope):
                 return uri
-            # The URI stays as the playlist wrote it, its own query included;
-            # only `exp` and `sig` are ours.
+            # The URI stays as the playlist wrote it, its own query included,
+            # minus any `exp`/`sig` it carried: the middleware reads the first
+            # of each, and those must be ours.
+            kept = "&".join(p for p in own_query.split("&")
+                            if p and p.split("=", 1)[0] not in ("exp", "sig"))
             ours = self.query(target, ttl)
-            return f"{relative}?{own_query}&{ours}" if own_query else f"{relative}?{ours}"
+            return f"{relative}?{kept}&{ours}" if kept else f"{relative}?{ours}"
 
         lines = []
         for line in text.splitlines():
@@ -106,6 +110,22 @@ class MediaSigner:
             else:
                 lines.append(signed(stripped))
         return "\n".join(lines) + ("\n" if text.endswith("\n") else "")
+
+
+def _signing_scope(playlist_path: str) -> str | None:
+    """The prefix a playlist's URIs may be signed under, or None.
+
+    A playlist only ever vouches for its own tree: a recorded playlist for
+    `/api/media/`, a live one for its own device's `/api/live/{id}/`. So a
+    `../` in one can never mint a signature for the other, or for another
+    camera, and with the other tree's lifetime.
+    """
+    if playlist_path.startswith(SIGNABLE_PREFIX):
+        return SIGNABLE_PREFIX
+    if playlist_path.startswith(LIVE_PREFIX):
+        device = playlist_path[len(LIVE_PREFIX):].split("/", 1)[0]
+        return f"{LIVE_PREFIX}{device}/" if device.isdigit() else None
+    return None
 
 
 def mask_signature(text: str) -> str:

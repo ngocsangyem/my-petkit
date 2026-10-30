@@ -94,10 +94,13 @@ async def api_talk(request: web.Request) -> web.WebSocketResponse:
 
     ffmpeg: asyncio.subprocess.Process | None = None
 
-    async def start(input_format: str = WEBM) -> None:
-        nonlocal ffmpeg
+    input_format = WEBM
+
+    async def start(requested: str = WEBM) -> None:
+        nonlocal ffmpeg, input_format
         if ffmpeg is not None:
             return
+        input_format = requested
         # Low-latency decode: the input is a live stream, so keep ffmpeg from
         # buffering ahead before it starts emitting. Raw PCM carries no header,
         # so its layout is stated; webm is probed. Output goes
@@ -109,7 +112,7 @@ async def api_talk(request: web.Request) -> web.WebSocketResponse:
             "ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error",
             "-fflags", "nobuffer", "-flags", "low_delay",
             "-probesize", "32", "-analyzeduration", "0",
-            *_INPUT_ARGS[input_format],
+            *_INPUT_ARGS[requested],
             "-protocol_whitelist", "pipe", "-i", "pipe:0",
             *_output_args(f"tcp://{talk_host}:{TALK_TCP_PORT}"),
             stdin=asyncio.subprocess.PIPE,
@@ -152,10 +155,16 @@ async def api_talk(request: web.Request) -> web.WebSocketResponse:
                 kind = evt.get("type")
                 if kind == "talk_start":
                     requested = evt.get("format", WEBM)
-                    if requested not in _INPUT_ARGS:
+                    if not isinstance(requested, str) or requested not in _INPUT_ARGS:
+                        if not ws.closed:
+                            await ws.send_json({"type": "error", "msg": "unsupported format"})
+                        continue
+                    if ffmpeg is not None and requested != input_format:
+                        # Already decoding another format; switching mid-session
+                        # would feed one format to a decoder set up for the other.
                         if not ws.closed:
                             await ws.send_json({"type": "error",
-                                                "msg": f"unsupported format: {requested!r}"[:120]})
+                                                "msg": "stop before changing format"})
                         continue
                     await start(requested)
                     if not ws.closed:
