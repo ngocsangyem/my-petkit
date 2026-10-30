@@ -28,7 +28,7 @@ export function PetAvatar({
   if (!photoUrl || failed === photoUrl) {
     return (
       <span
-        className={cn('inline-block flex-none rounded-full bg-active', SIZE.get(size))}
+        className={cn('inline-block flex-none rounded-full bg-track', SIZE.get(size))}
         aria-hidden="true"
       />
     );

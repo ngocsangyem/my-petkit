@@ -96,7 +96,7 @@ export function ChangeCatForm({
             </ChoiceRow>
           ))}
           <ChoiceRow value={PASSING}>
-            <span className="size-9 flex-none rounded-full bg-active" aria-hidden="true" />
+            <span className="size-9 flex-none rounded-full bg-track" aria-hidden="true" />
             No cat, just passing
           </ChoiceRow>
         </RadioGroup>

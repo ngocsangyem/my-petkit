@@ -26,7 +26,7 @@ function Lead({ s }: { s: TimelineSession }) {
   if (s.kind === 'visit') {
     return (
       <span
-        className="flex size-10 flex-none items-center justify-center rounded-full bg-active text-muted-foreground"
+        className="flex size-10 flex-none items-center justify-center rounded-full bg-track text-muted-foreground"
         aria-hidden="true"
       >
         ?
