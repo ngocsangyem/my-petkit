@@ -6,7 +6,7 @@
 // The policy is read from the server's source (SPA_CSP in web/spa.py) on start,
 // never copied, so a change there is what this server sends.
 import { createServer } from 'node:http';
-import { readFile, stat } from 'node:fs/promises';
+import { open, readFile } from 'node:fs/promises';
 import { extname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -61,9 +61,13 @@ const server = createServer(async (req, res) => {
   const url = new URL(req.url ?? '/', 'http://preview.local');
   const path = fileFor(url.pathname);
   const headers = { 'Content-Security-Policy': csp, 'Cache-Control': 'no-cache' };
+  // One handle for the check and the read, so the file cannot change in between.
+  let file;
   try {
-    if (!path || !(await stat(path)).isFile()) throw new Error('not a file');
-    const body = await readFile(path);
+    if (!path) throw new Error('outside the root');
+    file = await open(path, 'r');
+    if (!(await file.stat()).isFile()) throw new Error('not a file');
+    const body = await file.readFile();
     res.writeHead(200, {
       ...headers,
       'Content-Type': TYPES[extname(path)] ?? 'application/octet-stream',
@@ -72,6 +76,8 @@ const server = createServer(async (req, res) => {
   } catch {
     res.writeHead(404, { ...headers, 'Content-Type': 'text/plain' });
     res.end('Not found\n');
+  } finally {
+    await file?.close();
   }
 });
 
