@@ -26,6 +26,8 @@
 	<string>Bluetooth sends a new device your Wi-Fi details and this server's address. Nothing else is sent.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>The camera reads the pairing code on your my-petkit dashboard.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>The microphone is used only while you hold Talk on a camera's live view, to speak through the device.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>IBMPlexSans-Regular.ttf</string>

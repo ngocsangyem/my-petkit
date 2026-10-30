@@ -41,6 +41,19 @@ final class ScreenSnapshotTests: XCTestCase {
         }.environment(ServerSession.preview), named: "ios-device-fountain")
     }
 
+    func testLive() {
+        assertScreen(NavigationStack {
+            LiveView(model: LivePreviewFixtures.playing, talk: TalkModel(deviceID: 1), title: "Litter box")
+        }.environment(ServerSession.preview), named: "ios-live")
+    }
+
+    func testLiveUnavailable() {
+        assertScreen(NavigationStack {
+            LiveView(model: LivePreviewFixtures.unavailable,
+                     talk: TalkModel(deviceID: 1, state: .failed(TalkModel.deniedSentence)), title: "Litter box")
+        }.environment(ServerSession.preview), named: "ios-live-unavailable")
+    }
+
     func testSchedules() {
         assertScreen(SchedulesView(model: SchedulesFixtures.model(SchedulesFixtures.feederDevice)),
                      named: "ios-schedules")

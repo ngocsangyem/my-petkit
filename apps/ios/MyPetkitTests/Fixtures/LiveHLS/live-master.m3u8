@@ -1,0 +1,3 @@
+#EXTM3U
+#EXT-X-STREAM-INF:BANDWIDTH=100000,CODECS="avc1.42c00d,mp4a.40.2"
+hls/playlist.m3u8?id=abc&exp=1&sig=x
