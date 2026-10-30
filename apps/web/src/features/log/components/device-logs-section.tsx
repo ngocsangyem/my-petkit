@@ -5,6 +5,7 @@ import { errorMessage } from '@/shared/api/errors';
 import { formatBytes, formatDateTime } from '@/shared/format/format';
 import {
   Button,
+  Card,
   EmptyBlock,
   ErrorBlock,
   SearchField,
@@ -158,11 +159,11 @@ export function DeviceLogsSection() {
   }
 
   return (
-    <section className="flex min-w-0 flex-col gap-3" aria-labelledby="devlog-title">
+    <Card as="section" className="flex flex-col gap-3" aria-labelledby="devlog-title">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
         <h2 id="devlog-title">Device logs</h2>
         <SearchField
-          className="w-[220px]"
+          className="w-[240px] max-[900px]:w-full"
           aria-label="Search the device log"
           placeholder="grep pattern"
           mono
@@ -177,6 +178,6 @@ export function DeviceLogsSection() {
         Collect debug logs on a device, and the device decides when to send one.
       </p>
       {body}
-    </section>
+    </Card>
   );
 }

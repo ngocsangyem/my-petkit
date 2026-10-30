@@ -115,7 +115,7 @@ describe('LogPage live log', () => {
     expect(within(log).getAllByText('-> mqtt: feed')).toHaveLength(1);
     expect(screen.getByText(/^4 events\./)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('switch', { name: 'Hide heartbeats' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Hide heartbeats', pressed: true }));
     expect(within(log).getByText('POST /6/t6/dev_heartbeat -> 200')).toBeInTheDocument();
   });
 

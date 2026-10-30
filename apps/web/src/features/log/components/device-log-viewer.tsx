@@ -18,7 +18,7 @@ export function DeviceLogViewer({ rel, query, offset, onOffset }: DeviceLogViewe
   if (win.isPending) {
     return (
       <div
-        className="flex max-h-[480px] flex-col gap-2.5 overflow-auto rounded-lg border border-border p-3"
+        className="flex max-h-[480px] flex-col gap-2.5 overflow-auto rounded-md bg-raised p-3"
         aria-busy="true"
         aria-label="Loading the device log"
       >
@@ -78,7 +78,7 @@ export function DeviceLogViewer({ rel, query, offset, onOffset }: DeviceLogViewe
         <EmptyBlock>{query ? 'No line matches.' : 'This log is empty.'}</EmptyBlock>
       ) : (
         <div
-          className="flex max-h-[480px] flex-col overflow-auto rounded-lg border border-border py-2 font-mono text-xs"
+          className="flex max-h-[480px] flex-col overflow-auto rounded-md bg-raised py-2.5 font-mono text-xs leading-[1.45]"
           aria-label={`Lines of ${rel}`}
         >
           {lines.map(([n, text]) => (
