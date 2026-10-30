@@ -77,11 +77,11 @@ function RetentionTable({ data, save }: RetentionTableProps) {
       key: 'mb',
       header: 'Max size (MB)',
       numeric: true,
-      width: '140px',
+      width: '100px',
       cell: r =>
         r.sized ? (
           <NumberInput
-            className="w-27.5"
+            className="w-22"
             min={0}
             aria-label={`${r.label}, max size in MB`}
             value={caps[r.key]?.mb ?? null}
@@ -97,10 +97,10 @@ function RetentionTable({ data, save }: RetentionTableProps) {
       key: 'days',
       header: 'Max age (days)',
       numeric: true,
-      width: '140px',
+      width: '100px',
       cell: r => (
         <NumberInput
-          className="w-27.5"
+          className="w-22"
           min={0}
           aria-label={`${r.label}, max age in days`}
           value={caps[r.key]?.days ?? null}
@@ -120,7 +120,7 @@ function RetentionTable({ data, save }: RetentionTableProps) {
         columns={columns}
         rows={ROWS}
         rowKey={r => r.key}
-        minWidth={420}
+        minWidth={300}
       />
       <p className="pt-3 text-xs text-muted-foreground">{DESCRIPTION}</p>
       <div className="flex flex-wrap items-center gap-3 py-3">

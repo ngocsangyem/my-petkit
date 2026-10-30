@@ -68,12 +68,6 @@ export function CaptureFiles({ listing, selected, onSelect }: CaptureFilesProps)
           On this server only, in <span className="font-mono text-xs wrap-anywhere">{dir}</span>.
           Nothing is uploaded.
         </dd>
-        <dt>Recording</dt>
-        <dd>
-          {listing.enabled
-            ? 'On. Every device HTTP request and MQTT frame is written as it happens.'
-            : 'Off. Turning it on is a setting under Settings, and asks for your password again.'}
-        </dd>
         <dt>Kept</dt>
         <dd>
           Nothing prunes these: a capture is deliberate, so it is kept in full until you delete it.
