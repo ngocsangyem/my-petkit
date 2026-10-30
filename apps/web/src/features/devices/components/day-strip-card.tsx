@@ -1,3 +1,4 @@
+import { Link } from 'react-router';
 import {
   DayStripLegend,
   EmptyBlock,
@@ -21,7 +22,7 @@ interface DayStripCardProps {
 }
 
 /**
- * "Today at home": a lane per pet, then feeders and fountains, on a 24-hour axis
+ * "Today": a lane per pet, then feeders and fountains, on a 24-hour axis
  * drawn in the DEVICE's zone (see lib/device-zone.ts), never the browser's.
  */
 export function DayStripCard({
@@ -65,8 +66,17 @@ export function DayStripCard({
   }
 
   return (
-    <SectionCard title="Today at home" aside={aside} end={<DayStripLegend />}>
+    <SectionCard
+      title="Today"
+      aside={aside}
+      end={
+        <Link to="/timeline" className="text-base font-medium">
+          Open timeline
+        </Link>
+      }
+    >
       {body}
+      {strip && strip.lanes.length > 0 && !error && !loading && <DayStripLegend />}
     </SectionCard>
   );
 }
