@@ -1,5 +1,5 @@
 import type { QueryKey } from '@tanstack/react-query';
-import { type ReactNode, useState } from 'react';
+import { type CSSProperties, type ReactNode, useState } from 'react';
 import { ConfirmDialog, type IconName, QuickAction } from '@/shared/ui';
 import { type Feedback, useDeviceCall } from '../hooks/use-device-call';
 import { FeedbackLine } from './panel-parts';
@@ -93,6 +93,15 @@ interface CommandListProps {
   note?: string;
 }
 
+/** Minimum width of one quick action, and the gap between two. */
+const ACTION_MIN = 124;
+const ACTION_GAP = 8;
+
+/** A flex share for a block of `n` quick actions: grows by `n`, never narrower than `n` actions. */
+function share(n: number): CSSProperties {
+  return { flex: `${String(n)} 1 ${String(n * ACTION_MIN + (n - 1) * ACTION_GAP)}px` };
+}
+
 /**
  * The quick-action grid of a device: routine commands as icon-over-label buttons, destructive ones
  * in a labelled group of their own after the rest. Destructive commands are not red: red is once
@@ -112,21 +121,35 @@ export function CommandList({ commands, runner, extra, note }: CommandListProps)
       }}
     />
   );
-  const grid = 'grid grid-cols-[repeat(auto-fill,minmax(124px,1fr))] gap-2';
+  // auto-fit, not auto-fill: empty tracks collapse, so the buttons stretch across the card.
+  const grid = 'grid grid-cols-[repeat(auto-fit,minmax(124px,1fr))] gap-2';
+  const routineCount = routine.length + (extra ? 1 : 0);
   return (
     <section className="flex min-w-0 flex-col gap-2.5" aria-label="Commands">
-      {(extra || routine.length > 0) && (
-        <div className={grid}>
-          {extra}
-          {routine.map(button)}
-        </div>
-      )}
-      {destructive.length > 0 && (
-        <div className="grid gap-1.5" role="group" aria-label="Cannot be undone">
-          <span className="text-sm text-muted-foreground">Cannot be undone</span>
-          <div className={grid}>{destructive.map(button)}</div>
-        </div>
-      )}
+      {/*
+        One row across the card: the routine block and the destructive group grow in proportion
+        to how many buttons each holds, so every button is the same width, and the row wraps
+        only when the card is too narrow for all of them.
+      */}
+      <div className="flex flex-wrap items-end gap-2">
+        {routineCount > 0 && (
+          <div className={grid} style={share(routineCount)}>
+            {extra}
+            {routine.map(button)}
+          </div>
+        )}
+        {destructive.length > 0 && (
+          <div
+            className="grid gap-1.5"
+            role="group"
+            aria-label="Cannot be undone"
+            style={share(destructive.length)}
+          >
+            <span className="text-sm text-muted-foreground">Cannot be undone</span>
+            <div className={grid}>{destructive.map(button)}</div>
+          </div>
+        )}
+      </div>
       <p className="text-xs text-muted-foreground">{note ?? 'Each command asks before it runs.'}</p>
       <FeedbackLine feedback={runner.feedback} />
     </section>
