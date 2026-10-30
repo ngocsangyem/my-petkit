@@ -6,6 +6,7 @@ import { sendAction } from '../api-calls';
 import type { OpenState, SetOpen } from '../hooks/use-open-state';
 import { FAMILY_NOUN, deviceFamily } from '../lib/device-family';
 import { type DeviceEntity, groupDeviceEntities } from '../lib/entity-sections';
+import { LiveView } from '../live/live-view';
 import { DeviceSchedules } from '../schedules';
 import { BleSection } from './ble-section';
 import { CommandList } from './command-list';
@@ -87,6 +88,8 @@ export function DevicePanelBody({
           />
         </section>
       )}
+
+      {d.is_camera && <LiveView deviceId={d.id} deviceName={d.name} />}
 
       {groups.media.length > 0 && (
         <section className="flex min-w-0 flex-col gap-2.5" aria-label="Camera">

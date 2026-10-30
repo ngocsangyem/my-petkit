@@ -44,6 +44,12 @@
   --pk-pet-1-tint: #f8eedb;
   --pk-pet-1-ink: #7a4f08;
 
+  /* Live video (design-reference §7.2): the same dark frame in light and dark mode,
+     so these are not redefined under .dark. */
+  --pk-live-ground: #0e0f10;
+  --pk-live-control: #202325;
+  --pk-live-text: #f2f4f4;
+
   /* Overlays: only sheets, menus and dialogs carry a shadow */
   --pk-overlay-shadow: 0 8px 24px rgba(19, 20, 22, 0.12);
   --pk-overlay-backdrop: rgba(19, 20, 22, 0.32);
