@@ -299,7 +299,11 @@ export function HouseholdDayStrip({
             )}
           >
             {lane.kind === 'pet' && lane.avatar}
-            {lane.name}
+            {lane.kind === 'pet' ? (
+              <span className="min-w-0 truncate">{lane.name}</span>
+            ) : (
+              lane.name
+            )}
           </span>
           <div
             className={cn(

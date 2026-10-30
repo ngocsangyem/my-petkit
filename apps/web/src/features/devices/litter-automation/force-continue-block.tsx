@@ -76,6 +76,7 @@ export function useForceContinue(
       confirmVariant="danger-final"
       busy={busy}
       confirmDisabled={!offered}
+      footnote="Asks for your password first. Refused while a cat is inside or the lid is open."
       onConfirm={() => void confirm()}
       onCancel={() => {
         setConfirming(false);
@@ -111,9 +112,6 @@ export function useForceContinue(
         Look at the box before you continue. If a cat steps inside, the box stops again on its own;
         this app never overrides that.
       </RiskNotice>
-      <p className="text-xs text-muted-foreground">
-        Asks for your password first. Refused while a cat is inside or the lid is open.
-      </p>
     </ConfirmDialog>
   );
 

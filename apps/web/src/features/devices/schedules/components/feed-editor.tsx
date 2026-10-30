@@ -71,25 +71,26 @@ export function FeedEditor({ value, onChange, dual }: FeedEditorProps) {
           aria-label={`Meal set ${gi + 1}`}
           className="flex flex-col gap-1 py-3"
         >
-          <div className="flex items-start justify-between gap-3 pb-2">
-            <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 pb-2">
+            <div className="flex items-center justify-between gap-3">
               <span className="text-sm text-muted-foreground">{daysText(group.re)}</span>
-              <WeekdayBar
-                label={`Days of meal set ${gi + 1}`}
-                days={group.re}
-                onChange={days => {
-                  change(gi, g => {
-                    g.re = days;
-                  });
+              <IconButton
+                icon="close"
+                variant="ghost"
+                aria-label={`Remove meal set ${gi + 1}`}
+                className="-my-2"
+                onClick={() => {
+                  onChange({ ...value, schedule: groups.filter((_, j) => j !== gi) });
                 }}
               />
-            </span>
-            <IconButton
-              icon="close"
-              variant="ghost"
-              aria-label={`Remove meal set ${gi + 1}`}
-              onClick={() => {
-                onChange({ ...value, schedule: groups.filter((_, j) => j !== gi) });
+            </div>
+            <WeekdayBar
+              label={`Days of meal set ${gi + 1}`}
+              days={group.re}
+              onChange={days => {
+                change(gi, g => {
+                  g.re = days;
+                });
               }}
             />
           </div>

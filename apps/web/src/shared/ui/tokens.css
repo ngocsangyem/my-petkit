@@ -63,9 +63,10 @@
   --pk-pet-1-tint: #f8eedb;
   --pk-pet-1-ink: #7a4f08;
 
-  /* Live video (design-reference §7.2): the same dark frame in light and dark mode,
-     so these are not redefined under .dark. */
-  --pk-live-ground: #0e0f10;
+  /* Live video (design-reference §7.2, frame per the web v3 artboards' video block): the same
+     dark frame in light and dark mode, so these are not redefined under .dark. The frame is a
+     step above the dark ground, so it still reads as a block in dark mode. */
+  --pk-live-ground: #1b1d1e;
   --pk-live-control: #202325;
   --pk-live-text: #f2f4f4;
 

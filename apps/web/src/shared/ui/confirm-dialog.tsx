@@ -21,6 +21,8 @@ export interface ConfirmDialogProps {
   confirmDisabled?: boolean;
   /** `danger-final` (red fill) only when the confirm is the last step of a step-up (R3) flow. */
   confirmVariant?: 'primary' | 'danger-final';
+  /** A 12px muted line under the buttons: what happens when it is confirmed. */
+  footnote?: ReactNode;
 }
 
 /**
@@ -41,6 +43,7 @@ export function ConfirmDialog({
   busy = false,
   confirmDisabled = false,
   confirmVariant = 'primary',
+  footnote,
 }: ConfirmDialogProps) {
   const cancelRef = useRef<HTMLButtonElement>(null);
   return (
@@ -55,7 +58,7 @@ export function ConfirmDialog({
         showCloseButton={false}
         initialFocus={cancelRef}
         aria-busy={busy || undefined}
-        className="max-h-[calc(100vh-32px)] w-[calc(100%-32px)] max-w-[440px] gap-4 overflow-y-auto sm:max-w-[440px]"
+        className="max-h-[calc(100vh-32px)] w-[calc(100%-32px)] max-w-[480px] gap-4 overflow-y-auto sm:max-w-[480px]"
       >
         <div className="grid gap-2">
           <DialogTitle>{title}</DialogTitle>
@@ -71,6 +74,7 @@ export function ConfirmDialog({
             {confirmLabel}
           </Button>
         </div>
+        {footnote && <p className="text-xs text-muted-foreground">{footnote}</p>}
       </DialogContent>
     </Dialog>
   );

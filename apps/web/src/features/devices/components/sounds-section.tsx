@@ -71,7 +71,7 @@ function SoundsBody({ deviceId }: { deviceId: number }) {
               key={s.id}
               className="flex min-h-13 flex-wrap items-center gap-2 py-1.5 [&+&]:border-t [&+&]:border-rule"
             >
-              <span className="flex min-w-0 flex-1 flex-col">
+              <span className="flex min-w-40 flex-1 flex-col">
                 <span className="truncate">{s.name || `Sound ${s.id}`}</span>
                 <span className="text-xs text-muted-foreground">
                   <span className="font-mono">{s.filename}</span> · {formatBytes(s.size)}
