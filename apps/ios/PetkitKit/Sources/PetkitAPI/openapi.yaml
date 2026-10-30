@@ -4823,6 +4823,7 @@ components:
           enum:
           - imported
           - already yours
+          - device full
         pet_id:
           type: integer
           description: Present when imported.

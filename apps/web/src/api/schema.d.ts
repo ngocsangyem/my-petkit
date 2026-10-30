@@ -1753,7 +1753,7 @@ export interface components {
         PetImportResult: {
             pet_ref: number;
             /** @enum {string} */
-            outcome: "imported" | "already yours";
+            outcome: "imported" | "already yours" | "device full";
             /** @description Present when imported. */
             pet_id?: number;
             /** @description Present when imported. */

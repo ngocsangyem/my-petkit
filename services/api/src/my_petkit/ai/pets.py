@@ -338,16 +338,17 @@ class PetRegistry:
         omission is the first thing to try adding back.
         """
         entries = []
-        # The panel refuses a sixteenth pet on a device; this also holds for a
-        # database that got there some other way. Oldest pets first.
-        for pet in (await self.for_device(device_id))[:MAX_PETS_PER_DEVICE]:
+        for pet in await self.for_device(device_id):
             discern = [
                 {"id": f["id"], "url": f"http://{api_host}/faces/{os.path.basename(f['photo_path'])}"}
                 for f in await self.faces(pet["id"]) if f.get("photo_path")
             ]
             if discern:
                 entries.append({"id": pet["id"], "discern": discern})
-        return {"result": {"list": entries}}
+        # The panel refuses a sixteenth pet on a device; this also holds for a
+        # database that got there some other way. Oldest pets with photos first:
+        # a pet with nothing to match against must not take a slot.
+        return {"result": {"list": entries[:MAX_PETS_PER_DEVICE]}}
 
     # --- ingestion hooks --------------------------------------------------
 

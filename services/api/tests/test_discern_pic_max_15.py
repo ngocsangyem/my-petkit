@@ -71,3 +71,15 @@ async def test_weight_fields_are_stored(panel, pet_registry):
     pet = (await resp.json())["pet"]
     assert (pet["weight_g"], pet["weight_tolerance_g"], pet["weight_match"]) == (5430, 250, 0)
     assert pet["weight_updated_at"] is not None
+
+
+async def test_a_pet_without_photos_does_not_take_a_slot(pet_registry, monkeypatch):
+    async def same(data):
+        return data
+    monkeypatch.setattr("my_petkit.ai.pets.normalize_face_photo", same)
+    await pet_registry.create("No photo", device_ids=[10])
+    pets = await _fill(pet_registry, MAX_PETS_PER_DEVICE)
+    for pet in pets:
+        await pet_registry.add_face(pet["id"], JPEG)
+    payload = await pet_registry.discern_pic_payload(10, "host")
+    assert [e["id"] for e in payload["result"]["list"]] == [p["id"] for p in pets]

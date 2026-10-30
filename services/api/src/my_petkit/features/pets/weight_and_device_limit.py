@@ -4,14 +4,11 @@ from __future__ import annotations
 
 from typing import Any
 
+from my_petkit.ai.pet_weights import WEIGHT_G_RANGE
 from my_petkit.ai.pets import MAX_PETS_PER_DEVICE
 from my_petkit.shared.errors import api_error
 from my_petkit.utils import clock
 
-#: Accepted registered weights, in grams. Wide on purpose: kittens and large
-#: breeds both use these boxes; the bounds only catch a unit mistake (kg typed
-#: where grams were meant, or the reverse).
-WEIGHT_G_RANGE = (200, 20_000)
 #: Accepted tolerances, in grams.
 TOLERANCE_G_RANGE = (50, 2_000)
 

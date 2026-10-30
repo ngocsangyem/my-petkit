@@ -13,7 +13,7 @@ from typing import Any
 
 from aiohttp import web
 
-from my_petkit.ai.pet_weights import visit_weight_g
+from my_petkit.ai.pet_weights import WEIGHT_G_RANGE, plausible_weight_g, visit_weight_g
 from my_petkit.events import codes
 from my_petkit.events.store_visits import PET_SOURCE_MANUAL
 from my_petkit.shared.appkeys import EVENT_STORE, HA_PUBLISHER, PET_REGISTRY
@@ -82,6 +82,11 @@ async def api_visit_pet(request: web.Request) -> web.Response:
     ]
     if use_weight and (pet_id is None or not weights):
         raise api_error(400, "no_weight", "This visit has no weight to use.")
+    if use_weight and not plausible_weight_g(weights[-1]):
+        lo, hi = WEIGHT_G_RANGE
+        raise api_error(
+            400, "implausible_weight", f"{weights[-1]} g is outside {lo}-{hi} g; not used."
+        )
     ref = next((r["pet_ref"] for r in rows if r.get("pet_ref") is not None), None)
     if apply_to_ref and (
         pet_id is None or ref is None or await registry.resolve_pet_ref(ref) is not None

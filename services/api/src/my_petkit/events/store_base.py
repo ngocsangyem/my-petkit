@@ -101,7 +101,8 @@ def _backup_before_migrate(path: Path) -> Path | None:
     Only when some `_ADDED_COLUMNS` entry is missing from a table that exists:
     a fresh install, or one already migrated, writes nothing. Uses SQLite's
     online backup rather than a file copy, which under WAL could miss pages
-    still in the `-wal` file. Returns the backup's path, or None.
+    still in the `-wal` file. Replaces any earlier backup. Returns the
+    backup's path, or None.
     """
     if not path.is_file():
         return None
@@ -121,6 +122,13 @@ def _backup_before_migrate(path: Path) -> Path | None:
             source.backup(target)
         finally:
             target.close()
+        # One copy is enough to undo the last upgrade; keeping every one would
+        # grow the data directory (and every add-on backup of it) each time,
+        # and without bound if a migration kept failing after its backup. The
+        # older ones go only once the new one is complete.
+        for stale in path.parent.glob(f"{path.name}.pre-migrate-*.bak"):
+            if stale != target_path:
+                stale.unlink(missing_ok=True)
         return target_path
     finally:
         source.close()
@@ -198,9 +206,15 @@ class StoreBase:
         async with self._write_lock:
             if self._ready:
                 return
-            backup = await asyncio.to_thread(_backup_before_migrate, self._path)
-            if backup is not None:
-                log.info("Backed up the database to %s before migrating it", backup)
+            # Best effort: a full disk must not stop a migration that only
+            # adds columns and would itself have succeeded.
+            try:
+                backup = await asyncio.to_thread(_backup_before_migrate, self._path)
+            except (OSError, sqlite3.Error):
+                log.warning("Could not back up the database before migrating it", exc_info=True)
+            else:
+                if backup is not None:
+                    log.info("Backed up the database to %s before migrating it", backup)
             async with self._engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
                 await self._migrate(conn)

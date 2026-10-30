@@ -39,3 +39,37 @@ async def test_a_passing_visit_shows_only_under_its_own_chip(event_store, pet_re
     assert (counts["all"], counts["toileting"], counts["passing"]) == (1, 1, 1)
     assert [s["weight"] for s in sessions if ingest.matches_filter(s, "all")] == [3850]
     assert [s["weight"] for s in sessions if ingest.matches_filter(s, "passing")] == [1200]
+
+
+async def test_naming_the_identity_unhides_the_visit(event_store, pet_registry):
+    cat = await pet_registry.create("Mochi", device_ids=[10])
+    await pet_registry.update(cat["id"], weight_g=3860)
+    ids = await store_visit(event_store, visit_rows("v1", 1200, pet_ref=101392625))
+    await attribute_visit(event_store, 10, ids[1])
+    assert (await event_store.get_event(ids[1]))["passing"] == 1
+
+    await event_store.bind_pet_ref(101392625, cat["id"])
+    row = await event_store.get_event(ids[1])
+    assert (row["pet_id"], row["passing"]) == (cat["id"], None)
+
+
+async def test_a_later_recognition_unhides_the_visit(event_store, pet_registry):
+    cat = await pet_registry.create("Mochi", device_ids=[10])
+    await pet_registry.update(cat["id"], weight_g=3860)
+    pet_in, summary = visit_rows("v1", 1200)
+    ids = await store_visit(event_store, [pet_in, summary])
+    await attribute_visit(event_store, 10, ids[1])
+
+    result = {**summary, "event_uid": "v1:24", "event_type": "24", "event_kind": "pet",
+              "pet_ref": cat["id"], "pet_id": cat["id"], "content_json": {}}
+    later = await event_store.upsert_event(result)
+    await attribute_visit(event_store, 10, later)
+    assert not any(r["passing"] for r in await event_store.visit_rows(ids[1]))
+
+
+def test_a_light_visit_with_a_health_alert_still_shows_under_it():
+    yowl = {"event_kind": "toilet_visit", "passing": True, "content": {"petVoice": 1}}
+    assert ingest.matches_filter(yowl, "health_alert")
+    assert ingest.matches_filter(yowl, "passing")
+    assert not ingest.matches_filter(yowl, "all")
+    assert not ingest.matches_filter(yowl, "toileting")

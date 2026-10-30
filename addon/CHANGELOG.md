@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **Change the cat on a visit, and weight-based recognition.** A litter-box
+  visit can be given to another cat (or marked "no cat, just passing") from the
+  web or iOS timeline; only the server's record changes, and nothing the box
+  sends later overrides it. Each cat gets a registered weight that visits the
+  camera recognised keep up to date. A visit the camera did not recognise is
+  matched by weight only when no other cat is close (twice that cat's
+  tolerance, ±300 g by default), and is labelled "by weight". Visits lighter
+  than every registered cat are hidden behind a "Light visits" filter, never
+  deleted. A box recognises up to 15 cats. The database is backed up next to
+  itself before this upgrade adds its new columns.
 - **Force continue and auto-pack for the litter boxes.** A T5, T6 or T7
   paused because a cat was near the entrance can be told to carry on from the
   web or iOS app, after the admin password and only while the box reports

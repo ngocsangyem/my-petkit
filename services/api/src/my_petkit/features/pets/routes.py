@@ -20,7 +20,7 @@ from typing import Any
 import aiohttp
 from aiohttp import web
 
-from my_petkit.ai.pets import cloud_pets
+from my_petkit.ai.pets import MAX_PETS_PER_DEVICE, cloud_pets
 from my_petkit.events.store import MAX_FACES_PER_PET
 from my_petkit.features.pets.weight_and_device_limit import refuse_full_devices, weight_fields
 from my_petkit.http.cloud_fetch import CLOUD_TIMEOUT, CloudRefused, fetch_as_device
@@ -389,6 +389,12 @@ async def api_pets_import(request: web.Request) -> web.Response:
             pet_ref = entry["pet_ref"]
             if await pet_registry.resolve_pet_ref(pet_ref) is not None:
                 results.append({"pet_ref": pet_ref, "outcome": "already yours"})
+                continue
+
+            # A pet past the device's limit would never be handed to it, so
+            # importing one would look done and recognise nothing.
+            if len(await pet_registry.for_device(device.petkit_id)) >= MAX_PETS_PER_DEVICE:
+                results.append({"pet_ref": pet_ref, "outcome": "device full"})
                 continue
 
             pet = await pet_registry.create(f"PetKit pet {pet_ref}",

@@ -88,3 +88,11 @@ async def test_a_pets_own_id_cannot_be_given_to_another_pet(panel, event_store, 
 
 async def test_an_unknown_event_is_404(panel):
     assert (await panel.put("/api/timeline/12345/pet", json={"pet_id": None})).status == 404
+
+
+async def test_an_implausible_reading_is_not_used_as_a_weight(panel, event_store, pet_registry):
+    miso = await pet_registry.create("Miso", device_ids=[10])
+    ids = await store_visit(event_store, visit_rows("v1", 90))
+    resp = await panel.put(f"/api/timeline/{ids[1]}/pet",
+                           json={"pet_id": miso["id"], "use_weight": True})
+    assert (await resp.json())["error"]["code"] == "implausible_weight"

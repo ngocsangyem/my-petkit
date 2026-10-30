@@ -552,10 +552,16 @@ def _filter_buckets(session: dict) -> set[str]:
     under "All" and were unreachable from every other filter, which is how a
     water refill came to be findable only by scrolling past it.
     """
-    # A visit too light to be any registered cat is only ever under its own
-    # chip: hidden from "All" and every other filter until asked for.
+    # A visit too light to be any registered cat leaves "All" and the activity
+    # chips for its own, but a health alert or a fault on it still shows where
+    # those are looked for: a yowling kitten is exactly what that chip is for.
     if session.get("passing"):
-        return {"passing"}
+        passing = {"passing"}
+        if to_int((session.get("content") or {}).get("petVoice"), 0):
+            passing.add("health_alert")
+        if session.get("event_kind") == codes.KIND_ERROR:
+            passing.add("fault")
+        return passing
     kind = session.get("event_kind")
     buckets: set[str] = set()
     if kind == codes.KIND_TOILET:

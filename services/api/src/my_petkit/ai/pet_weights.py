@@ -37,6 +37,31 @@ log = logging.getLogger(__name__)
 #: when the pet does not set its own.
 DEFAULT_TOLERANCE_G = 300
 
+#: Registered weights accepted, in grams, from the user and from the scale
+#: alike. Wide on purpose: kittens and large breeds both use these boxes; the
+#: bounds catch a unit mistake or a cat that only stepped half in.
+WEIGHT_G_RANGE = (200, 20_000)
+
+
+def plausible_weight_g(weight_g: int) -> bool:
+    """Whether a reading could be a registered weight at all."""
+    return WEIGHT_G_RANGE[0] <= weight_g <= WEIGHT_G_RANGE[1]
+
+
+def measured_at(row: dict[str, Any]) -> float | None:
+    """When the device says the visit happened, falling back to arrival.
+
+    `ts` is when the report REACHED us, and a resend or a backlog flushed after
+    an outage arrives late: compared by arrival, an old visit would count as the
+    newest reading. The device's own `time_out`/`time_in` do not move.
+    """
+    content = content_of_row(row)
+    for key in ("time_out", "time_in"):
+        value = to_float(content.get(key), None)
+        if value is not None and value > 0:
+            return value
+    return to_float(row.get("ts"), None)
+
 
 def tolerance_of(pet: dict[str, Any]) -> int:
     """The pet's own tolerance in grams, or the default."""
@@ -98,14 +123,21 @@ async def update_registered_weight(store: EventStore, pet_id: int, weight_g: int
 
     A reading older than the last change is ignored, so a visit replayed or
     delivered late cannot undo a newer one, and the same visit applied twice
-    changes nothing the second time.
+    changes nothing the second time. So is a reading no cat could weigh, or one
+    more than twice the pet's tolerance from its registered weight: a cat half
+    in the box, two cats at once or one on the lid would otherwise replace the
+    weight every other rule leans on, in one visit.
     """
     pet = await store.get_pet(pet_id)
-    if pet is None:
+    if pet is None or not plausible_weight_g(weight_g):
         return False
     at = measured_at if measured_at is not None else time.time()
     last = to_float(pet.get("weight_updated_at"), None)
     if last is not None and at <= last:
+        return False
+    current = to_int(pet.get("weight_g"), None)
+    if current is not None and abs(weight_g - current) > 2 * tolerance_of(pet):
+        log.info("Pet %s: ignoring a %s g reading, too far from %s g", pet_id, weight_g, current)
         return False
     await store.upsert_pet({"weight_g": weight_g, "weight_updated_at": at}, pet_id=pet_id)
     log.info("Pet %s registered weight %s g -> %s g", pet_id, pet.get("weight_g"), weight_g)
@@ -135,11 +167,12 @@ async def attribute_visit(store: EventStore, device_id: int, event_id: int) -> i
                        and r.get("pet_source") in (PET_SOURCE_DEVICE, None)), None)
     if recognised is not None:
         # The camera outranks the scale: a recognition arriving after a weight
-        # match replaces it on the whole visit.
-        if any(r.get("pet_source") == PET_SOURCE_WEIGHT for r in rows):
+        # match, or after the visit was judged too light, replaces that on the
+        # whole visit.
+        if any(r.get("pet_source") == PET_SOURCE_WEIGHT or r.get("passing") for r in rows):
             await store.set_visit_pet_automatic(event_id, recognised["pet_id"], False,
                                                 source=PET_SOURCE_DEVICE)
-        await update_registered_weight(store, recognised["pet_id"], weight_g, anchor.get("ts"))
+        await update_registered_weight(store, recognised["pet_id"], weight_g, measured_at(anchor))
         return None
 
     pets = await store.pets_for_device(device_id)

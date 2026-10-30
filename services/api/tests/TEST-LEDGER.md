@@ -1243,6 +1243,17 @@ A visit can be given to another pet by hand, which nothing automatic undoes; rec
 - added: tests/test_event_store_backup_before_migrate.py::test_an_old_database_is_backed_up_before_it_is_migrated
 - added: tests/test_event_store_backup_before_migrate.py::test_a_current_database_is_not_backed_up
 
+- added: tests/test_discern_pic_max_15.py::test_a_pet_without_photos_does_not_take_a_slot
+- added: tests/test_event_store_backup_before_migrate.py::test_only_the_latest_backup_is_kept
+- added: tests/test_event_store_backup_before_migrate.py::test_a_failed_backup_does_not_stop_the_migration
+- added: tests/test_passing_visit_flag.py::test_naming_the_identity_unhides_the_visit
+- added: tests/test_passing_visit_flag.py::test_a_later_recognition_unhides_the_visit
+- added: tests/test_passing_visit_flag.py::test_a_light_visit_with_a_health_alert_still_shows_under_it
+- added: tests/test_pet_weight_auto_update.py::test_a_late_resend_of_an_older_visit_does_not_win
+- added: tests/test_pet_weight_auto_update.py::test_a_reading_no_cat_could_weigh_is_ignored
+- added: tests/test_pet_weight_auto_update.py::test_a_reading_far_from_the_registered_weight_is_ignored
+- added: tests/test_visit_pet_route.py::test_an_implausible_reading_is_not_used_as_a_weight
+
 The per-module scans (local time only through `clock`, app keys only through `appkeys`) pick up the new modules.
 
 - added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[ai/pet_weights.py]

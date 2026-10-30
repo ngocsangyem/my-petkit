@@ -166,12 +166,15 @@ class PetQueries(StoreBase):
         the id while new events resolve to nobody.
         """
         async with self._write() as session:
-            # A visit the user attributed by hand keeps that attribution.
+            # A visit the user attributed by hand keeps that attribution. A
+            # visit that now has a pet is not "passing" any more, whatever the
+            # weight rule thought while nobody could name it.
             result = await session.execute(
                 update(Event)
                 .where(Event.pet_ref == pet_ref,
                        or_(Event.pet_source.is_(None), Event.pet_source != PET_SOURCE_MANUAL))
-                .values(pet_id=pet_id, pet_source=PET_SOURCE_DEVICE if pet_id is not None else None),
+                .values(pet_id=pet_id, pet_source=PET_SOURCE_DEVICE if pet_id is not None else None,
+                        passing=None),
                 execution_options=_NO_SYNC)
             return int(result.rowcount or 0)
 
