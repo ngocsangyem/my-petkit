@@ -223,3 +223,21 @@ export const SOUNDS: Sound[] = [
     uploaded_at: NOW - 9 * 86400,
   },
 ];
+
+type LiveInfo = components['schemas']['LiveInfo'];
+
+/**
+ * `GET /api/devices/{id}/live`: every camera offers MSE then HLS, so the live block renders
+ * its picker and frame. Nothing plays: the preview has no go2rtc behind it.
+ */
+export function liveInfo(id: number): LiveInfo {
+  if (!DETAILS.get(id)?.is_camera) {
+    return { available: false, reason: 'not_a_camera', modes: [], hls_url: null };
+  }
+  return {
+    available: true,
+    reason: null,
+    modes: ['mse', 'hls'],
+    hls_url: `/api/live/${id}/stream.m3u8?exp=0&sig=preview`,
+  };
+}

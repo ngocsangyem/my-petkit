@@ -110,6 +110,9 @@ struct DeviceDetailView: View {
             ask: { sheet = .confirm(actionConfirmation($0)) },
             showMore: { sheet = .more($0) }
         )
+        if device.isCamera {
+            LiveEntryCard(device: device)
+        }
         let figures = DeviceFigures.figures(device, visitsToday: model.sessions.value.map { _ in today.visits })
         if !figures.isEmpty {
             Card(padding: 8) {

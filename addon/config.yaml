@@ -40,6 +40,8 @@ ports:
   8099/tcp: null
   8443/tcp: 8443
   8554/tcp: null
+  8555/tcp: null
+  8555/udp: null
   9000/tcp: 9000
 ports_description:
   80/tcp: "PetKit device API (plain HTTP). A remap is honoured — the host port is put in the address devices are handed — but prefer host 80 anyway: a device redirected by DNS dials 80 with nowhere to tell it otherwise, and an ESP32 model provisioned with another port reaches Wi-Fi and then fails to reach the server."
@@ -48,6 +50,8 @@ ports_description:
   8099/tcp: "Ingress port. Leave unmapped: Ingress reaches it internally, and a direct mapping only ever answers requests that carry a client token."
   8443/tcp: "User plane over TLS (self-signed certificate, pinned by the iOS app through pairing). Every request needs the admin password or a paired client token. Change user_port + this mapping together."
   8554/tcp: "Camera RTSP, from the bundled go2rtc. Home Assistant reaches this over the internal network without a host port, so leave it unmapped unless you want the stream on your LAN. Mapping it to 8554 would clash with the go2rtc add-on."
+  8555/tcp: "WebRTC live video (ICE over TCP, the fallback when UDP is blocked). Map it together with 8555/udp to the same host port, and put the host's LAN IP and that port in webrtc_candidates. Leave both unmapped to watch over MSE and HLS only. 8555 on the host clashes with the go2rtc add-on, so pick another host port if you run it."
+  8555/udp: "WebRTC live video (UDP media). See 8555/tcp."
   9000/tcp: "Local S3/OSS bucket — device uploads photos/videos/events here instead of PetKit cloud. Files appear in HA media browser."
 # Use the Supervisor MQTT service if it's available (Mosquitto add-on), but
 # don't require it — many people run an external broker or none at all.
@@ -121,6 +125,10 @@ schema:
   mqtt_plain_expose: bool?
   user_bind_host: str?
   rtsp_bind: str?
+  # WebRTC live video: `host:port` addresses a viewer can reach the 8555
+  # mapping on, comma-separated (the host's LAN IP and the HOST port, e.g.
+  # 192.168.1.20:18555). Empty (the default) offers MSE and HLS only.
+  webrtc_candidates: str?
   # IANA zone for local time (e.g. Europe/Amsterdam). Empty uses the container's.
   timezone: str?
 startup: application

@@ -1,0 +1,13 @@
+#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:1
+#EXT-X-MEDIA-SEQUENCE:0
+#EXTINF:0.500000,
+segment.ts?id=abc&n=0&exp=1&sig=x
+#EXTINF:0.500000,
+segment.ts?id=abc&n=1&exp=1&sig=x
+#EXTINF:0.500000,
+segment.ts?id=abc&n=2&exp=1&sig=x
+#EXTINF:0.500000,
+segment.ts?id=abc&n=3&exp=1&sig=x
+#EXT-X-ENDLIST

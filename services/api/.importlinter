@@ -31,6 +31,7 @@ modules =
     my_petkit.features.auth
     my_petkit.features.ble
     my_petkit.features.devices
+    my_petkit.features.live
     my_petkit.features.logs
     my_petkit.features.media
     my_petkit.features.patchers

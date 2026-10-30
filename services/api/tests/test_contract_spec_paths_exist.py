@@ -28,6 +28,7 @@ UNDESCRIBED = {
     ("GET", "/app/"): "redirect from the web app's old mount to the root",
     ("GET", "/api/ws"): "WebSocket; documented in packages/contracts/ws-events.md",
     ("GET", "/api/devices/{id}/talk"): "WebSocket audio stream",
+    ("GET", "/api/live/{id}/mse"): "WebSocket video stream; documented in packages/contracts/ws-events.md",
 }
 
 #: The security requirement each tier's operations must carry.

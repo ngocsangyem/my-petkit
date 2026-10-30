@@ -73,8 +73,8 @@ def test_the_stream_name_is_the_petkit_id():
 def test_the_rendered_config_binds_where_we_intend():
     out = g.render_config({"1": "http://d/main.flv?audio=1"}, "/data/go2rtc.log")
     assert f"listen: ':{g.RTSP_PORT}'" in out
-    # The API is loopback-only and WebRTC is off outright: an RTSP source needs
-    # neither, and both would be surface for nothing.
+    # The API is loopback-only, and WebRTC media is off until the owner names
+    # the addresses a viewer can reach it on (`test_go2rtc_webrtc_config.py`).
     assert "127.0.0.1:1984" in out
     assert "webrtc:\n  listen: ''" in out
     assert "  1: http://d/main.flv?audio=1" in out

@@ -22,10 +22,13 @@ struct Chip: View {
     }
 }
 
-/// Pill segmented control on the `segment` track.
+/// Pill segmented control on the `segment` track (the live view passes its
+/// own darker track and selected fill).
 struct SegmentedPills<Value: Hashable>: View {
     let options: [(Value, String)]
     @Binding var selection: Value
+    var track: Color = Theme.Color.segment
+    var selectedFill: Color = Theme.Color.surface
 
     var body: some View {
         HStack(spacing: 0) {
@@ -35,14 +38,14 @@ struct SegmentedPills<Value: Hashable>: View {
                         .font(selection == value ? Theme.Font.control.weight(.semibold) : Theme.Font.control)
                         .foregroundStyle(selection == value ? Theme.Color.text : Theme.Color.lede)
                         .frame(maxWidth: .infinity, minHeight: 32)
-                        .background(selection == value ? Theme.Color.surface : .clear, in: Capsule())
+                        .background(selection == value ? selectedFill : .clear, in: Capsule())
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(selection == value ? .isSelected : [])
             }
         }
         .padding(3)
-        .background(Theme.Color.segment, in: Capsule())
+        .background(track, in: Capsule())
     }
 }
 

@@ -385,6 +385,13 @@ class Config:
     #: go2rtc's RTSP listener, `host:port` or `:port` for every interface. Home
     #: Assistant's camera reaches it as `rtsp://local-<slug>:8554`.
     rtsp_bind: str = ":8554"
+    #: go2rtc's WebRTC media port inside the container, TCP and UDP on the same
+    #: number. Only listened on when `webrtc_candidates` names an address.
+    webrtc_port: int = 8555
+    #: `host:port` addresses a viewer can reach WebRTC media on (the host's LAN
+    #: IP and the HOST port mapped to `webrtc_port`). go2rtc drops container
+    #: addresses and STUN is off, so with none set WebRTC is not offered.
+    webrtc_candidates: list[str] = field(default_factory=list)
     #: IANA zone the server reads local time in. Empty means the process zone.
     timezone: str = ""
     #: CIDR networks, beyond RFC 1918 and IPv6 ULA, where a device may be when
@@ -426,6 +433,24 @@ class Config:
                 ipaddress.ip_address(host.strip("[]"))
             except ValueError:
                 raise ValueError(f"rtsp_bind={self.rtsp_bind!r} host is not an IP address") from None
+
+    def validate_webrtc(self) -> None:
+        """Refuse a WebRTC port or candidate go2rtc would misread or drop.
+
+        go2rtc silently drops a candidate without a port, so a typo would turn
+        WebRTC off with no error anywhere; refusing it at start names the setting.
+        """
+        if not 0 < self.webrtc_port < 65536:
+            raise ValueError(f"webrtc_port={self.webrtc_port!r} is not a port")
+        if not isinstance(self.webrtc_candidates, list):
+            raise ValueError("webrtc_candidates must be a list of host:port")
+        for candidate in self.webrtc_candidates:
+            host, sep, port = str(candidate).rpartition(":")
+            # `stun:PORT` would need STUN, which is off (go2rtc.render_config).
+            if (not sep or not host or host.lower() == "stun" or not port.isdigit()
+                    or not 0 < int(port) < 65536
+                    or any(c.isspace() or c in "'\"#,[]{}" for c in host)):
+                raise ValueError(f"webrtc_candidates entry {candidate!r} is not host:port")
 
     def validate_wireguard_subnets(self) -> None:
         """Refuse a `wireguard_subnets` entry that is not a CIDR network."""
@@ -622,6 +647,11 @@ class Config:
         c.mqtt_strict_auth = _opt_bool(opts, "mqtt_strict_auth", c.mqtt_strict_auth)
         c.user_port = _opt_int(opts, "user_port", c.user_port)
         c.user_hosts = str(opts.get("user_hosts") or "").strip()
+        c.webrtc_port = _opt_int(opts, "webrtc_port", c.webrtc_port)
+        c.webrtc_candidates = [
+            part.strip() for part in str(opts.get("webrtc_candidates") or "").split(",")
+            if part.strip()
+        ]
         c.mqtt_plain_expose = _opt_bool(opts, "mqtt_plain_expose", c.mqtt_plain_expose)
         for key in ("device_bind_host", "mqtt_plain_bind", "user_bind_host", "rtsp_bind",
                     "timezone"):

@@ -22,13 +22,37 @@ from my_petkit.utils import outbound_guard
 
 log = logging.getLogger(__name__)
 
+#: Input formats a talk session may announce in `talk_start`.
+WEBM = "webm"
+PCM_S16LE = "pcm_s16le"
+#: The 16 kHz mono PCM the iOS app sends, and the device speaker plays.
+TALK_SAMPLE_RATE = 16000
+_INPUT_ARGS: dict[str, tuple[str, ...]] = {
+    WEBM: (),
+    PCM_S16LE: ("-f", "s16le", "-ar", str(TALK_SAMPLE_RATE), "-ac", "1"),
+}
+
+
+def _output_args(target: str) -> tuple[str, ...]:
+    """The device speaker's format: 16 kHz mono ADTS-AAC, written to `target`.
+
+    The whitelist applies to `target` only, so a crafted input cannot make
+    ffmpeg open anything but the one sink it was given.
+    """
+    return ("-ar", str(TALK_SAMPLE_RATE), "-ac", "1", "-c:a", "aac", "-b:a", "48k",
+            "-protocol_whitelist", "tcp", "-f", "adts", target)
+
 
 @tier(GET=Tier.R2)
 async def api_talk(request: web.Request) -> web.WebSocketResponse:
     """Two-way talk: stream the browser microphone to the device speaker.
 
     The frontend's MediaRecorder sends webm/opus over this WebSocket in ~250 ms
-    slices (a `talk_start` text frame, then binary, then `talk_stop`). One
+    slices (a `talk_start` text frame, then binary, then `talk_stop`). The iOS
+    app cannot produce webm: it captures with AVAudioEngine and sends raw PCM,
+    16-bit little-endian, 16 kHz mono, announcing it with
+    `{"type": "talk_start", "format": "pcm_s16le"}`. Binary sent before any
+    `talk_start` is taken as webm, as before. One
     ffmpeg per session transcodes the stream to 16 kHz mono ADTS-AAC — the
     device speaker's format — and connects straight to the device's talk sink
     (`tcp://<ip>:TALK_TCP_PORT`, installed by the `talk` patcher), which pipes it
@@ -70,12 +94,16 @@ async def api_talk(request: web.Request) -> web.WebSocketResponse:
 
     ffmpeg: asyncio.subprocess.Process | None = None
 
-    async def start() -> None:
-        nonlocal ffmpeg
+    input_format = WEBM
+
+    async def start(requested: str = WEBM) -> None:
+        nonlocal ffmpeg, input_format
         if ffmpeg is not None:
             return
-        # Low-latency decode: the input is a live webm/opus stream, so keep
-        # ffmpeg from buffering ahead before it starts emitting. Output goes
+        input_format = requested
+        # Low-latency decode: the input is a live stream, so keep ffmpeg from
+        # buffering ahead before it starts emitting. Raw PCM carries no header,
+        # so its layout is stated; webm is probed. Output goes
         # straight to the device sink over TCP. The whitelists are per file:
         # the input may only be our pipe, the output only the TCP sink, so a
         # crafted stream cannot make ffmpeg open anything else. No size or
@@ -84,10 +112,9 @@ async def api_talk(request: web.Request) -> web.WebSocketResponse:
             "ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error",
             "-fflags", "nobuffer", "-flags", "low_delay",
             "-probesize", "32", "-analyzeduration", "0",
+            *_INPUT_ARGS[requested],
             "-protocol_whitelist", "pipe", "-i", "pipe:0",
-            "-ar", "16000", "-ac", "1", "-c:a", "aac", "-b:a", "48k",
-            "-protocol_whitelist", "tcp",
-            "-f", "adts", f"tcp://{talk_host}:{TALK_TCP_PORT}",
+            *_output_args(f"tcp://{talk_host}:{TALK_TCP_PORT}"),
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.DEVNULL,
             stderr=asyncio.subprocess.DEVNULL,
@@ -127,7 +154,19 @@ async def api_talk(request: web.Request) -> web.WebSocketResponse:
                     continue
                 kind = evt.get("type")
                 if kind == "talk_start":
-                    await start()
+                    requested = evt.get("format", WEBM)
+                    if not isinstance(requested, str) or requested not in _INPUT_ARGS:
+                        if not ws.closed:
+                            await ws.send_json({"type": "error", "msg": "unsupported format"})
+                        continue
+                    if ffmpeg is not None and requested != input_format:
+                        # Already decoding another format; switching mid-session
+                        # would feed one format to a decoder set up for the other.
+                        if not ws.closed:
+                            await ws.send_json({"type": "error",
+                                                "msg": "stop before changing format"})
+                        continue
+                    await start(requested)
                     if not ws.closed:
                         await ws.send_json({"type": "talking"})
                 elif kind == "talk_stop":

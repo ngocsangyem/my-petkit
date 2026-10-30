@@ -146,6 +146,9 @@ it, gives it a path a human can read, and records a row. Recordings arrive as ma
 result. `media/go2rtc.py` runs go2rtc in front of the device's own stream, because the device
 refuses a second connection for several seconds and because Home Assistant's camera stack segfaults
 reading its FLV directly.
+Clients watch through `features/live`, which fronts go2rtc's loopback API with our auth: HLS on
+signed links, MSE over a bridged WebSocket, and WebRTC signaling. WebRTC media alone bypasses the API
+and reaches go2rtc's own port, which opens only when `webrtc_candidates` is set.
 
 ## Where the knowledge lives
 

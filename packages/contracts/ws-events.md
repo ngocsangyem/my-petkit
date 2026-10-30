@@ -71,3 +71,32 @@ catching up.
 | `patcher` | a firmware patch step runs (progress lines)                        | none                                                                     |
 
 The panel refreshes its timeline when a `media` event arrives.
+
+# Live video over MSE: `GET /api/live/{id}/mse`
+
+A WebSocket bridged to the bundled go2rtc for one camera. Use it when
+`GET /api/devices/{id}/live` lists `mse` in `modes`; it is refused with 409
+`stream_unavailable` otherwise. Auth and the Origin check are the same as for
+`/api/ws` (risk tier R0\*).
+
+1. The client sends one text frame naming the codecs its `MediaSource` can play:
+   `{"type": "mse", "value": "avc1.640029,mp4a.40.2"}`. go2rtc recognises only
+   `avc1.640029`, `hvc1.1.6.L153.B0`, `mp4a.40.2`, `flac` and `opus`.
+2. The server answers `{"type": "mse", "value": "<mime type with codecs>"}`;
+   create the `SourceBuffer` with exactly that string.
+3. Binary frames follow: the fMP4 init segment first, then media fragments, to
+   append in order.
+
+Any other client frame is dropped; nothing but `{"type": "mse", "value": ...}`
+reaches go2rtc. If go2rtc cannot be reached the server sends
+`{"type": "error", "value": "<message>"}` and closes.
+
+# Talk: `GET /api/devices/{id}/talk`
+
+Half-duplex audio to the device speaker (risk tier R2). Start with a text frame
+`{"type": "talk_start"}` (webm/opus from `MediaRecorder`) or
+`{"type": "talk_start", "format": "pcm_s16le"}` (raw signed 16-bit
+little-endian PCM, 16 kHz mono, as AVAudioEngine produces); the server answers
+`{"type": "talking"}`. Send the audio as binary frames (~250 ms each), then
+`{"type": "talk_stop"}`, answered `{"type": "stopped"}`. An unknown `format` is
+answered `{"type": "error", "msg": ...}` and nothing starts.

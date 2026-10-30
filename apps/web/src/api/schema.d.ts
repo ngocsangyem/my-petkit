@@ -940,6 +940,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/devices/{id}/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * What can be watched on this camera right now
+         * @description Whether the camera's live stream is available through the bundled go2rtc, and if not, a stable `reason` code. `modes` lists the ways that work, in preference order: `webrtc` only when the server has `webrtc_candidates` configured, then `mse` (WebSocket `/api/live/{id}/mse`, see `ws-events.md`) and `hls`. `hls_url` is a root-absolute signed link to the master playlist, valid five minutes, for players that cannot send a token; behind Home Assistant Ingress the client puts its Ingress prefix in front of it.
+         */
+        get: operations["getLiveInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/live/{id}/stream.m3u8": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * HLS master playlist for the camera's live stream
+         * @description Starts a go2rtc HLS session (MPEG-TS, 0.5 s segments) and returns its master playlist with every URI re-signed for one hour, the length of one viewing session. A session go2rtc has dropped (no segment fetched for five seconds) answers 404; start again from `GET /api/devices/{id}/live`.
+         */
+        get: operations["getLiveHlsMaster"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/live/{id}/hls/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One file of a live HLS session (media playlist or segment)
+         * @description Only go2rtc's own file names are served, with its `id` (session) and `n` parameters passed through. Media playlists come back re-signed like the master. Fetch segments one at a time: go2rtc hands each request whatever has buffered since the last one.
+         */
+        get: operations["getLiveHlsFile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/live/{id}/webrtc": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Exchange a WebRTC offer for go2rtc's answer
+         * @description No trickle ICE: the server answers once it has gathered every candidate, so send the offer after your own ICE gathering completes. Media then flows directly to the server's WebRTC port (TCP and UDP), protected by DTLS/SRTP; only this signaling step is behind auth. 409 `webrtc_unavailable` when the server has no `webrtc_candidates`; use MSE or HLS instead.
+         */
+        post: operations["postLiveWebrtcOffer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/media-url": {
         parameters: {
             query?: never;
@@ -966,6 +1046,26 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        LiveInfo: {
+            available: boolean;
+            /**
+             * @description Why nothing can be watched; null when available.
+             * @enum {string|null}
+             */
+            reason: "not_a_camera" | "device_unreachable" | "no_stream" | "sidecar_down" | null;
+            /** @description Ways to watch, in preference order; empty when unavailable. */
+            modes: ("webrtc" | "mse" | "hls")[];
+            /** @description Root-absolute signed master playlist URL (five minutes); null when unavailable. */
+            hls_url: string | null;
+        };
+        WebrtcSessionDescription: {
+            /**
+             * @description `offer` in the request, `answer` in the response.
+             * @enum {string}
+             */
+            type: "offer" | "answer";
+            sdp: string;
+        };
         AuthMediaUrlRequest: {
             /** @description File path, with or without the /api/media/ prefix. */
             path: string;
@@ -3914,6 +4014,136 @@ export interface operations {
             403: components["responses"]["Error"];
             404: components["responses"]["Error"];
             503: components["responses"]["Error"];
+        };
+    };
+    getLiveInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The device's petkit id. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Live availability. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LiveInfo"];
+                };
+            };
+            401: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+        };
+    };
+    getLiveHlsMaster: {
+        parameters: {
+            query?: {
+                /** @description Signed-link expiry (epoch seconds); with sig, replaces a session/token. */
+                exp?: string;
+                /** @description Signed-link signature. */
+                sig?: string;
+            };
+            header?: never;
+            path: {
+                /** @description The device's petkit id. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Re-signed master playlist. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.apple.mpegurl": string;
+                };
+            };
+            401: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            502: components["responses"]["Error"];
+        };
+    };
+    getLiveHlsFile: {
+        parameters: {
+            query: {
+                /** @description go2rtc's HLS session id, as the playlist names it. */
+                id: string;
+                n?: string;
+                /** @description Signed-link expiry (epoch seconds); with sig, replaces a session/token. */
+                exp?: string;
+                /** @description Signed-link signature. */
+                sig?: string;
+            };
+            header?: never;
+            path: {
+                /** @description The device's petkit id. */
+                id: number;
+                name: "playlist.m3u8" | "segment.ts" | "init.mp4" | "segment.m4s";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A media playlist or segment bytes. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.apple.mpegurl": string;
+                    "video/mp2t": string;
+                    "video/mp4": string;
+                    "video/iso.segment": string;
+                };
+            };
+            401: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            502: components["responses"]["Error"];
+        };
+    };
+    postLiveWebrtcOffer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The device's petkit id. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WebrtcSessionDescription"];
+            };
+        };
+        responses: {
+            /** @description The answer. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebrtcSessionDescription"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            413: components["responses"]["Error"];
+            502: components["responses"]["Error"];
         };
     };
     authMediaUrl: {

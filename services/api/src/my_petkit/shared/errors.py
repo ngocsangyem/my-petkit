@@ -29,11 +29,22 @@ log = logging.getLogger(__name__)
 _Handler = Callable[[web.Request], Awaitable[web.StreamResponse]]
 
 _CLIENT_ERROR = 400
+
+
 #: The statuses `api_error` raises, by status code.
+class _PayloadTooLarge(web.HTTPClientError):
+    """413 with our envelope. aiohttp's own class insists on describing a
+    `client_max_size` overflow, which is not what a handler's cap is."""
+
+    status_code = 413
+
+
 _EXCEPTIONS: dict[int, type[web.HTTPException]] = {
     cls.status_code: cls
     for cls in (
         web.HTTPBadRequest,
+        _PayloadTooLarge,
+        web.HTTPBadGateway,
         web.HTTPUnauthorized,
         web.HTTPForbidden,
         web.HTTPNotFound,

@@ -103,6 +103,9 @@
   --color-pill-neutral: var(--pk-pill-neutral-bg);
   --color-pill-neutral-ink: var(--pk-pill-neutral-ink);
   --color-backdrop: var(--pk-overlay-backdrop);
+  --color-live-ground: var(--pk-live-ground);
+  --color-live-control: var(--pk-live-control);
+  --color-live-text: var(--pk-live-text);
 
   /* Radii are set outright, not derived from one --radius. */
   --radius-sm: var(--pk-radius-lane);

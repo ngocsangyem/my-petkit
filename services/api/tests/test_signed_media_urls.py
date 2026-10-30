@@ -159,3 +159,28 @@ def test_signed_media_key_is_per_install(tmp_path):
     assert sa.verify("/api/media/x.mp4", q["exp"][0], q["sig"][0])
     assert not sb.verify("/api/media/x.mp4", q["exp"][0], q["sig"][0])
     assert a[AUTH] is not b[AUTH]
+
+
+def test_a_playlist_signs_only_inside_its_own_tree():
+    """A `../` in a recorded playlist must not mint a live link, nor a live
+    playlist a link for another camera or for recorded media."""
+    signer = MediaSigner(b"k" * 32)
+    recorded = signer.sign_playlist("../../../live/7/stream.m3u8\nseg0.ts\n",
+                                    "/api/media/t5/10/clip.m3u8")
+    assert recorded.splitlines()[0] == "../../../live/7/stream.m3u8"
+    assert "sig=" in recorded.splitlines()[1]
+    live = signer.sign_playlist("../../8/stream.m3u8\n../../../media/x.mp4\nsegment.ts?id=a\n",
+                                "/api/live/7/hls/playlist.m3u8")
+    lines = live.splitlines()
+    assert lines[:2] == ["../../8/stream.m3u8", "../../../media/x.mp4"]
+    assert "sig=" in lines[2]
+
+
+def test_a_uris_own_exp_and_sig_are_replaced_by_ours():
+    signer = MediaSigner(b"k" * 32)
+    out = signer.sign_playlist("segment.ts?id=a&exp=1&sig=forged\n",
+                               "/api/live/7/hls/playlist.m3u8")
+    query = parse_qs(urlsplit(out.strip()).query)
+    assert query["id"] == ["a"]
+    assert len(query["exp"]) == 1 and query["sig"] != ["forged"]
+    assert signer.verify("/api/live/7/hls/segment.ts", query["exp"][0], query["sig"][0])

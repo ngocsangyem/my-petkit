@@ -2,7 +2,7 @@
 // the fixtures, without a server. Reads answer from the fixtures; writes answer
 // a plausible success and change nothing, so a click never breaks the page.
 import { NOW } from '@/features/devices/devices-fixtures';
-import { ACCESSORIES, DETAILS, DEVICES, SOUNDS } from './fixtures-devices';
+import { ACCESSORIES, DETAILS, DEVICES, SOUNDS, liveInfo } from './fixtures-devices';
 import {
   BLOCKED,
   CAPTURE,
@@ -41,6 +41,7 @@ const GETS: [string, Handler][] = [
   ['/api/devices/{id}/patcher', hit => patcherStatus(id(hit))],
   ['/api/devices/{id}/sounds', () => ({ sounds: SOUNDS })],
   ['/api/devices/{id}/deferred-feed', () => ({ deferred: [] })],
+  ['/api/devices/{id}/live', hit => liveInfo(id(hit))],
   ['/api/ble', () => ({ accessories: ACCESSORIES })],
   ['/api/pets', () => ({ pets: PETS })],
   ['/api/pets/unbound', () => ({ unbound: UNBOUND })],

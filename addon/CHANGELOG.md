@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **Live camera video in the web app and the iOS app.** A camera serving the
+  local stream can be watched over MSE or HLS through the add-on's own
+  authenticated API, which fronts the bundled go2rtc; go2rtc's API stays on
+  loopback. WebRTC is offered too once you map port 8555 (TCP and UDP) and set
+  `webrtc_candidates` to the host LAN IP and that host port, e.g.
+  `192.168.1.20:18555`; without it the media port stays closed.
+- **Talk accepts raw PCM** (16-bit, 16 kHz mono) as well as webm/opus, so the
+  iOS app can talk through the device speaker.
 - **The new dashboard is the panel.** Opening the add-on (through Ingress or on
   the TLS port) now shows the web app that was at `/app/`, and the old
   server-rendered panel is gone. A bookmark to `/app/`, including its

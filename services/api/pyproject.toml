@@ -9,7 +9,7 @@ description = "Local cloud replacement for PetKit litter boxes, feeders, fountai
 requires-python = ">=3.11"
 license = { text = "GPL-3.0-or-later" }
 dependencies = [
-    "aiohttp>=3.9,<4",
+    "aiohttp>=3.10,<4",
     "amqtt>=0.11,<1",
     "aiomqtt>=2.0,<3",
     "cryptography>=42",
