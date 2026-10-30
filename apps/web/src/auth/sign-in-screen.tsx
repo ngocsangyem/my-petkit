@@ -2,7 +2,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { type SyntheticEvent, useState } from 'react';
 import { api } from '@/shared/api/client';
 import { ApiError, errorMessage, toApiError } from '@/shared/api/errors';
-import { Button, Card, DrumMark, StackedField, TextInput } from '@/shared/ui';
+import { Button, Card, DrumMark, TextInput } from '@/shared/ui';
+import { AuthField } from './auth-field';
 import { AuthPage } from './auth-page';
 import { PasswordLengthMeter } from './password-length-meter';
 
@@ -71,7 +72,6 @@ export function SignInScreen() {
 
   const passwordInput = (autoComplete: 'current-password' | 'new-password') => (
     <TextInput
-      large
       type="password"
       autoComplete={autoComplete}
       value={password}
@@ -120,15 +120,12 @@ export function SignInScreen() {
                   tabIndex={-1}
                   aria-hidden="true"
                 />
-                <StackedField label="Admin password">
-                  {passwordInput('current-password')}
-                </StackedField>
+                <AuthField label="Admin password">{passwordInput('current-password')}</AuthField>
               </>
             ) : (
               <>
-                <StackedField label="Setup code">
+                <AuthField label="Setup code">
                   <TextInput
-                    large
                     mono
                     autoComplete="off"
                     spellCheck={false}
@@ -138,16 +135,13 @@ export function SignInScreen() {
                     }}
                     required
                   />
-                </StackedField>
+                </AuthField>
                 <div className="flex flex-col">
-                  <StackedField label="Admin password">
-                    {passwordInput('new-password')}
-                  </StackedField>
+                  <AuthField label="Admin password">{passwordInput('new-password')}</AuthField>
                   <PasswordLengthMeter password={password} />
                 </div>
-                <StackedField label="Repeat the password">
+                <AuthField label="Repeat the password">
                   <TextInput
-                    large
                     type="password"
                     autoComplete="new-password"
                     value={confirm}
@@ -156,7 +150,7 @@ export function SignInScreen() {
                     }}
                     required
                   />
-                </StackedField>
+                </AuthField>
               </>
             )}
             {error && (
