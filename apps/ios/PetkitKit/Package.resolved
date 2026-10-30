@@ -1,5 +1,5 @@
 {
-  "originHash" : "4bbc6c1f832aa549a356fd3b5c75b7f2d005768989b59979a2b7e1dfdea37574",
+  "originHash" : "3e75108b8260f7c9b531331a29d0217f7c0775296631660801f5e6a8ed7de369",
   "pins" : [
     {
       "identity" : "openapikit",
@@ -38,6 +38,15 @@
       }
     },
     {
+      "identity" : "swift-custom-dump",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-custom-dump",
+      "state" : {
+        "revision" : "4fb9e7cbb4b8f5a7354005db39447f570d6b3e19",
+        "version" : "1.7.3"
+      }
+    },
+    {
       "identity" : "swift-http-types",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-http-types",
@@ -60,8 +69,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-openapi-generator",
       "state" : {
-        "revision" : "75962579db43e88440bbad021c74570f0955d1fd",
-        "version" : "1.14.3"
+        "revision" : "39d49cf22abab58a07f02bb76808b5d2839b294a",
+        "version" : "1.13.1"
       }
     },
     {
@@ -83,12 +92,39 @@
       }
     },
     {
+      "identity" : "swift-snapshot-testing",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-snapshot-testing",
+      "state" : {
+        "revision" : "28e5de025e3fd98991791bfbf83023ab3708da03",
+        "version" : "1.19.6"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-syntax",
+      "state" : {
+        "revision" : "050f1a346fbbac0ca2cfb15a95274f7bd1cf0ccf",
+        "version" : "604.0.0"
+      }
+    },
+    {
       "identity" : "webrtc",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/stasel/WebRTC",
       "state" : {
         "revision" : "44f36788497f701bc8c0306de3a1c2511d56019d",
         "version" : "155.0.0"
+      }
+    },
+    {
+      "identity" : "xctest-dynamic-overlay",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/xctest-dynamic-overlay",
+      "state" : {
+        "revision" : "d9308ad679143c26a30dec52daefe82f54af2b82",
+        "version" : "1.13.1"
       }
     },
     {

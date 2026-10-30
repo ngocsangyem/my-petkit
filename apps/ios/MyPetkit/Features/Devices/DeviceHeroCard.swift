@@ -11,6 +11,9 @@ struct DeviceHeroCard: View {
     let lastCommand: String?
     let ask: (DeviceAction) -> Void
     let showMore: ([DeviceAction]) -> Void
+    /// Set only while the server offers force continue on a paused box; the
+    /// paused hero then shows that one command (`ios-device-t6-paused`).
+    var continueCleaning: (() -> Void)?
 
     var body: some View {
         let kind = DeviceKind(deviceType: device.type)
@@ -43,7 +46,9 @@ struct DeviceHeroCard: View {
             }
             .padding(.horizontal, 8)
 
-            if commands.primary != nil || !commands.quick.isEmpty {
+            if let continueCleaning {
+                continueBlock(continueCleaning).padding(.horizontal, 8).padding(.bottom, 8)
+            } else if commands.primary != nil || !commands.quick.isEmpty {
                 commandBlock.padding(.horizontal, 8).padding(.bottom, 8)
             }
         }
@@ -92,6 +97,16 @@ struct DeviceHeroCard: View {
                 .multilineTextAlignment(.center).frame(maxWidth: .infinity)
         }
         .disabled(!device.online)
+    }
+
+    private func continueBlock(_ action: @escaping () -> Void) -> some View {
+        VStack(spacing: 10) {
+            Button(action: action) { Text("Continue cleaning") }
+                .buttonStyle(.primary)
+            Text("The box also continues by itself once the cat walks away.")
+                .font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted)
+                .multilineTextAlignment(.center).frame(maxWidth: .infinity)
+        }
     }
 
     private var footnote: String {

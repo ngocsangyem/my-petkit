@@ -36,6 +36,21 @@ enum EntityWrite: Equatable {
         (entity.options ?? []).compactMap(\.string)
     }
 
+    /// Every value a number entity may take, min to max by step. Without a
+    /// range the 0–60 of a delay in minutes stands in; a bad step counts as 1.
+    static func choices(_ entity: DeviceEntity) -> [Double] {
+        let low = entity.min ?? 0, high = entity.max ?? 60
+        let step = (entity.step ?? 1) > 0 ? (entity.step ?? 1) : 1
+        guard high >= low else { return [low] }
+        return Array(stride(from: low, through: high + step / 1000, by: step))
+    }
+
+    /// A number entity's value with its unit ("5 min"), or "—" when unknown.
+    static func valueText(_ entity: DeviceEntity) -> String {
+        guard let value = DeviceFacts.number(entity) else { return "—" }
+        return DeviceFigures.format(value) + (entity.unit.map { " \($0)" } ?? "")
+    }
+
     /// A number entity's next value one step up or down, kept inside its range.
     static func stepped(_ value: Double, by direction: Double, entity: DeviceEntity) -> Double {
         let next = value + direction * (entity.step ?? 1)
@@ -62,9 +77,20 @@ struct EntityControlsCard: View {
     }
 }
 
+/// A row's own words in place of the entity's name, by entity key.
+struct EntityLabel: Equatable {
+    let title: String
+    var footnote: String?
+    /// A number shown as value and chevron that opens a picker, instead of −/+.
+    var opensPicker = false
+}
+
 struct EntityRows: View {
     let entities: [DeviceEntity]
     let enabled: Bool
+    var labels: [String: EntityLabel] = [:]
+    /// Opens the picker for a number row whose label asks for one.
+    var pick: ((DeviceEntity) -> Void)?
     let ask: (DeviceEntity, EntityWrite) -> Void
 
     var body: some View {
@@ -83,7 +109,13 @@ struct EntityRows: View {
         case "switch":
             Toggle(isOn: Binding(get: { DeviceFacts.isOn(entity) ?? false },
                                  set: { ask(entity, .toggle($0)) })) {
-                Text(entity.name).font(Theme.Font.body).foregroundStyle(Theme.Color.text)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title(entity)).font(Theme.Font.body).foregroundStyle(Theme.Color.text)
+                    if let footnote = labels[entity.key]?.footnote {
+                        Text(footnote).font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
             }
             .tint(Theme.Color.text)
             .frame(minHeight: Theme.Space.rowHeight)
@@ -93,19 +125,33 @@ struct EntityRows: View {
                     Button(label) { ask(entity, .option(label)) }
                 }
             } label: {
-                SettingsRow(title: entity.name, value: DeviceFacts.label(entity) ?? "Not reported")
+                SettingsRow(title: title(entity), value: DeviceFacts.label(entity) ?? "Not reported")
             }
             .buttonStyle(.plain)
         default:
-            NumberEntityRow(entity: entity) { ask(entity, .number($0)) }
+            if labels[entity.key]?.opensPicker == true, let pick {
+                Button { pick(entity) } label: {
+                    SettingsRow(title: title(entity), value: EntityWrite.valueText(entity))
+                }
+                .buttonStyle(.plain)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(title(entity))
+                .accessibilityValue(EntityWrite.valueText(entity) == "—" ? "Not reported" : EntityWrite.valueText(entity))
+                .accessibilityAddTraits(.isButton)
+            } else {
+                NumberEntityRow(entity: entity, title: title(entity)) { ask(entity, .number($0)) }
+            }
         }
     }
+
+    private func title(_ entity: DeviceEntity) -> String { labels[entity.key]?.title ?? entity.name }
 }
 
 /// A number setting: − and + move a pending value inside the entity's range,
 /// and Set asks to send it.
 private struct NumberEntityRow: View {
     let entity: DeviceEntity
+    let title: String
     let set: (Double) -> Void
     @State private var pending: Double?
 
@@ -114,7 +160,7 @@ private struct NumberEntityRow: View {
         let shown = pending ?? current
         HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(entity.name).font(Theme.Font.body).foregroundStyle(Theme.Color.text)
+                Text(title).font(Theme.Font.body).foregroundStyle(Theme.Color.text)
                 if let min = entity.min, let max = entity.max {
                     Text("\(DeviceFigures.format(min))–\(DeviceFigures.format(max))\(entity.unit.map { " \($0)" } ?? "")")
                         .font(Theme.Font.extraSmall).monospacedDigit().foregroundStyle(Theme.Color.muted)

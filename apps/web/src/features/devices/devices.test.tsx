@@ -9,6 +9,7 @@ import {
   feederSummary,
   litterDetail,
   litterSummary,
+  noLitterAutomation,
   NOW,
   timeline,
 } from './devices-fixtures';
@@ -22,6 +23,7 @@ function routes(extra: Record<string, MockReply> = {}): Record<string, MockReply
     'GET /api/ble': { body: { accessories: [accessory] } },
     [`GET /api/devices/${litterSummary.id}`]: { body: litterDetail },
     [`GET /api/devices/${feederSummary.id}`]: { body: feederDetail },
+    [`GET /api/devices/${litterSummary.id}/litter-automation`]: { body: noLitterAutomation },
     'GET /api/pets': {
       body: {
         pets: [

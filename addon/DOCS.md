@@ -207,6 +207,33 @@ detection. The motor driver still stops every move at the ends of the travel,
 a press is skipped while the motor is already moving, and the buttons do
 nothing while the Camera switch is off.
 
+## Force continue and auto-pack (litter boxes)
+
+**Force continue** (T5, T6, T7). When the box stops a cycle because it saw a
+cat near the entrance, the web and iOS apps offer **Continue cleaning**. It asks
+for the admin password again, and it is refused, with nothing sent, unless the
+box paused for exactly that reason, reports nobody inside, has had no visit
+left open in the last 10 minutes, reports no error, and was heard from in the
+last 90 seconds. A pause because a cat went in or the cover is open is never
+overridden. The firmware keeps every check of its own: if a cat steps inside,
+the box stops again. It is one press, one command; nothing repeats it. The **Resume** button sends the same
+command, so on these models it is refused while the box is paused for a cat
+nearby, a cat inside or an open cover; after a Pause you pressed yourself it
+works as before. If the
+box keeps stopping for cats walking past, turning off **Wander Detection** is
+the box's own way to make it less sensitive.
+
+**Auto-pack** (T6, experimental, off by default). PetKit's app only bags the
+waste when you tap Pack. In the device's Automation section you can let the
+server press it for you: after a number of cleanings, when the bin is full, or
+at a time of day in the device's timezone, with optional quiet hours. It waits
+while the box is busy, a cat is in or near it, it reports no bags or an error,
+or the last attempt was under 30 minutes ago. A bagging error turns the rule
+off, and so does a second pack the box never answers; turn it back on when you
+have checked the box. PetKit recommends someone being nearby when it bags, and
+taking the bag out promptly, so a daily time when you are home is the safest
+choice. Neither feature is available as a Home Assistant button.
+
 ## Provisioning over Bluetooth
 
 The **Provision** tab hands a device its Wi-Fi credentials, a custom `apiServers`

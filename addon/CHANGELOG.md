@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- **Force continue and auto-pack for the litter boxes.** A T5, T6 or T7
+  paused because a cat was near the entrance can be told to carry on from the
+  web or iOS app, after the admin password and only while the box reports
+  nobody inside, no visit in progress and no fault; any other pause is never
+  overridden. A T6 can bag its waste on a rule (after N cleanings, when the bin
+  is full, or at a time of day), off by default and marked experimental; it
+  waits for the same conditions and turns itself off after a bagging error.
+- **Resume no longer overrides a safety pause on a T5, T6 or T7.** It sends
+  the same command as force continue, so it is refused, from Home Assistant and
+  from the panel, while the box is paused for a cat nearby, a cat inside or an
+  open cover. Resuming after your own Pause is unchanged.
 - **One signed image for every way of running it.** The add-on, the new
   `deploy/local` compose file and the new `deploy/cloud` VPS recipe (WireGuard
   to the home router, Caddy in front of the user plane) all pull

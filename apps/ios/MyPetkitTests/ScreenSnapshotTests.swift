@@ -28,6 +28,21 @@ final class ScreenSnapshotTests: XCTestCase {
         }.environment(ServerSession.preview), named: "ios-device-t6")
     }
 
+    func testLitterBoxPausedOffersContinue() {
+        assertScreen(NavigationStack {
+            DeviceDetailView(model: DeviceDetailModel(device: DevicePreviewFixtures.pausedLitterBox, sessions: [],
+                                                      automation: DevicePreviewFixtures.pausedOffered))
+        }.environment(ServerSession.preview), named: "ios-device-t6-paused")
+    }
+
+    /// Paused but refused by the server: no "Continue cleaning" anywhere.
+    func testLitterBoxPausedRefusedHidesContinue() {
+        assertScreen(NavigationStack {
+            DeviceDetailView(model: DeviceDetailModel(device: DevicePreviewFixtures.pausedLitterBox, sessions: [],
+                                                      automation: DevicePreviewFixtures.pausedRefused))
+        }.environment(ServerSession.preview), named: "ios-device-t6-paused-refused")
+    }
+
     func testFeederDetail() {
         assertScreen(NavigationStack {
             DeviceDetailView(model: DeviceDetailModel(device: DevicePreviewFixtures.feeder,

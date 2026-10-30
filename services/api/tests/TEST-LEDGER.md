@@ -1099,3 +1099,94 @@ A plain container has no options file, so these settings get flags and the same 
 - added: tests/test_container_cli_flags.py::test_a_bad_value_stops_startup[flags5]
 - added: tests/test_container_cli_flags.py::test_the_pairing_qr_points_at_the_proxy_name_when_one_is_set
 - added: tests/test_container_cli_flags.py::test_the_pairing_qr_falls_back_to_the_api_host_and_user_port
+
+### Litter automation: force continue and auto-pack
+
+Force continue on a box paused for a pet nearby, guarded and sent once; the T6's auto-pack rule with its triggers, guards and give-up rules.
+
+- added: tests/test_force_continue_guards.py::test_a_box_paused_for_a_pet_nearby_is_told_to_continue
+- added: tests/test_force_continue_guards.py::test_force_continue_needs_a_fresh_step_up
+- added: tests/test_force_continue_guards.py::test_any_other_pause_reason_is_always_refused[1-pet_entered]
+- added: tests/test_force_continue_guards.py::test_any_other_pause_reason_is_always_refused[3-cover_open]
+- added: tests/test_force_continue_guards.py::test_any_other_pause_reason_is_always_refused[2-unknown_pause_reason]
+- added: tests/test_force_continue_guards.py::test_a_box_that_is_not_paused_is_refused[idle-with-a-leftover-work-state]
+- added: tests/test_force_continue_guards.py::test_a_box_that_is_not_paused_is_refused[running]
+- added: tests/test_force_continue_guards.py::test_a_box_that_is_not_paused_is_refused[no-work-state]
+- added: tests/test_force_continue_guards.py::test_a_pet_inside_is_refused
+- added: tests/test_force_continue_guards.py::test_a_visit_still_open_in_the_last_ten_minutes_is_refused
+- added: tests/test_force_continue_guards.py::test_a_visit_that_closed_does_not_block
+- added: tests/test_force_continue_guards.py::test_an_error_on_the_device_is_refused
+- added: tests/test_force_continue_guards.py::test_a_device_not_heard_from_is_refused
+- added: tests/test_force_continue_guards.py::test_without_an_event_history_it_refuses
+- added: tests/test_force_continue_guards.py::test_a_model_without_the_pause_reason_is_refused[t4]
+- added: tests/test_force_continue_guards.py::test_a_model_without_the_pause_reason_is_refused[d4]
+- added: tests/test_force_continue_guards.py::test_the_command_is_not_a_button_anything_else_can_press
+- added: tests/test_force_continue_guards.py::test_the_status_view_offers_it_only_when_every_guard_passes
+- added: tests/test_auto_pack_rules.py::test_after_cleanings_packs_once_the_count_is_reached
+- added: tests/test_auto_pack_rules.py::test_cleanings_before_the_rule_was_turned_on_do_not_count
+- added: tests/test_auto_pack_rules.py::test_cleanings_before_the_last_pack_do_not_count
+- added: tests/test_auto_pack_rules.py::test_bin_full_follows_the_device_flag[1-True]
+- added: tests/test_auto_pack_rules.py::test_bin_full_follows_the_device_flag[0-False]
+- added: tests/test_auto_pack_rules.py::test_daily_at_is_read_in_the_device_zone[11:00-True]
+- added: tests/test_auto_pack_rules.py::test_daily_at_is_read_in_the_device_zone[12:00-False]
+- added: tests/test_auto_pack_rules.py::test_daily_at_does_not_fire_again_after_todays_pack
+- added: tests/test_auto_pack_rules.py::test_a_guard_holds_the_pack_back[state0-device_busy]
+- added: tests/test_auto_pack_rules.py::test_a_guard_holds_the_pack_back[state1-pet_in_box]
+- added: tests/test_auto_pack_rules.py::test_a_guard_holds_the_pack_back[state2-no_bags]
+- added: tests/test_auto_pack_rules.py::test_a_guard_holds_the_pack_back[state3-no_bags]
+- added: tests/test_auto_pack_rules.py::test_a_guard_holds_the_pack_back[state4-device_fault]
+- added: tests/test_auto_pack_rules.py::test_a_device_off_mqtt_is_held_back
+- added: tests/test_auto_pack_rules.py::test_a_silent_device_is_held_back
+- added: tests/test_auto_pack_rules.py::test_an_open_visit_holds_it_back
+- added: tests/test_auto_pack_rules.py::test_a_pet_nearby_in_the_last_two_minutes_holds_it_back
+- added: tests/test_auto_pack_rules.py::test_quiet_hours_hold_it_back
+- added: tests/test_auto_pack_rules.py::test_quiet_hours_cross_midnight
+- added: tests/test_auto_pack_rules.py::test_package_over_settles_the_pack
+- added: tests/test_auto_pack_rules.py::test_a_pack_error_turns_the_rule_off
+- added: tests/test_auto_pack_rules.py::test_an_error_event_turns_the_rule_off
+- added: tests/test_auto_pack_rules.py::test_silence_allows_one_retry_after_the_gap_then_turns_the_rule_off
+- added: tests/test_auto_pack_rules.py::test_evaluate_all_skips_rules_that_are_off_and_other_models
+- added: tests/test_auto_pack_rules.py::test_supports_auto_pack_only_on_the_model_with_a_pack_button
+- added: tests/test_auto_pack_rules.py::test_a_malformed_rule_is_refused[patch0]
+- added: tests/test_auto_pack_rules.py::test_a_malformed_rule_is_refused[patch1]
+- added: tests/test_auto_pack_rules.py::test_a_malformed_rule_is_refused[patch2]
+- added: tests/test_auto_pack_rules.py::test_a_malformed_rule_is_refused[patch3]
+- added: tests/test_auto_pack_rules.py::test_a_malformed_rule_is_refused[patch4]
+- added: tests/test_auto_pack_rules.py::test_a_malformed_rule_is_refused[patch5]
+- added: tests/test_auto_pack_rules.py::test_a_malformed_rule_is_refused[patch6]
+- added: tests/test_auto_pack_rules.py::test_a_malformed_rule_is_refused[patch7]
+- added: tests/test_auto_pack_rules.py::test_a_rule_missing_a_field_is_refused
+- added: tests/test_auto_pack_rules.py::test_the_route_stores_the_rule_where_the_device_never_sees_it
+- added: tests/test_auto_pack_rules.py::test_the_route_refuses_a_model_without_pack
+- added: tests/test_auto_pack_rules.py::test_a_state_without_the_occupancy_field_holds_it_back
+- added: tests/test_auto_pack_rules.py::test_an_undelivered_pack_is_not_resent_every_minute
+- added: tests/test_auto_pack_rules.py::test_bin_full_waits_for_the_bin_to_clear_before_packing_again
+- added: tests/test_auto_pack_rules.py::test_daily_at_inside_a_dst_gap_packs_once
+- added: tests/test_auto_pack_rules.py::test_daily_at_switched_on_after_todays_time_waits_for_tomorrow
+- added: tests/test_auto_pack_rules.py::test_switching_off_and_on_keeps_the_gap_since_the_last_pack
+- added: tests/test_auto_pack_rules.py::test_turning_the_rule_off_while_an_evaluation_waits_sends_nothing
+- added: tests/test_force_continue_guards.py::test_a_device_off_mqtt_is_refused
+- added: tests/test_force_continue_guards.py::test_a_failed_publish_is_never_queued_for_later
+- added: tests/test_force_continue_guards.py::test_a_live_session_with_an_old_state_report_is_refused
+- added: tests/test_force_continue_guards.py::test_a_state_without_the_occupancy_field_is_refused
+
+Resume sends the same command as force continue, so it is refused on a next-gen box paused for a safety reason (approved 2026-10-30).
+
+- added: tests/test_force_continue_guards.py::test_resume_cannot_override_a_safety_pause[0]
+- added: tests/test_force_continue_guards.py::test_resume_cannot_override_a_safety_pause[1]
+- added: tests/test_force_continue_guards.py::test_resume_cannot_override_a_safety_pause[3]
+- added: tests/test_force_continue_guards.py::test_resume_after_a_pause_the_user_asked_for_still_works
+- added: tests/test_force_continue_guards.py::test_resume_from_the_command_endpoint_is_refused_during_a_safety_pause
+
+The per-module scans (local time only through `clock`, app keys only through `appkeys`) pick up the new feature's files.
+
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/litter_automation/__init__.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/litter_automation/guards.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/litter_automation/routes.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/litter_automation/schemas.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/litter_automation/service.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/litter_automation/__init__.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/litter_automation/guards.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/litter_automation/routes.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/litter_automation/schemas.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/litter_automation/service.py]

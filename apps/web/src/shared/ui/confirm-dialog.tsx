@@ -19,6 +19,8 @@ export interface ConfirmDialogProps {
   busy?: boolean;
   /** Disables only the confirm button, e.g. until a required field is filled. */
   confirmDisabled?: boolean;
+  /** `danger-final` (red fill) only when the confirm is the last step of a step-up (R3) flow. */
+  confirmVariant?: 'primary' | 'danger-final';
 }
 
 /**
@@ -37,6 +39,7 @@ export function ConfirmDialog({
   onCancel,
   busy = false,
   confirmDisabled = false,
+  confirmVariant = 'primary',
 }: ConfirmDialogProps) {
   const cancelRef = useRef<HTMLButtonElement>(null);
   return (
@@ -73,7 +76,7 @@ export function ConfirmDialog({
             {cancelLabel}
           </Button>
           <Button
-            variant="primary"
+            variant={confirmVariant}
             size="large"
             onClick={onConfirm}
             disabled={busy || confirmDisabled}

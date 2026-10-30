@@ -2,7 +2,14 @@
 // the fixtures, without a server. Reads answer from the fixtures; writes answer
 // a plausible success and change nothing, so a click never breaks the page.
 import { NOW } from '@/features/devices/devices-fixtures';
-import { ACCESSORIES, DETAILS, DEVICES, SOUNDS, liveInfo } from './fixtures-devices';
+import {
+  ACCESSORIES,
+  DETAILS,
+  DEVICES,
+  SOUNDS,
+  litterAutomationFor,
+  liveInfo,
+} from './fixtures-devices';
 import {
   BLOCKED,
   CAPTURE,
@@ -42,6 +49,7 @@ const GETS: [string, Handler][] = [
   ['/api/devices/{id}/sounds', () => ({ sounds: SOUNDS })],
   ['/api/devices/{id}/deferred-feed', () => ({ deferred: [] })],
   ['/api/devices/{id}/live', hit => liveInfo(id(hit))],
+  ['/api/devices/{id}/litter-automation', hit => litterAutomationFor(id(hit))],
   ['/api/ble', () => ({ accessories: ACCESSORIES })],
   ['/api/pets', () => ({ pets: PETS })],
   ['/api/pets/unbound', () => ({ unbound: UNBOUND })],
@@ -77,6 +85,11 @@ const WRITES: [string, Handler][] = [
     () => ({ ok: true, delivered: 'mqtt', suffix: '', envelope: null }),
   ],
   ['POST /api/devices/{id}/patcher', () => ({ ok: true })],
+  [
+    'POST /api/devices/{id}/force-continue',
+    () => ({ ok: true, delivered: 'mqtt', suffix: '', envelope: null }),
+  ],
+  ['PUT /api/devices/{id}/auto-pack', hit => litterAutomationFor(id(hit)).autoPack],
   ['POST /api/devices/{id}/ai', () => ({ ok: true, ai_enabled: true })],
   [
     'POST /api/devices/{id}/deferred-feed',

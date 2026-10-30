@@ -186,12 +186,50 @@ final class DevicesFindingsTests: XCTestCase {
         detection.settable = true
         box.entities += [capability, detection]
         let groups = EntityGroups(box)
-        XCTAssertEqual(groups.controls.map(\.key), ["auto_work", "cleaning_delay", "sand_type"])
+        XCTAssertEqual(groups.controls.map(\.key), ["sand_type"])
+        XCTAssertEqual(groups.automationControls.map(\.key), ["auto_work", "cleaning_delay"])
         XCTAssertEqual(groups.aiControls.map(\.key), ["pet_detection"])
     }
 
+    func testAutomationRowsStayUnderSettingsOutsideALitterBox() {
+        var feeder = Fixtures.feeder
+        var autoWork = DeviceEntity(component: "switch", key: "auto_work", name: "Auto Clean", value: .number(1))
+        autoWork.settable = true
+        feeder.entities.append(autoWork)
+        let groups = EntityGroups(feeder)
+        XCTAssertTrue(groups.automationControls.isEmpty)
+        XCTAssertTrue(groups.controls.contains { $0.key == "auto_work" })
+    }
+
+    func testCleanDelayOffersEveryMinuteOfItsRange() throws {
+        let delay = try XCTUnwrap(EntityGroups(Fixtures.litterBox).automationControls.last)
+        XCTAssertEqual(delay.key, "cleaning_delay")
+        XCTAssertEqual(EntityGroups.automationLabels["cleaning_delay"]?.opensPicker, true)
+        XCTAssertNotEqual(EntityGroups.automationLabels["auto_work"]?.opensPicker, true)
+        let choices = EntityWrite.choices(delay)
+        XCTAssertEqual(choices.count, 61)
+        XCTAssertEqual(choices.first, 0)
+        XCTAssertEqual(choices.last, 60)
+        XCTAssertEqual(EntityWrite.valueText(delay), "5 min")
+        XCTAssertEqual(EntityWrite.number(30).wire, "30")
+        XCTAssertEqual(EntityWrite.number(30).question(delay), "Set Clean Delay to 30 min?")
+    }
+
+    func testPickerChoicesFollowStepAndFallBackWithoutARange() {
+        var entity = DeviceEntity(component: "number", key: "cleaning_delay", name: "Clean Delay", value: nil)
+        entity.unit = "min"
+        XCTAssertEqual(EntityWrite.valueText(entity), "—")
+        XCTAssertEqual(EntityWrite.choices(entity).count, 61)
+        entity.min = 0
+        entity.max = 20
+        entity.step = 5
+        XCTAssertEqual(EntityWrite.choices(entity), [0, 5, 10, 15, 20])
+        entity.step = 0
+        XCTAssertEqual(EntityWrite.choices(entity).count, 21)
+    }
+
     func testEntityWritesAndSteps() {
-        let delay = EntityGroups(Fixtures.litterBox).controls[1]
+        let delay = EntityGroups(Fixtures.litterBox).automationControls[1]
         XCTAssertEqual(EntityWrite.number(6).question(delay), "Set Clean Delay to 6 min?")
         XCTAssertEqual(EntityWrite.toggle(false).wire, "OFF")
         XCTAssertEqual(EntityWrite.stepped(60, by: 1, entity: delay), 60)

@@ -25,6 +25,7 @@ from typing import Any
 
 from my_petkit.devices.base import Device, Refused
 from my_petkit.devices.state_parsers import record_consumable_reset
+from my_petkit.devices.state_tables import WORK_MODE_IDLE
 from my_petkit.events import codes
 from my_petkit.ha.command_values import (  # re-exported: callers import them from here
     DAY_SECONDS as DAY_SECONDS,
@@ -214,6 +215,54 @@ def _refuse_camera_pan(device: Device) -> None:
         raise Refused("camera pan needs the Camera Pan patcher")
     if to_int(device.config.get("settings", {}).get("camera"), 1) == 0:
         raise Refused("the camera is off")
+
+
+def force_continue_command() -> Command:
+    """Tell a litter box paused for a pet nearby to carry on anyway.
+
+    The same `continue_action: 0` as `resume`, kept apart from it on purpose:
+    it is NOT in `ALL_ACTIONS`, and `resume` itself is refused during a safety
+    pause (`_refuse_resume_after_safety_pause`), so a button press cannot send
+    it past the guards. Its only caller is the
+    litter-automation feature, which first checks that the pause is the
+    "pet approaching" one (`codes.SAFE_WARN` 0) and that no pet is in the box.
+    The firmware keeps every check of its own; this sends nothing PetKit's app
+    could not.
+    """
+    return _litter_ctrl("continue_action", 0)
+
+
+def pack_waste_command() -> Command:
+    """The T6's Pack, for the auto-pack rule (see `LITTER_ACTIONS["pack_waste"]`)."""
+    return _litter_start(8)
+
+
+def _refuse_resume_after_safety_pause(device: Device) -> None:
+    """Refuse Resume on a next-gen box that paused for a safety reason.
+
+    Resume sends the same `continue_action: 0` as force continue, and the
+    firmware cannot tell the two apart. `workProcess` 22 is a pause for a
+    `safeWarn` reason (`codes.SAFE_WARN`): a pet near the box, a pet inside, or
+    the cover open. None of those may be overridden from a button; the pet-nearby
+    case has force continue, which checks the box first. A pause the user asked
+    for has another `workProcess` and resumes as before.
+
+    Raises:
+        Refused: the press must not reach the device.
+    """
+    if device.device_type.lower() not in codes.LITTER_NEXT_GEN:
+        return
+    state = device.state
+    work = state.get("workState")
+    if state.get("workingState") == WORK_MODE_IDLE or not isinstance(work, dict):
+        return
+    if to_int(work.get("workProcess"), None) == SAFETY_PAUSE_WORK_PROCESS:
+        raise Refused("the box paused for a pet or an open cover; Resume cannot override that")
+
+
+#: `workState.workProcess` of a pause for a `safeWarn` reason: the tens digit 2
+#: is the paused phase (`codes.WORK_PROCESS_PHASE`), the units digit 2 the reason.
+SAFETY_PAUSE_WORK_PROCESS = 22
 
 
 #: Actions that are not one family's. Merged into `ALL_ACTIONS` alongside the
@@ -483,6 +532,8 @@ def handle_ha_command(device: Device, entity: EntityDef, payload: str) -> Comman
 
         if entity.key in pan.PAN_COMMANDS:
             _refuse_camera_pan(device)
+        if entity.key == "resume":
+            _refuse_resume_after_safety_pause(device)
         action = ALL_ACTIONS.get(entity.key)
         if not action:
             log.warning("Unknown button action '%s' for device %d", entity.key, device.petkit_id)

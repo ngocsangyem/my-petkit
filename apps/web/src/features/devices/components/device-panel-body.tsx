@@ -6,6 +6,7 @@ import { sendAction } from '../api-calls';
 import type { OpenState, SetOpen } from '../hooks/use-open-state';
 import { FAMILY_NOUN, deviceFamily } from '../lib/device-family';
 import { type DeviceEntity, groupDeviceEntities } from '../lib/entity-sections';
+import { LitterAutomationSection } from '../litter-automation/litter-automation-section';
 import { LiveView } from '../live/live-view';
 import { DeviceSchedules } from '../schedules';
 import { BleSection } from './ble-section';
@@ -40,7 +41,8 @@ export function DevicePanelBody({
   const groups = groupDeviceEntities(d.entities, d.supports_ai);
   const times = d.entities.filter(e => e.component === 'time');
   const texts = d.entities.filter(e => e.component === 'text');
-  const noun = FAMILY_NOUN[deviceFamily(d.type)].toLowerCase();
+  const family = deviceFamily(d.type);
+  const noun = FAMILY_NOUN[family].toLowerCase();
   const hasIp = typeof d.state?.ip === 'string' && d.state.ip !== '';
   const lastClip = typeof d.state?.lastClipPath === 'string' ? d.state.lastClipPath : null;
 
@@ -88,6 +90,8 @@ export function DevicePanelBody({
           />
         </section>
       )}
+
+      {family === 'litter' && <LitterAutomationSection deviceId={d.id} />}
 
       {d.is_camera && <LiveView deviceId={d.id} deviceName={d.name} />}
 

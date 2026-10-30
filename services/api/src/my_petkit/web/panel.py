@@ -57,6 +57,9 @@ from my_petkit.features.devices.routes import (
     api_device_log_settings, api_timezone,
     api_devices, api_send_command,
 )
+from my_petkit.features.litter_automation.routes import (
+    api_auto_pack, api_force_continue, api_litter_automation,
+)
 from my_petkit.features.logs.routes import (
     api_capture_delete, api_capture_download, api_capture_list, api_capture_read,
     api_device_log_read, api_device_logs, api_events, api_ws,
@@ -176,6 +179,11 @@ def create_panel_app(registry: DeviceRegistry, ble_registry: BLERegistry | None,
     app.router.add_get("/api/devices/{id}/deferred-feed", api_deferred_feed)
     app.router.add_post("/api/devices/{id}/deferred-feed", api_deferred_feed)
     app.router.add_delete("/api/devices/{id}/deferred-feed/{feed_id}", api_deferred_feed)
+
+    # --- litter automation: force continue (R3) and the T6's auto-pack rule ---
+    app.router.add_get("/api/devices/{id}/litter-automation", api_litter_automation)
+    app.router.add_post("/api/devices/{id}/force-continue", api_force_continue)
+    app.router.add_put("/api/devices/{id}/auto-pack", api_auto_pack)
 
     # --- per-device toggles (GET reads, POST writes — same handler) ---
     app.router.add_get("/api/devices/{id}/capabilities", api_capabilities)
