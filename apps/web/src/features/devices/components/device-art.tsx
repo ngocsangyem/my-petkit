@@ -20,10 +20,14 @@ function flagLevel(entity: AnyEntity | undefined): DrawingLevel {
   return low ? LOW : ENOUGH;
 }
 
-/** A percentage entity when published, otherwise the low flag, otherwise empty. */
-function level(entities: readonly AnyEntity[], percentKey: string, lowKey: string): DrawingLevel {
-  const percent = numericValue(findEntity(entities, percentKey));
-  return percent ?? flagLevel(findEntity(entities, lowKey));
+/**
+ * A hopper sensor reads 0 (empty) or 2 (has food), never a percentage. Without
+ * one, a single hopper falls back to the family's food-low flag.
+ */
+function hopperLevel(sensor: AnyEntity | undefined, low?: AnyEntity): DrawingLevel {
+  const reading = numericValue(sensor);
+  if (reading !== null) return reading > 0 ? ENOUGH : 0;
+  return low ? flagLevel(low) : null;
 }
 
 /** The level a drawing shows for a device family, read from the device's own entities. */
@@ -32,12 +36,19 @@ export function drawingLevels(type: string, entities: readonly AnyEntity[]): Dra
     case 'litter':
       return [numericValue(findEntity(entities, 'litter_percent'))];
     case 'feeder': {
-      const first = level(entities, 'food_percent', 'food_low');
-      const second = findEntity(entities, 'food_low_2') ?? findEntity(entities, 'food2_low');
-      return second ? [first, flagLevel(second)] : [first];
+      const second = findEntity(entities, 'hopper2_level');
+      if (second) return [hopperLevel(findEntity(entities, 'hopper1_level')), hopperLevel(second)];
+      return [hopperLevel(findEntity(entities, 'hopper_level'), findEntity(entities, 'food_low'))];
     }
     case 'fountain':
-      return [level(entities, 'water_level', 'water_lack')];
+      // Fountain models name their water-lack flag differently.
+      return [
+        flagLevel(
+          findEntity(entities, 'water_lack') ??
+            findEntity(entities, 'w5_water_missing') ??
+            findEntity(entities, 'ctw3_water_lack'),
+        ),
+      ];
     default:
       return [];
   }
