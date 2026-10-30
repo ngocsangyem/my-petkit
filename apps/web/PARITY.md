@@ -10,8 +10,6 @@ only when every row below is ticked. The panel's files were last present at
   checked against a running API.
 - **Done (commit)** `n/a` marks a route this app deliberately does not call, with
   the reason.
-- **Done (commit)** `pending`: work of the web v3 redesign branch; the hash is
-  filled in when it merges.
 - **Design:** ticked against the web v3 artboard named in the cell
   (`docs/design/screenshots/web-*.webp`, design-reference §8.3) when the screen
   matches it at 1440×1000 and 390×844, in light and dark mode, in layout,
@@ -105,18 +103,18 @@ legacy panel ledger's §11.1. Talk has no web client in the old panel and gets n
 
 | Feature | Item | Old panel source | Done (commit) | Design |
 |---|---|---|---|---|
-| shell | Eight tabs: Devices, Timeline, AI/Pets, Provision, Log, Capture, Patchers, Setup; now the v3 sidebar (Home, Timeline, Pets · Server: Logs, Add a device, Settings · Advanced: Capture, Patchers), a top bar with a menu under 900px | nav.js, index.html | bf3a909, pending | ✓ `web-home`, `web-home-phone` |
+| shell | Eight tabs: Devices, Timeline, AI/Pets, Provision, Log, Capture, Patchers, Setup; now the v3 sidebar (Home, Timeline, Pets · Server: Logs, Add a device, Settings · Advanced: Capture, Patchers), a top bar with a menu under 900px | nav.js, index.html | bf3a909, 4b7e4f7 | ✓ `web-home`, `web-home-phone` |
 | shell | Works under any mount point (Ingress prefix, `/app/`): relative URLs, hash routing | core.js `BASE` | bf3a909, 5970fb0 | n/a |
 | shell | "This page is out of date" banner when `/api/info` names a newer build | main.js `checkPageIsCurrent` | bf3a909 | ✓ `web-states` |
-| shell | Empty, loading, error and unreachable states; toast | — | bf3a909, pending | ✓ `web-states` |
+| shell | Empty, loading, error and unreachable states; toast | — | bf3a909, 4b7e4f7 | ✓ `web-states` |
 | shell | Live indicator for the event stream; reconnect backoff 2 → 30 s | ws.js | bf3a909 | ✓ `web-home` (sidebar foot) |
 | shell | Every string from a device rendered as text only; no inline handlers or styles (CSP) | core.js `esc` | bf3a909 | n/a |
-| shell | Dark mode: System, Light, Dark; set before the first paint (new, not in the old panel) | — | 306e7d2, pending | ✓ `web-home-dark`; the Appearance control in `web-server` |
+| shell | Dark mode: System, Light, Dark; set before the first paint (new, not in the old panel) | — | 306e7d2, 4b7e4f7 | ✓ `web-home-dark`; the Appearance control in `web-server` |
 | shell | Accessibility: tablist roles, real `disabled`, focus ring, dialogs trap focus | index.html | bf3a909 | n/a |
-| auth | Sign in; first run with the setup token from the log | auth.js | bf3a909, pending | ✓ `web-sign-in`, `web-first-run` |
+| auth | Sign in; first run with the setup token from the log | auth.js | bf3a909, 4b7e4f7 | ✓ `web-sign-in`, `web-first-run` |
 | auth | Step-up prompt on `step_up_required`, then the request is replayed | core.js `api`, auth.js | bf3a909 | ✓ `web-step-up` |
 | tokens | Pair the iOS app: pairing code + QR; list and revoke client tokens | — | a0f2e26 | ✓ `web-server` (Phones and apps) |
-| devices | One collapsible panel per device, open state remembered; accessories as their own panels. Now Home's device cards with drawings, and one page per device and per accessory (`?device=`), the raw card's open state remembered | devices.js | 28c8703, pending | ✓ `web-home`, `web-device-t6`, `web-device-feeder`, `web-device-fountain` |
+| devices | One collapsible panel per device, open state remembered; accessories as their own panels. Now Home's device cards with drawings, and one page per device and per accessory (`?device=`), the raw card's open state remembered | devices.js | 28c8703, 4b7e4f7 | ✓ `web-home`, `web-device-t6`, `web-device-feeder`, `web-device-fountain` |
 | devices | No repaint while the user is editing a control (`PENDING_EDITS`) | devices.js | 28c8703 | n/a |
 | devices | Entity table and controls: switch, number, select, time, button, text, event, camera, image | entities.js, commands.js | 28c8703 | ✓ `web-device-t6` (Entities and raw command) |
 | devices | Values formatted as Home Assistant formats them | format.js | 28c8703 | n/a |
@@ -124,22 +122,22 @@ legacy panel ledger's §11.1. Talk has no web client in the old panel and gets n
 | devices | Copy stream URL | devices.js | 28c8703 | ✓ `web-live` |
 | devices | Deferred feed (time in the device's zone) | schedules.js | 415da52 | ✓ `web-schedules` (One-off feeds) |
 | devices | Sounds: upload (≤ 2 MB, ≤ 10), list, delete, play, select | devices.js | 28c8703 | ✓ `web-sounds` |
-| devices | Schedule editors: ranges, weekly, points, feed | schedules.js | 415da52, pending | ✓ `web-schedules` (feed, with the meal editor sheet; the other editors follow it) |
+| devices | Schedule editors: ranges, weekly, points, feed | schedules.js | 415da52, 4b7e4f7 | ✓ `web-schedules` (feed, with the meal editor sheet; the other editors follow it) |
 | devices | Timezone, capabilities, AI and log-upload toggles | devices.js | 28c8703 | ✓ `web-device-t6` |
 | devices | BLE accessories: pair, unpair, command, poll, import from cloud | devices.js | 28c8703 | ✓ `web-ble-pair`, `web-device-t6` |
 | devices | Household day strip, positions in the device's time zone | — (new) | 28c8703 | ✓ `web-home` |
-| devices | Force continue on a litter box paused for a cat nearby: offered only when every guard passes, confirm with the guard checklist (step-up prompt when the server asks for one), refusal shown in the block (new, not in the old panel) | — (new) | 86591f4, pending | ✓ `web-device-t6-paused` |
-| devices | T6 auto-pack rule (experimental): on/off with a confirmation, trigger, threshold, quiet hours, and the server's status line (new, not in the old panel) | — (new) | 86591f4, pending | ✓ `web-device-t6` (Automation) |
-| timeline | Day picker, kind chips with counts before filtering, device and pet filters (now one chip row: All, a chip per cat and per device, the kinds) | timeline.js | abd0764, pending | ✓ `web-timeline` |
-| timeline | Visit cards with sub-events, lazy video, waste/health gallery, "assembling…" (now a list with the selected visit's card beside it) | timeline.js, media.js | abd0764, pending | ✓ `web-timeline` |
+| devices | Force continue on a litter box paused for a cat nearby: offered only when every guard passes, confirm with the guard checklist (step-up prompt when the server asks for one), refusal shown in the block (new, not in the old panel) | — (new) | 86591f4, 4b7e4f7 | ✓ `web-device-t6-paused` |
+| devices | T6 auto-pack rule (experimental): on/off with a confirmation, trigger, threshold, quiet hours, and the server's status line (new, not in the old panel) | — (new) | 86591f4, 4b7e4f7 | ✓ `web-device-t6` (Automation) |
+| timeline | Day picker, kind chips with counts before filtering, device and pet filters (now one chip row: All, a chip per cat and per device, the kinds) | timeline.js | abd0764, 4b7e4f7 | ✓ `web-timeline` |
+| timeline | Visit cards with sub-events, lazy video, waste/health gallery, "assembling…" (now a list with the selected visit's card beside it) | timeline.js, media.js | abd0764, 4b7e4f7 | ✓ `web-timeline` |
 | timeline | Debug expander with the raw event | timeline.js | abd0764 | ✓ `web-timeline` |
-| timeline | Change cat on a visit (a centred dialog at every width; "Who was it?" on an unrecognised visit opens it): cats nearest the visit weight first with "closest weight", "No cat, just passing", "Use this for <name>'s weight" (only for a reading the server accepts), bind the box's unclaimed identity, "Nothing is sent to the litter box"; "by weight" pill and "not recognised" beside a visit (new, not in the old panel) | — (new) | 1c41030, pending | ✓ `web-change-cat` |
+| timeline | Change cat on a visit (a centred dialog at every width; "Who was it?" on an unrecognised visit opens it): cats nearest the visit weight first with "closest weight", "No cat, just passing", "Use this for <name>'s weight" (only for a reading the server accepts), bind the box's unclaimed identity, "Nothing is sent to the litter box"; "by weight" pill and "not recognised" beside a visit (new, not in the old panel) | — (new) | 1c41030, 4b7e4f7 | ✓ `web-change-cat` |
 | timeline | "Light visits" chip with its count: visits too light for any registered cat, never under All or Toileting (new, not in the old panel) | — (new) | 1c41030 | ✓ `web-timeline` |
-| timeline | "Not recognised" chip with its count: visits with no cat that are not light visits, counted on the client from the day (new, not in the old panel) | — (new) | pending | ✓ `web-timeline` |
-| pets | Pets CRUD, rename, faces with the 224² cropper and its rules (now one profile at a time, picked with chips) | pets.js, cropper.js | ebc9088, pending | ✓ `web-pets` |
+| timeline | "Not recognised" chip with its count: visits with no cat that are not light visits, counted on the client from the day (new, not in the old panel) | — (new) | 4b7e4f7 | ✓ `web-timeline` |
+| pets | Pets CRUD, rename, faces with the 224² cropper and its rules (now one profile at a time, picked with chips) | pets.js, cropper.js | ebc9088, 4b7e4f7 | ✓ `web-pets` |
 | pets | Bind an unbound reference; import pets from the cloud | pets.js | ebc9088 | ✓ `web-pets` |
-| pets | Weight per pet: registered weight in kg with when it last changed, "Match by weight when the camera cannot" with the real guard distance (twice the tolerance), weight tolerance ± g; the match switch also saves inline (new, not in the old panel) | — (new) | 1c41030, pending | ✓ `web-pets` (without its "Hide light visits" switch, which the Timeline chip replaces) |
-| pets | Weight chart (1W, 2W) and seven days of litter-box visits per pet, read from the existing timeline route one day at a time (new, not in the old panel) | — (new) | pending | ✓ `web-pets` (no 3M range) |
+| pets | Weight per pet: registered weight in kg with when it last changed, "Match by weight when the camera cannot" with the real guard distance (twice the tolerance), weight tolerance ± g; the match switch also saves inline (new, not in the old panel) | — (new) | 1c41030, 4b7e4f7 | ✓ `web-pets` (without its "Hide light visits" switch, which the Timeline chip replaces) |
+| pets | Weight chart (1W, 2W) and seven days of litter-box visits per pet, read from the existing timeline route one day at a time (new, not in the old panel) | — (new) | 4b7e4f7 | ✓ `web-pets` (no 3M range) |
 | pets | 15 cats per box: "N of 15 cats on this box", a full box cannot be picked when adding, "Add a pet" disabled with a tooltip when every box is full, the server's `too_many_pets` refusal and an import's "device full" results shown in words (new, not in the old panel) | — (new) | 1c41030 | n/a |
 | provision | Web Bluetooth provisioning, with the secure-context / URL / port 80 warnings | provision.js | fd3704c | ✓ `web-provision` |
 | provision | Protocol in TypeScript with the same test vectors as the old tests, plus CRC `{"key":110}` seq 0 → `0x3234` | provision.js, test_provision_js.py | fd3704c | n/a |
@@ -147,7 +145,7 @@ legacy panel ledger's §11.1. Talk has no web client in the old panel and gets n
 | log | Device logs viewer with grep and download (download needs step-up) | log.js | b6c372c | ✓ `web-logs` |
 | capture | Capture list, read the tail, download (step-up), delete; secret warning | capture.js | b6c372c | ✓ `web-capture` |
 | patchers | Status per device, apply/remove with step-up, live progress from the stream | patchers.js | a456137 | ✓ `web-patchers` |
-| setup | Settings and guards, upstream and DNS, status counters (Theme and Sign out now live on this screen) | setup.js | bcf3653, pending | ✓ `web-server` |
+| setup | Settings and guards, upstream and DNS, status counters (Theme and Sign out now live on this screen) | setup.js | bcf3653, 4b7e4f7 | ✓ `web-server` |
 | setup | Blocked table (masked; reveal with step-up) and retention | setup.js | bcf3653 | ✓ `web-server` |
 
 ## Known gaps (not blocking parity with the legacy panel)
