@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { errorMessage } from '@/shared/api/errors';
-import { IconButton, useToast } from '@/shared/ui';
+import { OverlayTitleRow, useToast } from '@/shared/ui';
 import { Dialog, DialogContent, DialogTitle } from '@/shared/ui/shadcn/dialog';
 import { useSetVisitPet, type TimelinePet, type VisitPetRequest } from '../api';
 import { formatWeight, type TimelineSession } from '../timeline-model';
@@ -43,10 +43,9 @@ export function ChangeCatDialog({ session, pets, onClose }: ChangeCatDialogProps
         aria-busy={busy || undefined}
         className="max-h-[calc(100dvh-32px)] w-[calc(100%-32px)] max-w-125 overflow-y-auto sm:max-w-125"
       >
-        <div className="flex items-start justify-between gap-3">
-          <DialogTitle className="pt-1.5">{changeCatTitle(session)}</DialogTitle>
-          <IconButton icon="close" aria-label="Close" disabled={busy} onClick={onClose} />
-        </div>
+        <OverlayTitleRow onClose={onClose} closeDisabled={busy}>
+          <DialogTitle>{changeCatTitle(session)}</DialogTitle>
+        </OverlayTitleRow>
         <ChangeCatForm
           session={session}
           pets={pets}

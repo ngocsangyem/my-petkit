@@ -6,6 +6,7 @@ import {
   ErrorBlock,
   Missing,
   NumberInput,
+  SettingsSection,
   Skeleton,
   Table,
   type TableColumn,
@@ -16,7 +17,6 @@ import {
   RETENTION_SIZED,
   type RetentionCaps,
 } from '../retention-and-blocked-model';
-import { SettingsCard } from './settings-card';
 
 type Category = keyof RetentionCaps;
 
@@ -152,7 +152,7 @@ export function RetentionSection() {
   // remounts the table with them, and the "saved" line must survive that.
   const save = useSaveRetention();
   return (
-    <SettingsCard title="Keep">
+    <SettingsSection title="Keep">
       {retention.isPending ? (
         <div className="flex flex-col gap-3" aria-busy="true">
           {ROWS.map(r => (
@@ -168,6 +168,6 @@ export function RetentionSection() {
       ) : (
         <RetentionTable key={retention.dataUpdatedAt} data={retention.data} save={save} />
       )}
-    </SettingsCard>
+    </SettingsSection>
   );
 }

@@ -1,9 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   historyDates,
-  localDay,
   petDay,
-  shiftLocalDay,
   visitsPerDay,
   weightPoints,
   weightScale,
@@ -29,8 +27,6 @@ const d = (date: string, visits: number | null, weightG: number | null): PetDay 
 
 describe('pet history', () => {
   it('asks for the last days on the local calendar, oldest first, across a month end', () => {
-    expect(localDay(new Date(2026, 9, 28, 23, 30))).toBe('2026-10-28');
-    expect(shiftLocalDay('2026-11-01', -1)).toBe('2026-10-31');
     expect(historyDates('2026-11-02', 3)).toEqual(['2026-10-31', '2026-11-01', '2026-11-02']);
     expect(historyDates('2026-10-28')).toHaveLength(14);
   });

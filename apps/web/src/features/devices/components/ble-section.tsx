@@ -1,7 +1,7 @@
 import { useId, useState } from 'react';
 import { Link } from 'react-router';
 import { relativeTime } from '@/shared/format/format';
-import { Button, Card, ConfirmDialog, Icon } from '@/shared/ui';
+import { Button, Card, ConfirmDialog, Icon, OverlayTitleRow } from '@/shared/ui';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/shared/ui/shadcn/sheet';
 import { type BleAccessory, type DeviceDetail, deviceKeys } from '../api';
 import { importBle, unpairBle } from '../api-calls';
@@ -62,8 +62,18 @@ function PairSheet({
   const importer = useDeviceCall();
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="overflow-y-auto min-[901px]:max-w-[480px]">
-        <SheetTitle>Pair an accessory</SheetTitle>
+      <SheetContent
+        side="right"
+        showCloseButton={false}
+        className="overflow-y-auto min-[901px]:max-w-[480px]"
+      >
+        <OverlayTitleRow
+          onClose={() => {
+            onOpenChange(false);
+          }}
+        >
+          <SheetTitle>Pair an accessory</SheetTitle>
+        </OverlayTitleRow>
         <SheetDescription className="-mt-2 text-md text-lede">
           It talks to the server through the{' '}
           <b className="font-semibold">{device.name.toLowerCase()}</b>, which must stay on and

@@ -1,9 +1,8 @@
 import type { ReactNode } from 'react';
-import { Chip } from '@/shared/ui';
+import { Chip, PetAvatar } from '@/shared/ui';
 import type { TimelineDevice, TimelinePet } from '../api';
 import type { TimelineCounts } from '../timeline-model';
 import { kindChips, type ViewFilter } from '../timeline-view-filter';
-import { PetAvatar } from './pet-avatar';
 
 export interface TimelineFilterChipsProps {
   /** The server's counts for the current cat and device, before the kind chip is applied. */

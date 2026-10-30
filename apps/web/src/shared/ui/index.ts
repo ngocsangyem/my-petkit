@@ -81,6 +81,8 @@ export { IconButton, QuickAction } from './icon-button';
 export type { IconButtonProps, QuickActionProps } from './icon-button';
 export { Icon } from './icons';
 export type { IconName, IconProps } from './icons';
+export { OverlayTitleRow } from './overlay-title-row';
+export type { OverlayTitleRowProps } from './overlay-title-row';
 export { PageHeader, PageHeading, StatusWord } from './page-heading';
 export type {
   PageBackLink,
@@ -90,6 +92,8 @@ export type {
   StatusWordProps,
 } from './page-heading';
 export { usePersistedState } from './persisted-state';
+export { PetAvatar, UnknownPetAvatar } from './pet-avatar';
+export type { PetAvatarProps, PetAvatarSize } from './pet-avatar';
 export { Pill } from './pill';
 export type { PillProps, PillTone } from './pill';
 export { RatioBar, ratioPercent } from './ratio-bar';

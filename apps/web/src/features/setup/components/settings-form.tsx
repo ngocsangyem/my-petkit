@@ -1,4 +1,4 @@
-import { Pill, StepUpPill } from '@/shared/ui';
+import { Pill, SettingsSection, StepUpPill } from '@/shared/ui';
 import {
   BLOCKING_GUARDS,
   CAPTURE_TOGGLE,
@@ -8,7 +8,6 @@ import {
   type ToggleDef,
 } from '../setup-model';
 import type { SettingsDraftState } from '../use-settings-draft';
-import { SettingsCard } from './settings-card';
 import { ToggleRow } from './toggle-row';
 import { UpstreamFields } from './upstream-fields';
 import { UpstreamStatus } from './upstream-status';
@@ -44,7 +43,7 @@ function Row({ form, def }: CardProps & { def: ToggleDef }) {
 export function CloudGuardsCard({ form }: CardProps) {
   const off = BLOCKING.filter(def => !form.value[def.key]).length;
   return (
-    <SettingsCard
+    <SettingsSection
       title="Cloud guards"
       end={
         off === 0 ? <Pill tone="positive">All on</Pill> : <Pill tone="warning">{`${off} off`}</Pill>
@@ -57,14 +56,14 @@ export function CloudGuardsCard({ form }: CardProps) {
         Turning a guard off asks first, and saving asks for your password. The guards act only while
         proxy mode is on.
       </p>
-    </SettingsCard>
+    </SettingsSection>
   );
 }
 
 /** Proxy mode, its other options, the upstream, what it forwarded, and traffic capture. */
 export function ProxyModeCard({ form, info }: CardProps & { info: ServerInfo }) {
   return (
-    <SettingsCard title="Proxy mode" end={<StepUpPill>Step-up</StepUpPill>}>
+    <SettingsSection title="Proxy mode" end={<StepUpPill>Step-up</StepUpPill>}>
       <Row form={form} def={PROXY_TOGGLE} />
       {PROXY_OPTIONS.map(def => (
         <Row key={def.key} form={form} def={def} />
@@ -84,6 +83,6 @@ export function ProxyModeCard({ form, info }: CardProps & { info: ServerInfo }) 
       />
       {info.settings.proxy_mode && <UpstreamStatus counts={info.upstream} />}
       <Row form={form} def={CAPTURE_TOGGLE} />
-    </SettingsCard>
+    </SettingsSection>
   );
 }

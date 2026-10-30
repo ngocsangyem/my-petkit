@@ -1,5 +1,5 @@
 import { useId, useState, type ReactNode, type SyntheticEvent } from 'react';
-import { Button, Panel, Switch } from '@/shared/ui';
+import { Button, Panel, PetAvatar, Switch } from '@/shared/ui';
 import { Checkbox } from '@/shared/ui/shadcn/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/shared/ui/shadcn/radio-group';
 import type { TimelinePet, VisitPetRequest } from '../api';
@@ -12,7 +12,6 @@ import {
   rankCandidates,
   visitPetBody,
 } from '../visit-pet-model';
-import { PetAvatar } from './pet-avatar';
 
 /** A choice row of the raised panel, its radio first; rows are split by a 1px rule. */
 const ROW =
@@ -96,7 +95,7 @@ export function ChangeCatForm({
             </ChoiceRow>
           ))}
           <ChoiceRow value={PASSING}>
-            <span className="size-9 flex-none rounded-full bg-track" aria-hidden="true" />
+            <PetAvatar photoUrl={null} size={36} />
             No cat, just passing
           </ChoiceRow>
         </RadioGroup>

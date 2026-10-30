@@ -1,10 +1,16 @@
 import { useState } from 'react';
 import { ApiError, errorMessage } from '@/shared/api/errors';
 import { formatDateTime } from '@/shared/format/format';
-import { Button, ErrorBlock, Table, ValueText, type TableColumn } from '@/shared/ui';
+import {
+  Button,
+  ErrorBlock,
+  SettingsSection,
+  Table,
+  ValueText,
+  type TableColumn,
+} from '@/shared/ui';
 import { useBlocked } from '../api';
 import { BLOCKED_LIMIT, redactLabel, type BlockedAttempt } from '../retention-and-blocked-model';
-import { SettingsCard } from './settings-card';
 
 const COLUMNS: readonly TableColumn<BlockedAttempt>[] = [
   {
@@ -50,7 +56,7 @@ export function BlockedSection() {
 
   const count = rows.length >= BLOCKED_LIMIT ? `The newest ${BLOCKED_LIMIT}` : String(rows.length);
   return (
-    <SettingsCard
+    <SettingsSection
       title="Blocked attempts"
       end={
         !blocked.isError && rows.length > 0 ? (
@@ -99,6 +105,6 @@ export function BlockedSection() {
           <span className="text-sm text-muted-foreground">Payloads shown in full.</span>
         )}
       </div>
-    </SettingsCard>
+    </SettingsSection>
   );
 }

@@ -1,27 +1,5 @@
-import { useState } from 'react';
-import { serverUrl } from '@/shared/api/base-path';
-import { Chip } from '@/shared/ui';
+import { Chip, PetAvatar } from '@/shared/ui';
 import type { Pet } from '../pet-model';
-
-/** The 24px face on a chip; an empty circle when there is no photo or it fails to load. */
-function ChipFace({ url }: { url: string | undefined }) {
-  const [failed, setFailed] = useState<string | null>(null);
-  if (!url || failed === url) {
-    return <span className="size-6 flex-none rounded-full bg-track" aria-hidden="true" />;
-  }
-  return (
-    <img
-      className="size-6 flex-none rounded-full object-cover"
-      src={serverUrl(url)}
-      alt=""
-      width={24}
-      height={24}
-      onError={() => {
-        setFailed(url);
-      }}
-    />
-  );
-}
 
 interface PetChipsProps {
   pets: readonly Pet[];
@@ -42,7 +20,7 @@ export function PetChips({ pets, selected, onSelect }: PetChipsProps) {
             onSelect(p.id);
           }}
         >
-          <ChipFace url={p.faces[0]?.url} />
+          <PetAvatar photoUrl={p.faces[0]?.url} size={24} />
           {p.name}
         </Chip>
       ))}

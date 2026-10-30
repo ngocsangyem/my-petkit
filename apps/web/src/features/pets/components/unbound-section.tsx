@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { errorMessage } from '@/shared/api/errors';
 import { formatDateTime } from '@/shared/format/format';
-import { Button, Card, ErrorBlock, Select } from '@/shared/ui';
+import { Button, Card, ErrorBlock, Select, UnknownPetAvatar } from '@/shared/ui';
 import { useBindPetRef } from '../api';
 import { plural, type Pet, type UnboundRef } from '../pet-model';
 
@@ -126,12 +126,7 @@ export function UnboundSection({ unbound, error, onRetry, pets, notify }: Unboun
               key={u.pet_ref}
               className="flex min-h-15 flex-wrap items-center gap-3 border-t border-rule py-2 first:border-t-0"
             >
-              <span
-                className="flex size-10 flex-none items-center justify-center rounded-full bg-track text-muted-foreground"
-                aria-hidden="true"
-              >
-                ?
-              </span>
+              <UnknownPetAvatar size={40} />
               <div className="flex min-w-0 flex-1 flex-col">
                 <span className="font-medium">
                   Identity <span className="font-mono text-sm">{u.pet_ref}</span>

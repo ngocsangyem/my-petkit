@@ -1,4 +1,4 @@
-import { FeederDrawing, Icon, Pill, type IconName } from '@/shared/ui';
+import { FeederDrawing, Icon, PetAvatar, Pill, UnknownPetAvatar, type IconName } from '@/shared/ui';
 import {
   clockTime,
   formatVisitDuration,
@@ -9,7 +9,6 @@ import {
   type TimelineSession,
 } from '../timeline-model';
 import { petSourceTag } from '../visit-pet-model';
-import { PetAvatar } from './pet-avatar';
 import { MediaImage } from './timeline-still-gallery';
 
 /** What stands at the start of a row when there is no cat to show. */
@@ -23,16 +22,7 @@ const KIND_ICON = new Map<string, IconName>([
 /** The cat's photo, a "?" for a visit nobody was recognised in, else the thing that happened. */
 function Lead({ s }: { s: TimelineSession }) {
   if (s.pet_name || s.pet_photo_url) return <PetAvatar photoUrl={s.pet_photo_url} size={40} />;
-  if (s.kind === 'visit') {
-    return (
-      <span
-        className="flex size-10 flex-none items-center justify-center rounded-full bg-track text-muted-foreground"
-        aria-hidden="true"
-      >
-        ?
-      </span>
-    );
-  }
+  if (s.kind === 'visit') return <UnknownPetAvatar size={40} />;
   if (s.event_kind === 'feeding') {
     return (
       <span className="flex w-10 flex-none justify-center">

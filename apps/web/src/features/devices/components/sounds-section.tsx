@@ -7,7 +7,7 @@ import {
   ConfirmDialog,
   ErrorBlock,
   Icon,
-  IconButton,
+  OverlayTitleRow,
   Panel,
   Skeleton,
 } from '@/shared/ui';
@@ -182,16 +182,13 @@ export function SoundsRow({ deviceId, deviceNoun }: { deviceId: number; deviceNo
           showCloseButton={false}
           className="max-h-[calc(100vh-32px)] w-[calc(100%-32px)] max-w-[520px] gap-4 overflow-y-auto sm:max-w-[520px]"
         >
-          <div className="flex items-center justify-between gap-3">
+          <OverlayTitleRow
+            onClose={() => {
+              setOpen(false);
+            }}
+          >
             <DialogTitle>Sounds</DialogTitle>
-            <IconButton
-              icon="close"
-              aria-label="Close"
-              onClick={() => {
-                setOpen(false);
-              }}
-            />
-          </div>
+          </OverlayTitleRow>
           <DialogDescription className="-mt-2">
             Custom sounds the {deviceNoun} can play, stored on this server.
           </DialogDescription>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { errorMessage } from '@/shared/api/errors';
+import { todayLocal } from '@/shared/format/local-day';
 import { Card, EmptyBlock, ErrorBlock, PageHeader, Skeleton } from '@/shared/ui';
 import { useTimelineDay, useTimelineDevices, useTimelinePets, type TimelineQuery } from './api';
 import { ChangeCatDialog } from './components/change-cat-dialog';
@@ -9,7 +10,7 @@ import { TimelineEventList } from './components/timeline-event-list';
 import { TimelineFilterChips } from './components/timeline-filter-chips';
 import { TimelineSessionDetail } from './components/timeline-session-detail';
 import { useTimelineLiveRefresh } from './hooks/use-timeline-live-refresh';
-import { sessionKey, todayLocal, type TimelineSession } from './timeline-model';
+import { sessionKey, type TimelineSession } from './timeline-model';
 import { visitSummary } from './timeline-summary';
 import {
   applyViewFilter,

@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
-import { ValueText } from '@/shared/ui';
+import { SettingsSection, ValueText } from '@/shared/ui';
 import type { ServerInfo } from '../setup-model';
-import { SettingsCard } from './settings-card';
 
 interface Fact {
   label: string;
@@ -93,7 +92,7 @@ export function ConnectionFacts({ info }: { info: ServerInfo }) {
   ];
 
   return (
-    <SettingsCard title="Connection">
+    <SettingsSection title="Connection">
       <p className="pb-1 text-xs text-muted-foreground">
         Bound at startup. Change these in the server configuration, then restart.
       </p>
@@ -111,6 +110,6 @@ export function ConnectionFacts({ info }: { info: ServerInfo }) {
           </div>
         ))}
       </dl>
-    </SettingsCard>
+    </SettingsSection>
   );
 }

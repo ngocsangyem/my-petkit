@@ -9,25 +9,33 @@ export interface SettingsSectionProps {
   title: string;
   /** One or two sentences in muted under the title. */
   description?: ReactNode;
+  /** Right side of the title row: a pill ("All on", "Step-up") or a muted total. */
+  end?: ReactNode;
   /** Rows ({@link SettingsRow}) or any content, inside the card. */
   children: ReactNode;
 }
 
 /**
- * A settings group (web-server): a white card (radius 20) with the 17/600 title and an optional
- * muted sentence, then its rows split by 1px `rule` lines. Sections stack with the page's 20px gap;
- * the `ui-settings-section` class stays as a hook for screens that place a bar before a section.
+ * A settings group (web-server, the device pages): a white card (radius 20, padded 16/20/8 so the
+ * last row's own padding closes it) with the 17/600 title, an optional pill or total on its right
+ * and an optional muted sentence, then its rows split by 1px `rule` lines. Sections stack with the
+ * page's 20px gap; the `ui-settings-section` class stays as a hook for screens that place a bar
+ * before a section.
  */
-export function SettingsSection({ title, description, children }: SettingsSectionProps) {
+export function SettingsSection({ title, description, end, children }: SettingsSectionProps) {
   const headingId = useId();
   return (
     <Card
       as="section"
-      className="ui-settings-section flex flex-col gap-1"
+      padding="none"
+      className="ui-settings-section flex flex-col px-5 pt-4 pb-2"
       aria-labelledby={headingId}
     >
       <div className="flex flex-col gap-1 pb-1">
-        <h2 id={headingId}>{title}</h2>
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+          <h2 id={headingId}>{title}</h2>
+          {end}
+        </div>
         {description && <p className="text-muted-foreground">{description}</p>}
       </div>
       {children}

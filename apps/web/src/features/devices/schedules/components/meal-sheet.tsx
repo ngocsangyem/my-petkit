@@ -1,4 +1,4 @@
-import { Button, IconButton, Panel, TimeInput } from '@/shared/ui';
+import { Button, OverlayTitleRow, Panel, TimeInput } from '@/shared/ui';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/shared/ui/shadcn/sheet';
 import { clockToSec, secToClock } from '../schedule-clock';
 import type { FeedMeal } from '../schedule-model';
@@ -30,10 +30,9 @@ export function MealSheet({ name, days, meal, dual, onChange, onDelete, onClose 
       }}
     >
       <SheetContent side="right" showCloseButton={false} className="overflow-y-auto">
-        <div className="flex items-center justify-between gap-3">
+        <OverlayTitleRow onClose={onClose}>
           <SheetTitle>Edit meal</SheetTitle>
-          <IconButton icon="close" aria-label="Close" onClick={onClose} />
-        </div>
+        </OverlayTitleRow>
         <SheetDescription className="-mt-2">
           {name}. Repeats {days === 'Every day' ? 'every day' : `on ${days}`}, the days of its set.
         </SheetDescription>

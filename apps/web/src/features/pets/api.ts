@@ -4,7 +4,8 @@
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, unwrap } from '@/shared/api/client';
 import { ApiError } from '@/shared/api/errors';
-import { historyDates, localDay, petDay, type PetDay } from './pet-history-model';
+import { todayLocal } from '@/shared/format/local-day';
+import { historyDates, petDay, type PetDay } from './pet-history-model';
 import { withAlias, type DeviceDetail, type DeviceSummary } from './pet-model';
 import type { PetUpdateRequest } from './pet-weight-model';
 
@@ -21,7 +22,7 @@ export const petsKeys = {
  * pets cache root, so saving a pet does not refetch two weeks of days; a minute old is fresh.
  */
 export function usePetHistory(petId: number) {
-  const dates = historyDates(localDay());
+  const dates = historyDates(todayLocal());
   const results = useQueries({
     queries: dates.map(date => ({
       queryKey: ['pet-history', petId, date] as const,

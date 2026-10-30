@@ -1,6 +1,7 @@
 import type { MouseEvent } from 'react';
 import { Button, buttonClassName, Icon } from '@/shared/ui';
-import { isDateString, shiftDay, todayLocal } from '../timeline-model';
+import { shiftDay, todayLocal } from '@/shared/format/local-day';
+import { isDateString } from '../timeline-model';
 
 export interface TimelineDayNavProps {
   date: string;

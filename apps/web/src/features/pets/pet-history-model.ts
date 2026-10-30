@@ -2,6 +2,7 @@
 // (its visits and its weighed reading), and the trend the weight chart draws. The days come from
 // the timeline's own day route, narrowed to the pet; nothing here touches the network.
 import type { components } from '@/api/schema';
+import { shiftDay } from '@/shared/format/local-day';
 
 export type HistoryDay = components['schemas']['TimelineDay'];
 
@@ -12,23 +13,9 @@ export const VISIT_DAYS = 7;
 /** The span of the weight chart, in days. */
 export type WeightRange = 7 | 14;
 
-/** `YYYY-MM-DD` of the reader's local calendar, the cut the server uses for a day. */
-export function localDay(now: Date = new Date()): string {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-}
-
-/** `YYYY-MM-DD` moved by `n` calendar days (calendar arithmetic, immune to DST). */
-export function shiftLocalDay(date: string, n: number): string {
-  const d = new Date(`${date}T00:00:00Z`);
-  if (Number.isNaN(d.getTime())) return date;
-  d.setUTCDate(d.getUTCDate() + n);
-  return d.toISOString().slice(0, 10);
-}
-
 /** The last `count` days ending today, oldest first. */
 export function historyDates(today: string, count: number = HISTORY_DAYS): string[] {
-  return Array.from({ length: count }, (_, i) => shiftLocalDay(today, i - count + 1));
+  return Array.from({ length: count }, (_, i) => shiftDay(today, i - count + 1));
 }
 
 /** One day of a pet: how often it used the box, and the middle of its weighed visits. */
