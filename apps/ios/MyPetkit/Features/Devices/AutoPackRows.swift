@@ -119,6 +119,8 @@ struct AutoPackRows: View {
 
     /// A time of the device's day. The picker runs in UTC on purpose: the
     /// value is a wall-clock "HH:MM" for the device, not a moment for the phone.
+    /// It is also pinned to 24-hour time, the way the rule's summary and
+    /// status lines print it, whatever the phone's region prefers.
     private func timeRow(_ title: String, minute: Binding<Int>) -> some View {
         DatePicker(selection: Binding(
             get: { Date(timeIntervalSince1970: TimeInterval(minute.wrappedValue * 60)) },
@@ -127,6 +129,7 @@ struct AutoPackRows: View {
             Text(title).font(Theme.Font.body).foregroundStyle(Theme.Color.text)
         }
         .environment(\.timeZone, .gmt)
+        .environment(\.locale, Locale(identifier: "en_GB"))
         .disabled(busy)
         .frame(minHeight: Theme.Space.rowHeight)
     }
