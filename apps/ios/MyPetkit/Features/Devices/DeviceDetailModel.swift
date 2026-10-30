@@ -19,17 +19,24 @@ final class DeviceDetailModel {
     private(set) var capabilities: Loadable<Capabilities> = .loading
     private(set) var logSettings: Loadable<(enabled: Bool, reason: String)> = .loading
     /// "Last: Scoop · Sent over MQTT", after a command went through.
-    private(set) var lastCommand: String?
+    var lastCommand: String?
     /// A refused settings write, in the server's words, under its block.
     var settingsError: String?
+    /// Force continue and auto-pack (`DeviceDetailModelLitterAutomation.swift`
+    /// loads and writes them); only litter boxes ask.
+    var automation: Loadable<LitterAutomationRecord> = .loading
+    var autoPackBusy = false
+    /// A refused auto-pack save, in the server's words.
+    var autoPackError: String?
 
     init(deviceID: Int) {
         self.deviceID = deviceID
     }
 
     /// A model already holding `device`, for previews.
-    init(device: DeviceRecord, sessions: [TimelineSessionRecord]) {
+    init(device: DeviceRecord, sessions: [TimelineSessionRecord], automation: LitterAutomationRecord = .unsupported) {
         deviceID = device.id
+        self.automation = .loaded(automation)
         self.device = .loaded(device)
         self.sessions = .loaded(sessions)
         timezone = device.timezoneInfo.map(Loadable.loaded) ?? .failed("No timezone yet.")
@@ -47,7 +54,8 @@ final class DeviceDetailModel {
         async let logsDone: Void = loadLogSettings(session)
         async let aiDone: Void = loadAI(session)
         async let capabilitiesDone: Void = loadCapabilities(session)
-        _ = await (sessionsDone, timezoneDone, logsDone, aiDone, capabilitiesDone)
+        async let automationDone: Void = loadAutomation(session)
+        _ = await (sessionsDone, timezoneDone, logsDone, aiDone, capabilitiesDone, automationDone)
     }
 
     func loadDevice(_ session: ServerSession) async {

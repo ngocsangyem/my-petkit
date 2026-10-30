@@ -50,7 +50,10 @@ struct DeviceDetailView: View {
         .onChange(of: session.lastEvent) { _, event in
             guard loadsOnAppear, let event, event.deviceID == String(model.deviceID) || event.kind == "connect"
             else { return }
-            Task { await model.loadDevice(session) }
+            Task {
+                await model.loadDevice(session)
+                await model.loadAutomation(session)
+            }
         }
         .sheet(item: $sheet) { sheet in
             switch sheet {
@@ -63,6 +66,10 @@ struct DeviceDetailView: View {
             case .more(let actions):
                 MoreActionsSheet(actions: actions) { action in
                     self.sheet = .confirm(actionConfirmation(action))
+                }
+            case .forceContinue(let info):
+                ForceContinueSheet(info: info) { [model, session] in
+                    try await model.forceContinue(session: session)
                 }
             }
         }
@@ -108,7 +115,8 @@ struct DeviceDetailView: View {
                                     paused: DeviceFindings.pause(device) != nil),
             lastCommand: model.lastCommand,
             ask: { sheet = .confirm(actionConfirmation($0)) },
-            showMore: { sheet = .more($0) }
+            showMore: { sheet = .more($0) },
+            continueCleaning: continueCleaning
         )
         if device.isCamera {
             LiveEntryCard(device: device)
@@ -126,6 +134,7 @@ struct DeviceDetailView: View {
         DeviceTodayCard(device: device, sessions: model.sessions, today: today, meals: meals, zone: zone, now: now,
                         retry: { Task { await model.loadSessions(session) } })
         ConsumablesCard(rows: ConsumableRow.rows(device))
+        LitterAutomationSection(model: model, device: device, now: now, confirm: { sheet = .confirm($0) })
         EntityControlsCard(title: "Settings", entities: EntityGroups(device).controls, enabled: device.online,
                            ask: { sheet = .confirm(entityConfirmation(device, $0, $1)) })
         if device.supportsAi {
@@ -157,6 +166,24 @@ struct DeviceDetailView: View {
         RemoveDeviceCard(device: device) {
             try await model.delete(session: session)
             dismiss()
+        }
+    }
+
+    /// The paused hero's one command, only while the server offers it.
+    private var continueCleaning: (() -> Void)? {
+        guard ForceContinueRules.isOffered(model.automation.value) else { return nil }
+        return { startForceContinue() }
+    }
+
+    /// Password first, then the sheet with the guards read again.
+    private func startForceContinue() {
+        Task {
+            guard await model.prepareForceContinue(session: session) else { return }
+            switch model.automation {
+            case .loaded(let automation): sheet = .forceContinue(automation.forceContinue)
+            case .failed(let message): model.settingsError = message
+            case .loading: break
+            }
         }
     }
 
@@ -211,12 +238,14 @@ enum DetailSheet: Identifiable {
     case confirm(CommandConfirmation)
     case timezone(TimezoneInfo)
     case more([DeviceAction])
+    case forceContinue(ForceContinueInfo)
 
     var id: String {
         switch self {
         case .confirm(let confirmation): "confirm-\(confirmation.id)"
         case .timezone: "timezone"
         case .more: "more"
+        case .forceContinue: "force-continue"
         }
     }
 }
@@ -224,17 +253,26 @@ enum DetailSheet: Identifiable {
 #Preview("Litter box") {
     NavigationStack {
         DeviceDetailView(model: DeviceDetailModel(device: DevicePreviewFixtures.litterBox,
-                                                  sessions: DevicePreviewFixtures.sessions))
+                                                  sessions: DevicePreviewFixtures.sessions,
+                                                  automation: DevicePreviewFixtures.autoPackOn))
     }
     .environment(ServerSession.preview)
 }
 
 #Preview("Litter box, paused") {
-    var device = DevicePreviewFixtures.litterBox
-    device.state = .object(["workState": .object(["workMode": .number(0), "workProcess": .number(22),
-                                                  "safeWarn": .number(0)])])
-    return NavigationStack { DeviceDetailView(model: DeviceDetailModel(device: device, sessions: [])) }
-        .environment(ServerSession.preview)
+    NavigationStack {
+        DeviceDetailView(model: DeviceDetailModel(device: DevicePreviewFixtures.pausedLitterBox, sessions: [],
+                                                  automation: DevicePreviewFixtures.pausedOffered))
+    }
+    .environment(ServerSession.preview)
+}
+
+#Preview("Litter box, paused and refused") {
+    NavigationStack {
+        DeviceDetailView(model: DeviceDetailModel(device: DevicePreviewFixtures.pausedLitterBox, sessions: [],
+                                                  automation: DevicePreviewFixtures.pausedRefused))
+    }
+    .environment(ServerSession.preview)
 }
 
 #Preview("Feeder") {

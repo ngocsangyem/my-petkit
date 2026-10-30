@@ -47,6 +47,43 @@ enum DevicePreviewFixtures {
         return device
     }
 
+    /// The litter box paused mid-clean because a cat came close (`safeWarn` 0).
+    static var pausedLitterBox: DeviceRecord {
+        var device = litterBox
+        device.state = .object(["workState": .object(["workMode": .number(0), "workProcess": .number(22),
+                                                      "safeWarn": .number(0)])])
+        return device
+    }
+
+    /// Paused, and every force-continue guard passes.
+    static let pausedOffered = LitterAutomationRecord(
+        forceContinue: ForceContinueInfo(supported: true, offered: true, blockers: []),
+        autoPack: AutoPackInfo(supported: true, rule: autoPackRule, status: autoPackStatus))
+
+    /// Paused, but a visit is still open and the cover reads open: refused.
+    static let pausedRefused = LitterAutomationRecord(
+        forceContinue: ForceContinueInfo(supported: true, offered: false, blockers: [
+            ForceContinueBlocker(reason: "visit_open", message: "A pet entered in the last 10 minutes and has not left."),
+            ForceContinueBlocker(reason: "cover_open", message: "The device paused because its cover is open."),
+        ]),
+        autoPack: AutoPackInfo(supported: true, rule: autoPackRule, status: autoPackStatus))
+
+    /// A T6 with auto-pack on after 10 cleans, quiet at night.
+    static let autoPackOn = LitterAutomationRecord(
+        forceContinue: ForceContinueInfo(supported: true, offered: false, blockers: [
+            ForceContinueBlocker(reason: "not_paused", message: "The device is not paused for a pet nearby."),
+        ]),
+        autoPack: AutoPackInfo(supported: true, rule: autoPackRule, status: autoPackStatus))
+
+    static let autoPackRule = AutoPackRule(enabled: true, trigger: .afterCleanings, cleanings: 10, at: "21:00",
+                                           quietHours: AutoPackQuietHours(start: "22:00", end: "07:00"))
+
+    static var autoPackStatus: AutoPackStatus {
+        AutoPackStatus(enabledAt: at(8, 0), pendingSince: nil, lastAttemptAt: at(11, 20), retries: 0,
+                       lastResult: "packed", lastPackedAt: at(11, 21), heldBackBy: "not_due", disabledReason: nil,
+                       awaitingBinClear: false)
+    }
+
     static var feeder: DeviceRecord {
         var device = DeviceRecord(id: 100_198_342, type: "d4sh", name: "Kitchen feeder")
         device.firmware = "1.3.12"

@@ -73,6 +73,30 @@ struct DevicesAPI {
         return delivered == "mqtt" ? "Sent to the device." : "Saved. It applies on the device's next check-in."
     }
 
+    // MARK: Litter automation
+
+    /// `GET /api/devices/{id}/litter-automation` (R0), asked of any device.
+    func litterAutomation(_ id: Int) async throws -> LitterAutomationRecord {
+        try await get("/api/devices/\(id)/litter-automation")
+    }
+
+    /// `POST /api/devices/{id}/force-continue` (R3, no body). A failed guard
+    /// throws 409 with the guard's reason as the code and its sentence; a
+    /// command that could not be sent throws 503 (code `unavailable`, as for
+    /// every 5xx) with its sentence. Both are shown as the server words them.
+    /// Resolves to the sentence for the person who pressed the button.
+    func forceContinue(_ id: Int) async throws -> String {
+        let data = try await send("POST", "/api/devices/\(id)/force-continue")
+        struct Result: Decodable { let delivered: String }
+        return DeliveryText.command((try? JSONDecoder().decode(Result.self, from: data))?.delivered ?? "unknown")
+    }
+
+    /// `PUT /api/devices/{id}/auto-pack` (R1) with the whole rule.
+    func setAutoPack(_ id: Int, rule: AutoPackRule) async throws -> AutoPackResult {
+        let data = try await send("PUT", "/api/devices/\(id)/auto-pack", json: JSONEncoder().encode(rule))
+        return try JSONDecoder().decode(AutoPackResult.self, from: data)
+    }
+
     // MARK: Transport
 
     private func get<T: Decodable>(_ path: String, query: [URLQueryItem] = []) async throws -> T {
