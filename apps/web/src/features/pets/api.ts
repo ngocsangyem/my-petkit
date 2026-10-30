@@ -22,8 +22,11 @@ export const petsKeys = {
  * pets cache root, so saving a pet does not refetch two weeks of days; a minute old is fresh.
  */
 export function usePetHistory(petId: number) {
-  const dates = historyDates(todayLocal());
+  const today = todayLocal();
+  const dates = historyDates(today);
   const results = useQueries({
+    // A past day only changes when a visit is reassigned, and that invalidates
+    // `pet-history`; only today keeps arriving. So focus never refetches all 14.
     queries: dates.map(date => ({
       queryKey: ['pet-history', petId, date] as const,
       queryFn: () =>
@@ -32,7 +35,7 @@ export function usePetHistory(petId: number) {
             params: { query: { date, pet: petId, filter: 'toileting' } },
           }),
         ),
-      staleTime: 60_000,
+      staleTime: date === today ? 60_000 : Infinity,
     })),
   });
   const days: PetDay[] = dates.map((date, i) => petDay(date, results.at(i)?.data, petId));
