@@ -1,12 +1,23 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import { describe, expect, it } from 'vitest';
 import { mockApi } from '@/test/mock-api';
 import { renderWithProviders } from '@/test/render';
-import { DeviceSchedules } from './index';
+import { PendingEditsProvider } from '../hooks/pending-edits';
+import { DeviceSchedules as SchedulesUnderTest, type DeviceSchedulesProps } from './index';
 import { clockToMin, formatOffset, minToClock, secToClock } from './schedule-clock';
 import type { DeviceDetail, ScheduleTarget } from './schedule-model';
 import { validateDraft } from './schedule-model';
+
+/** On the page the drafts live in the devices-level store; so do they here. */
+function DeviceSchedules(props: DeviceSchedulesProps) {
+  return (
+    <PendingEditsProvider>
+      <SchedulesUnderTest {...props} />
+    </PendingEditsProvider>
+  );
+}
 
 function device(schedules: ScheduleTarget[], extra: Partial<DeviceDetail> = {}): DeviceDetail {
   return {
@@ -128,6 +139,43 @@ describe('DeviceSchedules', () => {
       target: 'distrubMultiRange',
       value: [[1290, 420]],
     });
+  });
+
+  it('keeps an unsaved edit after leaving the page and coming back', async () => {
+    mockApi({});
+    const dnd = device([
+      {
+        target: 'distrubMultiRange',
+        name: 'Cleaning Do Not Disturb',
+        kind: 'ranges',
+        value: [[1320, 420]],
+      },
+    ]);
+    function Page() {
+      const [shown, setShown] = useState(true);
+      return (
+        <PendingEditsProvider>
+          <button
+            type="button"
+            onClick={() => {
+              setShown(v => !v);
+            }}
+          >
+            Toggle page
+          </button>
+          {shown ? <SchedulesUnderTest device={dnd} /> : null}
+        </PendingEditsProvider>
+      );
+    }
+    renderWithProviders(<Page />);
+    fireEvent.change(screen.getByLabelText('period 1 start'), { target: { value: '21:30' } });
+    await userEvent.click(screen.getByRole('button', { name: 'Toggle page' }));
+    expect(screen.queryByLabelText('period 1 start')).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Toggle page' }));
+    expect(screen.getByLabelText('period 1 start')).toHaveValue('21:30');
+    expect(
+      screen.getByRole('button', { name: 'Save Cleaning Do Not Disturb' }),
+    ).toBeInTheDocument();
   });
 
   it('blocks a weekly entry with no days and discards back to the server value', async () => {

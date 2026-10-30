@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { usePersistedState } from '@/shared/ui';
+import { usePendingDraft } from '../hooks/pending-edits';
 import { DeferredFeedPanel } from './components/deferred-feed-panel';
 import { ScheduleEditor } from './components/schedule-editor';
 import { SegmentTabs } from './components/segment-tabs';
@@ -7,6 +7,8 @@ import type { DeviceDetail, ScheduleDraft } from './schedule-model';
 
 /** The tab id of the one-off feeds, an id no schedule target uses (targets are camel-case wire field names). */
 const ONE_OFF = '__one-off';
+
+const NO_DRAFTS: ReadonlyMap<string, ScheduleDraft> = new Map();
 
 export interface DeviceSchedulesProps {
   device: DeviceDetail;
@@ -26,7 +28,11 @@ function SchedulesCard({ device }: DeviceSchedulesProps) {
   const targets = device.schedules;
   // Working copies by target, so a background refresh of the device cannot
   // throw away rows somebody just added; the server value shows until an edit.
-  const [drafts, setDrafts] = useState<ReadonlyMap<string, ScheduleDraft>>(new Map());
+  // Held above the page, so going back to Home and returning keeps them too.
+  const [held, setDrafts] = usePendingDraft<ReadonlyMap<string, ScheduleDraft>>(
+    `schedules:${device.id}`,
+  );
+  const drafts = held ?? NO_DRAFTS;
   const [stored, setSelected] = usePersistedState(`devices.${device.id}.schedule-tab`, '');
   const feed = targets.find(t => t.kind === 'feed');
 
@@ -49,12 +55,10 @@ function SchedulesCard({ device }: DeviceSchedulesProps) {
             target={target}
             draft={drafts.get(target.target)}
             onDraft={draft => {
-              setDrafts(prev => {
-                const next = new Map(prev);
-                if (draft) next.set(target.target, draft);
-                else next.delete(target.target);
-                return next;
-              });
+              const next = new Map(drafts);
+              if (draft) next.set(target.target, draft);
+              else next.delete(target.target);
+              setDrafts(next.size ? next : undefined);
             }}
           />
         ) : (
