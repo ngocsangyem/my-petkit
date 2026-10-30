@@ -868,6 +868,58 @@ deleted `provision.js` through node. The decoder now lives in the web app's
 "never throws on any notification" property belongs in that app's vitest suite; until a
 randomized test lands there, only the fixed vectors in `provisioning-protocol.test.ts` cover it.
 
+### Live video: go2rtc WebRTC config (off until candidates are set, fixed TCP+UDP port, STUN off)
+
+- added: tests/test_go2rtc_webrtc_config.py::test_without_candidates_no_media_listener_and_no_stun
+- added: tests/test_go2rtc_webrtc_config.py::test_with_candidates_one_port_for_tcp_and_udp_and_only_those_addresses
+- added: tests/test_go2rtc_webrtc_config.py::test_the_api_stays_on_loopback_with_webrtc_on
+- added: tests/test_go2rtc_webrtc_config.py::test_the_sidecar_reports_and_renders_what_it_was_given
+- added: tests/test_go2rtc_webrtc_config.py::test_config_refuses_a_candidate_go2rtc_would_drop_or_misread[candidates0]
+- added: tests/test_go2rtc_webrtc_config.py::test_config_refuses_a_candidate_go2rtc_would_drop_or_misread[candidates1]
+- added: tests/test_go2rtc_webrtc_config.py::test_config_refuses_a_candidate_go2rtc_would_drop_or_misread[candidates2]
+- added: tests/test_go2rtc_webrtc_config.py::test_config_refuses_a_candidate_go2rtc_would_drop_or_misread[candidates3]
+- added: tests/test_go2rtc_webrtc_config.py::test_config_refuses_a_candidate_go2rtc_would_drop_or_misread[candidates4]
+- added: tests/test_go2rtc_webrtc_config.py::test_config_refuses_a_candidate_go2rtc_would_drop_or_misread[candidates5]
+- added: tests/test_go2rtc_webrtc_config.py::test_config_refuses_a_candidate_go2rtc_would_drop_or_misread[candidates6]
+- added: tests/test_go2rtc_webrtc_config.py::test_config_accepts_ip_and_hostname_candidates
+- added: tests/test_go2rtc_webrtc_config.py::test_config_refuses_a_bad_webrtc_port[0]
+- added: tests/test_go2rtc_webrtc_config.py::test_config_refuses_a_bad_webrtc_port[65536]
+- added: tests/test_go2rtc_webrtc_config.py::test_addon_options_parse_comma_separated_candidates
+
+### Live video: the authenticated proxy to go2rtc (HLS with signed links, MSE bridge, WebRTC signaling)
+
+- added: tests/test_live_proxy_auth.py::test_info_says_why_nothing_can_be_watched[sidecar0-False-192.0.2.10-not_a_camera]
+- added: tests/test_live_proxy_auth.py::test_info_says_why_nothing_can_be_watched[sidecar1-True--device_unreachable]
+- added: tests/test_live_proxy_auth.py::test_info_says_why_nothing_can_be_watched[sidecar2-True-192.0.2.10-no_stream]
+- added: tests/test_live_proxy_auth.py::test_info_says_why_nothing_can_be_watched[sidecar3-True-192.0.2.10-sidecar_down]
+- added: tests/test_live_proxy_auth.py::test_info_offers_webrtc_only_when_configured
+- added: tests/test_live_proxy_auth.py::test_info_needs_a_principal_and_a_known_device
+- added: tests/test_live_proxy_auth.py::test_hls_without_a_token_or_signature_is_401
+- added: tests/test_live_proxy_auth.py::test_a_signature_for_one_device_does_not_open_another
+- added: tests/test_live_proxy_auth.py::test_the_signed_hls_chain_plays_without_a_token
+- added: tests/test_live_proxy_auth.py::test_only_go2rtc_hls_files_are_proxied[hls/../../stream.m3u8?id=AbC12345]
+- added: tests/test_live_proxy_auth.py::test_only_go2rtc_hls_files_are_proxied[hls/evil.ts?id=AbC12345]
+- added: tests/test_live_proxy_auth.py::test_only_go2rtc_hls_files_are_proxied[hls/segment.ts?id=../x]
+- added: tests/test_live_proxy_auth.py::test_only_go2rtc_hls_files_are_proxied[hls/segment.ts]
+- added: tests/test_live_proxy_auth.py::test_a_device_without_a_configured_stream_is_never_asked_for
+- added: tests/test_live_proxy_auth.py::test_webrtc_needs_a_principal
+- added: tests/test_live_proxy_auth.py::test_webrtc_offer_and_answer_go_through
+- added: tests/test_live_proxy_auth.py::test_webrtc_is_refused_when_not_configured_or_malformed
+- added: tests/test_live_proxy_auth.py::test_mse_needs_a_principal
+- added: tests/test_live_proxy_auth.py::test_mse_bridges_only_the_mse_request
+
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/live/__init__.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/live/routes.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/live/__init__.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/live/routes.py]
+  — the per-module clock and app-key checks pick up the new `features/live` package.
+
+### Talk: raw 16 kHz mono PCM input for the iOS app, checked with ffprobe
+
+- added: tests/test_talk_pcm_input.py::test_pcm_input_reaches_the_device_as_16khz_mono_adts_aac
+- added: tests/test_talk_pcm_input.py::test_an_unknown_format_is_refused_without_starting_ffmpeg
+- added: tests/test_talk_pcm_input.py::test_webm_stays_the_default_and_probes_its_input
+
 ## Removed
 
 ### The server-rendered panel (`web/templates`, `web/static/js`, `web/static/styles.css`) is deleted
@@ -983,6 +1035,7 @@ no longer exists; the web app's build and its vitest suite fail on the equivalen
 | `test_web_app_serving.py` (document, hashed asset, document-through-assets, path containment, info entry) | paths moved from `/app/...` to `/`, `/assets/...` and `/{name}`; the build comes from the shared `web_build` fixture; the info test also asserts `asset_version` is present and empty | `/` serves the web app | – |
 | `test_contract_spec_paths_exist.py` (`UNDESCRIBED`) | `/static`, `/asset/{v}/js/{name}` and `/app/{path}` dropped; `/assets/{name}` and `/{name}` added; `/app`, `/app/` now described as redirects to the root | `/` serves the web app | – |
 | `conftest.py` | new `web_build` fixture and `WEB_ENTRY` constant: a minimal build in a temporary dist directory, moved out of `test_web_app_serving.py` so every module that reaches `/` can use it | fixture | – |
+| `test_go2rtc.py` | `test_the_rendered_config_binds_where_we_intend`: comment only — WebRTC media is off until candidates are configured, rather than off outright; the assertion is unchanged | comment | live video |
 
 ### Media serves the byte ranges the iOS media loader asks for
 

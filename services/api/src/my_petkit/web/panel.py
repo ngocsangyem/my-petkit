@@ -73,6 +73,13 @@ from my_petkit.features.sounds.routes import (
     api_sounds_delete, api_sounds_list, api_sounds_play,
     api_sounds_select, api_sounds_upload,
 )
+from my_petkit.features.live.routes import (
+    api_live_hls_file,
+    api_live_hls_master,
+    api_live_info,
+    api_live_mse,
+    api_live_webrtc,
+)
 from my_petkit.features.talk.routes import api_talk
 from my_petkit.features.timeline.routes import api_event_detail, api_timeline
 from my_petkit.shared.background_tasks import (
@@ -181,6 +188,12 @@ def create_panel_app(registry: DeviceRegistry, ble_registry: BLERegistry | None,
     app.router.add_post("/api/devices/{id}/logs", api_device_log_settings)
     # Two-way talk: browser mic -> device speaker (needs the `talk` patcher).
     app.router.add_get("/api/devices/{id}/talk", api_talk)
+    # Live video through go2rtc: what is watchable, then HLS / MSE / WebRTC.
+    app.router.add_get("/api/devices/{id}/live", api_live_info)
+    app.router.add_get("/api/live/{id}/stream.m3u8", api_live_hls_master)
+    app.router.add_get("/api/live/{id}/hls/{name}", api_live_hls_file)
+    app.router.add_get("/api/live/{id}/mse", api_live_mse)
+    app.router.add_post("/api/live/{id}/webrtc", api_live_webrtc)
 
     # --- custom sounds (camera feeders) ---
     app.router.add_get("/api/devices/{id}/sounds", api_sounds_list)

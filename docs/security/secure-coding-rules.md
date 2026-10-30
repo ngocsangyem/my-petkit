@@ -35,6 +35,13 @@ Source: the conventions document of the rebuild plan (part C), copied into the r
   - The web app's document and build files (served at `/` by `web/spa.py`) carry their own `SPA_CSP`: no inline script or style at all, plus `blob:` for images, media and workers (face cropper preview, hls.js) and `data:` images. The server-rendered panel and its wider policy are deleted; `/app/`, the web app's old mount, is a permanent redirect to `/`.
   - Origin/Host: every unsafe method and every WS upgrade. Host must be an IP literal, `localhost` or a name in `user_hosts`; Origin (if present) must match host:port exactly. Cookie/Ingress without an Origin is rejected; a client token (not sent automatically) is allowed.
   - 5xx errors: the handler's message is replaced by a correlation id, except 502/503/504, which are upstream-describing messages the handler writes on purpose.
+- **Live video** (`features/live`): go2rtc's API stays on `127.0.0.1:1984` with no auth of its own, and clients reach it only through the live routes.
+  - HLS uses signed links: the master link lasts five minutes, and the URIs inside a live playlist last one hour, which caps one viewing session.
+  - MSE runs over a WebSocket bridge that forwards only `{"type": "mse", "value": ...}`.
+  - WebRTC signaling is tier R0\*.
+  - The stream name sent to go2rtc is always one the server configured, never client input, because go2rtc dials an unknown `src` as a source URL.
+  - **WebRTC media does not pass through our auth.** It flows straight from the viewer to go2rtc's WebRTC port (TCP and UDP) and is protected by DTLS/SRTP. A session only exists once an offer has been accepted through the authenticated signaling route.
+  - The media port is closed unless the owner sets `webrtc_candidates`. STUN is off (`ice_servers: []`), so go2rtc only advertises the addresses the owner listed.
 - **Input**: strict schemas, unknown fields rejected. Limit string length, body size and array element count. Special formats (SSH pubkey, IANA timezone, sound file names) are validated with allowlists, never blocklists.
 - **Output**: JSON only. The web renders via React and never inserts raw HTML. Every string coming from a device is untrusted data.
 

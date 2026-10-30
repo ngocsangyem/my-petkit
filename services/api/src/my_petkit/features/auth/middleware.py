@@ -38,7 +38,13 @@ from my_petkit.features.auth.sessions import COOKIE_NAME, Session, set_session_c
 from my_petkit.shared.appkeys import AUTH
 from my_petkit.shared.errors import error_response
 from my_petkit.utils.logtext import one_line
-from my_petkit.shared.request_auth import PLAYLIST_SIGNER, REQUEST_AUTH, AuthContext, audit_r3
+from my_petkit.shared.request_auth import (
+    PLAYLIST_SIGNER,
+    REQUEST_AUTH,
+    URL_SIGNER,
+    AuthContext,
+    audit_r3,
+)
 from my_petkit.shared.tiers import Tier, route_tier
 
 log = logging.getLogger(__name__)
@@ -234,6 +240,7 @@ async def auth_middleware(request: web.Request, handler: _Handler) -> web.Stream
     if refusal is not None:
         return refusal
     request[REQUEST_AUTH] = ctx or AuthContext("anonymous", "none")
+    request[URL_SIGNER] = auth.signer.signed_url
     if tier is Tier.SIGNED_MEDIA:
         request[PLAYLIST_SIGNER] = auth.signer.sign_playlist
     if tier is Tier.R3:

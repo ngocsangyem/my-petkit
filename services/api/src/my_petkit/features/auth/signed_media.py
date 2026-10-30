@@ -9,7 +9,13 @@ middleware check as the first one — it is just another request for the path.
 
 An HLS playlist names its segments by relative URL, and a player never carries
 the playlist's own query string over to them, so a playlist served under a
-signature has every URI in it re-signed (`sign_playlist`).
+signature has every URI in it re-signed (`sign_playlist`). A URI's own query is
+kept: go2rtc's live playlists name their session in it (`segment.ts?id=..`).
+
+Live video (`/api/live/`) is signable too. Its playlists are re-signed with a
+longer TTL: a player re-reads the live playlist by the URL it was first given
+for as long as it watches, so a five-minute signature would cut every viewer
+off at five minutes.
 
 `sig` is a bearer credential for its five minutes, so the panel's access log
 masks it (`SignatureMaskingAccessLogger`).
@@ -30,8 +36,12 @@ from urllib.parse import quote, unquote
 from aiohttp.web_log import AccessLogger
 
 SIGNED_URL_TTL_SECONDS = 300
-#: The only path prefix a signature is ever issued for.
+#: The path prefix `POST /api/auth/media-url` issues signatures for.
 SIGNABLE_PREFIX = "/api/media/"
+#: Live video. Its URLs are issued by `GET /api/devices/{id}/live`.
+LIVE_PREFIX = "/api/live/"
+#: Every prefix a signature is ever valid for.
+SIGNABLE_PREFIXES = (SIGNABLE_PREFIX, LIVE_PREFIX)
 _MAX_SIG_LENGTH = 64
 _SIG_IN_TEXT = re.compile(r"([?&]sig=)[^&\s\"]*")
 _URI_ATTRIBUTE = re.compile(r'URI="([^"]+)"')
@@ -61,26 +71,30 @@ class MediaSigner:
         """Whether `sig` signs `path` until `exp`, and `exp` has not passed."""
         if not exp or not sig or len(sig) > _MAX_SIG_LENGTH or not exp.isdigit():
             return False
-        if not path.startswith(SIGNABLE_PREFIX):
+        if not path.startswith(SIGNABLE_PREFIXES):
             return False
         expires = int(exp)
         if expires < self._clock():
             return False
         return hmac.compare_digest(sig, self._sig(path, expires))
 
-    def sign_playlist(self, text: str, playlist_path: str) -> str:
+    def sign_playlist(
+        self, text: str, playlist_path: str, ttl: int = SIGNED_URL_TTL_SECONDS
+    ) -> str:
         """Re-sign every relative URI in an HLS playlist served from `playlist_path`."""
         base = posixpath.dirname(playlist_path)
 
         def signed(uri: str) -> str:
             if "://" in uri or uri.startswith("/"):
                 return uri
-            relative = uri.split("?", 1)[0]
+            relative, _, own_query = uri.partition("?")
             target = posixpath.normpath(posixpath.join(base, unquote(relative)))
-            if not target.startswith(SIGNABLE_PREFIX):
+            if not target.startswith(SIGNABLE_PREFIXES):
                 return uri
-            # The URI stays as the playlist wrote it; only the query is ours.
-            return f"{relative}?{self.query(target)}"
+            # The URI stays as the playlist wrote it, its own query included;
+            # only `exp` and `sig` are ours.
+            ours = self.query(target, ttl)
+            return f"{relative}?{own_query}&{ours}" if own_query else f"{relative}?{ours}"
 
         lines = []
         for line in text.splitlines():

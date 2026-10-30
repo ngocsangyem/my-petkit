@@ -151,4 +151,5 @@ def build_config(args: argparse.Namespace) -> Config:
     # process here with the setting's name, before anything has bound.
     config.validate_bind_addresses()
     config.validate_wireguard_subnets()
+    config.validate_webrtc()
     return config

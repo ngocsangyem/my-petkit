@@ -31,6 +31,10 @@ REQUEST_AUTH = "my_petkit.auth"
 #: on `signed-media` routes, so the media feature can sign an HLS playlist's
 #: segment URIs without importing `features.auth`.
 PLAYLIST_SIGNER = "my_petkit.playlist_signer"
+#: The request key holding `(path, ttl) -> signed url` on every admitted
+#: request, so a feature can hand out a link for a player that cannot send a
+#: token (live video) without importing `features.auth`.
+URL_SIGNER = "my_petkit.url_signer"
 
 
 @dataclass(frozen=True)
@@ -53,9 +57,18 @@ def auth_context(request: web.Request) -> AuthContext | None:
     return ctx if isinstance(ctx, AuthContext) else None
 
 
-def playlist_signer(request: web.Request) -> Callable[[str, str], str] | None:
-    """The HLS playlist re-signer the middleware attached, or None."""
+def playlist_signer(request: web.Request) -> Callable[..., str] | None:
+    """The HLS playlist re-signer the middleware attached, or None.
+
+    Called as `(playlist_text, playlist_path)` or with a third `ttl` argument.
+    """
     signer = request.get(PLAYLIST_SIGNER)
+    return signer if callable(signer) else None
+
+
+def url_signer(request: web.Request) -> Callable[[str, int], str] | None:
+    """`(path, ttl) -> signed url`, as the middleware attached it, or None."""
+    signer = request.get(URL_SIGNER)
     return signer if callable(signer) else None
 
 

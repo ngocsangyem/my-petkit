@@ -56,6 +56,8 @@ tags:
   description: Recorded events.
 - name: media
   description: Recorded media files and thumbnails.
+- name: live
+  description: Live camera video through the bundled go2rtc (HLS, MSE, WebRTC signaling).
 - name: pets
   description: Pets and their face photos.
 - name: auth
@@ -2773,6 +2775,217 @@ paths:
       security:
       - bearerAuth: []
       - cookieAuth: []
+  /api/devices/{id}/live:
+    get:
+      operationId: getLiveInfo
+      tags:
+      - live
+      summary: What can be watched on this camera right now
+      description: 'Whether the camera''s live stream is available through the bundled go2rtc, and if not, a
+        stable `reason` code. `modes` lists the ways that work, in preference order: `webrtc` only when the
+        server has `webrtc_candidates` configured, then `mse` (WebSocket `/api/live/{id}/mse`, see
+        `ws-events.md`) and `hls`. `hls_url` is a root-absolute signed link to the master playlist, valid five
+        minutes, for players that cannot send a token; behind Home Assistant Ingress the client puts its
+        Ingress prefix in front of it.'
+      x-risk-tier: R0
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: The device's petkit id.
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Live availability.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LiveInfo'
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/live/{id}/stream.m3u8:
+    get:
+      operationId: getLiveHlsMaster
+      tags:
+      - live
+      summary: HLS master playlist for the camera's live stream
+      description: 'Starts a go2rtc HLS session (MPEG-TS, 0.5 s segments) and returns its master playlist with
+        every URI re-signed for one hour, the length of one viewing session. A session go2rtc has dropped
+        (no segment fetched for five seconds) answers 404; start again from `GET /api/devices/{id}/live`.'
+      x-risk-tier: signed-media
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: The device's petkit id.
+        schema:
+          type: integer
+      - name: exp
+        in: query
+        required: false
+        description: Signed-link expiry (epoch seconds); with sig, replaces a session/token.
+        schema:
+          type: string
+      - name: sig
+        in: query
+        required: false
+        description: Signed-link signature.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Re-signed master playlist.
+          content:
+            application/vnd.apple.mpegurl:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+        '502':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+      - signedUrl: []
+  /api/live/{id}/hls/{name}:
+    get:
+      operationId: getLiveHlsFile
+      tags:
+      - live
+      summary: One file of a live HLS session (media playlist or segment)
+      description: 'Only go2rtc''s own file names are served, with its `id` (session) and `n` parameters
+        passed through. Media playlists come back re-signed like the master. Fetch segments one at a time:
+        go2rtc hands each request whatever has buffered since the last one.'
+      x-risk-tier: signed-media
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: The device's petkit id.
+        schema:
+          type: integer
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - playlist.m3u8
+          - segment.ts
+          - init.mp4
+          - segment.m4s
+      - name: id
+        in: query
+        required: true
+        description: go2rtc's HLS session id, as the playlist names it.
+        schema:
+          type: string
+      - name: n
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: exp
+        in: query
+        required: false
+        description: Signed-link expiry (epoch seconds); with sig, replaces a session/token.
+        schema:
+          type: string
+      - name: sig
+        in: query
+        required: false
+        description: Signed-link signature.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A media playlist or segment bytes.
+          content:
+            application/vnd.apple.mpegurl:
+              schema:
+                type: string
+            video/mp2t:
+              schema:
+                type: string
+                format: binary
+            video/mp4:
+              schema:
+                type: string
+                format: binary
+            video/iso.segment:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+        '502':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+      - signedUrl: []
+  /api/live/{id}/webrtc:
+    post:
+      operationId: postLiveWebrtcOffer
+      tags:
+      - live
+      summary: Exchange a WebRTC offer for go2rtc's answer
+      description: 'No trickle ICE: the server answers once it has gathered every candidate, so send the offer
+        after your own ICE gathering completes. Media then flows directly to the server''s WebRTC port (TCP
+        and UDP), protected by DTLS/SRTP; only this signaling step is behind auth. 409 `webrtc_unavailable`
+        when the server has no `webrtc_candidates`; use MSE or HLS instead.'
+      x-risk-tier: R0*
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: The device's petkit id.
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebrtcSessionDescription'
+      responses:
+        '200':
+          description: The answer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebrtcSessionDescription'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '502':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
   /api/auth/media-url:
     post:
       operationId: authMediaUrl
@@ -2841,6 +3054,55 @@ components:
       description: 'A link from `POST /api/auth/media-url`: `exp` (expiry, Unix seconds) and `sig` together,
         valid for exactly the path they were issued for. For media players that cannot send a token.'
   schemas:
+    LiveInfo:
+      type: object
+      required:
+      - available
+      - reason
+      - modes
+      - hls_url
+      properties:
+        available:
+          type: boolean
+        reason:
+          description: Why nothing can be watched; null when available.
+          type:
+          - string
+          - 'null'
+          enum:
+          - not_a_camera
+          - device_unreachable
+          - no_stream
+          - sidecar_down
+          - null
+        modes:
+          type: array
+          description: Ways to watch, in preference order; empty when unavailable.
+          items:
+            type: string
+            enum:
+            - webrtc
+            - mse
+            - hls
+        hls_url:
+          description: Root-absolute signed master playlist URL (five minutes); null when unavailable.
+          type:
+          - string
+          - 'null'
+    WebrtcSessionDescription:
+      type: object
+      required:
+      - type
+      - sdp
+      properties:
+        type:
+          type: string
+          description: '`offer` in the request, `answer` in the response.'
+          enum:
+          - offer
+          - answer
+        sdp:
+          type: string
     AuthMediaUrlRequest:
       type: object
       additionalProperties: false
