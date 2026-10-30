@@ -8,7 +8,7 @@ export interface StepUpPillProps {
   children?: ReactNode;
 }
 
-/** 20px negative pill placed beside a title or setting that needs step-up (R3). */
+/** 22px negative pill placed beside a title or setting that needs step-up (R3). */
 export function StepUpPill({ children = 'Step-up required' }: StepUpPillProps) {
   return <Pill tone="negative">{children}</Pill>;
 }
@@ -19,10 +19,13 @@ export interface RiskNoticeProps {
   children: ReactNode;
 }
 
-/** The single warning paragraph of a step-up screen: on `raised`, with one 16px red icon. */
+/**
+ * The single warning paragraph of a step-up screen: a `raised` box (radius 16) with one 16px red
+ * icon and the sentence in the lede colour.
+ */
 export function RiskNotice({ children }: RiskNoticeProps) {
   return (
-    <div className="flex items-start gap-3 rounded-lg bg-raised px-4 py-3.5">
+    <div className="flex items-start gap-2.5 rounded-lg bg-raised px-3.5 py-3 text-lede">
       <Icon name="warning" size={16} strokeWidth={2} className="mt-0.5 flex-none text-negative" />
       <p className="max-w-[72ch]">{children}</p>
     </div>

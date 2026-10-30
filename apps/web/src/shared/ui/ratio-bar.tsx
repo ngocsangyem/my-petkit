@@ -50,7 +50,7 @@ function columns(named: boolean, labelled: boolean): string {
   return 'grid-cols-[minmax(0,1fr)]';
 }
 
-/** 6px track on `rule` with a fill at the true ratio and an optional name and label. */
+/** 6px pill track on `track` with a fill at the true ratio and an optional name and label. */
 export function RatioBar({ value, max, ariaLabel, tone = 'accent', name, label }: RatioBarProps) {
   const valid = Number.isFinite(max) && max > 0;
   const known = valid && value !== null && value !== undefined && Number.isFinite(value);
@@ -65,7 +65,7 @@ export function RatioBar({ value, max, ariaLabel, tone = 'accent', name, label }
         aria-label={ariaLabel}
         value={known ? Math.min(max, Math.max(0, value)) : null}
         max={valid ? max : 100}
-        className="relative flex h-1.5 w-full items-center overflow-hidden rounded-full bg-rule"
+        className="relative flex h-1.5 w-full items-center overflow-hidden rounded-full bg-track"
       >
         <ProgressIndicator className={FILL[tone]} />
       </ProgressPrimitive.Root>

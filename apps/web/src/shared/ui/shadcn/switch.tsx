@@ -3,10 +3,11 @@
 import { Switch as SwitchPrimitive } from '@base-ui/react/switch';
 import { cn } from 'cn';
 
-// Edited from the shadcn source: the accent focus outline instead of a ring
-// (design-reference §2), and form controls at radius 6 on the surface colour. A disabled switch
-// is not faded (an off one vanished on a raised panel): off is a hollow track with a muted edge
-// and thumb, on is a muted track instead of ink.
+// Edited from the shadcn source for design-reference §7/§8 (v3): the iOS
+// switch, 51x31 with a 27px thumb (40x24 small). On is the ink track with a
+// white thumb (inverted in dark mode, like the primary button); off is a grey
+// track. The focus ring is the accent outline. A disabled switch dims to 60%
+// but keeps both states readable.
 
 function Switch({
   className,
@@ -20,14 +21,14 @@ function Switch({
       data-slot="switch"
       data-size={size}
       className={cn(
-        'peer group/switch relative inline-flex shrink-0 items-center rounded-full border border-transparent transition-colors outline-none group-has-[:focus-visible]/field-label:border-transparent group-has-[:focus-visible]/field-label:ring-0 after:absolute after:-inset-x-3 after:-inset-y-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-invalid:border-destructive data-[size=default]:h-[18.4px] data-[size=default]:w-[32px] data-[size=sm]:h-[14px] data-[size=sm]:w-[24px] data-checked:bg-primary data-unchecked:bg-input dark:data-unchecked:bg-input/80 data-disabled:cursor-not-allowed data-disabled:data-checked:bg-muted-foreground data-disabled:data-unchecked:border-muted-foreground/50 data-disabled:data-unchecked:bg-transparent dark:data-disabled:data-unchecked:bg-transparent',
+        'peer group/switch relative inline-flex shrink-0 items-center rounded-full p-0.5 transition-colors outline-none after:absolute after:-inset-x-3 after:-inset-y-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-invalid:outline aria-invalid:outline-destructive data-[size=default]:h-[31px] data-[size=default]:w-[51px] data-[size=sm]:h-6 data-[size=sm]:w-10 data-checked:bg-primary data-unchecked:bg-switch-off data-disabled:cursor-not-allowed data-disabled:opacity-60',
         className,
       )}
       {...props}
     >
       <SwitchPrimitive.Thumb
         data-slot="switch-thumb"
-        className="pointer-events-none block rounded-full bg-background ring-0 transition-transform group-data-[size=default]/switch:size-4 group-data-[size=sm]/switch:size-3 group-data-[size=default]/switch:data-checked:translate-x-[calc(100%-2px)] group-data-[size=sm]/switch:data-checked:translate-x-[calc(100%-2px)] dark:data-checked:bg-primary-foreground group-data-[size=default]/switch:data-unchecked:translate-x-0 group-data-[size=sm]/switch:data-unchecked:translate-x-0 dark:data-unchecked:bg-foreground group-data-disabled/switch:data-unchecked:bg-muted-foreground/50 dark:group-data-disabled/switch:data-unchecked:bg-muted-foreground/60"
+        className="pointer-events-none block rounded-full transition-transform group-data-[size=default]/switch:size-[27px] group-data-[size=sm]/switch:size-5 data-checked:bg-primary-foreground data-unchecked:bg-switch-thumb group-data-[size=default]/switch:data-checked:translate-x-5 group-data-[size=sm]/switch:data-checked:translate-x-4 data-unchecked:translate-x-0"
       />
     </SwitchPrimitive.Root>
   );

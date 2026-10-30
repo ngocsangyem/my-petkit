@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react';
 import { usePersistedState } from './persisted-state';
-import { SegmentedChips } from './tabs';
+import { Segmented } from './chips-and-segmented';
 
 /** What the user picked; "system" follows the operating system as it changes. */
 export type ThemeMode = 'system' | 'light' | 'dark';
@@ -63,8 +63,17 @@ const OPTIONS = [
   { id: 'dark', label: 'Dark' },
 ] as const;
 
-/** System / Light / Dark chips. */
-export function ThemeModeControl() {
+/** Props for {@link ThemeModeControl}. */
+export interface ThemeModeControlProps {
+  /** Accessible name of the control; defaults to "Appearance". */
+  label?: string;
+}
+
+/**
+ * System / Light / Dark as a segmented control, for Settings › Appearance. The choice is stored in
+ * this browser only and applied before the first paint on the next load.
+ */
+export function ThemeModeControl({ label = 'Appearance' }: ThemeModeControlProps) {
   const [mode, setMode] = useThemeMode();
-  return <SegmentedChips label="Appearance" options={OPTIONS} value={mode} onChange={setMode} />;
+  return <Segmented label={label} options={OPTIONS} value={mode} onChange={setMode} />;
 }

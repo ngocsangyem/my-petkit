@@ -5,7 +5,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './shadcn/co
 
 /** Props for {@link CollapsiblePanel}. */
 export interface CollapsiblePanelProps {
-  /** Section heading (16/600). */
+  /** Section heading (17/600). */
   title: string;
   /** Optional muted line beside the title, kept visible while collapsed. */
   summary?: ReactNode;
@@ -15,7 +15,10 @@ export interface CollapsiblePanelProps {
   children: ReactNode;
 }
 
-/** A card section whose body can be folded; its open state survives a reload. */
+/**
+ * A white card section (radius 20, no border) whose body can be folded; its open state survives a
+ * reload. Inside it secondary buttons are ground-tinted and fields raised, as in any card.
+ */
 export function CollapsiblePanel({
   title,
   summary,
@@ -31,10 +34,10 @@ export function CollapsiblePanel({
       open={isOpen}
       onOpenChange={setOpen}
       render={<section />}
-      className="flex flex-col rounded-lg border border-border"
+      className="flex flex-col rounded-xl bg-card [--pk-fill-field:var(--pk-raised)] [--pk-fill-secondary:var(--pk-tint)]"
     >
       <h2 className="text-lg">
-        <CollapsibleTrigger className="group/trigger flex w-full items-baseline gap-2.5 rounded-lg border-0 bg-transparent p-5 text-left text-foreground">
+        <CollapsibleTrigger className="group/trigger flex w-full items-baseline gap-2.5 rounded-xl border-0 bg-transparent p-5 text-left text-foreground">
           <span className="max-w-full shrink-0 text-lg font-semibold">{title}</span>
           {summary && (
             <span className="min-w-0 truncate text-sm font-normal text-muted-foreground">
