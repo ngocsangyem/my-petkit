@@ -123,13 +123,13 @@ RUN set -eux; \
 # TARGETARCH maps to upstream's names: amd64/arm64 verbatim, and `arm` is their
 # armv7 build. `wget` exists on Alpine as a busybox applet but NOT in
 # python:*-slim, so the Debian branch installs and purges it in the same layer.
-ARG GO2RTC_VERSION=1.9.14
+ARG GO2RTC_VERSION=1.9.15
 ARG TARGETARCH
 RUN set -eux; \
     case "${TARGETARCH}" in \
-        amd64) sha=32d616af226bd731678ffde328b94cfb94e30339bfefc469cfb76323144615a6 ;; \
-        arm64) sha=359fabade8a7a51e81a55fe6df6b0ef81764a5e1d63179577534eaaa71904b50 ;; \
-        arm)   sha=4d7e1639af5a2722a28e864468fd8099b3c1682565446c798bf9e3b38fde12e4 ;; \
+        amd64) sha=20b46c6910734cb05ecefb234066f36868ff19b42ba1418a7a32e13a3e035712 ;; \
+        arm64) sha=af416f22b21a24ab83b8d78642190b4932ae695b4e386853f11d1b0319781763 ;; \
+        arm)   sha=cbffe4075a004e2015fd9d7e324800ab7968b52f49e9ce803361879d5e246028 ;; \
         *) echo "no go2rtc build for TARGETARCH=${TARGETARCH}" >&2; exit 1 ;; \
     esac; \
     url="https://github.com/AlexxIT/go2rtc/releases/download/v${GO2RTC_VERSION}/go2rtc_linux_${TARGETARCH}"; \
