@@ -23,14 +23,21 @@ const BOTTOM = 16;
 
 interface ChartProps {
   points: readonly { date: string; grams: number }[];
+  /** Every calendar day of the span, oldest first: the axis the dates under the chart name. */
+  span: readonly string[];
   label: string;
 }
 
 /** A thin line over three rules, the latest reading as a dot, the kilograms on the right. */
-function WeightLine({ points, label }: ChartProps) {
+function WeightLine({ points, span, label }: ChartProps) {
   const { min, max } = weightScale(points);
   const y = (grams: number) => TOP + (1 - (grams - min) / (max - min)) * (H - TOP - BOTTOM);
-  const x = (i: number) => (points.length < 2 ? W / 2 : (i / (points.length - 1)) * W);
+  // Placed by calendar day, not by reading: a day with no weighed visit keeps its width, so the
+  // line lines up with the dates under it.
+  const x = (i: number) => {
+    const day = span.indexOf(points.at(i)?.date ?? '');
+    return span.length < 2 || day < 0 ? W / 2 : (day / (span.length - 1)) * W;
+  };
   const last = points.at(-1);
   const ticks = [max, (max + min) / 2, min].map(g => ({ g, top: (y(g) / H) * 100 }));
   return (
@@ -127,6 +134,7 @@ export function PetWeightChartCard({
     chart = (
       <WeightLine
         points={points}
+        span={shown.map(d => d.date)}
         label={`${name}'s weight over ${String(range)} days, ${points
           .map(p => `${shortDate(p.date)} ${gramsToKgText(p.grams)} kg`)
           .join(', ')}`}
