@@ -27,3 +27,9 @@ updates:
     directory: /
     schedule:
       interval: weekly
+
+  # The Caddy image the VPS compose file pins by digest.
+  - package-ecosystem: docker-compose
+    directory: /deploy/cloud
+    schedule:
+      interval: weekly
