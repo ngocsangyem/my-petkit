@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { errorMessage } from '@/shared/api/errors';
 import { formatDateTime } from '@/shared/format/format';
-import { Button, ErrorBlock, Missing, Select, Table, type TableColumn } from '@/shared/ui';
+import { Button, Card, ErrorBlock, Select } from '@/shared/ui';
 import { useBindPetRef } from '../api';
 import { plural, type Pet, type UnboundRef } from '../pet-model';
 
@@ -76,66 +76,43 @@ export function UnboundSection({ unbound, error, onRetry, pets, notify }: Unboun
     );
   };
 
-  const columns: TableColumn<UnboundRef>[] = [
-    { key: 'ref', header: 'Identity', mono: true, nowrap: true, cell: u => String(u.pet_ref) },
-    {
-      key: 'count',
-      header: 'Seen',
-      numeric: true,
-      nowrap: true,
-      cell: u => plural(u.count, 'time'),
-    },
-    {
-      key: 'last',
-      header: 'Last seen',
-      muted: true,
-      nowrap: true,
-      cell: u => (u.last_ts ? formatDateTime(u.last_ts) : <Missing />),
-    },
-    {
-      key: 'bind',
-      header: 'Bind to',
-      alignEnd: true,
-      cell: u =>
-        pets.length > MAX_BIND_BUTTONS ? (
-          <BindPicker
-            pets={pets}
-            busy={bind.isPending}
-            refId={u.pet_ref}
-            onBind={petId => {
-              onBind(u.pet_ref, petId);
+  const bindControl = (u: UnboundRef) =>
+    pets.length > MAX_BIND_BUTTONS ? (
+      <BindPicker
+        pets={pets}
+        busy={bind.isPending}
+        refId={u.pet_ref}
+        onBind={petId => {
+          onBind(u.pet_ref, petId);
+        }}
+      />
+    ) : (
+      <span className="inline-flex flex-wrap justify-end gap-2">
+        {pets.map(p => (
+          <Button
+            key={p.id}
+            size="small"
+            disabled={bind.isPending}
+            aria-label={`Bind ${u.pet_ref} to ${p.name}`}
+            onClick={() => {
+              onBind(u.pet_ref, p.id);
             }}
-          />
-        ) : (
-          <span className="inline-flex flex-wrap justify-end gap-2">
-            {pets.map(p => (
-              <Button
-                key={p.id}
-                disabled={bind.isPending}
-                aria-label={`Bind ${u.pet_ref} to ${p.name}`}
-                onClick={() => {
-                  onBind(u.pet_ref, p.id);
-                }}
-              >
-                Bind to {p.name}
-              </Button>
-            ))}
-          </span>
-        ),
-    },
-  ];
+          >
+            Bind to {p.name}
+          </Button>
+        ))}
+      </span>
+    );
 
   return (
-    <section className="flex min-w-0 flex-col gap-2" aria-labelledby="pets-unbound-title">
-      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-        <h2 id="pets-unbound-title" className="text-lg font-semibold">
-          Unbound identities
-        </h2>
-        <span className="text-sm text-muted-foreground">
+    <Card as="section" className="flex flex-col gap-3" aria-labelledby="pets-unbound-title">
+      <div className="flex flex-col gap-1">
+        <h2 id="pets-unbound-title">Unbound identities</h2>
+        <p className="text-sm text-muted-foreground">
           Your device reported these pet ids, but they are not yours: it is still matching against
           faces cached from PetKit's cloud. Bind one to a pet to name its past events. Once the
           device picks up your own photos it reports your ids instead, and this list empties.
-        </span>
+        </p>
       </div>
       {error ? (
         <ErrorBlock
@@ -143,14 +120,36 @@ export function UnboundSection({ unbound, error, onRetry, pets, notify }: Unboun
           onRetry={onRetry}
         />
       ) : (
-        <Table
-          label="Unbound identities"
-          columns={columns}
-          rows={unbound ?? []}
-          rowKey={u => String(u.pet_ref)}
-          minWidth={640}
-        />
+        <ul className="m-0 flex list-none flex-col p-0" aria-label="Unbound identities">
+          {(unbound ?? []).map(u => (
+            <li
+              key={u.pet_ref}
+              className="flex min-h-15 flex-wrap items-center gap-3 border-t border-rule py-2 first:border-t-0"
+            >
+              <span
+                className="flex size-10 flex-none items-center justify-center rounded-full bg-track text-muted-foreground"
+                aria-hidden="true"
+              >
+                ?
+              </span>
+              <div className="flex min-w-0 flex-1 flex-col">
+                <span className="font-medium">
+                  Identity <span className="font-mono text-sm">{u.pet_ref}</span>
+                </span>
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {[
+                    `seen ${plural(u.count, 'time')}`,
+                    u.last_ts ? `last ${formatDateTime(u.last_ts)}` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </span>
+              </div>
+              {bindControl(u)}
+            </li>
+          ))}
+        </ul>
       )}
-    </section>
+    </Card>
   );
 }

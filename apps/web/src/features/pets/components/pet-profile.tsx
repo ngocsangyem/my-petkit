@@ -1,30 +1,16 @@
 import { useState } from 'react';
-import { cn } from 'cn';
-import { serverUrl } from '@/shared/api/base-path';
 import { errorMessage } from '@/shared/api/errors';
-import { Button, ConfirmDialog, FigureContainer, petSlot, StatusMark } from '@/shared/ui';
-import { useDeleteFace, useDeletePet, useRenamePet } from '../api';
-import {
-  MAX_FACES,
-  parseIdList,
-  petStatus,
-  type DeviceDetail,
-  type DeviceSummary,
-  type Pet,
-} from '../pet-model';
-import { gramsToKgText } from '../pet-weight-model';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/shadcn/avatar';
-import { FaceStrip } from './face-strip';
-import { PetNameEditor } from './pet-name-editor';
+import { ConfirmDialog, ErrorBlock, petSlot } from '@/shared/ui';
+import { useDeleteFace, useDeletePet, usePetHistory, useRenamePet } from '../api';
+import { petStatus, type DeviceDetail, type DeviceSummary, type Pet } from '../pet-model';
+import { PetFacePhotosCard } from './pet-face-photos-card';
+import { PetHeroCard } from './pet-hero-card';
+import { PetProfileCard } from './pet-profile-card';
+import { PetVisitsCard } from './pet-visits-card';
+import { PetWeightChartCard } from './pet-weight-chart-card';
 import { PetWeightDialog } from './pet-weight-dialog';
 
-/** Each pet's identity tint, by slot; the same pair the household day strip uses. */
-const TINTS = [
-  'bg-(--pk-pet-0-tint) text-(--pk-pet-0-ink)',
-  'bg-(--pk-pet-1-tint) text-(--pk-pet-1-ink)',
-] as const;
-
-interface PetCardProps {
+interface PetProfileProps {
   pet: Pet;
   /** Position in the list; picks the pet's identity tint. */
   index: number;
@@ -36,8 +22,11 @@ interface PetCardProps {
   notify: (text: string, error?: boolean) => void;
 }
 
-/** One pet: photo, status, figures, face photos, the devices it is assigned to, and its actions. */
-export function PetCard({
+/**
+ * One pet: its photo and profile on the left; its weight, visits and face photos on the right.
+ * Owns the pet's edits and the confirmations before anything is removed.
+ */
+export function PetProfile({
   pet,
   index,
   devices,
@@ -45,7 +34,7 @@ export function PetCard({
   load,
   onAddPhoto,
   notify,
-}: PetCardProps) {
+}: PetProfileProps) {
   const [editing, setEditing] = useState(false);
   const [weighing, setWeighing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -53,13 +42,7 @@ export function PetCard({
   const rename = useRenamePet();
   const del = useDeletePet();
   const delFace = useDeleteFace();
-
-  const status = petStatus(pet, aiDetails);
-  const deviceIds = parseIdList(pet.device_ids_json);
-  const aliases = parseIdList(pet.device_pet_ids_json);
-  const full = pet.faces.length >= MAX_FACES;
-  const first = pet.faces[0];
-  const slot = petSlot(index);
+  const history = usePetHistory(pet.id);
 
   const saveName = (name: string | null) => {
     setEditing(false);
@@ -79,106 +62,52 @@ export function PetCard({
 
   return (
     <article
-      className="flex min-w-0 flex-col gap-4 rounded-lg border border-border p-5"
+      className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] items-start gap-5 max-[900px]:grid-cols-1"
       aria-label={pet.name}
     >
-      <div className="flex items-start gap-4 max-[900px]:flex-col">
-        {/* Until the first photo loads (or with none) the pet's initial stands in, in its tint. */}
-        <Avatar className="size-28 rounded-lg after:hidden">
-          {first && (
-            <AvatarImage
-              className="rounded-lg"
-              src={serverUrl(first.url)}
-              alt={`${pet.name}, first face photo`}
-              width={112}
-              height={112}
-            />
-          )}
-          <AvatarFallback
-            className={cn('rounded-lg text-3xl font-semibold', TINTS.at(slot))}
-            aria-hidden="true"
-          >
-            {pet.name.slice(0, 1).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
-            {editing ? (
-              <PetNameEditor name={pet.name} onDone={saveName} />
-            ) : (
-              <h2 className="text-lg font-semibold [overflow-wrap:anywhere]">{pet.name}</h2>
-            )}
-            <StatusMark status={status.status} label={status.label} />
-          </div>
-          <FigureContainer
-            label={`${pet.name} figures`}
-            cells={[
-              { label: 'Face photos', value: pet.faces.length, unit: `of ${MAX_FACES}` },
-              { label: 'Devices', value: deviceIds.length },
-              { label: 'Bound ids', value: aliases.length },
-            ]}
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2">
-        <FaceStrip pet={pet} onAdd={onAddPhoto} onRemove={setRemoveFace} busy={delFace.isPending} />
-        <span className="text-sm text-muted-foreground">
-          {aliases.length ? `Alias ${aliases.join(', ')}` : 'No alias yet'}
-        </span>
-      </div>
-
-      <p className="text-sm text-muted-foreground tabular-nums">
-        {pet.weight_g === null
-          ? 'No registered weight'
-          : `Registered weight ${gramsToKgText(pet.weight_g)} kg`}
-      </p>
-
-      <p className="text-sm text-muted-foreground">
-        {deviceIds.length === 0
-          ? 'No devices assigned'
-          : deviceIds.map((id, i) => {
-              const name = devices.find(d => d.id === id)?.name || `#${id}`;
-              const detail = aiDetails.find(d => d.id === id);
-              // An assignment to a box that is not recognising is real but idle;
-              // without the mark a pet on two devices looks equally active on both.
-              const off = detail ? detail.aiInfo?.ai_enabled === false : false;
-              return (
-                <span key={id}>
-                  {i > 0 && ' · '}
-                  {off ? `${name} (recognition off)` : name}
-                </span>
-              );
-            })}
-      </p>
-
-      <div className="flex flex-wrap gap-2">
-        <Button onClick={onAddPhoto} disabled={full}>
-          {full ? 'Photos full' : 'Upload photo'}
-        </Button>
-        <Button
-          onClick={() => {
+      <div className="flex min-w-0 flex-col gap-5">
+        <PetHeroCard pet={pet} slot={petSlot(index)} status={petStatus(pet, aiDetails)} />
+        <PetProfileCard
+          pet={pet}
+          devices={devices}
+          aiDetails={aiDetails}
+          load={load}
+          editingName={editing}
+          renaming={rename.isPending}
+          onRename={() => {
             setEditing(true);
           }}
-          disabled={editing || rename.isPending}
-        >
-          Rename
-        </Button>
-        <Button
-          onClick={() => {
+          onNameDone={saveName}
+          onEditWeight={() => {
             setWeighing(true);
           }}
-        >
-          Weight
-        </Button>
-        <Button
-          variant="destructive"
-          onClick={() => {
+          onDelete={() => {
             setConfirmDelete(true);
           }}
-        >
-          Delete
-        </Button>
+          notify={notify}
+        />
+      </div>
+      <div className="flex min-w-0 flex-col gap-5">
+        {history.error && (
+          <ErrorBlock
+            message={`Some days of ${pet.name}'s history could not be loaded. ${errorMessage(history.error)}`}
+            retrying={history.isFetching}
+            onRetry={history.refetch}
+          />
+        )}
+        <PetWeightChartCard
+          name={pet.name}
+          days={history.days}
+          registeredG={pet.weight_g}
+          isPending={history.isPending}
+        />
+        <PetVisitsCard name={pet.name} days={history.days} isPending={history.isPending} />
+        <PetFacePhotosCard
+          pet={pet}
+          onAdd={onAddPhoto}
+          onRemove={setRemoveFace}
+          busy={delFace.isPending}
+        />
       </div>
 
       {weighing && (

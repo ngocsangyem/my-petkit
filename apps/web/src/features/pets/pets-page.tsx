@@ -14,15 +14,17 @@ import {
 import { AddPetDialog } from './components/add-pet-dialog';
 import { FaceCropper, type CropTarget } from './components/face-cropper';
 import { ImportDialog } from './components/import-dialog';
-import { PetCard } from './components/pet-card';
+import { PetChips } from './components/pet-chips';
+import { PetProfile } from './components/pet-profile';
 import { PetsHeading } from './components/pets-heading';
 import { RecognitionSection } from './components/recognition-section';
 import { UnboundSection } from './components/unbound-section';
 import { isRecognising } from './pet-model';
 import { isDeviceFull, MAX_PETS_PER_DEVICE, petsPerDevice } from './pet-weight-model';
 
-/** Two pets side by side; one column once the screen is narrow. */
-const GRID = 'grid grid-cols-2 items-start gap-(--pk-gap) max-[900px]:grid-cols-1';
+/** The profile's two columns; one once the screen is narrow. */
+const GRID =
+  'grid grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] items-start gap-5 max-[900px]:grid-cols-1';
 
 function NoAiDevice({ names }: { names: readonly string[] }) {
   // The product list comes from the server rather than being spelled out here,
@@ -57,6 +59,7 @@ export function PetsPage() {
   const [crop, setCrop] = useState<CropTarget | null>(null);
   const [adding, setAdding] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [chosen, setChosen] = useState<number | null>(null);
 
   // A new device event may carry an identity nobody has bound yet.
   useHubEvents(event => {
@@ -119,9 +122,18 @@ export function PetsPage() {
     );
   } else {
     const ourFaceIds = pets.flatMap(p => p.faces.map(f => f.id));
+    const recognition = (
+      <RecognitionSection devices={devices.details} ourFaceIds={ourFaceIds} notify={notify} />
+    );
+    // A pet deleted elsewhere, or none chosen yet, shows the first one.
+    const index = Math.max(
+      0,
+      pets.findIndex(p => p.id === chosen),
+    );
+    const shown = pets.at(index);
     body = (
       <>
-        <RecognitionSection devices={devices.details} ourFaceIds={ourFaceIds} notify={notify} />
+        {!recognising || !shown ? recognition : null}
         {!recognising ? (
           // The pets are still stored; this only hides a section that would be
           // configuring a matcher nobody is running.
@@ -129,44 +141,44 @@ export function PetsPage() {
             Pet recognition is off. Your face photos are kept, but nothing is matching against them.
             Turn Recognise pets back on above to manage them.
           </EmptyBlock>
-        ) : pets.length === 0 ? (
+        ) : !shown ? (
           <EmptyBlock>
             No pets yet. Add one, then give it a few face photos. Until then the device records
             visits without saying who made them.
           </EmptyBlock>
         ) : (
-          <div className={GRID}>
-            {pets.map((pet, i) => (
-              <PetCard
-                key={pet.id}
-                pet={pet}
-                index={i}
-                devices={devices.all}
-                aiDetails={devices.details}
-                load={load}
+          <>
+            <PetChips pets={pets} selected={shown.id} onSelect={setChosen} />
+            <PetProfile
+              key={shown.id}
+              pet={shown}
+              index={index}
+              devices={devices.all}
+              aiDetails={devices.details}
+              load={load}
+              notify={notify}
+              onAddPhoto={() => {
+                setCrop({ petId: shown.id, name: shown.name });
+              }}
+            />
+            <div className={GRID}>
+              {recognition}
+              <UnboundSection
+                unbound={unboundQ.data}
+                error={unboundQ.error}
+                onRetry={() => void unboundQ.refetch()}
+                pets={pets}
                 notify={notify}
-                onAddPhoto={() => {
-                  setCrop({ petId: pet.id, name: pet.name });
-                }}
               />
-            ))}
-          </div>
-        )}
-        {recognising && (
-          <UnboundSection
-            unbound={unboundQ.data}
-            error={unboundQ.error}
-            onRetry={() => void unboundQ.refetch()}
-            pets={pets}
-            notify={notify}
-          />
+            </div>
+          </>
         )}
       </>
     );
   }
 
   return (
-    <div className="flex min-w-0 flex-col gap-(--pk-gap)">
+    <div className="flex min-w-0 flex-col gap-5">
       <PetsHeading
         pets={!loadError && recognising ? (pets ?? null) : null}
         aiDetails={devices?.details ?? []}

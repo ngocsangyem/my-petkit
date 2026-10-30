@@ -42,7 +42,7 @@ export function PetsModal({
           wide && 'max-w-[720px] sm:max-w-[720px]',
         )}
       >
-        <DialogTitle className="text-[18px] leading-normal font-semibold">{title}</DialogTitle>
+        <DialogTitle>{title}</DialogTitle>
         {children}
       </DialogContent>
     </Dialog>

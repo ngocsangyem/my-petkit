@@ -7,6 +7,35 @@ import { uploadFace } from './api';
 import { deviceDetail, deviceSummary, pet, unboundRef } from './pets-fixtures';
 import { PetsPage } from './pets-page';
 
+/** A day of Miso's history: two visits weighed 5.40 and 5.44 kg, so the day reads 5.42. */
+const historyDay: MockReply = request => {
+  const date = new URL(request.url).searchParams.get('date') ?? '';
+  const visit = (id: number, weight: number) => ({
+    id,
+    kind: 'visit',
+    pet_id: 1,
+    weight,
+  });
+  return {
+    body: {
+      date,
+      tz_offset: 0,
+      counts: {
+        all: 2,
+        pet: 0,
+        toileting: 2,
+        drinking: 0,
+        feeding: 0,
+        cleaning: 0,
+        health_alert: 0,
+        fault: 0,
+        passing: 0,
+      },
+      sessions: [visit(1, 5400), visit(2, 5440)],
+    },
+  };
+};
+
 function routes(over: Record<string, MockReply> = {}): Record<string, MockReply> {
   return {
     'GET /api/devices': { body: [deviceSummary()] },
@@ -14,6 +43,7 @@ function routes(over: Record<string, MockReply> = {}): Record<string, MockReply>
     'GET /api/pets': { body: { pets: [pet()] } },
     'GET /api/pets/unbound': { body: { unbound: [unboundRef] } },
     'GET /api/info': { body: { ai_device_names: ['T5', 'T6'] } },
+    'GET /api/timeline': historyDay,
     ...over,
   };
 }
@@ -121,7 +151,7 @@ describe('PetsPage', () => {
       expect(calls.some(c => c.method === 'DELETE' && c.url.endsWith('/faces/12'))).toBe(true);
     });
 
-    await userEvent.click(within(card).getByRole('button', { name: 'Delete' }));
+    await userEvent.click(within(card).getByRole('button', { name: 'Delete Miso' }));
     expect(screen.getByRole('alertdialog', { name: 'Delete Miso?' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Delete pet' }));
     await waitFor(() => {
@@ -256,8 +286,9 @@ describe('PetsPage', () => {
     );
     renderWithProviders(<PetsPage />);
     const card = await screen.findByRole('article', { name: 'Miso' });
-    expect(within(card).getByText('Registered weight 5.43 kg')).toBeInTheDocument();
-    await userEvent.click(within(card).getByRole('button', { name: 'Weight' }));
+    // The profile row: "Registered weight" with its value.
+    expect(within(card).getByText('5.43 kg')).toBeInTheDocument();
+    await userEvent.click(within(card).getByRole('button', { name: 'Edit weight' }));
     const dialog = screen.getByRole('dialog', { name: "Miso's weight" });
     const weight = within(dialog).getByLabelText('Registered weight');
     expect(weight).toHaveValue('5.43');
@@ -287,10 +318,58 @@ describe('PetsPage', () => {
     const calls = mockApi(routes());
     renderWithProviders(<PetsPage />);
     const card = await screen.findByRole('article', { name: 'Miso' });
-    await userEvent.click(within(card).getByRole('button', { name: 'Weight' }));
+    await userEvent.click(within(card).getByRole('button', { name: 'Edit weight tolerance' }));
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
     expect(screen.queryByRole('dialog', { name: "Miso's weight" })).not.toBeInTheDocument();
     expect(calls.some(c => c.method === 'POST')).toBe(false);
+  });
+
+  it('turns matching by weight off from the profile, with its guard of twice the tolerance', async () => {
+    const calls = mockApi(
+      routes({ 'POST /api/pets/1': { body: { pet: pet(), bound_events: 0 } } }),
+    );
+    renderWithProviders(<PetsPage />);
+    const card = await screen.findByRole('article', { name: 'Miso' });
+    expect(within(card).getByText('Only when no other cat is within 600 g.')).toBeInTheDocument();
+    expect(within(card).getByText('1 of 15 cats on this box')).toBeInTheDocument();
+    await userEvent.click(
+      within(card).getByRole('switch', { name: 'Match by weight when the camera cannot' }),
+    );
+    expect(await jsonBody(calls, 'POST', '/api/pets/1')).toEqual({ weight_match: false });
+  });
+
+  it("charts the pet's daily weight and visits from its timeline days", async () => {
+    const calls = mockApi(routes());
+    renderWithProviders(<PetsPage />);
+    const card = await screen.findByRole('article', { name: 'Miso' });
+    expect(await within(card).findByText('2.0 a day on average')).toBeInTheDocument();
+    expect(within(card).getByText('±0.00 kg over 14 days')).toBeInTheDocument();
+    expect(
+      within(card).getByRole('img', { name: /^Miso's weight over 14 days, .* 5\.42 kg/ }),
+    ).toBeInTheDocument();
+    const days = calls.filter(c => new URL(c.url).pathname === '/api/timeline');
+    expect(days).toHaveLength(14);
+    const q = new URL(days[0]!.url).searchParams;
+    expect([q.get('pet'), q.get('filter')]).toEqual(['1', 'toileting']);
+
+    await userEvent.click(within(card).getByRole('button', { name: '1W' }));
+    expect(
+      within(card).getByRole('img', { name: /^Miso's weight over 7 days/ }),
+    ).toBeInTheDocument();
+  });
+
+  it('switches between pets with their chips', async () => {
+    mockApi(
+      routes({
+        'GET /api/pets': { body: { pets: [pet(), pet({ id: 2, name: 'Mochi', faces: [] })] } },
+      }),
+    );
+    renderWithProviders(<PetsPage />);
+    await screen.findByRole('article', { name: 'Miso' });
+    const chips = screen.getByRole('group', { name: 'Pet shown' });
+    await userEvent.click(within(chips).getByRole('button', { name: 'Mochi' }));
+    expect(await screen.findByRole('article', { name: 'Mochi' })).toBeInTheDocument();
+    expect(screen.queryByRole('article', { name: 'Miso' })).not.toBeInTheDocument();
   });
 
   it('shows the per-box limit when the server refuses another cat', async () => {
