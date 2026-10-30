@@ -1170,6 +1170,14 @@ Force continue on a box paused for a pet nearby, guarded and sent once; the T6's
 - added: tests/test_force_continue_guards.py::test_a_live_session_with_an_old_state_report_is_refused
 - added: tests/test_force_continue_guards.py::test_a_state_without_the_occupancy_field_is_refused
 
+Resume sends the same command as force continue, so it is refused on a next-gen box paused for a safety reason (approved 2026-10-30).
+
+- added: tests/test_force_continue_guards.py::test_resume_cannot_override_a_safety_pause[0]
+- added: tests/test_force_continue_guards.py::test_resume_cannot_override_a_safety_pause[1]
+- added: tests/test_force_continue_guards.py::test_resume_cannot_override_a_safety_pause[3]
+- added: tests/test_force_continue_guards.py::test_resume_after_a_pause_the_user_asked_for_still_works
+- added: tests/test_force_continue_guards.py::test_resume_from_the_command_endpoint_is_refused_during_a_safety_pause
+
 The per-module scans (local time only through `clock`, app keys only through `appkeys`) pick up the new feature's files.
 
 - added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/litter_automation/__init__.py]

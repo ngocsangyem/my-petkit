@@ -216,7 +216,10 @@ box paused for exactly that reason, reports nobody inside, has had no visit
 left open in the last 10 minutes, reports no error, and was heard from in the
 last 90 seconds. A pause because a cat went in or the cover is open is never
 overridden. The firmware keeps every check of its own: if a cat steps inside,
-the box stops again. It is one press, one command; nothing repeats it. If the
+the box stops again. It is one press, one command; nothing repeats it. The **Resume** button sends the same
+command, so on these models it is refused while the box is paused for a cat
+nearby, a cat inside or an open cover; after a Pause you pressed yourself it
+works as before. If the
 box keeps stopping for cats walking past, turning off **Wander Detection** is
 the box's own way to make it less sensitive.
 

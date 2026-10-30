@@ -23,6 +23,7 @@ from typing import Any
 from my_petkit.devices.base import Device
 from my_petkit.devices.state_tables import WORK_MODE_IDLE
 from my_petkit.events import codes
+from my_petkit.ha.commands import SAFETY_PAUSE_WORK_PROCESS
 from my_petkit.utils.coerce import to_float, to_int
 
 #: A device we have heard nothing from for this long is treated as offline.
@@ -40,9 +41,9 @@ OPEN_VISIT_WINDOW_S = 10 * 60
 #: How far back a "pet nearby" event still blocks an automatic pack.
 NEARBY_WINDOW_S = 2 * 60
 
-#: `workState.workProcess` while paused for a `safeWarn` reason: tens digit 2
-#: is the paused phase (`codes.WORK_PROCESS_PHASE`), units digit 2 the reason.
-PAUSED_FOR_SAFE_WARN = 22
+#: `workState.workProcess` while paused for a `safeWarn` reason. One value,
+#: shared with the Resume refusal in `ha/commands.py`.
+PAUSED_FOR_SAFE_WARN = SAFETY_PAUSE_WORK_PROCESS
 
 #: `safeWarn` value -> the reason force continue refuses it with. Only 0,
 #: "pet approaching", is ever allowed through.

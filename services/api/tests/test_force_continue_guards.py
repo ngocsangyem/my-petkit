@@ -14,7 +14,9 @@ import pytest
 from my_petkit.devices.registry import DeviceRegistry
 from my_petkit.devices.state_tables import WORK_MODE_IDLE
 from my_petkit.features.litter_automation import guards
-from my_petkit.ha.commands import ALL_ACTIONS, force_continue_command
+from my_petkit.devices.base import Refused
+from my_petkit.ha.categories import get_entities_for_device
+from my_petkit.ha.commands import ALL_ACTIONS, force_continue_command, handle_ha_command
 from my_petkit.shared.appkeys import BRIDGE
 from tests.conftest_auth import authed_test_client, bare_panel
 
@@ -215,3 +217,33 @@ async def test_the_status_view_offers_it_only_when_every_guard_passes(tmp_path, 
     assert offered["forceContinue"] == {"supported": True, "offered": True, "blockers": []}
     assert refused["forceContinue"]["offered"] is False
     assert refused["forceContinue"]["blockers"][0]["reason"] == "pet_in_box"
+
+
+def _resume_button(device):
+    return next(e for e in get_entities_for_device(device) if e.key == "resume")
+
+
+@pytest.mark.parametrize("safe_warn", [0, 1, 3])
+def test_resume_cannot_override_a_safety_pause(safe_warn):
+    d = _registry(**_paused_state(safe_warn)).get(DEVICE)
+    with pytest.raises(Refused):
+        handle_ha_command(d, _resume_button(d), "")
+
+
+def test_resume_after_a_pause_the_user_asked_for_still_works():
+    d = _registry(workState={"workMode": 0, "workProcess": 20}).get(DEVICE)
+    suffix, envelope = handle_ha_command(d, _resume_button(d), "")
+    assert envelope["params"] == {"continue_action": 0}
+
+
+async def test_resume_from_the_command_endpoint_is_refused_during_a_safety_pause(tmp_path):
+    reg = _registry(**_paused_state(1))
+    client = authed_test_client(bare_panel(tmp_path, registry=reg))
+    await client.start_server()
+    try:
+        r = await client.post(f"/api/devices/{DEVICE}/command", json={"action": "resume"})
+        body = await r.json()
+    finally:
+        await client.close()
+    assert r.status == 400, body
+    assert reg.get(DEVICE).command_queue == []
