@@ -2,6 +2,8 @@ import { Button, Card, Stepper } from '@/shared/ui';
 import { type DeviceDetail, deviceKeys } from '../api';
 import { setEntity } from '../api-calls';
 import { type Command, CommandList, type CommandRunner } from '../components/command-list';
+import { FigureSplit } from '../components/figure-split';
+import { figureCells } from '../components/model-block';
 import { FeedbackLine } from '../components/panel-parts';
 import { useDeviceCall } from '../hooks/use-device-call';
 import { binaryOn, findEntity, numericValue } from '../lib/entity-sections';
@@ -119,6 +121,20 @@ export function FeederHeroCard({ device, commands, runner }: FeederHeroCardProps
       <div className="px-3">
         <CommandList commands={rest} runner={runner} />
       </div>
+    </Card>
+  );
+}
+
+/**
+ * The feeder's figures (in the bowl, eaten, fed, hopper), which Feed now displaces from the
+ * hero card; they head the right column instead. Nothing renders for a model that reports none.
+ */
+export function FeederFiguresCard({ device }: { device: DeviceDetail }) {
+  const cells = figureCells(device, null);
+  if (!cells.length) return null;
+  return (
+    <Card padding="none" className="p-2">
+      <FigureSplit label={`${device.name} figures`} cells={cells} />
     </Card>
   );
 }

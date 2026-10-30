@@ -5,6 +5,7 @@ import { mockApi, type MockReply } from '@/test/mock-api';
 import { renderWithProviders } from '@/test/render';
 import {
   accessory,
+  entity,
   feederDetail,
   feederSummary,
   litterDetail,
@@ -225,6 +226,27 @@ describe('DevicesPage', () => {
     ).toBeInTheDocument();
     const post = calls.find(c => c.method === 'POST');
     expect(await post?.json()).toEqual({ timezone: null });
+  });
+
+  it("shows a feeder's figures beside Feed now", async () => {
+    mockApi(
+      routes({
+        [`GET /api/devices/${feederSummary.id}`]: {
+          body: {
+            ...feederDetail,
+            entities: [
+              entity({ key: 'food_in_bowl', component: 'sensor', unit: 'g', value: 12 }),
+              entity({ key: 'amount_eaten', component: 'sensor', unit: 'g', value: 23 }),
+            ],
+          },
+        },
+      }),
+    );
+    renderWithProviders(<DevicesPage />, { route: feederPage });
+    const list = await screen.findByLabelText(`${feederSummary.name} figures`);
+    expect(within(list).getByText('In the bowl')).toBeInTheDocument();
+    expect(within(list).getByText('12')).toBeInTheDocument();
+    expect(within(list).getByText('Eaten today')).toBeInTheDocument();
   });
 
   it('refuses a sound over 2 MB before sending it', async () => {

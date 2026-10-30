@@ -24,7 +24,7 @@ import { AutomationCard } from './automation-card';
 import { CameraPanRow, isPanCommand } from './camera-pan-row';
 import { DeviceLinksCard } from './device-links-card';
 import { deviceFinding, deviceStatusWord } from './device-headline';
-import { FeederHeroCard } from './feeder-hero-card';
+import { FeederFiguresCard, FeederHeroCard } from './feeder-hero-card';
 import { FeederTodayCard } from './feeder-today-card';
 import { HeroCard } from './hero-card';
 import { LiveLinkCard } from './live-link-card';
@@ -174,6 +174,7 @@ export function DevicePage(props: DevicePageProps) {
           <BleSection device={d} accessories={accessories} />
         </div>
         <div className="flex min-w-0 flex-col gap-5">
+          {family === 'feeder' && <FeederFiguresCard device={d} />}
           <AutomationCard device={d} litter={family === 'litter'} force={force} />
           <EntityControlsSection device={d} title="Settings" entities={groups.controls}>
             {d.is_camera && d.is_feeder && <SoundsRow deviceId={d.id} deviceNoun={noun} />}
