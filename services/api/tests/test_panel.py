@@ -77,15 +77,15 @@ def test_every_published_entity_component_has_somewhere_to_render():
 
 def test_the_accessory_panel_renders_every_component_an_accessory_has():
     """`ENTITY_SECTION` routes a device panel. An accessory has its own
-    renderer, `AccessoryPanelBody`, which picks components by name into three
-    cards — so a component that reaches HA fine can still land nowhere here. The
-    filter reset was the first: `button` was routed by ENTITY_SECTION and
-    dropped by the accessory body, which knew only switch, number, select and
-    the two sensors."""
+    renderer, the accessory page, which picks components by name into its
+    figures, settings and commands — so a component that reaches HA fine can
+    still land nowhere here. The filter reset was the first: `button` was routed
+    by ENTITY_SECTION and dropped by the accessory renderer, which knew only
+    switch, number, select and the two sensors."""
     from my_petkit.devices.ble import BLE_TYPES
     from my_petkit.ha.entities.ble import get_ble_entities
 
-    body = _web_source("features/devices/components/accessory-panel-body.tsx")
+    body = _web_source("features/devices/device-page/accessory-page.tsx")
     for t in BLE_TYPES:
         for e in get_ble_entities(t):
             assert re.search(rf"""['"]{e.component}['"]""", body), (
