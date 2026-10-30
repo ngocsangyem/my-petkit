@@ -1150,10 +1150,11 @@ paths:
       - litter_automation
       summary: Tell a box paused for a pet nearby to carry on, once
       description: Only a pause for "pet approaching" (`safeWarn` 0) on a T5, T6 or T7, with no
-        pet in the box, no visit left open in the last 10 minutes, no error, and the device heard
-        from in the last 90 seconds. Any failed guard answers 409 with its reason as the error
+        pet in the box, no visit left open in the last 10 minutes, no error, a live MQTT session
+        and a state report in the last 2 minutes. Any failed guard answers 409 with its reason as the error
         code (one of `ForceContinueReason`) and nothing is sent. Accepted, it sends exactly
-        `continue_action` 0. Never automatic.
+        `continue_action` 0 over MQTT; it is never queued for the heartbeat, so a failed publish
+        answers 503 with nothing sent. Never automatic.
       x-risk-tier: R3
       parameters:
       - name: id
@@ -1178,6 +1179,8 @@ paths:
         '404':
           $ref: '#/components/responses/Error'
         '409':
+          $ref: '#/components/responses/Error'
+        '503':
           $ref: '#/components/responses/Error'
       security:
       - bearerAuth: []
@@ -3356,6 +3359,7 @@ components:
       - lastPackedAt
       - heldBackBy
       - disabledReason
+      - awaitingBinClear
       properties:
         enabledAt:
           type:
@@ -3387,7 +3391,7 @@ components:
           - 'null'
         heldBackBy:
           description: 'Why the last evaluation did not pack: `not_due`, `quiet_hours`, `cooldown`,
-            or a guard reason.'
+            `not_delivered`, or a guard reason.'
           type:
           - string
           - 'null'
@@ -3397,6 +3401,9 @@ components:
           type:
           - string
           - 'null'
+        awaitingBinClear:
+          description: '`bin_full` packed and waits to see the bin not full before it counts again.'
+          type: boolean
     AutoPackResult:
       type: object
       required:
@@ -4479,10 +4486,13 @@ components:
       type: string
       enum:
       - device_offline
+      - not_on_mqtt
+      - state_stale
       - not_paused
       - pet_entered
       - cover_open
       - unknown_pause_reason
+      - presence_unknown
       - pet_in_box
       - visit_open
       - device_fault

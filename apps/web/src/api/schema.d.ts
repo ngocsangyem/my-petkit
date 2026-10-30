@@ -367,7 +367,7 @@ export interface paths {
         put?: never;
         /**
          * Tell a box paused for a pet nearby to carry on, once
-         * @description Only a pause for "pet approaching" (`safeWarn` 0) on a T5, T6 or T7, with no pet in the box, no visit left open in the last 10 minutes, no error, and the device heard from in the last 90 seconds. Any failed guard answers 409 with its reason as the error code (one of `ForceContinueReason`) and nothing is sent. Accepted, it sends exactly `continue_action` 0. Never automatic.
+         * @description Only a pause for "pet approaching" (`safeWarn` 0) on a T5, T6 or T7, with no pet in the box, no visit left open in the last 10 minutes, no error, a live MQTT session and a state report in the last 2 minutes. Any failed guard answers 409 with its reason as the error code (one of `ForceContinueReason`) and nothing is sent. Accepted, it sends exactly `continue_action` 0 over MQTT; it is never queued for the heartbeat, so a failed publish answers 503 with nothing sent. Never automatic.
          */
         post: operations["forceContinueLitter"];
         delete?: never;
@@ -1180,10 +1180,12 @@ export interface components {
             /** @enum {string|null} */
             lastResult: "packed" | "no_response" | "failed" | null;
             lastPackedAt: number | null;
-            /** @description Why the last evaluation did not pack: `not_due`, `quiet_hours`, `cooldown`, or a guard reason. */
+            /** @description Why the last evaluation did not pack: `not_due`, `quiet_hours`, `cooldown`, `not_delivered`, or a guard reason. */
             heldBackBy: string | null;
             /** @description Why the server turned the rule off (`no_response`, `pack_error:` and the device's message). */
             disabledReason: string | null;
+            /** @description `bin_full` packed and waits to see the bin not full before it counts again. */
+            awaitingBinClear: boolean;
         };
         AutoPackResult: {
             rule: components["schemas"]["AutoPackRule"];
@@ -1612,7 +1614,7 @@ export interface components {
             };
         };
         /** @enum {string} */
-        ForceContinueReason: "device_offline" | "not_paused" | "pet_entered" | "cover_open" | "unknown_pause_reason" | "pet_in_box" | "visit_open" | "device_fault" | "history_unavailable";
+        ForceContinueReason: "device_offline" | "not_on_mqtt" | "state_stale" | "not_paused" | "pet_entered" | "cover_open" | "unknown_pause_reason" | "presence_unknown" | "pet_in_box" | "visit_open" | "device_fault" | "history_unavailable";
         ForceContinueBlocker: {
             reason: components["schemas"]["ForceContinueReason"];
             message: string;
@@ -2884,6 +2886,7 @@ export interface operations {
             403: components["responses"]["Error"];
             404: components["responses"]["Error"];
             409: components["responses"]["Error"];
+            503: components["responses"]["Error"];
         };
     };
     setAutoPackRule: {

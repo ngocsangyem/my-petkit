@@ -15,6 +15,7 @@ from my_petkit.devices.registry import DeviceRegistry
 from my_petkit.devices.state_tables import WORK_MODE_IDLE
 from my_petkit.features.litter_automation import guards
 from my_petkit.ha.commands import ALL_ACTIONS, force_continue_command
+from my_petkit.shared.appkeys import BRIDGE
 from tests.conftest_auth import authed_test_client, bare_panel
 
 DEVICE = 6
@@ -35,13 +36,28 @@ def _registry(device_type: str = "t6", **state) -> DeviceRegistry:
     d.state.update(_paused_state())
     d.state.update(state)
     d.last_state_report = time.time()
+    d.mqtt_connected = True
     return reg
 
 
-async def _post(tmp_path, event_store, reg, *, step_up=True):
-    client = authed_test_client(
-        bare_panel(tmp_path, registry=reg, event_store=event_store), step_up=step_up
-    )
+class _Bridge:
+    """Stands in for the MQTT bridge: records each publish, or fails it."""
+
+    def __init__(self, fail: bool = False):
+        self._client = object()
+        self.fail = fail
+        self.sent: list[tuple[str, dict]] = []
+
+    async def publish_to_device(self, device, suffix, envelope):
+        if self.fail:
+            raise ConnectionError("broker gone")
+        self.sent.append((suffix, envelope))
+
+
+async def _post(tmp_path, event_store, reg, *, step_up=True, bridge=None):
+    app = bare_panel(tmp_path, registry=reg, event_store=event_store)
+    app[BRIDGE] = bridge if bridge is not None else _Bridge()
+    client = authed_test_client(app, step_up=step_up)
     await client.start_server()
     try:
         r = await client.post(f"/api/devices/{DEVICE}/force-continue")
@@ -51,13 +67,46 @@ async def _post(tmp_path, event_store, reg, *, step_up=True):
 
 
 async def test_a_box_paused_for_a_pet_nearby_is_told_to_continue(tmp_path, event_store):
-    reg = _registry()
-    status, body = await _post(tmp_path, event_store, reg)
+    reg, bridge = _registry(), _Bridge()
+    status, body = await _post(tmp_path, event_store, reg, bridge=bridge)
     assert status == 200, body
-    sent = reg.get(DEVICE).command_queue
-    assert len(sent) == 1
-    assert sent[0]["method"] == "thing.service.start"
-    assert sent[0]["params"] == {"continue_action": 0}
+    assert body["delivered"] == "mqtt"
+    assert len(bridge.sent) == 1
+    suffix, envelope = bridge.sent[0]
+    assert (suffix, envelope["method"]) == ("start", "thing.service.start")
+    assert envelope["params"] == {"continue_action": 0}
+    assert reg.get(DEVICE).command_queue == []
+
+
+async def test_a_failed_publish_is_never_queued_for_later(tmp_path, event_store):
+    reg = _registry()
+    status, body = await _post(tmp_path, event_store, reg, bridge=_Bridge(fail=True))
+    assert (status, body["error"]["code"]) == (503, "unavailable")
+    assert reg.get(DEVICE).command_queue == []
+
+
+async def test_a_device_off_mqtt_is_refused(tmp_path, event_store):
+    reg = _registry()
+    reg.get(DEVICE).mqtt_connected = False
+    status, body = await _post(tmp_path, event_store, reg)
+    assert (status, body["error"]["code"]) == (409, "not_on_mqtt")
+    assert reg.get(DEVICE).command_queue == []
+
+
+async def test_a_live_session_with_an_old_state_report_is_refused(tmp_path, event_store):
+    reg = _registry()
+    d = reg.get(DEVICE)
+    d.last_mqtt = time.time()  # a PINGREQ just now
+    d.last_state_report = time.time() - guards.STATE_FRESH_S - 5
+    status, body = await _post(tmp_path, event_store, reg)
+    assert (status, body["error"]["code"]) == (409, "state_stale")
+
+
+async def test_a_state_without_the_occupancy_field_is_refused(tmp_path, event_store):
+    reg = _registry()
+    del reg.get(DEVICE).state["petInTime"]
+    status, body = await _post(tmp_path, event_store, reg)
+    assert (status, body["error"]["code"]) == (409, "presence_unknown")
 
 
 async def test_force_continue_needs_a_fresh_step_up(tmp_path, event_store):

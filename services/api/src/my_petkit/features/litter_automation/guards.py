@@ -29,6 +29,11 @@ from my_petkit.utils.coerce import to_float, to_int
 #: The T5's MQTT keep-alive is 62 s, so a live session always beats it.
 LIVE_CONTACT_S = 90.0
 
+#: The newest state report must be at most this old. Contact alone is not
+#: enough: every PINGREQ refreshes `last_mqtt`, which proves the session is up
+#: but says nothing about whether `workState` or `petInTime` are current.
+STATE_FRESH_S = 120.0
+
 #: How far back an unclosed visit still counts as a pet in the box.
 OPEN_VISIT_WINDOW_S = 10 * 60
 
@@ -46,6 +51,8 @@ _SAFE_WARN_REFUSALS = {1: "pet_entered", 3: "cover_open"}
 #: Every refusal reason, with the sentence a client shows for it.
 REASONS: dict[str, str] = {
     "device_offline": "The device has not been heard from in the last 90 seconds.",
+    "state_stale": "The device has not reported its state in the last 2 minutes.",
+    "presence_unknown": "The device has not reported whether a pet is inside.",
     "not_on_mqtt": "The device is not connected over MQTT.",
     "not_paused": "The device is not paused for a pet nearby.",
     "pet_entered": "The device paused because a pet entered it.",
@@ -69,6 +76,18 @@ def device_offline(device: Device, now: float) -> str | None:
     if now - _last_contact(device) > LIVE_CONTACT_S:
         return "device_offline"
     return None
+
+
+def state_stale(device: Device, now: float) -> str | None:
+    """Refuse when the merged state may no longer describe the device."""
+    if now - device.last_state_report > STATE_FRESH_S:
+        return "state_stale"
+    return None
+
+
+def not_on_mqtt(device: Device) -> str | None:
+    """Refuse unless the device holds a live MQTT session (see `publish_live`)."""
+    return None if device.mqtt_connected else "not_on_mqtt"
 
 
 def pause_reason(device: Device) -> str | None:
@@ -129,6 +148,8 @@ def pet_present(
             minutes. Off for force continue, whose whole point is a pet that
             was only nearby.
     """
+    if "petInTime" not in device.state:
+        return "presence_unknown"
     if to_float(device.state.get("petInTime"), 0.0):
         return "pet_in_box"
     last_open = last_close = last_nearby = 0.0
@@ -154,6 +175,8 @@ def force_continue_blockers(
     events = list(events)
     checks = (
         device_offline(device, now),
+        not_on_mqtt(device),
+        state_stale(device, now),
         pause_reason(device),
         pet_present(device, events, now, nearby_blocks=False),
         device_fault(device),
@@ -168,7 +191,8 @@ def auto_pack_blockers(
     events = list(events)
     checks = (
         device_offline(device, now),
-        None if device.mqtt_connected else "not_on_mqtt",
+        not_on_mqtt(device),
+        state_stale(device, now),
         device_busy(device),
         pet_present(device, events, now, nearby_blocks=True),
         no_bags(device),

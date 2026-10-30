@@ -18,9 +18,12 @@ from my_petkit.devices.base import Device
 from my_petkit.features.litter_automation import guards
 from my_petkit.features.litter_automation.schemas import RuleError, clean_rule
 from my_petkit.features.litter_automation.service import (
+    NotDelivered,
     Sender,
+    device_lock,
     load_rule,
     load_status,
+    publish_live,
     recent_events,
     save_rule,
     supports_auto_pack,
@@ -29,9 +32,10 @@ from my_petkit.features.litter_automation.service import (
 from my_petkit.ha.commands import force_continue_command
 from my_petkit.shared.appkeys import BRIDGE, EVENT_STORE, HUB, REGISTRY
 from my_petkit.shared.errors import api_error
-from my_petkit.shared.panel_request import _deliver, _device_or_404, _json_body
+from my_petkit.shared.panel_request import _device_or_404, _json_body
 from my_petkit.shared.tiers import Tier, tier
 from my_petkit.utils import clock
+from my_petkit.utils.logtext import one_line
 
 log = logging.getLogger(__name__)
 
@@ -40,12 +44,10 @@ HISTORY_UNAVAILABLE = "history_unavailable"
 
 
 def make_sender(hub: Any, bridge: Any) -> Sender:
-    """A `Sender` over the panel's own delivery path (MQTT, else the queue)."""
+    """A `Sender` that publishes over the live MQTT session only."""
 
-    async def send(device: Device, suffix: str, envelope: dict[str, Any]) -> str:
-        response = await _deliver(hub, bridge, device, suffix, envelope)
-        body = json.loads(response.text or "{}")
-        return str(body.get("delivered", "unknown"))
+    async def send(device: Device, suffix: str, envelope: dict[str, Any]) -> None:
+        await publish_live(hub, bridge, device, suffix, envelope)
 
     return send
 
@@ -101,14 +103,25 @@ async def api_force_continue(request: web.Request) -> web.Response:
         "force_continue device=%d blockers=%s workState=%s petInTime=%s",
         device.petkit_id,
         ",".join(blockers) or "-",
-        json.dumps(device.state.get("workState"), sort_keys=True),
-        device.state.get("petInTime"),
+        one_line(json.dumps(device.state.get("workState"), sort_keys=True)),
+        one_line(device.state.get("petInTime")),
     )
     if blockers:
         reason = _reason_view(blockers[0])
         raise api_error(409, reason["reason"], reason["message"])
     suffix, envelope = force_continue_command()
-    return await _deliver(request.app[HUB], request.app.get(BRIDGE), device, suffix, envelope)
+    try:
+        await publish_live(request.app[HUB], request.app.get(BRIDGE), device, suffix, envelope)
+    except NotDelivered as exc:
+        # Never queued for the heartbeat: delivered later, the guards that let
+        # it through may no longer hold.
+        log.warning("force_continue device=%d not delivered: %s", device.petkit_id, one_line(exc))
+        raise api_error(
+            503, "unavailable", "The command could not be sent; nothing was queued."
+        ) from exc
+    return web.json_response(
+        {"ok": True, "delivered": "mqtt", "suffix": suffix, "envelope": envelope}
+    )
 
 
 @tier(PUT=Tier.R1)
@@ -121,7 +134,8 @@ async def api_auto_pack(request: web.Request) -> web.Response:
         rule = clean_rule(await _json_body(request))
     except RuleError as exc:
         raise api_error(400, "invalid_rule", str(exc)) from exc
-    status = save_rule(device, rule, clock.now())
+    async with device_lock(device):
+        status = save_rule(device, rule, clock.now())
     request.app[REGISTRY].save()
     log.info(
         "auto_pack_rule device=%d enabled=%s trigger=%s",

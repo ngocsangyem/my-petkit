@@ -7,6 +7,10 @@ why; a pack error or a second unanswered pack turns the rule off.
 
 from __future__ import annotations
 
+import asyncio
+import datetime
+from zoneinfo import ZoneInfo
+
 import pytest
 
 from my_petkit.devices.registry import DeviceRegistry
@@ -25,8 +29,8 @@ DEVICE = 6
 NOW = 1_761_800_000.0
 
 
-def _idle_t6(reg: DeviceRegistry, **state):
-    d = reg.get_or_create(petkit_id=DEVICE, device_type="t6", serial_number="SN6")
+def _idle_t6(reg: DeviceRegistry, device_id: int = DEVICE, **state):
+    d = reg.get_or_create(petkit_id=device_id, device_type="t6", serial_number=f"SN{device_id}")
     d.config["locale"] = "Asia/Saigon"
     d.state.update(
         {
@@ -39,21 +43,23 @@ def _idle_t6(reg: DeviceRegistry, **state):
     )
     d.state.update(state)
     d.mqtt_connected = True
-    d.last_mqtt = NOW
+    d.last_mqtt = d.last_state_report = NOW
     return d
 
 
 class _Harness:
-    def __init__(self, event_store, **state):
+    def __init__(self, event_store, *, device_id=DEVICE, **state):
         self.reg = DeviceRegistry()
-        self.device = _idle_t6(self.reg, **state)
+        self.device = _idle_t6(self.reg, device_id, **state)
         self.store = event_store
         self.sent: list[tuple[str, dict]] = []
         self.now = NOW
+        self.fail_send = False
 
         async def send(device, suffix, envelope):
+            if self.fail_send:
+                raise service.NotDelivered("not_on_mqtt")
             self.sent.append((suffix, envelope))
-            return "mqtt"
 
         self.evaluator = service.AutoPackEvaluator(
             self.reg, event_store, send, clock_now=lambda: self.now
@@ -64,8 +70,11 @@ class _Harness:
 
     async def event(self, event_type: str, ago: float):
         await self.store.upsert_event(
-            {"device_id": DEVICE, "event_type": event_type, "ts": self.now - ago}
+            {"device_id": self.device.petkit_id, "event_type": event_type, "ts": self.now - ago}
         )
+
+    def live(self):
+        self.device.last_mqtt = self.device.last_state_report = self.now
 
     async def tick(self):
         await self.evaluator.evaluate(self.device)
@@ -160,7 +169,7 @@ async def test_a_device_off_mqtt_is_held_back(event_store):
 
 async def test_a_silent_device_is_held_back(event_store):
     h = _Harness(event_store, boxFull=1)
-    h.device.last_mqtt = NOW - 600
+    h.device.last_mqtt = h.device.last_state_report = NOW - 600
     h.enable(trigger="bin_full")
     assert (await h.tick())["heldBackBy"] == "device_offline"
 
@@ -178,7 +187,7 @@ async def test_a_pet_nearby_in_the_last_two_minutes_holds_it_back(event_store):
     await h.event("pet_wander", ago=60)
     assert (await h.tick())["heldBackBy"] == "pet_nearby"
     h.now += 120
-    h.device.last_mqtt = h.now
+    h.live()
     await h.tick()
     assert len(h.sent) == 1
 
@@ -241,19 +250,19 @@ async def test_silence_allows_one_retry_after_the_gap_then_turns_the_rule_off(ev
     await h.tick()
 
     h.now += service.PACK_RESPONSE_WINDOW_S
-    h.device.last_mqtt = h.now
+    h.live()
     status = await h.tick()
     assert status["lastResult"] == "no_response"
     assert status["heldBackBy"] == "cooldown"
     assert len(h.sent) == 1
 
     h.now = NOW + service.ATTEMPT_GAP_S
-    h.device.last_mqtt = h.now
+    h.live()
     await h.tick()
     assert len(h.sent) == 2
 
     h.now += service.PACK_RESPONSE_WINDOW_S
-    h.device.last_mqtt = h.now
+    h.live()
     status = await h.tick()
     assert service.load_rule(h.device)["enabled"] is False
     assert status["disabledReason"] == "no_response"
@@ -267,6 +276,99 @@ async def test_evaluate_all_skips_rules_that_are_off_and_other_models(event_stor
     t5.state["boxFull"] = 1
     await h.evaluator.evaluate_all()
     assert h.sent == []
+
+
+async def test_bin_full_waits_for_the_bin_to_clear_before_packing_again(event_store):
+    h = _Harness(event_store, boxFull=1)
+    h.enable(trigger="bin_full")
+    await h.tick()
+    h.now += 60
+    await h.event("package_over", ago=5)
+    assert (await h.tick())["awaitingBinClear"] is True
+    h.now += service.ATTEMPT_GAP_S
+    h.live()
+    assert (await h.tick())["heldBackBy"] == "not_due"
+    h.device.state["boxFull"] = 0
+    await h.tick()
+    h.device.state["boxFull"] = 1
+    await h.tick()
+    assert len(h.sent) == 2
+
+
+async def test_daily_at_switched_on_after_todays_time_waits_for_tomorrow(event_store):
+    h = _Harness(event_store)
+    h.enable(enabled_at=NOW - 60, trigger="daily_at", at="11:00")
+    assert (await h.tick())["heldBackBy"] == "not_due"
+    assert h.sent == []
+
+
+async def test_daily_at_inside_a_dst_gap_packs_once(event_store):
+    # 2025-03-09 in New York: 02:00-03:00 local does not exist.
+    zone = ZoneInfo("America/New_York")
+    h = _Harness(event_store)
+    h.device.config["locale"] = "America/New_York"
+    # A skipped 02:30 resolves to the instant 03:30 local.
+    h.now = datetime.datetime(2025, 3, 9, 3, 35, tzinfo=zone).timestamp()
+    h.live()
+    h.enable(enabled_at=h.now - 86400, trigger="daily_at", at="02:30")
+    await h.tick()
+    assert len(h.sent) == 1
+    h.now += 60
+    await h.event("package_over", ago=10)
+    await h.tick()
+    for _ in range(4):
+        h.now += service.ATTEMPT_GAP_S
+        h.live()
+        await h.tick()
+    assert len(h.sent) == 1
+
+
+async def test_turning_the_rule_off_while_an_evaluation_waits_sends_nothing(event_store):
+    h = _Harness(event_store, device_id=7, boxFull=1)
+    h.enable(trigger="bin_full")
+    lock = service.device_lock(h.device)
+    await lock.acquire()
+    task = asyncio.create_task(h.tick())
+    await asyncio.sleep(0)
+    service.save_rule(h.device, {**DEFAULT_RULE, "trigger": "bin_full"}, NOW)
+    lock.release()
+    await task
+    assert h.sent == []
+    assert service.load_rule(h.device)["enabled"] is False
+
+
+async def test_an_undelivered_pack_is_not_resent_every_minute(event_store):
+    h = _Harness(event_store, boxFull=1)
+    h.enable(trigger="bin_full")
+    h.fail_send = True
+    status = await h.tick()
+    assert status["heldBackBy"] == "not_delivered"
+    assert status["pendingSince"] is None
+    assert status["lastAttemptAt"] == NOW
+    h.fail_send = False
+    h.now += 60
+    h.live()
+    assert (await h.tick())["heldBackBy"] == "cooldown"
+    assert h.sent == []
+
+
+async def test_switching_off_and_on_keeps_the_gap_since_the_last_pack(event_store):
+    h = _Harness(event_store, boxFull=1)
+    h.enable(trigger="bin_full")
+    await h.tick()
+    service.save_rule(h.device, {**DEFAULT_RULE, "trigger": "bin_full"}, NOW + 30)
+    h.enable(enabled_at=NOW + 60, trigger="bin_full")
+    h.now += 120
+    h.live()
+    assert (await h.tick())["heldBackBy"] == "cooldown"
+    assert len(h.sent) == 1
+
+
+async def test_a_state_without_the_occupancy_field_holds_it_back(event_store):
+    h = _Harness(event_store, boxFull=1)
+    del h.device.state["petInTime"]
+    h.enable(trigger="bin_full")
+    assert (await h.tick())["heldBackBy"] == "presence_unknown"
 
 
 # --- the rule itself and its route --------------------------------------------------

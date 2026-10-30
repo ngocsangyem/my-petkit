@@ -7,7 +7,8 @@ A rule's lifecycle, per evaluation (once a minute):
 
 1. A pack is pending: a `package_over` since the send is success; an error
    since the send turns the rule off; ten minutes of silence allows one more
-   try, a second silence turns the rule off.
+   try (sent once the 30-minute gap since the first has passed), a second
+   silence turns the rule off.
 2. Otherwise, the trigger is checked. Not due: nothing happens.
 3. Due: quiet hours, the guards and a 30-minute gap between attempts can each
    hold it back. Held back is not failed; the next evaluation looks again.
@@ -15,6 +16,14 @@ A rule's lifecycle, per evaluation (once a minute):
 
 A rule is never turned back on by the server. Turning it off records why, and
 the user turns it on again.
+
+Every command here goes out over a live MQTT session or not at all
+(`publish_live`). The panel's usual fallback, the heartbeat queue, keeps a
+command until the device next polls, which can be long after the guards that
+let it through stopped being true.
+
+The loop and the rule's route take the same per-device lock (`device_lock`), so
+a user turning a rule off cannot race a pack that was about to go out.
 """
 
 from __future__ import annotations
@@ -39,6 +48,7 @@ from my_petkit.ha.commands import pack_waste_command
 from my_petkit.ha.categories import get_entities_for_device
 from my_petkit.utils import clock
 from my_petkit.utils.coerce import to_float
+from my_petkit.utils.logtext import one_line
 
 log = logging.getLogger(__name__)
 
@@ -63,8 +73,36 @@ _READ_CODES = (
     | codes.LITTER_ERROR_START_CODES
 )
 
-#: Sends one envelope to a device and answers how it went out.
-Sender = Callable[[Device, str, dict[str, Any]], Awaitable[str]]
+#: Sends one envelope to a device over MQTT, or raises `NotDelivered`.
+Sender = Callable[[Device, str, dict[str, Any]], Awaitable[None]]
+
+_locks: dict[int, asyncio.Lock] = {}
+
+
+class NotDelivered(Exception):
+    """The command did not go out over a live MQTT session, and was not queued."""
+
+
+def device_lock(device: Device) -> asyncio.Lock:
+    """The lock that serializes a device's rule between the loop and its route."""
+    return _locks.setdefault(device.petkit_id, asyncio.Lock())
+
+
+async def publish_live(
+    hub: Any, bridge: Any, device: Device, suffix: str, envelope: dict[str, Any]
+) -> None:
+    """Publish over the device's live MQTT session, never to the heartbeat queue.
+
+    Raises:
+        NotDelivered: no live session, or the publish failed.
+    """
+    if bridge is None or not getattr(bridge, "_client", None) or not device.mqtt_connected:
+        raise NotDelivered("not_on_mqtt")
+    try:
+        await bridge.publish_to_device(device, suffix, envelope)
+    except Exception as exc:
+        raise NotDelivered(str(exc)) from exc
+    hub.record_command(device.petkit_id, "mqtt", f"{suffix} {envelope.get('params')}")
 
 
 class AutoPackStatus(TypedDict):
@@ -76,6 +114,7 @@ class AutoPackStatus(TypedDict):
     lastPackedAt: float | None
     heldBackBy: str | None
     disabledReason: str | None
+    awaitingBinClear: bool
 
 
 def _empty_status() -> AutoPackStatus:
@@ -88,6 +127,7 @@ def _empty_status() -> AutoPackStatus:
         "lastPackedAt": None,
         "heldBackBy": None,
         "disabledReason": None,
+        "awaitingBinClear": False,
     }
 
 
@@ -147,9 +187,11 @@ def save_rule(device: Device, rule: AutoPackRule, now: float) -> AutoPackStatus:
     was_enabled = bool(load_rule(device)["enabled"])
     status = load_status(device)
     if rule["enabled"] and not was_enabled:
-        last_packed = status["lastPackedAt"]
+        # The last attempt survives, so turning a rule off and on again cannot
+        # skip the gap while a pack it sent may still be running.
+        kept = {"lastPackedAt": status["lastPackedAt"], "lastAttemptAt": status["lastAttemptAt"]}
         status = _empty_status()
-        status.update({"enabledAt": now, "lastPackedAt": last_packed})
+        status.update({"enabledAt": now, **kept})  # type: ignore[typeddict-item]
     elif not rule["enabled"]:
         status["pendingSince"] = None
         status["heldBackBy"] = None
@@ -169,7 +211,7 @@ def _disable(device: Device, status: AutoPackStatus, reason: str) -> None:
     status.update(
         {"pendingSince": None, "heldBackBy": None, "disabledReason": reason, "lastResult": "failed"}
     )
-    log.warning("auto-pack turned off for device %d: %s", device.petkit_id, reason)
+    log.warning("auto-pack turned off for device %d: %s", device.petkit_id, one_line(reason))
 
 
 def _latest_ts(events: list[dict[str, Any]], kinds: frozenset[str], after: float) -> float:
@@ -210,21 +252,23 @@ class AutoPackEvaluator:
                 continue
             try:
                 await self.evaluate(device)
+                # Written by the registry's own flusher, not synchronously once
+                # a minute per rule.
+                self._registry.mark_dirty()
             except Exception:
                 # One device's bad data must not stop every other rule.
                 log.exception("auto-pack: evaluating device %d failed", device.petkit_id)
-            self._registry.save()
 
     async def evaluate(self, device: Device) -> None:
         """Run one step of the lifecycle in the module docstring."""
+        async with device_lock(device):
+            await self._evaluate_locked(device)
+
+    async def _evaluate_locked(self, device: Device) -> None:
         rule, status, now = load_rule(device), load_status(device), self._now()
         if not rule["enabled"]:
             return
-        since = min(
-            now - guards.OPEN_VISIT_WINDOW_S,
-            status["pendingSince"] or now,
-            status["enabledAt"] or now,
-        )
+        since = min(now - guards.OPEN_VISIT_WINDOW_S, status["pendingSince"] or now)
         events = await recent_events(self._store, device, since)
 
         if status["pendingSince"] is not None:
@@ -252,6 +296,8 @@ class AutoPackEvaluator:
             status.update(
                 {"pendingSince": None, "retries": 0, "lastResult": "packed", "lastPackedAt": packed}
             )
+            if load_rule(device)["trigger"] == "bin_full":
+                status["awaitingBinClear"] = True
             return
         if _latest_ts(events, codes.LITTER_ERROR_START_CODES, sent) or device.state.get("errorMsg"):
             message = device.state.get("errorMsg") or "the device reported an error"
@@ -276,6 +322,9 @@ class AutoPackEvaluator:
     ) -> str | None:
         """None when the rule should pack now, else why it does not."""
         if not await self._due(device, rule, status, now):
+            # The trigger is satisfied, so whatever cycle the retries counted
+            # is over; the next one starts with its full allowance.
+            status["retries"] = 0
             return "not_due"
         local = clock.local_datetime(now, device)
         if in_quiet_hours(rule, local.hour * 60 + local.minute):
@@ -292,13 +341,22 @@ class AutoPackEvaluator:
     ) -> bool:
         trigger = rule["trigger"]
         if trigger == "bin_full":
-            return bool(device.state.get("boxFull"))
+            # After a pack, the bin must be seen not full before it counts as
+            # full again; otherwise a flag that stays up spends a bag every gap.
+            full = bool(device.state.get("boxFull"))
+            if not full:
+                status["awaitingBinClear"] = False
+            return full and not status["awaitingBinClear"]
         last_pack = await self._last_pack_ts(device)
         if trigger == "daily_at":
             local = clock.local_datetime(now, device)
             minutes = minutes_of(rule["at"])
             at = local.replace(hour=minutes // 60, minute=minutes % 60, second=0, microsecond=0)
-            return local >= at and last_pack < at.timestamp()
+            # Compared as instants: a wall time inside a DST gap compares
+            # earlier as a wall time than as the instant it resolves to.
+            at_ts = at.timestamp()
+            enabled_at = status["enabledAt"] or 0.0
+            return now >= at_ts >= enabled_at and last_pack < at_ts
         # after_cleanings
         since = max(last_pack, status["enabledAt"] or 0.0)
         cleans = await self._store.device_events_by_type(
@@ -314,12 +372,18 @@ class AutoPackEvaluator:
         return (to_float(rows[0].get("ts"), 0.0) or 0.0) if rows else 0.0
 
     async def _fire(self, device: Device, status: AutoPackStatus, now: float) -> None:
-        suffix, envelope = pack_waste_command()
-        delivered = await self._send(device, suffix, envelope)
+        # Recorded before the send: an exception after the command went out
+        # must not leave a status that sends it again a minute later.
         status.update({"pendingSince": now, "lastAttemptAt": now})
-        log.info(
-            "auto-pack sent to device %d over %s (retry %d)",
-            device.petkit_id,
-            delivered,
-            status["retries"],
-        )
+        _store_status(device, status)
+        suffix, envelope = pack_waste_command()
+        try:
+            await self._send(device, suffix, envelope)
+        except NotDelivered as exc:
+            # Nothing went out, so nothing is pending; the gap still applies.
+            status.update({"pendingSince": None, "heldBackBy": "not_delivered"})
+            log.warning(
+                "auto-pack for device %d not delivered: %s", device.petkit_id, one_line(exc)
+            )
+            return
+        log.info("auto-pack sent to device %d (retry %d)", device.petkit_id, status["retries"])
