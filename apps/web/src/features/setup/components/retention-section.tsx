@@ -6,7 +6,6 @@ import {
   ErrorBlock,
   Missing,
   NumberInput,
-  SettingsSection,
   Skeleton,
   Table,
   type TableColumn,
@@ -17,6 +16,7 @@ import {
   RETENTION_SIZED,
   type RetentionCaps,
 } from '../retention-and-blocked-model';
+import { SettingsCard } from './settings-card';
 
 type Category = keyof RetentionCaps;
 
@@ -122,8 +122,10 @@ function RetentionTable({ data, save }: RetentionTableProps) {
         rowKey={r => r.key}
         minWidth={420}
       />
-      <div className="flex flex-wrap items-center gap-3 pt-3">
+      <p className="pt-3 text-xs text-muted-foreground">{DESCRIPTION}</p>
+      <div className="flex flex-wrap items-center gap-3 py-3">
         <Button
+          size="small"
           onClick={() => {
             save.mutate(toPatch(caps));
           }}
@@ -143,14 +145,14 @@ function RetentionTable({ data, save }: RetentionTableProps) {
   );
 }
 
-/** Per-category media caps, events history and how long blocked attempts are kept. */
+/** Keep: per-category media caps, events history and how long blocked attempts are kept. */
 export function RetentionSection() {
   const retention = useRetention();
   // Owned here, not by the table: a save replaces the cached caps, which
   // remounts the table with them, and the "saved" line must survive that.
   const save = useSaveRetention();
   return (
-    <SettingsSection title="Retention" description={DESCRIPTION}>
+    <SettingsCard title="Keep">
       {retention.isPending ? (
         <div className="flex flex-col gap-3" aria-busy="true">
           {ROWS.map(r => (
@@ -166,6 +168,6 @@ export function RetentionSection() {
       ) : (
         <RetentionTable key={retention.dataUpdatedAt} data={retention.data} save={save} />
       )}
-    </SettingsSection>
+    </SettingsCard>
   );
 }

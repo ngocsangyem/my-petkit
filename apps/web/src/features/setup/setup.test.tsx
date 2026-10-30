@@ -121,7 +121,7 @@ describe('SetupPage', () => {
     expect(screen.getByRole('switch', { name: 'Block firmware updates' })).not.toBeChecked();
 
     await user.type(screen.getByRole('textbox', { name: 'Upstream resolver' }), '1.1.1.1');
-    await user.click(screen.getByRole('button', { name: 'Save settings' }));
+    await user.click(screen.getByRole('button', { name: 'Save changes' }));
 
     await waitFor(() => {
       expect(calls.some(c => c.method === 'POST')).toBe(true);
@@ -138,7 +138,7 @@ describe('SetupPage', () => {
     await user.click(await screen.findByRole('switch', { name: 'Block remote shell commands' }));
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(screen.getByRole('switch', { name: 'Block remote shell commands' })).toBeChecked();
-    expect(screen.queryByRole('button', { name: 'Save settings' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
   });
 
   it('says nothing was saved when the server refuses the batch', async () => {
@@ -149,7 +149,7 @@ describe('SetupPage', () => {
     const user = userEvent.setup();
     renderWithProviders(<SetupPage />);
     await user.click(await screen.findByRole('switch', { name: 'Save traffic' }));
-    await user.click(screen.getByRole('button', { name: 'Save settings' }));
+    await user.click(screen.getByRole('button', { name: 'Save changes' }));
     expect(
       await screen.findByText(/Nothing was saved: bad value for proxy_upstream/),
     ).toBeInTheDocument();
@@ -162,7 +162,7 @@ describe('SetupPage', () => {
     renderWithProviders(<SetupPage />);
     await user.type(await screen.findByRole('textbox', { name: 'Upstream resolver' }), 'dns.local');
     expect(screen.getByText(/must be an IPv4 address/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Save settings' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Save changes' })).toBeDisabled();
   });
 
   it('saves every retention category, leaving the staged uploads alone', async () => {

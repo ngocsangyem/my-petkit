@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { errorMessage } from '@/shared/api/errors';
 import { formatDateTime, relativeTime } from '@/shared/format/format';
-import { Button, ConfirmDialog, EmptyBlock, Table, type TableColumn } from '@/shared/ui';
+import { Button, ConfirmDialog, EmptyBlock, Icon, Table, type TableColumn } from '@/shared/ui';
 import { useRevokeToken, type ClientToken } from '../api';
 
 function tokenName(t: ClientToken): string {
@@ -18,15 +18,25 @@ export function TokenList({ tokens }: { tokens: readonly ClientToken[] }) {
   const columns: TableColumn<ClientToken>[] = [
     {
       key: 'phone',
-      header: 'Phone',
+      header: 'Client',
       cell: t => (
-        <span className="flex min-w-0 flex-col">
-          <span className="font-medium wrap-anywhere">{tokenName(t)}</span>
-          <span className="text-sm text-muted-foreground">
-            Paired {formatDateTime(t.created_at)} · last used {relativeTime(t.last_used)}
+        <span className="flex min-w-0 items-center gap-2.5">
+          <Icon name="phone" size={18} className="flex-none text-muted-foreground" />
+          <span className="flex min-w-0 flex-col">
+            <span className="wrap-anywhere">{tokenName(t)}</span>
+            <span className="text-xs text-muted-foreground">
+              Paired {formatDateTime(t.created_at)}
+            </span>
           </span>
         </span>
       ),
+    },
+    {
+      key: 'seen',
+      header: 'Last seen',
+      muted: true,
+      nowrap: true,
+      cell: t => relativeTime(t.last_used),
     },
     {
       key: 'action',
@@ -36,6 +46,7 @@ export function TokenList({ tokens }: { tokens: readonly ClientToken[] }) {
       cell: t => (
         <Button
           variant="destructive"
+          size="small"
           onClick={() => {
             revoke.reset();
             setAsking(t);
@@ -50,13 +61,7 @@ export function TokenList({ tokens }: { tokens: readonly ClientToken[] }) {
 
   return (
     <>
-      <Table
-        label="Client tokens"
-        variant="compact"
-        columns={columns}
-        rows={tokens}
-        rowKey={t => String(t.id)}
-      />
+      <Table label="Client tokens" columns={columns} rows={tokens} rowKey={t => String(t.id)} />
       {revoke.isError && (
         <p role="alert" className="pt-2 text-sm text-negative">
           Not revoked: {errorMessage(revoke.error)}

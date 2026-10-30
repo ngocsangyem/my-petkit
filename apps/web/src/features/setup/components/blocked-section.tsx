@@ -1,16 +1,10 @@
 import { useState } from 'react';
 import { ApiError, errorMessage } from '@/shared/api/errors';
 import { formatDateTime } from '@/shared/format/format';
-import {
-  Button,
-  ErrorBlock,
-  SettingsSection,
-  Table,
-  ValueText,
-  type TableColumn,
-} from '@/shared/ui';
+import { Button, ErrorBlock, Table, ValueText, type TableColumn } from '@/shared/ui';
 import { useBlocked } from '../api';
 import { BLOCKED_LIMIT, redactLabel, type BlockedAttempt } from '../retention-and-blocked-model';
+import { SettingsCard } from './settings-card';
 
 const COLUMNS: readonly TableColumn<BlockedAttempt>[] = [
   {
@@ -56,10 +50,21 @@ export function BlockedSection() {
 
   const count = rows.length >= BLOCKED_LIMIT ? `The newest ${BLOCKED_LIMIT}` : String(rows.length);
   return (
-    <SettingsSection
+    <SettingsCard
       title="Blocked attempts"
-      description={`What the cloud tried to do and was stopped. Kept in the database, so the list outlives a restart. Payloads can hold a real device secret, so they are masked; revealing them asks for your password.`}
+      end={
+        !blocked.isError && rows.length > 0 ? (
+          <span className="text-sm text-muted-foreground">
+            {count} {rows.length === 1 ? 'attempt' : 'attempts'}
+          </span>
+        ) : undefined
+      }
     >
+      <p className="pb-2 text-xs text-muted-foreground">
+        What the cloud tried to do and was stopped. Kept in the database, so the list outlives a
+        restart. Payloads can hold a real device secret, so they are masked; revealing them asks for
+        your password.
+      </p>
       {blocked.isError ? (
         <ErrorBlock
           message={
@@ -81,21 +86,19 @@ export function BlockedSection() {
           emptyText={blocked.isPending ? 'Loading…' : 'No blocked attempts.'}
         />
       )}
-      <div className="flex flex-wrap items-center gap-3 pt-3">
+      <div className="flex flex-wrap items-center gap-3 py-3">
         <Button
+          size="small"
           onClick={() => {
             setReveal(r => !r);
           }}
         >
           {reveal ? 'Mask payloads' : 'Reveal payloads'}
         </Button>
-        {!blocked.isError && rows.length > 0 && (
-          <span className="text-sm text-muted-foreground">
-            {count} {rows.length === 1 ? 'attempt' : 'attempts'}
-            {reveal ? ', payloads shown in full.' : '.'}
-          </span>
+        {reveal && !blocked.isError && rows.length > 0 && (
+          <span className="text-sm text-muted-foreground">Payloads shown in full.</span>
         )}
       </div>
-    </SettingsSection>
+    </SettingsCard>
   );
 }
