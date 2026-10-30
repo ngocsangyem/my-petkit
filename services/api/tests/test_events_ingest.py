@@ -452,7 +452,8 @@ def test_filter_counts_and_matches_filter():
     ]
     counts = ingest.filter_counts(sessions)
     assert counts == {"all": 3, "pet": 1, "toileting": 1, "drinking": 0,
-                      "feeding": 0, "cleaning": 0, "health_alert": 0, "fault": 1}
+                      "feeding": 0, "cleaning": 0, "health_alert": 0, "fault": 1,
+                      "passing": 0}
 
     assert ingest.matches_filter(sessions[0], "toileting") is True
     assert ingest.matches_filter(sessions[1], "toileting") is False
@@ -471,7 +472,7 @@ def test_a_yowling_visit_is_both_a_visit_and_a_health_alert():
     yowled = {"event_kind": "toilet_visit", "content": {"petVoice": 1}}
     assert ingest.filter_counts([quiet, yowled]) == {
         "all": 2, "pet": 0, "toileting": 2, "drinking": 0, "feeding": 0,
-        "cleaning": 0, "health_alert": 1, "fault": 0}
+        "cleaning": 0, "health_alert": 1, "fault": 0, "passing": 0}
     assert ingest.matches_filter(yowled, "toileting") is True
     assert ingest.matches_filter(yowled, "health_alert") is True
     assert ingest.matches_filter(quiet, "health_alert") is False

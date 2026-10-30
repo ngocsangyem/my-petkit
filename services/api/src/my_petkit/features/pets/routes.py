@@ -22,6 +22,7 @@ from aiohttp import web
 
 from my_petkit.ai.pets import cloud_pets
 from my_petkit.events.store import MAX_FACES_PER_PET
+from my_petkit.features.pets.weight_and_device_limit import refuse_full_devices, weight_fields
 from my_petkit.http.cloud_fetch import CLOUD_TIMEOUT, CloudRefused, fetch_as_device
 from my_petkit.utils.coerce import to_int
 from my_petkit.utils.paths import UnsafePathError, safe_join
@@ -60,7 +61,11 @@ async def api_pets_list_create(request: web.Request) -> web.Response:
     except (TypeError, ValueError):
         device_ids = []
 
+    weights = weight_fields(body)
+    await refuse_full_devices(pet_registry, device_ids)
     pet = await pet_registry.create(name, device_ids=device_ids, weight=body.get("weight"))
+    if weights:
+        pet = await pet_registry.update(pet["id"], **weights)
     ha_publisher = request.app.get(HA_PUBLISHER)
     if ha_publisher is not None:
         await ha_publisher.publish_pet_discovery(pet)
@@ -118,6 +123,17 @@ async def api_pet_detail(request: web.Request) -> web.Response:
             pass
     if "weight" in body:
         fields["weight"] = body["weight"]
+    fields.update(weight_fields(body))
+    if "device_ids_json" in fields:
+        # Only the devices this update ADDS can go over the limit; one that is
+        # already over (from before the limit existed) does not block a rename.
+        try:
+            had = set(json.loads(before.get("device_ids_json") or "[]"))
+        except (json.JSONDecodeError, TypeError):
+            had = set()
+        await refuse_full_devices(
+            pet_registry, [d for d in fields["device_ids_json"] if d not in had], pid
+        )
 
     pet = await pet_registry.update(pid, **fields)
     if pet is None:

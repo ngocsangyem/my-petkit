@@ -1044,6 +1044,7 @@ no longer exists; the web app's build and its vitest suite fail on the equivalen
 | `test_contract_spec_paths_exist.py` (`UNDESCRIBED`) | `/static`, `/asset/{v}/js/{name}` and `/app/{path}` dropped; `/assets/{name}` and `/{name}` added; `/app`, `/app/` now described as redirects to the root | `/` serves the web app | – |
 | `conftest.py` | new `web_build` fixture and `WEB_ENTRY` constant: a minimal build in a temporary dist directory, moved out of `test_web_app_serving.py` so every module that reaches `/` can use it | fixture | – |
 | `test_go2rtc.py` | `test_the_rendered_config_binds_where_we_intend`: comment only — WebRTC media is off until candidates are configured, rather than off outright; the assertion is unchanged | comment | live video |
+| `test_events_ingest.py::test_filter_counts_and_matches_filter`, `test_events_ingest.py::test_a_yowling_visit_is_both_a_visit_and_a_health_alert`, `test_panel_media.py::test_timeline_filters_by_pet` | expected chip counts gain `"passing": 0`: the Timeline has a chip for visits too light to be any registered cat | behaviour change: light-visit chip | pet recognition |
 
 ### Media serves the byte ranges the iOS media loader asks for
 
@@ -1190,3 +1191,63 @@ The per-module scans (local time only through `clock`, app keys only through `ap
 - added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/litter_automation/routes.py]
 - added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/litter_automation/schemas.py]
 - added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/litter_automation/service.py]
+
+### Pet recognition: manual reassignment, registered weights, light visits, 15-pet limit
+
+A visit can be given to another pet by hand, which nothing automatic undoes; recognised visits keep a pet's registered weight current; a visit nobody recognised is matched by weight only when no other cat is close; visits lighter than any registered cat are hidden behind their own chip; a box is handed at most 15 pets; the database is backed up before new columns are added.
+
+- added: tests/test_event_pet_manual_override.py::test_a_manual_pet_covers_every_row_of_the_visit
+- added: tests/test_event_pet_manual_override.py::test_a_device_resend_does_not_override_the_manual_pet
+- added: tests/test_event_pet_manual_override.py::test_a_later_report_of_the_visit_joins_the_manual_pet
+- added: tests/test_event_pet_manual_override.py::test_binding_an_identity_skips_visits_picked_by_hand
+- added: tests/test_event_pet_manual_override.py::test_weight_rules_leave_a_manual_visit_alone
+- added: tests/test_pet_weight_auto_update.py::test_a_recognised_visit_updates_the_registered_weight
+- added: tests/test_pet_weight_auto_update.py::test_a_visit_matched_by_weight_does_not_update_it
+- added: tests/test_pet_weight_auto_update.py::test_an_older_visit_does_not_overwrite_a_newer_weight
+- added: tests/test_pet_weight_auto_update.py::test_the_same_visit_applied_twice_changes_nothing_more
+- added: tests/test_pet_weight_auto_update.py::test_a_manual_pet_does_not_update_the_weight_by_itself
+- added: tests/test_weight_attribution_ambiguity.py::test_one_cat_within_tolerance_is_matched
+- added: tests/test_weight_attribution_ambiguity.py::test_two_cats_of_similar_weight_match_nobody
+- added: tests/test_weight_attribution_ambiguity.py::test_a_cat_that_opted_out_still_counts_as_a_competitor
+- added: tests/test_weight_attribution_ambiguity.py::test_a_wider_tolerance_widens_both_the_match_and_the_doubt
+- added: tests/test_weight_attribution_ambiguity.py::test_no_registered_weight_matches_nobody
+- added: tests/test_weight_attribution_ambiguity.py::test_a_match_is_stored_as_by_weight
+- added: tests/test_weight_attribution_ambiguity.py::test_a_pet_on_another_device_is_not_a_candidate
+- added: tests/test_weight_attribution_ambiguity.py::test_a_later_recognition_replaces_a_weight_match
+- added: tests/test_passing_visit_flag.py::test_the_threshold_is_the_lightest_cat_less_its_tolerance
+- added: tests/test_passing_visit_flag.py::test_without_a_registered_weight_nothing_is_passing
+- added: tests/test_passing_visit_flag.py::test_a_light_visit_is_flagged_on_every_row
+- added: tests/test_passing_visit_flag.py::test_a_passing_visit_shows_only_under_its_own_chip
+- added: tests/test_visit_pet_route.py::test_picking_a_pet_names_the_visit_on_the_timeline
+- added: tests/test_visit_pet_route.py::test_just_passing_hides_the_visit
+- added: tests/test_visit_pet_route.py::test_use_weight_sets_the_registered_weight
+- added: tests/test_visit_pet_route.py::test_apply_to_ref_binds_the_reported_identity
+- added: tests/test_visit_pet_route.py::test_a_bad_request_changes_nothing[body0-unknown_pet]
+- added: tests/test_visit_pet_route.py::test_a_bad_request_changes_nothing[body1-invalid_body]
+- added: tests/test_visit_pet_route.py::test_a_bad_request_changes_nothing[body2-invalid_body]
+- added: tests/test_visit_pet_route.py::test_a_bad_request_changes_nothing[body3-no_weight]
+- added: tests/test_visit_pet_route.py::test_a_bad_request_changes_nothing[body4-ref_not_bindable]
+- added: tests/test_visit_pet_route.py::test_passing_with_a_pet_is_refused
+- added: tests/test_visit_pet_route.py::test_a_pets_own_id_cannot_be_given_to_another_pet
+- added: tests/test_visit_pet_route.py::test_an_unknown_event_is_404
+- added: tests/test_discern_pic_max_15.py::test_the_device_is_handed_at_most_15_pets
+- added: tests/test_discern_pic_max_15.py::test_a_sixteenth_pet_on_a_device_is_refused
+- added: tests/test_discern_pic_max_15.py::test_moving_a_pet_onto_a_full_device_is_refused
+- added: tests/test_discern_pic_max_15.py::test_a_pet_already_over_the_limit_can_still_be_renamed
+- added: tests/test_discern_pic_max_15.py::test_weight_fields_are_validated[body0]
+- added: tests/test_discern_pic_max_15.py::test_weight_fields_are_validated[body1]
+- added: tests/test_discern_pic_max_15.py::test_weight_fields_are_validated[body2]
+- added: tests/test_discern_pic_max_15.py::test_weight_fields_are_validated[body3]
+- added: tests/test_discern_pic_max_15.py::test_weight_fields_are_validated[body4]
+- added: tests/test_discern_pic_max_15.py::test_weight_fields_are_stored
+- added: tests/test_event_store_backup_before_migrate.py::test_an_old_database_is_backed_up_before_it_is_migrated
+- added: tests/test_event_store_backup_before_migrate.py::test_a_current_database_is_not_backed_up
+
+The per-module scans (local time only through `clock`, app keys only through `appkeys`) pick up the new modules.
+
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[ai/pet_weights.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[events/store_visits.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/pets/weight_and_device_limit.py]
+- added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[features/timeline/change_visit_pet_routes.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/pets/weight_and_device_limit.py]
+- added: tests/test_web_api_uses_appkeys_constants.py::test_web_api_reads_app_keys_through_the_appkeys_constants[features/timeline/change_visit_pet_routes.py]

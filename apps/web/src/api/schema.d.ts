@@ -658,6 +658,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/timeline/{id}/pet": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Change which pet a visit belongs to
+         * @description Applies to every report of the visit the event belongs to and is stored as `pet_source = manual`, which nothing automatic overrides afterwards. Only the server's record changes; nothing is sent to the device.
+         */
+        put: operations["setVisitPet"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/media/thumb/{path}": {
         parameters: {
             query?: never;
@@ -1698,7 +1718,16 @@ export interface components {
             face_id: string | null;
             /** @description Legacy single-photo column, unused (may hold a server filesystem path). */
             photo_path: string | null;
+            /** @description Legacy free-form value, unit never fixed. Weight rules read `weight_g`. */
             weight: number | null;
+            /** @description Registered weight in whole grams. Moved by visits the device recognised. */
+            weight_g: number | null;
+            /** @description Unix time `weight_g` last changed. */
+            weight_updated_at: number | null;
+            /** @description Null means the default, 300 g. */
+            weight_tolerance_g: number | null;
+            /** @description 1 when visits may be matched to this pet by weight, 0 when not. */
+            weight_match: number | null;
             /** @description Unix time. */
             created_at: number;
         };
@@ -1709,6 +1738,12 @@ export interface components {
             device_ids?: number[];
             /** @description Stored as given, not validated. */
             weight?: number | null;
+            /** @description Registered weight in whole grams, 200 to 20000. Setting it stamps `weight_updated_at`. */
+            weight_g?: number | null;
+            /** @description How far a visit may sit from the registered weight, 50 to 2000 g. Null is the default, 300 g. */
+            weight_tolerance_g?: number | null;
+            /** @description Whether visits the camera did not recognise may be matched to this pet by weight. */
+            weight_match?: boolean;
         };
         PetFace: {
             id: number;
@@ -1743,6 +1778,12 @@ export interface components {
             device_pet_ids?: number[];
             /** @description Stored as given, not validated. */
             weight?: number | null;
+            /** @description Registered weight in whole grams, 200 to 20000. Setting it stamps `weight_updated_at`. */
+            weight_g?: number | null;
+            /** @description How far a visit may sit from the registered weight, 50 to 2000 g. Null is the default, 300 g. */
+            weight_tolerance_g?: number | null;
+            /** @description Whether visits the camera did not recognise may be matched to this pet by weight. */
+            weight_match?: boolean;
         };
         PetWithFaces: components["schemas"]["Pet"] & {
             faces: components["schemas"]["PetFace"][];
@@ -1907,6 +1948,7 @@ export interface components {
             sound: components["schemas"]["Sound"];
         };
         TimelineCounts: {
+            /** @description Every session except `passing` ones, which only their own chip shows. */
             all: number;
             pet: number;
             toileting: number;
@@ -1915,6 +1957,7 @@ export interface components {
             cleaning: number;
             health_alert: number;
             fault: number;
+            passing: number;
         };
         TimelineDay: {
             /** @description Local day used (YYYY-MM-DD) */
@@ -1987,7 +2030,44 @@ export interface components {
             snapshot_url: string | null;
             video_pending: boolean;
         };
+        VisitPetRequest: {
+            /** @description The pet, or null for no pet. */
+            pet_id: number | null;
+            /**
+             * @description "No cat, just passing". Requires a null `pet_id`.
+             * @default false
+             */
+            passing: boolean;
+            /**
+             * @description Also make the visit's scale reading the pet's registered weight.
+             * @default false
+             */
+            use_weight: boolean;
+            /**
+             * @description Bind the identity the box reported for this visit to the pet, so later visits and its history name the pet too. Refused when no pet is given or the identity is already held.
+             * @default false
+             */
+            apply_to_ref: boolean;
+        };
+        VisitPetResult: {
+            /** @description Event rows changed. */
+            updated: number;
+            pet_id: number | null;
+            /** @enum {string} */
+            pet_source: "manual";
+            passing: boolean;
+            pet: components["schemas"]["Pet"] | null;
+        };
         TimelineSession: {
+            /**
+             * @description Who decided `pet_id`. `manual` with a null `pet_id` is a visit the user cleared.
+             * @enum {string|null}
+             */
+            pet_source: "device" | "weight" | "manual" | null;
+            /** @description Too light to be any registered cat. Shown only under the `passing` chip. */
+            passing: boolean;
+            /** @description The identity the box reported when no pet holds it yet; what `apply_to_ref` binds. */
+            unbound_pet_ref: number | null;
             /** @description Either visit or event. */
             kind: string;
             id: number | string | null;
@@ -3489,6 +3569,39 @@ export interface operations {
             404: components["responses"]["Error"];
         };
     };
+    setVisitPet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Any event of the visit. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VisitPetRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisitPetResult"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            413: components["responses"]["Error"];
+            415: components["responses"]["Error"];
+        };
+    };
     getMediaThumb: {
         parameters: {
             query?: {
@@ -3660,6 +3773,7 @@ export interface operations {
             400: components["responses"]["Error"];
             401: components["responses"]["Error"];
             403: components["responses"]["Error"];
+            409: components["responses"]["Error"];
             413: components["responses"]["Error"];
             415: components["responses"]["Error"];
         };
@@ -3788,6 +3902,7 @@ export interface operations {
             401: components["responses"]["Error"];
             403: components["responses"]["Error"];
             404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
             413: components["responses"]["Error"];
             415: components["responses"]["Error"];
         };

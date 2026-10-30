@@ -99,6 +99,15 @@ class Event(Base):
     #: `ai/pets.py::PetRegistry.resolve_pet_ref` maps this to a real pet.
     pet_ref: Mapped[int | None] = mapped_column(Integer)
     pet_id: Mapped[int | None] = mapped_column(Integer)
+    #: Who decided `pet_id`: `device` (the box recognised the pet), `weight`
+    #: (`ai/pet_weights.py` matched the scale reading against a registered
+    #: weight) or `manual` (the user picked, which nothing automatic undoes).
+    #: NULL while nobody has. A `manual` row with a NULL `pet_id` is a visit
+    #: the user cleared on purpose.
+    pet_source: Mapped[str | None] = mapped_column(Text)
+    #: 1 for a visit too light to be any registered cat, hidden from the
+    #: Timeline unless asked for. Never deletes anything.
+    passing: Mapped[int | None] = mapped_column(Integer)
     score: Mapped[float | None] = mapped_column(REAL)
     content_json: Mapped[str | None] = mapped_column(Text)
     state_json: Mapped[str | None] = mapped_column(Text)
@@ -236,7 +245,21 @@ class Pet(Base):
     device_pet_ids_json: Mapped[str | None] = mapped_column(Text, server_default=text("'[]'"))
     face_id: Mapped[str | None] = mapped_column(Text)
     photo_path: Mapped[str | None] = mapped_column(Text)
+    #: LEGACY free-form value from upstream, unit never fixed. Kept readable;
+    #: everything weight-based reads `weight_g`.
     weight: Mapped[float | None] = mapped_column(REAL)
+    #: Registered weight in whole grams, the unit the scale reports. Set by the
+    #: user, and moved by visits the device recognised (`ai/pet_weights.py`).
+    weight_g: Mapped[int | None] = mapped_column(Integer)
+    #: When `weight_g` last changed, and the visit time that changed it: an
+    #: older visit arriving late must not overwrite a newer reading.
+    weight_updated_at: Mapped[float | None] = mapped_column(REAL)
+    #: How far a visit may sit from `weight_g` and still be this pet. NULL
+    #: means `ai/pet_weights.py::DEFAULT_TOLERANCE_G`.
+    weight_tolerance_g: Mapped[int | None] = mapped_column(Integer)
+    #: Whether a visit the camera did not recognise may be matched to this pet
+    #: by weight.
+    weight_match: Mapped[int | None] = mapped_column(Integer, server_default=text("1"))
     created_at: Mapped[float] = mapped_column(REAL, nullable=False)
 
 

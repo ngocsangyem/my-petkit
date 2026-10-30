@@ -142,6 +142,9 @@ def _session_from_visit(anchor: dict, pet_in: dict | None, media: list[dict]) ->
         "ts": anchor.get("ts"),
         "display_ts": _started_at(anchor, pet_in) or anchor.get("ts"),
         "pet_id": anchor.get("pet_id"),
+        "pet_source": anchor.get("pet_source"),
+        "pet_ref": anchor.get("pet_ref"),
+        "passing": bool(anchor.get("passing")),
         "event_type": anchor.get("event_type"),
         "event_kind": codes.KIND_TOILET,
         "duration_sec": duration,
@@ -272,6 +275,9 @@ def _attach(session: dict, e: dict, used_ids: set) -> None:
     used_ids.add(e["id"])
     if session.get("pet_id") is None and e.get("pet_id") is not None:
         session["pet_id"] = e["pet_id"]
+        session["pet_source"] = e.get("pet_source")
+    if session.get("pet_ref") is None and e.get("pet_ref") is not None:
+        session["pet_ref"] = e["pet_ref"]
     session["sub_events"].append({
         "id": e["id"], "event_type": e.get("event_type"), "ts": e.get("ts"),
         "related_event": e.get("related_event"),
@@ -462,6 +468,9 @@ def _standalone_rows(events: list[dict], used_ids: set) -> list[dict]:
             # the only time it has. Emitted anyway so every card has one shape.
             "display_ts": e.get("ts"),
             "pet_id": e.get("pet_id"),
+            "pet_source": e.get("pet_source"),
+            "pet_ref": e.get("pet_ref"),
+            "passing": bool(e.get("passing")),
             "event_type": e.get("event_type"),
             "event_kind": e.get("event_kind"),
             "duration_sec": None,
@@ -543,6 +552,10 @@ def _filter_buckets(session: dict) -> set[str]:
     under "All" and were unreachable from every other filter, which is how a
     water refill came to be findable only by scrolling past it.
     """
+    # A visit too light to be any registered cat is only ever under its own
+    # chip: hidden from "All" and every other filter until asked for.
+    if session.get("passing"):
+        return {"passing"}
     kind = session.get("event_kind")
     buckets: set[str] = set()
     if kind == codes.KIND_TOILET:
@@ -566,16 +579,16 @@ def _filter_buckets(session: dict) -> set[str]:
 def filter_counts(sessions: list[dict]) -> dict:
     """Chip badge numbers, one key per chip the panel offers.
 
-    `all` is the total, so it is NOT the sum of the others — a session in no
+    `all` is the total less the `passing` visits it hides, so it is NOT the sum of the others — a session in no
     bucket (an unrecognised code) is counted only there, and a yowling visit is
     counted twice on purpose.
 
     Every key is always present, so a chip renders `0` rather than `undefined`
     on a device family that never fills it.
     """
-    counts = {"all": len(sessions), "pet": 0, "toileting": 0,
-              "drinking": 0, "feeding": 0, "cleaning": 0,
-              "health_alert": 0, "fault": 0}
+    counts = {"all": sum(1 for s in sessions if not s.get("passing")), "pet": 0,
+              "toileting": 0, "drinking": 0, "feeding": 0, "cleaning": 0,
+              "health_alert": 0, "fault": 0, "passing": 0}
     for s in sessions:
         for bucket in _filter_buckets(s):
             counts[bucket] += 1
@@ -583,7 +596,7 @@ def filter_counts(sessions: list[dict]) -> dict:
 
 
 def matches_filter(session: dict, filt: str) -> bool:
-    """Whether a session survives the chip `filt` (empty/"all" keeps every one)."""
+    """Whether a session survives the chip `filt` (empty/"all" keeps all but `passing`)."""
     if not filt or filt == "all":
-        return True
+        return not session.get("passing")
     return filt in _filter_buckets(session)

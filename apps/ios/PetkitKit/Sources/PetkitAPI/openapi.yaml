@@ -1915,6 +1915,7 @@ paths:
           - cleaning
           - health_alert
           - fault
+          - passing
       - name: date
         in: query
         required: false
@@ -1961,6 +1962,51 @@ paths:
         '401':
           $ref: '#/components/responses/Error'
         '404':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/timeline/{id}/pet:
+    put:
+      operationId: setVisitPet
+      tags:
+      - timeline
+      summary: Change which pet a visit belongs to
+      description: Applies to every report of the visit the event belongs to and is stored as
+        `pet_source = manual`, which nothing automatic overrides afterwards. Only the server's
+        record changes; nothing is sent to the device.
+      x-risk-tier: R1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Any event of the visit.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VisitPetRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VisitPetResult'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
           $ref: '#/components/responses/Error'
       security:
       - bearerAuth: []
@@ -2196,6 +2242,8 @@ paths:
           $ref: '#/components/responses/Error'
         '403':
           $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
         '413':
           $ref: '#/components/responses/Error'
         '415':
@@ -2363,6 +2411,8 @@ paths:
         '403':
           $ref: '#/components/responses/Error'
         '404':
+          $ref: '#/components/responses/Error'
+        '409':
           $ref: '#/components/responses/Error'
         '413':
           $ref: '#/components/responses/Error'
@@ -4657,6 +4707,10 @@ components:
       - face_id
       - photo_path
       - weight
+      - weight_g
+      - weight_updated_at
+      - weight_tolerance_g
+      - weight_match
       - created_at
       properties:
         id:
@@ -4687,6 +4741,27 @@ components:
           type:
           - number
           - 'null'
+          description: Legacy free-form value, unit never fixed. Weight rules read `weight_g`.
+        weight_g:
+          type:
+          - integer
+          - 'null'
+          description: Registered weight in whole grams. Moved by visits the device recognised.
+        weight_updated_at:
+          type:
+          - number
+          - 'null'
+          description: Unix time `weight_g` last changed.
+        weight_tolerance_g:
+          type:
+          - integer
+          - 'null'
+          description: Null means the default, 300 g.
+        weight_match:
+          type:
+          - integer
+          - 'null'
+          description: 1 when visits may be matched to this pet by weight, 0 when not.
         created_at:
           type: number
           description: Unix time.
@@ -4708,6 +4783,22 @@ components:
           - number
           - 'null'
           description: Stored as given, not validated.
+        weight_g:
+          type:
+          - integer
+          - 'null'
+          description: Registered weight in whole grams, 200 to 20000. Setting it stamps
+            `weight_updated_at`.
+        weight_tolerance_g:
+          type:
+          - integer
+          - 'null'
+          description: How far a visit may sit from the registered weight, 50 to 2000 g. Null is
+            the default, 300 g.
+        weight_match:
+          type: boolean
+          description: Whether visits the camera did not recognise may be matched to this pet by
+            weight.
     PetFace:
       type: object
       required:
@@ -4782,6 +4873,22 @@ components:
           - number
           - 'null'
           description: Stored as given, not validated.
+        weight_g:
+          type:
+          - integer
+          - 'null'
+          description: Registered weight in whole grams, 200 to 20000. Setting it stamps
+            `weight_updated_at`.
+        weight_tolerance_g:
+          type:
+          - integer
+          - 'null'
+          description: How far a visit may sit from the registered weight, 50 to 2000 g. Null is
+            the default, 300 g.
+        weight_match:
+          type: boolean
+          description: Whether visits the camera did not recognise may be matched to this pet by
+            weight.
     PetWithFaces:
       allOf:
       - $ref: '#/components/schemas/Pet'
@@ -5197,9 +5304,11 @@ components:
       - cleaning
       - health_alert
       - fault
+      - passing
       properties:
         all:
           type: integer
+          description: Every session except `passing` ones, which only their own chip shows.
         pet:
           type: integer
         toileting:
@@ -5213,6 +5322,8 @@ components:
         health_alert:
           type: integer
         fault:
+          type: integer
+        passing:
           type: integer
     TimelineDay:
       type: object
@@ -5450,6 +5561,56 @@ components:
           - 'null'
         video_pending:
           type: boolean
+    VisitPetRequest:
+      type: object
+      required:
+      - pet_id
+      properties:
+        pet_id:
+          type:
+          - integer
+          - 'null'
+          description: The pet, or null for no pet.
+        passing:
+          type: boolean
+          default: false
+          description: '"No cat, just passing". Requires a null `pet_id`.'
+        use_weight:
+          type: boolean
+          default: false
+          description: Also make the visit's scale reading the pet's registered weight.
+        apply_to_ref:
+          type: boolean
+          default: false
+          description: Bind the identity the box reported for this visit to the pet, so later
+            visits and its history name the pet too. Refused when no pet is given or the identity
+            is already held.
+    VisitPetResult:
+      type: object
+      required:
+      - updated
+      - pet_id
+      - pet_source
+      - passing
+      - pet
+      properties:
+        updated:
+          type: integer
+          description: Event rows changed.
+        pet_id:
+          type:
+          - integer
+          - 'null'
+        pet_source:
+          type: string
+          enum:
+          - manual
+        passing:
+          type: boolean
+        pet:
+          oneOf:
+          - $ref: '#/components/schemas/Pet'
+          - type: 'null'
     TimelineSession:
       type: object
       required:
@@ -5464,6 +5625,9 @@ components:
       - event_type
       - pet_name
       - pet_photo_url
+      - pet_source
+      - passing
+      - unbound_pet_ref
       - label
       - event_kind
       - duration_sec
@@ -5472,6 +5636,26 @@ components:
       - sub_events
       - media
       properties:
+        pet_source:
+          type:
+          - string
+          - 'null'
+          enum:
+          - device
+          - weight
+          - manual
+          - null
+          description: Who decided `pet_id`. `manual` with a null `pet_id` is a visit the user
+            cleared.
+        passing:
+          type: boolean
+          description: Too light to be any registered cat. Shown only under the `passing` chip.
+        unbound_pet_ref:
+          type:
+          - integer
+          - 'null'
+          description: The identity the box reported when no pet holds it yet; what
+            `apply_to_ref` binds.
         kind:
           type: string
           description: Either visit or event.

@@ -84,6 +84,7 @@ from my_petkit.features.live.routes import (
     api_live_webrtc,
 )
 from my_petkit.features.talk.routes import api_talk
+from my_petkit.features.timeline.change_visit_pet_routes import api_visit_pet
 from my_petkit.features.timeline.routes import api_event_detail, api_timeline
 from my_petkit.shared.background_tasks import (
     _spawn_background as _spawn_background,  # re-exported for callers of the old path
@@ -252,6 +253,7 @@ def create_panel_app(registry: DeviceRegistry, ble_registry: BLERegistry | None,
     # Registered after the static "/api/events": aiohttp resolves a literal
     # path before a dynamic one, so this cannot shadow the hub's event list.
     app.router.add_get("/api/timeline/{id}", api_event_detail)
+    app.router.add_put("/api/timeline/{id}/pet", api_visit_pet)
     app.router.add_get("/api/media/thumb/{path:.*}", api_media_thumb)
     app.router.add_get("/api/media/{path:.*}", api_media_file)
 

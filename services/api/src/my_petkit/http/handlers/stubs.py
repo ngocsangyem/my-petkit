@@ -23,6 +23,7 @@ import time
 
 from aiohttp import web
 
+from my_petkit.ai.pet_weights import attribute_visit
 from my_petkit.devices import payloads
 from my_petkit.devices.base import Device
 from my_petkit.events.ingest import (
@@ -202,7 +203,14 @@ async def handle_event_report(request: web.Request) -> web.Response:
     if pet_registry is not None:
         row["pet_id"] = await pet_registry.resolve_pet_ref(row.get("pet_ref"))
 
-    await store.upsert_event(row)
+    row_id = await store.upsert_event(row)
+
+    # Weight rules run after the insert, over the whole visit: they need the
+    # rows that arrived before this one.
+    if pet_registry is not None:
+        matched = await attribute_visit(store, device.petkit_id, row_id)
+        if row.get("pet_id") is None:
+            row["pet_id"] = matched
 
     if row.get("pet_id") is not None and pet_registry is not None and ha_publisher is not None:
         pet = await pet_registry.get(row["pet_id"])

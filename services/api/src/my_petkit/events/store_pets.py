@@ -6,7 +6,7 @@ import logging
 import time
 from typing import Any
 
-from sqlalchemy import delete, func, select, update
+from sqlalchemy import delete, func, or_, select, update
 
 from my_petkit.events import codes
 from my_petkit.events.models import Event, Pet, PetFace
@@ -18,6 +18,7 @@ from my_petkit.events.store_base import (
     _accepted,
     _created_at,
 )
+from my_petkit.events.store_visits import PET_SOURCE_DEVICE, PET_SOURCE_MANUAL
 from my_petkit.utils.timeutil import local_day_start
 
 log = logging.getLogger("my_petkit.events.store")
@@ -165,8 +166,12 @@ class PetQueries(StoreBase):
         the id while new events resolve to nobody.
         """
         async with self._write() as session:
+            # A visit the user attributed by hand keeps that attribution.
             result = await session.execute(
-                update(Event).where(Event.pet_ref == pet_ref).values(pet_id=pet_id),
+                update(Event)
+                .where(Event.pet_ref == pet_ref,
+                       or_(Event.pet_source.is_(None), Event.pet_source != PET_SOURCE_MANUAL))
+                .values(pet_id=pet_id, pet_source=PET_SOURCE_DEVICE if pet_id is not None else None),
                 execution_options=_NO_SYNC)
             return int(result.rowcount or 0)
 

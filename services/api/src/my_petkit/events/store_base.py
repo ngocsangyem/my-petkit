@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import sqlite3
 import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -44,9 +45,11 @@ _NO_SYNC = {"synchronize_session": False}
 # Columns added after the first release — SQLite has no "ADD COLUMN IF NOT
 # EXISTS", so `_migrate` adds any that a pre-existing database is missing.
 _ADDED_COLUMNS = {
-    "events": {"parent_event": "TEXT", "pet_ref": "INTEGER"},
+    "events": {"parent_event": "TEXT", "pet_ref": "INTEGER", "pet_source": "TEXT",
+               "passing": "INTEGER"},
     "media": {"stitch_state": "TEXT"},
-    "pets": {"device_pet_ids_json": "TEXT"},
+    "pets": {"device_pet_ids_json": "TEXT", "weight_g": "INTEGER", "weight_updated_at": "REAL",
+             "weight_tolerance_g": "INTEGER", "weight_match": "INTEGER DEFAULT 1"},
 }
 
 # `create_all` never adds an index to a table that already exists, so a live
@@ -90,6 +93,37 @@ def _created_at(row: dict[str, Any]) -> float:
     """
     given = row.get("created_at")
     return float(given) if isinstance(given, (int, float)) else time.time()
+
+
+def _backup_before_migrate(path: Path) -> Path | None:
+    """Copy a database that `_migrate` is about to alter, before it does.
+
+    Only when some `_ADDED_COLUMNS` entry is missing from a table that exists:
+    a fresh install, or one already migrated, writes nothing. Uses SQLite's
+    online backup rather than a file copy, which under WAL could miss pages
+    still in the `-wal` file. Returns the backup's path, or None.
+    """
+    if not path.is_file():
+        return None
+    source = sqlite3.connect(path)
+    try:
+        missing = False
+        for table, columns in _ADDED_COLUMNS.items():
+            existing = {row[1] for row in source.execute(f"PRAGMA table_info({table})")}
+            if existing and set(columns) - existing:
+                missing = True
+                break
+        if not missing:
+            return None
+        target_path = path.with_name(f"{path.name}.pre-migrate-{int(time.time())}.bak")
+        target = sqlite3.connect(target_path)
+        try:
+            source.backup(target)
+        finally:
+            target.close()
+        return target_path
+    finally:
+        source.close()
 
 
 def _apply_pragmas(dbapi_connection: Any, _connection_record: Any) -> None:
@@ -164,6 +198,9 @@ class StoreBase:
         async with self._write_lock:
             if self._ready:
                 return
+            backup = await asyncio.to_thread(_backup_before_migrate, self._path)
+            if backup is not None:
+                log.info("Backed up the database to %s before migrating it", backup)
             async with self._engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
                 await self._migrate(conn)
