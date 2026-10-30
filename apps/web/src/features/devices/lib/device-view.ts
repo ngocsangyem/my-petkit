@@ -39,5 +39,12 @@ export function useDeviceLinks() {
   };
 }
 
+/**
+ * True when the schedules view has something to show: a schedule the server says the device has,
+ * or a feeder's one-off feeds, which every feeder takes even with no schedule of its own.
+ */
+export const hasSchedulesView = (d: { schedules: readonly unknown[]; is_feeder: boolean }) =>
+  d.schedules.length > 0 || d.is_feeder;
+
 export const deviceKeyOf = (id: number) => `d${id}`;
 export const accessoryKeyOf = (id: number) => `a${id}`;

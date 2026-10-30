@@ -14,7 +14,7 @@ import { ConsumablesCard } from '../components/model-block';
 import { SoundsRow } from '../components/sounds-section';
 import type { OpenState, SetOpen } from '../hooks/use-open-state';
 import { FAMILY_NOUN, deviceFamily } from '../lib/device-family';
-import { useDeviceLinks } from '../lib/device-view';
+import { hasSchedulesView, useDeviceLinks } from '../lib/device-view';
 import { deviceZone, localClock } from '../lib/device-zone';
 import { groupDeviceEntities } from '../lib/entity-sections';
 import { lastReport } from '../lib/timestamps';
@@ -86,7 +86,7 @@ export function DevicePage(props: DevicePageProps) {
           Open its log
         </Link>
       )}
-      {family === 'feeder' && d.schedules.length > 0 && (
+      {family === 'feeder' && hasSchedulesView(d) && (
         <Link className={buttonClassName('secondary')} to={links.device(`d${d.id}`, 'schedules')}>
           <Icon name="calendar" size={16} />
           Schedule

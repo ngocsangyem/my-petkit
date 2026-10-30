@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { Children, type ReactNode } from 'react';
 import type { components } from '@/api/schema';
 import { SettingsRow, SettingsSection, Switch } from '@/shared/ui';
 import { type DeviceDetail, type PetWithFaces, deviceKeys } from '../api';
@@ -28,7 +28,8 @@ export function EntityControlsSection({
   children?: ReactNode;
 }) {
   const call = useDeviceCall();
-  if (!entities.length && !children) return null;
+  // `{a && <Row />}` children arrive as `false` when absent: count only what would render.
+  if (!entities.length && Children.toArray(children).length === 0) return null;
   return (
     <SettingsSection title={title} description={description}>
       {entities.map(e => (

@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 import { formatMinute, Pill, SectionCard } from '@/shared/ui';
 import type { DeviceDetail } from '../api';
-import { useDeviceLinks } from '../lib/device-view';
+import { hasSchedulesView, useDeviceLinks } from '../lib/device-view';
 import { type DeviceZone, minuteOfDay } from '../lib/device-zone';
 import { portionsText, todaysMeals } from '../lib/feed-plan';
 
@@ -32,7 +32,7 @@ export function FeederTodayCard({ device, zone, nowSeconds }: FeederTodayCardPro
     <SectionCard
       title="Today"
       end={
-        device.schedules.length > 0 && (
+        hasSchedulesView(device) && (
           <Link to={links.device(`d${device.id}`, 'schedules')} className="font-medium">
             Edit schedule
           </Link>
