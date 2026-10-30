@@ -56,9 +56,20 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--user-hosts", default=None,
                         help="Comma-separated host names browsers may use to reach the "
                              "user plane (IP literals and localhost are always allowed)")
+    parser.add_argument("--user-url", default=None,
+                        help="https origin the iOS pairing QR code points at, for a user "
+                             "plane behind a proxy (default https://<api-url host>:<user-port>)")
     parser.add_argument("--rtsp-bind", default=None,
                         help="go2rtc RTSP listen address, host:port or :port (default :8554)")
     parser.add_argument("--timezone", default=None, help="IANA timezone for local time")
+    parser.add_argument("--webrtc-port", type=int, default=None,
+                        help="go2rtc WebRTC media port, TCP and UDP (default 8555)")
+    parser.add_argument("--webrtc-candidates", default=None,
+                        help="Comma-separated host:port addresses viewers reach WebRTC on "
+                             "(empty offers MSE and HLS only)")
+    parser.add_argument("--wireguard-subnets", default=None,
+                        help="Comma-separated CIDR networks, beyond private ranges, where "
+                             "devices reach the server over WireGuard")
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
     parser.add_argument("--ha-addon", action="store_true", help="Self-configure from /data/options.json + Supervisor (HA add-on mode)")
     return parser
@@ -67,6 +78,11 @@ def _build_parser() -> argparse.ArgumentParser:
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """Parse the command line (the process's own arguments by default)."""
     return _build_parser().parse_args(argv)
+
+
+def _split_list(value: str) -> list[str]:
+    """A comma-separated flag as a list, blanks dropped (`""` clears the setting)."""
+    return [part.strip() for part in value.split(",") if part.strip()]
 
 
 def _apply_flags(config: Config, args: argparse.Namespace) -> None:
@@ -114,9 +130,15 @@ def _apply_flags(config: Config, args: argparse.Namespace) -> None:
     if args.user_port is not None:
         config.user_port = args.user_port
     for key in ("device_bind_host", "mqtt_plain_bind", "user_bind_host", "rtsp_bind",
-                "timezone", "user_hosts"):
+                "timezone", "user_hosts", "user_url"):
         if getattr(args, key) is not None:
             setattr(config, key, getattr(args, key))
+    if args.webrtc_port is not None:
+        config.webrtc_port = args.webrtc_port
+    if args.webrtc_candidates is not None:
+        config.webrtc_candidates = _split_list(args.webrtc_candidates)
+    if args.wireguard_subnets is not None:
+        config.wireguard_subnets = _split_list(args.wireguard_subnets)
     if args.debug:
         config.log_level = "DEBUG"
 
@@ -152,4 +174,5 @@ def build_config(args: argparse.Namespace) -> Config:
     config.validate_bind_addresses()
     config.validate_wireguard_subnets()
     config.validate_webrtc()
+    config.validate_user_url()
     return config

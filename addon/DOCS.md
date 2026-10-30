@@ -97,6 +97,9 @@ map it — needs the admin password (browser) or a client token (iOS app).
   rotate it deliberately, then pair again.
 - `user_hosts` lists host NAMES the panel may be reached by (a reverse proxy,
   a DNS name); IP addresses and `localhost` are always allowed.
+- `user_url` is the address the pairing QR code sends the iOS app to. Leave it
+  empty unless phones reach the panel through a proxy with a trusted
+  certificate; then set it to that proxy's `https://` address.
 
 Web Bluetooth provisioning needs a secure context. Whether a browser counts a
 self-signed certificate you accepted as one is not verified yet; if it does

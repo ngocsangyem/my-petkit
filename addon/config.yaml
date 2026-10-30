@@ -113,6 +113,11 @@ schema:
   # example the name of a reverse proxy in front of it. IP addresses and
   # localhost are always allowed.
   user_hosts: str?
+  # The https address the iOS pairing QR code sends a phone to, when the panel
+  # is reached through a proxy with a trusted certificate (for example
+  # `https://<machine>.<tailnet>.ts.net`). Empty: this host's address and
+  # user_port.
+  user_url: str?
   # Optional, unset by default (shown under "unused optional options"). Each
   # is the IP literal one listener binds: the device plane (API, bucket, MQTT
   # TLS), the plain MQTT listener (must include loopback for the internal

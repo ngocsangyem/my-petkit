@@ -112,7 +112,10 @@ def _open_user_plane(config: Any, ha_addon: bool) -> tuple[AuthService, ssl.SSLC
     settings = UserPlaneSettings(
         ingress_port=config.web_port if ha_addon else None,
         allowed_hosts=frozenset(names),
-        user_url=f"https://{api_host}:{config.user_port}" if api_host else "",
+        # A proxy's own name carries a publicly trusted certificate, so the app
+        # trusts it through the system and ignores the pin in the QR code.
+        user_url=(config.user_url.rstrip("/")
+                  or (f"https://{api_host}:{config.user_port}" if api_host else "")),
         user_port=config.user_port,
         cert_sha256=fingerprint,
     )

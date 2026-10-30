@@ -1083,3 +1083,19 @@ the Camera Pan patcher.
 - added: tests/test_t6_camera_pan.py::test_removing_drops_the_opt_in_and_says_done_without_a_reboot
 - added: tests/test_no_naive_calendar_calls.py::test_module_reads_local_time_only_through_clock[patchers/pan.py]
   — the per-module clock check picks up the new `patchers/pan.py`.
+
+### Container flags: WebRTC, WireGuard and pairing address from the command line
+
+A plain container has no options file, so these settings get flags and the same startup validation.
+
+- added: tests/test_container_cli_flags.py::test_webrtc_and_wireguard_flags_reach_the_config
+- added: tests/test_container_cli_flags.py::test_an_empty_candidates_flag_clears_the_list
+- added: tests/test_container_cli_flags.py::test_absent_flags_leave_the_defaults
+- added: tests/test_container_cli_flags.py::test_a_bad_value_stops_startup[flags0]
+- added: tests/test_container_cli_flags.py::test_a_bad_value_stops_startup[flags1]
+- added: tests/test_container_cli_flags.py::test_a_bad_value_stops_startup[flags2]
+- added: tests/test_container_cli_flags.py::test_a_bad_value_stops_startup[flags3]
+- added: tests/test_container_cli_flags.py::test_a_bad_value_stops_startup[flags4]
+- added: tests/test_container_cli_flags.py::test_a_bad_value_stops_startup[flags5]
+- added: tests/test_container_cli_flags.py::test_the_pairing_qr_points_at_the_proxy_name_when_one_is_set
+- added: tests/test_container_cli_flags.py::test_the_pairing_qr_falls_back_to_the_api_host_and_user_port
