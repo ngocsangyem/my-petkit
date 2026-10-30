@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { SectionCard, Tabs, usePersistedState } from '@/shared/ui';
+import { usePersistedState } from '@/shared/ui';
 import { DeferredFeedPanel } from './components/deferred-feed-panel';
 import { ScheduleEditor } from './components/schedule-editor';
+import { SegmentTabs } from './components/segment-tabs';
 import type { DeviceDetail, ScheduleDraft } from './schedule-model';
 
 /** The tab id of the one-off feeds, an id no schedule target uses (targets are camel-case wire field names). */
@@ -40,8 +41,8 @@ function SchedulesCard({ device }: DeviceSchedulesProps) {
   const target = targets.find(t => t.target === selected);
 
   return (
-    <SectionCard title="Schedules">
-      <Tabs label="Schedules" tabs={tabs} selected={selected} onSelect={setSelected}>
+    <div className="flex min-w-0 flex-col gap-5">
+      <SegmentTabs label="Schedules" tabs={tabs} selected={selected} onSelect={setSelected}>
         {target ? (
           <ScheduleEditor
             deviceId={device.id}
@@ -63,12 +64,12 @@ function SchedulesCard({ device }: DeviceSchedulesProps) {
             offset={device.timezoneInfo.effective}
           />
         )}
-      </Tabs>
-      <p className="text-sm text-muted-foreground">
+      </SegmentTabs>
+      <p className="text-xs text-muted-foreground">
         The device runs these on its own clock, in its own time zone. Nothing is set for you: an
         empty schedule does not restrict the device. A period that ends before it starts runs
         through midnight, which is how PetKit's own app writes quiet hours.
       </p>
-    </SectionCard>
+    </div>
   );
 }

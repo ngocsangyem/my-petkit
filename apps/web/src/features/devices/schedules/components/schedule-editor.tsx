@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { errorMessage } from '@/shared/api/errors';
-import { Button } from '@/shared/ui';
+import { Button, Card } from '@/shared/ui';
 import { useSaveSchedule } from '../api';
 import { draftOf, type ScheduleDraft, type ScheduleTarget, validateDraft } from '../schedule-model';
 import { FeedEditor } from './feed-editor';
@@ -90,12 +90,12 @@ export function ScheduleEditor({ deviceId, target, draft, onDraft }: ScheduleEdi
   }
 
   return (
-    <div className="flex min-w-0 flex-col gap-2">
-      {body}
+    <div className="flex min-w-0 flex-col gap-3">
+      {shown.kind === 'feed' ? body : <Card className="py-3">{body}</Card>}
       {draft && (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <Button
-            variant="secondary"
+            variant="primary"
             disabled={problem !== null || save.isPending}
             onClick={() => {
               save.mutate(
