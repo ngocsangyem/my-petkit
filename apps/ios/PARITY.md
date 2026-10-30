@@ -100,7 +100,7 @@ over Bluetooth has its own section below.
 | `ios-devices` | Home | dec52fb | ✓ |
 | `ios-devices-dark` | Home in dark mode (every snapshot also renders dark) | dec52fb | ✓ |
 | `ios-device-t6` | Litter box detail | dec52fb | ✓ |
-| `ios-device-t6` | Automation: "Auto clean after a visit" and "Clean delay" (moved out of Settings, artboard order and copy; entity keys and writes unchanged), for any litter box that has them | uncommitted | ✓ (component snapshots `auto-pack`, `automation-no-auto-pack`; the delay keeps its −/+ and Set control instead of the artboard's chevron) |
+| `ios-device-t6` | Automation: "Auto clean after a visit" and "Clean delay" (moved out of Settings, artboard order and copy; entity keys and writes unchanged), for any litter box that has them. Clean delay is a value-and-chevron row ("—" when unreported) opening a minutes wheel inside the entity's range, then the usual confirmation | uncommitted | ✓ (component snapshots `auto-pack`, `automation-no-auto-pack`, screen snapshot `clean-delay-picker`) |
 | `ios-device-t6` | Automation › Auto-pack (T6 only): switch (asks to turn on), Experimental tag, trigger, cleans or time, quiet hours, PetKit's advice, status line | 54b7ab6, uncommitted | ✓ (component snapshot `auto-pack`) |
 | `ios-device-t6-paused` | Paused state; "Continue cleaning" only when the server offers it | dec52fb, 54b7ab6 | ✓ |
 | `ios-device-t6-paused` | Force-continue sheet: 20/600 title (`Theme.Font.sheetTitle`), rows ticked from the blockers, no gram value or exit time (the API has neither), warning, footnote | 54b7ab6, uncommitted | ✓ (component snapshot `force-continue-sheet`) |

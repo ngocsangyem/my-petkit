@@ -71,6 +71,12 @@ struct DeviceDetailView: View {
                 ForceContinueSheet(info: info) { [model, session] in
                     try await model.forceContinue(session: session)
                 }
+            case .pickNumber(let entity):
+                let title = EntityGroups.automationLabels[entity.key]?.title ?? entity.name
+                NumberPickerSheet(entity: entity, title: title) { value in
+                    guard let device = model.device.value else { return }
+                    self.sheet = .confirm(entityConfirmation(device, entity, .number(value)))
+                }
             }
         }
     }
@@ -136,7 +142,8 @@ struct DeviceDetailView: View {
         ConsumablesCard(rows: ConsumableRow.rows(device))
         LitterAutomationSection(model: model, device: device, now: now,
                                 askEntity: { sheet = .confirm(entityConfirmation(device, $0, $1)) },
-                                confirm: { sheet = .confirm($0) })
+                                confirm: { sheet = .confirm($0) },
+                                pickEntity: { sheet = .pickNumber($0) })
         EntityControlsCard(title: "Settings", entities: EntityGroups(device).controls, enabled: device.online,
                            ask: { sheet = .confirm(entityConfirmation(device, $0, $1)) })
         if device.supportsAi {
@@ -241,6 +248,7 @@ enum DetailSheet: Identifiable {
     case timezone(TimezoneInfo)
     case more([DeviceAction])
     case forceContinue(ForceContinueInfo)
+    case pickNumber(DeviceEntity)
 
     var id: String {
         switch self {
@@ -248,6 +256,7 @@ enum DetailSheet: Identifiable {
         case .timezone: "timezone"
         case .more: "more"
         case .forceContinue: "force-continue"
+        case .pickNumber(let entity): "pick-\(entity.key)"
         }
     }
 }

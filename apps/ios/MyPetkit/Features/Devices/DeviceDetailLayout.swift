@@ -106,7 +106,7 @@ struct EntityGroups: Equatable {
     /// confirmations and written values stay the server's.
     static let automationLabels: [String: EntityLabel] = [
         "auto_work": EntityLabel(title: "Auto clean after a visit", footnote: "Starts once the cat has left the box."),
-        "cleaning_delay": EntityLabel(title: "Clean delay"),
+        "cleaning_delay": EntityLabel(title: "Clean delay", opensPicker: true),
     ]
 
     init(_ device: DeviceRecord) {

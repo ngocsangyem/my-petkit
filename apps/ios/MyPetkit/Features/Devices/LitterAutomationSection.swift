@@ -5,7 +5,8 @@ import SwiftUI
 /// visit and the clean delay when the box has them, then the auto-pack rows
 /// when it supports auto-pack (the T6). A failed automation read shows its
 /// error in the block; a box with none of these has no section. Entity
-/// changes go through `askEntity`, turning auto-pack on through `confirm`.
+/// changes go through `askEntity` (the clean delay first through
+/// `pickEntity`'s picker), turning auto-pack on through `confirm`.
 struct LitterAutomationSection: View {
     @Environment(ServerSession.self) private var session
     let model: DeviceDetailModel
@@ -13,6 +14,8 @@ struct LitterAutomationSection: View {
     let now: Date
     let askEntity: (DeviceEntity, EntityWrite) -> Void
     let confirm: (CommandConfirmation) -> Void
+    /// Opens the picker for a number row drawn as value and chevron.
+    var pickEntity: ((DeviceEntity) -> Void)?
 
     private var entities: [DeviceEntity] { EntityGroups(device).automationControls }
     private var isLitter: Bool { DeviceFamily(deviceType: device.type) == .litter }
@@ -33,7 +36,7 @@ struct LitterAutomationSection: View {
             RowsCard {
                 if !entities.isEmpty {
                     EntityRows(entities: entities, enabled: device.online, labels: EntityGroups.automationLabels,
-                               ask: askEntity)
+                               pick: pickEntity, ask: askEntity)
                 }
                 if let autoPack {
                     if !entities.isEmpty { RowRule() }
