@@ -1308,6 +1308,35 @@ DONE_CODES = _codes_where(ALL_EVENT_CODES, role=ROLE_DONE)
 PRIMARY_DONE_CODES = DONE_CODES - _codes_where(ALL_EVENT_CODES, detail=True)
 
 
+def _litter_codes_where(**match: object) -> frozenset[str]:
+    """`_codes_where` over the codes a next-gen litter box can send.
+
+    The litter HTTP table plus the MQTT topics whose `families` include a
+    next-gen box, so a fountain's or feeder's row can never be read as one of
+    these.
+    """
+    mqtt = {key: code for key, code in MQTT_EVENT_TOPICS.items()
+            if code.families & LITTER_NEXT_GEN}
+    return _codes_where(LITTER_HTTP_CODES, **match) | _codes_where(mqtt, **match)
+
+
+#: The event types the litter-automation guards read, derived from the rows
+#: above rather than listed by name, so a code added there with the right
+#: kind and role is picked up here too.
+#:
+#: A visit opens with `pet_in` on MQTT and with the mid-visit weight sample
+#: (code 9) on HTTP, and closes with the visit summary on either transport.
+LITTER_VISIT_OPEN_CODES = (_litter_codes_where(kind=KIND_TOILET, role=ROLE_START)
+                           | _litter_codes_where(kind=KIND_TOILET, role=ROLE_STEP))
+LITTER_VISIT_CLOSE_CODES = _litter_codes_where(kind=KIND_TOILET, role=ROLE_VISIT_SUMMARY)
+#: A pet seen near or at the box without using it: `pet_wander` on MQTT,
+#: code 20 on HTTP.
+LITTER_PET_NEARBY_CODES = _litter_codes_where(kind=KIND_PET, anchor=True)
+LITTER_CLEAN_DONE_CODES = _litter_codes_where(role=ROLE_DONE, done_word="cleaning")
+LITTER_PACK_DONE_CODES = _litter_codes_where(role=ROLE_DONE, done_word="bagging")
+LITTER_ERROR_START_CODES = _litter_codes_where(role=ROLE_ERROR_START)
+
+
 def lookup(event_type: str | None,
            device_type: str | None = None) -> EventCode | None:
     """The `EventCode` for a raw event_type, or None if we do not know it.

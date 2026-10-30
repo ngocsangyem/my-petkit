@@ -22,6 +22,8 @@ from aiohttp import web
 from my_petkit.events.derived_state_replay import replay_derived_state
 from my_petkit.features.auth.service import AuthService, UserPlaneSettings
 from my_petkit.features.auth.signed_media import SignatureMaskingAccessLogger
+from my_petkit.features.litter_automation.routes import make_sender
+from my_petkit.features.litter_automation.service import AutoPackEvaluator
 from my_petkit.events.ingest import _MODULE_TYPE_TO_CATEGORY, backfill_event_rows
 from my_petkit.http.bucket import create_bucket_app
 from my_petkit.http.handlers.upload_file_info import wait_for_pending as wait_for_media_tasks
@@ -310,6 +312,11 @@ async def start_background(services: Services, app_instance: web.Application) ->
     stitcher = EpisodeStitcher(event_store, registry, media_root,
                                work_dir=f"{media_root}/.raw", hub=hub)
     _spawn(app_instance, "episode-stitcher", stitcher.run())
+
+    # The T6's auto-pack rules. Off on every device until a user turns one on,
+    # so on most installs this only walks the registry once a minute.
+    auto_pack = AutoPackEvaluator(registry, event_store, make_sender(hub, mqtt_bridge))
+    _spawn(app_instance, "auto-pack", auto_pack.run())
 
     if not services.no_mqtt:
         broker = await start_broker(

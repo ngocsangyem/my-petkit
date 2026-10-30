@@ -216,6 +216,25 @@ def _refuse_camera_pan(device: Device) -> None:
         raise Refused("the camera is off")
 
 
+def force_continue_command() -> Command:
+    """Tell a litter box paused for a pet nearby to carry on anyway.
+
+    The same `continue_action: 0` as `resume`, kept apart from it on purpose:
+    it is deliberately NOT in `ALL_ACTIONS`, so neither Home Assistant nor the
+    command endpoint can send it as a button press. Its only caller is the
+    litter-automation feature, which first checks that the pause is the
+    "pet approaching" one (`codes.SAFE_WARN` 0) and that no pet is in the box.
+    The firmware keeps every check of its own; this sends nothing PetKit's app
+    could not.
+    """
+    return _litter_ctrl("continue_action", 0)
+
+
+def pack_waste_command() -> Command:
+    """The T6's Pack, for the auto-pack rule (see `LITTER_ACTIONS["pack_waste"]`)."""
+    return _litter_start(8)
+
+
 #: Actions that are not one family's. Merged into `ALL_ACTIONS` alongside the
 #: per-category tables, so the litter and fountain buttons resolve to one
 #: implementation instead of two copies that can drift.

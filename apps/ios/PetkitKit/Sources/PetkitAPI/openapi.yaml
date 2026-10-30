@@ -60,6 +60,8 @@ tags:
   description: Live camera video through the bundled go2rtc (HLS, MSE, WebRTC signaling).
 - name: pets
   description: Pets and their face photos.
+- name: litter_automation
+  description: Force continue on a paused next-gen litter box, and the T6's auto-pack rule.
 - name: auth
   description: Admin setup, sessions, step-up, pairing and client tokens.
 paths:
@@ -1094,6 +1096,122 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceTimezoneResult'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/devices/{id}/litter-automation:
+    get:
+      operationId: getLitterAutomation
+      tags:
+      - litter_automation
+      summary: What force continue and auto-pack can do on this device right now
+      description: Asked of any device. One that supports neither answers with both `supported`
+        false. `forceContinue.offered` is true exactly when every guard passes.
+      x-risk-tier: R0
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LitterAutomationView'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/devices/{id}/force-continue:
+    post:
+      operationId: forceContinueLitter
+      tags:
+      - litter_automation
+      summary: Tell a box paused for a pet nearby to carry on, once
+      description: Only a pause for "pet approaching" (`safeWarn` 0) on a T5, T6 or T7, with no
+        pet in the box, no visit left open in the last 10 minutes, no error, and the device heard
+        from in the last 90 seconds. Any failed guard answers 409 with its reason as the error
+        code (one of `ForceContinueReason`) and nothing is sent. Accepted, it sends exactly
+        `continue_action` 0. Never automatic.
+      x-risk-tier: R3
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      responses:
+        '200':
+          description: Sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceDeliveryResult'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+  /api/devices/{id}/auto-pack:
+    put:
+      operationId: setAutoPackRule
+      tags:
+      - litter_automation
+      summary: Replace this T6's auto-pack rule
+      description: Every field is required. Turning the rule on resets its status and counts
+        cleanings from that moment. The server turns a rule off by itself after a pack error or
+        two unanswered packs, and never turns one on.
+      x-risk-tier: R1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Device (petkit) id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AutoPackRule'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AutoPackResult'
         '400':
           $ref: '#/components/responses/Error'
         '401':
@@ -3181,6 +3299,114 @@ components:
           type: number
         last_used:
           type: number
+    AutoPackQuietHours:
+      type: object
+      required:
+      - start
+      - end
+      additionalProperties: false
+      properties:
+        start:
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+        end:
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+    AutoPackRule:
+      type: object
+      required:
+      - enabled
+      - trigger
+      - cleanings
+      - at
+      - quietHours
+      additionalProperties: false
+      properties:
+        enabled:
+          type: boolean
+        trigger:
+          type: string
+          enum:
+          - after_cleanings
+          - bin_full
+          - daily_at
+        cleanings:
+          description: Cleanings since the last pack (or since the rule was turned on) that fire
+            `after_cleanings`.
+          type: integer
+          minimum: 1
+          maximum: 50
+        at:
+          description: Local time, in the device's zone, that fires `daily_at`.
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+        quietHours:
+          description: No automatic pack inside this window; end before start crosses midnight.
+          oneOf:
+          - $ref: '#/components/schemas/AutoPackQuietHours'
+          - type: 'null'
+    AutoPackStatus:
+      type: object
+      required:
+      - enabledAt
+      - pendingSince
+      - lastAttemptAt
+      - retries
+      - lastResult
+      - lastPackedAt
+      - heldBackBy
+      - disabledReason
+      properties:
+        enabledAt:
+          type:
+          - number
+          - 'null'
+        pendingSince:
+          description: When the pack now awaiting `package_over` was sent.
+          type:
+          - number
+          - 'null'
+        lastAttemptAt:
+          type:
+          - number
+          - 'null'
+        retries:
+          type: integer
+        lastResult:
+          type:
+          - string
+          - 'null'
+          enum:
+          - packed
+          - no_response
+          - failed
+          - null
+        lastPackedAt:
+          type:
+          - number
+          - 'null'
+        heldBackBy:
+          description: 'Why the last evaluation did not pack: `not_due`, `quiet_hours`, `cooldown`,
+            or a guard reason.'
+          type:
+          - string
+          - 'null'
+        disabledReason:
+          description: Why the server turned the rule off (`no_response`, `pack_error:` and the
+            device's message).
+          type:
+          - string
+          - 'null'
+    AutoPackResult:
+      type: object
+      required:
+      - rule
+      - status
+      properties:
+        rule:
+          $ref: '#/components/schemas/AutoPackRule'
+        status:
+          $ref: '#/components/schemas/AutoPackStatus'
     BleAccessory:
       type: object
       description: One accessory as the panel shows it, after client redaction (secret may be masked).
@@ -4249,6 +4475,61 @@ components:
               type: string
               description: Present on a 500 (not on 502/503/504); the server log line carries the same
                 id.
+    ForceContinueReason:
+      type: string
+      enum:
+      - device_offline
+      - not_paused
+      - pet_entered
+      - cover_open
+      - unknown_pause_reason
+      - pet_in_box
+      - visit_open
+      - device_fault
+      - history_unavailable
+    ForceContinueBlocker:
+      type: object
+      required:
+      - reason
+      - message
+      properties:
+        reason:
+          $ref: '#/components/schemas/ForceContinueReason'
+        message:
+          type: string
+    LitterAutomationView:
+      type: object
+      required:
+      - forceContinue
+      - autoPack
+      properties:
+        forceContinue:
+          type: object
+          required:
+          - supported
+          - offered
+          - blockers
+          properties:
+            supported:
+              type: boolean
+            offered:
+              type: boolean
+            blockers:
+              type: array
+              items:
+                $ref: '#/components/schemas/ForceContinueBlocker'
+        autoPack:
+          type: object
+          required:
+          - supported
+          description: '`rule` and `status` are present when `supported` is true.'
+          properties:
+            supported:
+              type: boolean
+            rule:
+              $ref: '#/components/schemas/AutoPackRule'
+            status:
+              $ref: '#/components/schemas/AutoPackStatus'
     LogsHubEvent:
       type: object
       description: One live-log entry as stored in the hub ring (see publish in web/hub.py).

@@ -336,6 +336,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/devices/{id}/litter-automation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * What force continue and auto-pack can do on this device right now
+         * @description Asked of any device. One that supports neither answers with both `supported` false. `forceContinue.offered` is true exactly when every guard passes.
+         */
+        get: operations["getLitterAutomation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices/{id}/force-continue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Tell a box paused for a pet nearby to carry on, once
+         * @description Only a pause for "pet approaching" (`safeWarn` 0) on a T5, T6 or T7, with no pet in the box, no visit left open in the last 10 minutes, no error, and the device heard from in the last 90 seconds. Any failed guard answers 409 with its reason as the error code (one of `ForceContinueReason`) and nothing is sent. Accepted, it sends exactly `continue_action` 0. Never automatic.
+         */
+        post: operations["forceContinueLitter"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices/{id}/auto-pack": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Replace this T6's auto-pack rule
+         * @description Every field is required. Turning the rule on resets its status and counts cleanings from that moment. The server turns a rule off by itself after a pack error or two unanswered packs, and never turns one on.
+         */
+        put: operations["setAutoPackRule"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/devices/{id}/ai": {
         parameters: {
             query?: never;
@@ -1096,6 +1156,39 @@ export interface components {
             created_at: number;
             last_used: number;
         };
+        AutoPackQuietHours: {
+            start: string;
+            end: string;
+        };
+        AutoPackRule: {
+            enabled: boolean;
+            /** @enum {string} */
+            trigger: "after_cleanings" | "bin_full" | "daily_at";
+            /** @description Cleanings since the last pack (or since the rule was turned on) that fire `after_cleanings`. */
+            cleanings: number;
+            /** @description Local time, in the device's zone, that fires `daily_at`. */
+            at: string;
+            /** @description No automatic pack inside this window; end before start crosses midnight. */
+            quietHours: components["schemas"]["AutoPackQuietHours"] | null;
+        };
+        AutoPackStatus: {
+            enabledAt: number | null;
+            /** @description When the pack now awaiting `package_over` was sent. */
+            pendingSince: number | null;
+            lastAttemptAt: number | null;
+            retries: number;
+            /** @enum {string|null} */
+            lastResult: "packed" | "no_response" | "failed" | null;
+            lastPackedAt: number | null;
+            /** @description Why the last evaluation did not pack: `not_due`, `quiet_hours`, `cooldown`, or a guard reason. */
+            heldBackBy: string | null;
+            /** @description Why the server turned the rule off (`no_response`, `pack_error:` and the device's message). */
+            disabledReason: string | null;
+        };
+        AutoPackResult: {
+            rule: components["schemas"]["AutoPackRule"];
+            status: components["schemas"]["AutoPackStatus"];
+        };
         /** @description One accessory as the panel shows it, after client redaction (secret may be masked). */
         BleAccessory: {
             petkit_id: number;
@@ -1516,6 +1609,25 @@ export interface components {
                 message: string;
                 /** @description Present on a 500 (not on 502/503/504); the server log line carries the same id. */
                 correlation_id?: string;
+            };
+        };
+        /** @enum {string} */
+        ForceContinueReason: "device_offline" | "not_paused" | "pet_entered" | "cover_open" | "unknown_pause_reason" | "pet_in_box" | "visit_open" | "device_fault" | "history_unavailable";
+        ForceContinueBlocker: {
+            reason: components["schemas"]["ForceContinueReason"];
+            message: string;
+        };
+        LitterAutomationView: {
+            forceContinue: {
+                supported: boolean;
+                offered: boolean;
+                blockers: components["schemas"]["ForceContinueBlocker"][];
+            };
+            /** @description `rule` and `status` are present when `supported` is true. */
+            autoPack: {
+                supported: boolean;
+                rule?: components["schemas"]["AutoPackRule"];
+                status?: components["schemas"]["AutoPackStatus"];
             };
         };
         /** @description One live-log entry as stored in the hub ring (see publish in web/hub.py). */
@@ -2710,6 +2822,93 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DeviceTimezoneResult"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            413: components["responses"]["Error"];
+            415: components["responses"]["Error"];
+        };
+    };
+    getLitterAutomation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Device (petkit) id */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LitterAutomationView"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+        };
+    };
+    forceContinueLitter: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Device (petkit) id */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sent */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceDeliveryResult"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+        };
+    };
+    setAutoPackRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Device (petkit) id */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AutoPackRule"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutoPackResult"];
                 };
             };
             400: components["responses"]["Error"];
