@@ -103,6 +103,8 @@ export function useSounds(id: number, enabled: boolean) {
 export function useBlockedAttempts() {
   return useQuery({
     queryKey: deviceKeys.blocked,
-    queryFn: async () => (await unwrap(api.GET('/api/blocked'))).records,
+    // The server's maximum page, so a busy week is not cut short by the default 200.
+    queryFn: async () =>
+      (await unwrap(api.GET('/api/blocked', { params: { query: { limit: 1000 } } }))).records,
   });
 }

@@ -76,6 +76,9 @@ export function useLiveRefresh(): void {
       if (event.kind === 'media' || event.kind === 'event') {
         void queryClient.invalidateQueries({ queryKey: deviceKeys.timeline });
       }
+      if (event.kind === 'blocked') {
+        void queryClient.invalidateQueries({ queryKey: deviceKeys.blocked });
+      }
     },
     () => {
       refreshList();
