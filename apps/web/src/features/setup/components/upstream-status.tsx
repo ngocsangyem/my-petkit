@@ -3,7 +3,7 @@ import { Pill } from '@/shared/ui';
 import { summariseUpstream } from '../setup-model';
 
 /** Set off from the rows above by a rule, inside the same panel. */
-const FRAME = 'flex flex-col gap-1.5 border-t border-border pt-3';
+const FRAME = 'flex flex-col gap-1.5 border-t border-rule py-3';
 
 /**
  * What proxy mode is actually doing. Once a taken-over device settles it polls

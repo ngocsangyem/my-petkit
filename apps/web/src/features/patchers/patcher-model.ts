@@ -62,3 +62,7 @@ export function applyBlocker(p: PatcherEntry, deviceIp: string): string | null {
 
 /** Lines kept per run; a run writes a few dozen. */
 export const MAX_LINES = 300;
+
+/** The warning every patch carries, shown until one is picked and then inside it. */
+export const PATCH_RISK =
+  'Each patch runs shell commands on the device as root, at your own risk: it can brick the device and leaves it outside its warranty. Patches live only on the writable /system partition; the read-only /app partition is never modified.';

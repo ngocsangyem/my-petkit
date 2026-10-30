@@ -1,6 +1,6 @@
 import { errorMessage } from '@/shared/api/errors';
 import { copyText } from '@/shared/format/copy-text';
-import { Button, ErrorBlock, PageHeading, useToast } from '@/shared/ui';
+import { Button, Card, ErrorBlock, PageHeader, useToast } from '@/shared/ui';
 import { LOG_CAP } from './api';
 import { DeviceLogsSection } from './components/device-logs-section';
 import { LiveLogTable } from './components/live-log-table';
@@ -44,9 +44,9 @@ export function LogPage() {
   const hidden = filters.hideHeartbeats ? filters.heartbeats : 0;
   return (
     <>
-      <PageHeading
-        title="Log"
-        aside="What the server is hearing right now"
+      <PageHeader
+        title="Logs"
+        finding="What the server and your devices are saying, as it happens."
         actions={
           <>
             <Button disabled={!visible.length} onClick={() => void copy(entriesText(visible))}>
@@ -60,7 +60,7 @@ export function LogPage() {
         }
       />
 
-      <section className="flex min-w-0 flex-col gap-3" aria-label="Live log">
+      <Card as="section" className="flex flex-col gap-3.5" aria-label="Live log">
         <LiveLogToolbar filters={filters} />
         {live.error && (
           <ErrorBlock
@@ -82,7 +82,7 @@ export function LogPage() {
           {hidden > 0 && ` Hiding ${hidden} heartbeats.`} Shows the last {LOG_CAP} events; older
           ones are dropped from this view.
         </p>
-      </section>
+      </Card>
 
       <DeviceLogsSection />
     </>

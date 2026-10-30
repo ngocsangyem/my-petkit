@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Select, SettingsRow, StepUpPill, TextInput } from '@/shared/ui';
+import { Select, SettingsRow, TextInput } from '@/shared/ui';
 import { defaultUpstream, validDns, validUpstream, type UpstreamChoice } from '../setup-model';
 
 const CUSTOM = '__custom__';
@@ -46,8 +46,6 @@ export function UpstreamFields({
       <SettingsRow
         kind="field"
         label="Upstream host"
-        configKey="proxy_upstream"
-        badge={<StepUpPill>Step-up</StepUpPill>}
         description={
           selected === CUSTOM ? (
             'A PetKit or Aliyun IoT URL. Every device request is forwarded there with its credential.'
@@ -100,8 +98,6 @@ export function UpstreamFields({
       <SettingsRow
         kind="field"
         label="Upstream resolver"
-        configKey="proxy_dns"
-        badge={<StepUpPill>Step-up</StepUpPill>}
         description="Only used to find the server above. Leave empty unless your router or Pi-hole points PetKit's names at this server: then it would point them here for us too, and the proxy would reach itself instead of the cloud."
         control={props => (
           <TextInput

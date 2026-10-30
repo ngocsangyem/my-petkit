@@ -1,17 +1,19 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { errorMessage } from '@/shared/api/errors';
 import { formatBytes } from '@/shared/format/format';
-import { Button } from '@/shared/ui';
-import { Card } from '@/shared/ui/shadcn/card';
+import { Button, Card, Panel, RiskNotice } from '@/shared/ui';
 import { Field, FieldDescription, FieldLabel } from '@/shared/ui/shadcn/field';
 import { Textarea } from '@/shared/ui/shadcn/textarea';
 import { useRunPatcher, type PatcherEntry } from '../api';
 import type { PatcherProgress } from '../hooks/use-patcher-progress';
-import { applyBlocker, normaliseDescription } from '../patcher-model';
+import { applyBlocker, normaliseDescription, PATCH_RISK } from '../patcher-model';
 
 interface PatchActionPanelProps {
   deviceId: number;
   deviceName: string;
+  /** Model codename and firmware, for the device line. */
+  deviceType: string;
+  deviceFirmware: string;
   deviceIp: string;
   patcher: PatcherEntry;
   action: 'apply' | 'remove';
@@ -28,6 +30,8 @@ interface PatchActionPanelProps {
 export function PatchActionPanel({
   deviceId,
   deviceName,
+  deviceType,
+  deviceFirmware,
   deviceIp,
   patcher,
   action,
@@ -65,20 +69,59 @@ export function PatchActionPanel({
   }
 
   return (
-    <Card role="region" aria-labelledby={titleId} className="max-w-160 gap-3.5 px-5">
-      <h2 id={titleId} className="text-lg font-semibold">
-        {applying
-          ? `Apply ${patcher.name} to ${deviceName}?`
-          : `Remove ${patcher.name} from ${deviceName}?`}
-      </h2>
-      <p className="whitespace-pre-line">{normaliseDescription(patcher.description)}</p>
+    <Card as="section" aria-labelledby={titleId} className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1.5">
+        <h2 id={titleId} className="text-xl">
+          {applying
+            ? `Apply ${patcher.name} to ${deviceName}?`
+            : `Remove ${patcher.name} from ${deviceName}?`}
+        </h2>
+        <p className="text-md whitespace-pre-line text-lede">
+          {normaliseDescription(patcher.description)}
+        </p>
+      </div>
+      <div className="flex flex-col">
+        <span>{deviceName}</span>
+        <span className="text-xs text-muted-foreground">
+          {deviceType.toUpperCase()}
+          {deviceFirmware && (
+            <>
+              {' · '}
+              <span className="font-mono">{deviceFirmware}</span>
+            </>
+          )}
+          {' · '}
+          <span className="font-mono">#{deviceId}</span>
+        </span>
+      </div>
+      <RiskNotice>{PATCH_RISK}</RiskNotice>
+      <dl className="m-0 grid grid-cols-1 gap-x-4 gap-y-1.5 min-[901px]:grid-cols-[160px_minmax(0,1fr)] [&_dt]:text-muted-foreground">
+        <dt>How to undo</dt>
+        <dd className="m-0">
+          {applying
+            ? 'Remove undoes it: the files are deleted from /system and the device reboots without the patch.'
+            : 'The device reboots without this patch. Other patches stay active; with none left it boots stock firmware.'}
+        </dd>
+        {applying && (
+          <>
+            <dt>Space on the box</dt>
+            <dd className="m-0">
+              Needs about {formatBytes(patcher.needs_bytes)} free. Free space is checked on the
+              device before anything is written; the exact need is measured then and is usually
+              smaller.
+            </dd>
+          </>
+        )}
+      </dl>
 
       {needsKey && (
         <Field className="gap-1.5">
-          <FieldLabel htmlFor={keyId}>SSH public key</FieldLabel>
+          <FieldLabel htmlFor={keyId} className="ml-1 text-sm font-normal text-muted-foreground">
+            SSH public key
+          </FieldLabel>
           <Textarea
             id={keyId}
-            className="field-sizing-fixed resize-y px-2.5 py-2 font-mono text-xs leading-normal"
+            className="field-sizing-fixed resize-y rounded-md border-0 bg-raised px-3.5 py-2.5 font-mono text-xs leading-normal"
             rows={3}
             placeholder="ssh-ed25519 AAAA… you@laptop"
             aria-describedby={keyHintId}
@@ -93,30 +136,20 @@ export function PatchActionPanel({
         </Field>
       )}
 
-      {applying && (
-        <p className="text-sm text-muted-foreground">
-          Needs about {formatBytes(patcher.needs_bytes)} free on the device. Free space is checked
-          on the device before anything is written; the exact need is measured then and is usually
-          smaller.
-        </p>
-      )}
-      <p className="text-sm text-muted-foreground">
-        {applying
-          ? 'Remove undoes it: the files are deleted from /system and the device reboots without the patch.'
-          : 'The device reboots without this patch. Other patches stay active; with none left it boots stock firmware.'}
-      </p>
       {blocker && <p className="text-sm text-warning">{blocker}</p>}
 
       {lines.length > 0 && (
-        <pre
-          ref={log}
-          className="m-0 max-h-50 overflow-auto rounded-lg bg-raised px-3 py-2.5 font-mono text-xs leading-normal wrap-anywhere whitespace-pre-wrap"
-          role="log"
-          aria-label="Progress"
-          tabIndex={0}
-        >
-          {lines.join('\n')}
-        </pre>
+        <Panel padding="none">
+          <pre
+            ref={log}
+            className="m-0 max-h-50 overflow-auto px-3.5 py-2.5 font-mono text-xs leading-normal wrap-anywhere whitespace-pre-wrap"
+            role="log"
+            aria-label="Progress"
+            tabIndex={0}
+          >
+            {lines.join('\n')}
+          </pre>
+        </Panel>
       )}
       {run.isSuccess && (
         <p role="status" className="text-sm text-muted-foreground">
@@ -127,6 +160,7 @@ export function PatchActionPanel({
       <div className="flex flex-wrap items-center gap-2">
         <Button
           variant="danger-final"
+          size="large"
           onClick={start}
           disabled={run.isPending || blocker !== null || keyMissing}
         >
@@ -143,6 +177,9 @@ export function PatchActionPanel({
           {applying ? 'Remove instead' : 'Apply again'}
         </Button>
       </div>
+      <p className="text-xs text-muted-foreground">
+        Asks for your password, then shows progress here step by step.
+      </p>
       {run.isError && (
         <p role="alert" className="text-sm text-negative">
           {applying ? 'Not applied' : 'Not removed'}: {errorMessage(run.error)}

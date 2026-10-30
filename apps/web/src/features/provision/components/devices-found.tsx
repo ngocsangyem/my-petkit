@@ -1,6 +1,6 @@
 import { EmptyBlock } from '@/shared/ui';
 import type { FoundDevice } from '../hooks/use-provision-session';
-import { FIELDSET, LEGEND } from './provision-form';
+import { FIELDSET } from './provision-form';
 
 interface DevicesFoundProps {
   devices: readonly FoundDevice[];
@@ -17,7 +17,7 @@ interface DevicesFoundProps {
 export function DevicesFound({ devices, selectedId, onSelect, disabled }: DevicesFoundProps) {
   return (
     <fieldset className={FIELDSET}>
-      <legend className={LEGEND}>Devices found</legend>
+      <legend className="mb-1.5 p-0 text-sm text-muted-foreground">Devices found</legend>
       {devices.length === 0 ? (
         <EmptyBlock>
           No device chosen yet. Use Find device, then pick it from the browser’s list.

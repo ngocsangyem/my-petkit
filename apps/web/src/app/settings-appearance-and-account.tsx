@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/api/client';
-import { Button, SectionCard, ThemeModeControl, useToast } from '@/shared/ui';
+import { Button, Card, SectionCard, ThemeModeControl, useToast } from '@/shared/ui';
 
 /** Settings › Appearance: System / Light / Dark, kept in this browser only. */
 export function AppearanceSection() {
@@ -12,13 +12,20 @@ export function AppearanceSection() {
   );
 }
 
-/** Settings › account: sign this browser out of the server. */
+/** Settings › account: who is signed in, how to change the password, and Sign out. */
 export function AccountSection() {
   const queryClient = useQueryClient();
   const toast = useToast();
   return (
-    <SectionCard title="Account">
-      <div>
+    <Card as="section" aria-label="Account" className="flex flex-col px-5 py-2">
+      <div className="flex min-h-13 flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2">
+        <span>Signed in to this server</span>
+        <span className="text-xs text-muted-foreground">
+          Change the password with{' '}
+          <code className="font-mono text-foreground">my-petkit admin set-password</code>
+        </span>
+      </div>
+      <div className="flex min-h-13 items-center border-t border-rule py-2">
         <Button
           variant="destructive"
           className="-ml-1 px-1"
@@ -36,6 +43,6 @@ export function AccountSection() {
           Sign out
         </Button>
       </div>
-    </SectionCard>
+    </Card>
   );
 }

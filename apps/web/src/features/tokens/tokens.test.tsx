@@ -33,7 +33,8 @@ describe('TokensSection', () => {
     renderWithProviders(<TokensSection />);
     const list = await screen.findByRole('table', { name: 'Client tokens' });
     expect(within(list).getByText('iPhone 16')).toBeInTheDocument();
-    expect(within(list).getByText(/last used never/)).toBeInTheDocument();
+    expect(within(list).getByRole('columnheader', { name: 'Last seen' })).toBeInTheDocument();
+    expect(within(list).getByText('never')).toBeInTheDocument();
     expect(await screen.findByText(groupFingerprint(SHA))).toBeInTheDocument();
   });
 

@@ -43,7 +43,9 @@ describe('CapturePage', () => {
   it('lists the files with the secret warning and the step-up pill', async () => {
     routes();
     renderWithProviders(<CapturePage />);
-    expect(await screen.findByText(/recording · 2 files, 2\.4 MB/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/Recording is on\. 2 files on the server, 2\.4 MB/),
+    ).toBeInTheDocument();
     expect(screen.getByText('Step-up required')).toBeInTheDocument();
     expect(screen.getByText(/Every capture is sensitive/)).toBeInTheDocument();
     const table = screen.getByRole('table', { name: 'Capture files' });

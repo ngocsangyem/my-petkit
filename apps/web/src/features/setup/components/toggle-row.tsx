@@ -1,5 +1,5 @@
-import { SettingsRow, StepUpPill, Switch } from '@/shared/ui';
-import { needsStepUp, type ToggleDef } from '../setup-model';
+import { SettingsRow, Switch } from '@/shared/ui';
+import type { ToggleDef } from '../setup-model';
 
 interface ToggleRowProps {
   def: ToggleDef;
@@ -13,7 +13,7 @@ interface ToggleRowProps {
   onChange: (checked: boolean) => void;
 }
 
-/** One on/off live setting: label, what it does, its config key and a step-up pill. */
+/** One on/off live setting: its label, what it does, and whether it acts or is saved yet. */
 export function ToggleRow({ def, checked, disabled, inactive, pending, onChange }: ToggleRowProps) {
   const notes = [def.description];
   if (inactive) notes.push('Inactive while the proxy is off.');
@@ -21,8 +21,6 @@ export function ToggleRow({ def, checked, disabled, inactive, pending, onChange 
   return (
     <SettingsRow
       label={def.label}
-      configKey={def.key}
-      badge={needsStepUp(def.key) ? <StepUpPill>Step-up</StepUpPill> : undefined}
       description={notes.join(' ')}
       control={props => (
         <Switch {...props} checked={checked} disabled={disabled} onCheckedChange={onChange} />

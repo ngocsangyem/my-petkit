@@ -1,6 +1,6 @@
 import type { components } from '@/api/schema';
 import { formatBytes } from '@/shared/format/format';
-import { EmptyBlock, Table } from '@/shared/ui';
+import { Card, EmptyBlock, Table } from '@/shared/ui';
 
 type CaptureListing = components['schemas']['CaptureListing'];
 
@@ -17,7 +17,7 @@ export function totalBytes(listing: CaptureListing): number {
 
 function emptyText(listing: CaptureListing): string {
   if (!listing.enabled) {
-    return 'Capture is off. Turn Traffic capture on in Setup to start recording; it applies immediately, with no restart.';
+    return 'Capture is off. Turn on Save traffic under Settings to start recording; it applies immediately, with no restart.';
   }
   return 'No files yet. Traffic will appear once a device talks to this app.';
 }
@@ -26,21 +26,23 @@ function emptyText(listing: CaptureListing): string {
 export function CaptureFiles({ listing, selected, onSelect }: CaptureFilesProps) {
   const dir = listing.dir || '/data/capture';
   return (
-    <section className="flex min-w-0 flex-col gap-2" aria-labelledby="capture-files-title">
-      <h2 id="capture-files-title">Capture files</h2>
+    <Card as="section" className="flex flex-col gap-3" aria-labelledby="capture-files-title">
+      <div className="flex flex-wrap items-baseline justify-between gap-3">
+        <h2 id="capture-files-title">Files</h2>
+        <span className="text-sm text-muted-foreground">{formatBytes(totalBytes(listing))}</span>
+      </div>
       {listing.files.length === 0 ? (
         <EmptyBlock>{emptyText(listing)}</EmptyBlock>
       ) : (
         <Table
           label="Capture files"
-          variant="dense"
           rows={listing.files}
           rowKey={f => f.name}
           selectedKey={selected}
           columns={[
             {
               key: 'name',
-              header: 'Name',
+              header: 'File',
               mono: true,
               cell: f => (
                 <button
@@ -60,17 +62,11 @@ export function CaptureFiles({ listing, selected, onSelect }: CaptureFilesProps)
           ]}
         />
       )}
-      <dl className="mt-2 grid grid-cols-[140px_minmax(0,1fr)] gap-x-4 gap-y-2.5 rounded-lg bg-raised p-4 text-sm [&_dt]:text-muted-foreground">
+      <dl className="grid grid-cols-[110px_minmax(0,1fr)] gap-x-4 gap-y-2.5 rounded-md bg-raised px-4 py-3.5 text-sm [&_dt]:text-muted-foreground">
         <dt>Stored</dt>
         <dd>
           On this server only, in <span className="font-mono text-xs wrap-anywhere">{dir}</span>.
           Nothing is uploaded.
-        </dd>
-        <dt>Recording</dt>
-        <dd>
-          {listing.enabled
-            ? 'On. Every device HTTP request and MQTT frame is written as it happens.'
-            : 'Off. Turning it on is a setting in Setup, and asks for your password again.'}
         </dd>
         <dt>Kept</dt>
         <dd>
@@ -82,6 +78,6 @@ export function CaptureFiles({ listing, selected, onSelect }: CaptureFilesProps)
         <dt>Sharing</dt>
         <dd>Read the tail first. Attach only the one file that answers the question.</dd>
       </dl>
-    </section>
+    </Card>
   );
 }
