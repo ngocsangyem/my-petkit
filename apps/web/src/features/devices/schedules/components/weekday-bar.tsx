@@ -1,3 +1,4 @@
+import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/shadcn/toggle-group';
 import { formatDays, parseDays, WEEKDAYS } from '../schedule-clock';
 
 interface WeekdayBarProps {
@@ -8,29 +9,44 @@ interface WeekdayBarProps {
   label: string;
 }
 
-/** Seven day toggles; a chosen day is a checked box, so the keyboard and screen readers get real checkboxes. */
+/**
+ * Seven day toggles. Each day is announced as a checkbox (several can be on at
+ * once, and "checked" is what a screen reader should say), while the group
+ * keeps the toggle group's arrow-key movement. A chosen day gets the accent
+ * border, never a fill.
+ */
 export function WeekdayBar({ days, onChange, label }: WeekdayBarProps) {
   const on = parseDays(days);
   return (
-    <div className="sched-days" role="group" aria-label={label}>
-      {WEEKDAYS.map((name, i) => {
-        const day = i + 1;
-        return (
-          <label key={name} className="sched-days__day">
-            <input
-              type="checkbox"
-              checked={on.has(day)}
-              onChange={e => {
-                const next = new Set(on);
-                if (e.target.checked) next.add(day);
-                else next.delete(day);
-                onChange(formatDays(next));
-              }}
-            />
-            <span>{name}</span>
-          </label>
-        );
-      })}
-    </div>
+    <ToggleGroup
+      multiple
+      aria-label={label}
+      variant="outline"
+      size="sm"
+      spacing={1}
+      className="flex-wrap"
+      value={WEEKDAYS.filter((_, i) => on.has(i + 1))}
+      onValueChange={values => {
+        const next = new Set<number>();
+        for (const v of values) {
+          const i = (WEEKDAYS as readonly unknown[]).indexOf(v);
+          if (i >= 0) next.add(i + 1);
+        }
+        onChange(formatDays(next));
+      }}
+    >
+      {WEEKDAYS.map((name, i) => (
+        <ToggleGroupItem
+          key={name}
+          value={name}
+          role="checkbox"
+          aria-label={name}
+          aria-checked={on.has(i + 1)}
+          className="px-2 text-muted-foreground aria-pressed:font-semibold aria-pressed:text-foreground"
+        >
+          {name}
+        </ToggleGroupItem>
+      ))}
+    </ToggleGroup>
   );
 }

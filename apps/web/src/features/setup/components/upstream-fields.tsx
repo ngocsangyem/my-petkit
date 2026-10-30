@@ -52,13 +52,13 @@ export function UpstreamFields({
           selected === CUSTOM ? (
             'A PetKit or Aliyun IoT URL. Every device request is forwarded there with its credential.'
           ) : (
-            <span className="setup-mono">{presetUrl}</span>
+            <span className="font-mono text-xs wrap-anywhere">{presetUrl}</span>
           )
         }
         control={props => (
           <Select
             {...props}
-            className="setup-field"
+            className="w-full"
             options={options}
             value={selected}
             disabled={disabled}

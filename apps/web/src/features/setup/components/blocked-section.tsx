@@ -33,7 +33,7 @@ const COLUMNS: readonly TableColumn<BlockedAttempt>[] = [
     header: 'Payload',
     mono: true,
     muted: true,
-    cell: b => <span className="setup-payload">{b.payload_json ?? ''}</span>,
+    cell: b => <span className="break-all wrap-anywhere">{b.payload_json ?? ''}</span>,
   },
 ];
 
@@ -81,7 +81,7 @@ export function BlockedSection() {
           emptyText={blocked.isPending ? 'Loading…' : 'No blocked attempts.'}
         />
       )}
-      <div className="setup-panel-actions">
+      <div className="flex flex-wrap items-center gap-3 pt-3">
         <Button
           onClick={() => {
             setReveal(r => !r);
@@ -90,7 +90,7 @@ export function BlockedSection() {
           {reveal ? 'Mask payloads' : 'Reveal payloads'}
         </Button>
         {!blocked.isError && rows.length > 0 && (
-          <span className="setup-muted">
+          <span className="text-sm text-muted-foreground">
             {count} {rows.length === 1 ? 'attempt' : 'attempts'}
             {reveal ? ', payloads shown in full.' : '.'}
           </span>

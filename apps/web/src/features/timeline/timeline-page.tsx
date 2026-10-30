@@ -10,7 +10,6 @@ import { TimelineToolbar } from './components/timeline-toolbar';
 import { useTimelineLiveRefresh } from './hooks/use-timeline-live-refresh';
 import { sessionKey, todayLocal, type FilterKey, type TimelineDay } from './timeline-model';
 import { visitSummary } from './timeline-summary';
-import './timeline.css';
 
 function figures(day: TimelineDay | undefined) {
   const c = day?.counts;
@@ -81,7 +80,7 @@ export function TimelinePage() {
   }
 
   return (
-    <div className="tl-page">
+    <div className="flex min-w-0 flex-col gap-(--pk-gap)">
       <PageHeading title="Timeline" aside={visitSummary(household.data, isToday) ?? undefined} />
       <TimelineToolbar
         date={date}
@@ -114,10 +113,12 @@ export function TimelinePage() {
       ) : (
         <FigureContainer label="The day in figures" cells={figures(list.data)} />
       )}
-      <div className="tl-two">
-        <section className="tl-events-section" aria-labelledby="tl-events-h">
-          <div className="tl-events-section__head">
-            <h2 id="tl-events-h">Events</h2>
+      <div className="grid grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-start gap-(--pk-gap) max-[900px]:grid-cols-1">
+        <section className="flex min-w-0 flex-col gap-2" aria-labelledby="tl-events-h">
+          <div className="flex flex-col gap-2">
+            <h2 id="tl-events-h" className="m-0 text-lg font-semibold">
+              Events
+            </h2>
             <TimelineFilterChips
               counts={list.data?.counts}
               value={filter}

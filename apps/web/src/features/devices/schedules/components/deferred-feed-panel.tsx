@@ -23,7 +23,7 @@ export function DeferredFeedPanel({ deviceId, dual, offset }: DeferredFeedPanelP
 
   if (feeds.isPending) {
     return (
-      <div className="sched-list" aria-busy="true">
+      <div className="flex min-w-0 flex-col gap-2" aria-busy="true">
         <Skeleton height={48} />
         <Skeleton height={32} />
       </div>
@@ -43,17 +43,20 @@ export function DeferredFeedPanel({ deviceId, dual, offset }: DeferredFeedPanelP
 
   const zone = formatOffset(offset);
   return (
-    <div className="sched-list">
+    <div className="flex min-w-0 flex-col gap-2">
       {feeds.data.length ? (
         feeds.data.map(feed => (
-          <div className="sched-row" key={feed.id}>
-            <div className="sched-row__values">
-              <span className="sched-row__when">{formatDeviceMoment(feed.fire_at, offset)}</span>
-              <span className="sched-muted">
+          <div
+            className="flex min-h-(--pk-row-height-compact) flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg bg-raised px-3 py-2"
+            key={feed.id}
+          >
+            <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+              <span className="font-semibold">{formatDeviceMoment(feed.fire_at, offset)}</span>
+              <span className="text-sm text-muted-foreground">
                 {dual ? `Hopper 1: ${feed.a1}, Hopper 2: ${feed.a2}` : `Portions: ${feed.a1}`}
               </span>
             </div>
-            <div className="sched-row__actions">
+            <div className="flex items-center gap-1">
               <Button
                 variant="destructive"
                 size="small"
@@ -71,12 +74,12 @@ export function DeferredFeedPanel({ deviceId, dual, offset }: DeferredFeedPanelP
         <EmptyBlock>No one-off feeds scheduled.</EmptyBlock>
       )}
       {remove.isError && (
-        <p className="sched-editor__problem" role="alert">
+        <p className="text-sm text-negative" role="alert">
           Not removed: {errorMessage(remove.error)}
         </p>
       )}
       <DeferredFeedForm deviceId={deviceId} dual={dual} offset={offset} />
-      <p className="sched-muted">
+      <p className="text-sm text-muted-foreground">
         Date and time are on the feeder's own clock ({zone}). The feeder picks the meal up on its
         next check-in.
       </p>

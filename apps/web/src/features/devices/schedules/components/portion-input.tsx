@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { type ReactNode, useId, useState } from 'react';
+import { Field, FieldLabel } from '@/shared/ui/shadcn/field';
+import { Input } from '@/shared/ui/shadcn/input';
 
 interface PortionInputProps {
   value: number;
@@ -14,17 +16,18 @@ interface PortionInputProps {
  * invalid is marked and snaps back to the stored value when it loses focus.
  */
 export function PortionInput({ value, onChange, label, max }: PortionInputProps) {
+  const id = useId();
   const [textValue, setTextValue] = useState<string | null>(null);
   const shown = textValue ?? String(value);
   const n = Number(shown);
   const valid = shown.trim() !== '' && Number.isInteger(n) && n >= 0 && n <= max;
   return (
-    <label className="sched-portion">
-      <span>{label}</span>
-      <input
+    <InlineControlField id={id} label={label}>
+      <Input
+        id={id}
         type="number"
         inputMode="numeric"
-        className="ui-control ui-control--end sched-portion__input"
+        className="w-18 text-right"
         min={0}
         max={max}
         step={1}
@@ -41,6 +44,26 @@ export function PortionInput({ value, onChange, label, max }: PortionInputProps)
           setTextValue(null);
         }}
       />
-    </label>
+    </InlineControlField>
+  );
+}
+
+/** A 13px muted label before its control, on one line (Date, Time, Portions). */
+export function InlineControlField({
+  id,
+  label,
+  children,
+}: {
+  id: string;
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <Field orientation="horizontal" className="w-auto">
+      <FieldLabel htmlFor={id} className="text-sm font-normal text-muted-foreground">
+        {label}
+      </FieldLabel>
+      {children}
+    </Field>
   );
 }

@@ -74,9 +74,11 @@ Type is IBM Plex Sans 400, 500 and 600. IBM Plex Mono 400 and 500 is used only f
 
 Nothing is smaller than 11px. Every number uses `font-variant-numeric: tabular-nums` on the web and `.monospacedDigit()` on iOS.
 
+On the web, `tokens.css` holds every token twice: light under `:root` and dark under `.dark` (§7.5 and §8.4). `theme.css` maps shadcn's theme variables onto them; the type scale uses Tailwind's size names (`text-xs` caption 12, `text-sm` small 13, `text-base` body 14, `text-lg` section 16, `text-xl` title 22, `text-3xl` figure 28).
+
 ## 3. Shared components
 
-Build these once (`apps/web/src/shared/ui/`, `MyPetkit/Shared/`) and use them everywhere.
+Build these once (`apps/web/src/shared/ui/`, `MyPetkit/Shared/`) and use them everywhere. On the web they are shadcn/ui components on Base UI (`shared/ui/shadcn/`), edited to these rules: app shell → Sidebar and Sheet; table → Table; buttons → Button; device command → Dialog with the alertdialog role (Base UI's AlertDialog ignores a backdrop click, which cancels here); step-up → Dialog and Field; settings section → Card and Field; empty, error, loading → Empty, Alert, Skeleton (no pulse); pills → Badge; ratio bar → Progress; toasts on Base UI's Toast primitive and selects native, because Sonner and Base UI's Select inject `<style>`, which the CSP blocks. The drum mark, status mark, figure container and day strip stay hand-written.
 
 | Component | Artboard to copy | Rules |
 |---|---|---|
@@ -126,7 +128,7 @@ Screens with no artboard are built from §3 and the nearest row above:
 - web live view;
 - web sounds (reuse the layout of `ios-sounds`);
 - sprays and the other device models without their own artboard (reuse `ios-device-feeder`);
-- web dark mode (not designed; the web ships light only). iOS dark mode is designed: see §7.5.
+- web dark mode: no separate artboards per screen; the web takes its dark values from §7.5 and §8.4 (`tokens.css`, `.dark`). iOS dark mode is designed: see §7.5.
 
 ## 5. How to check a screen against the design
 
@@ -258,4 +260,4 @@ Drawn only on `ios-devices-dark`. The other screens take their dark colours from
 | `positive` / `negative` | `#5fd39b` / `#ff7a72` | status words |
 | `pill.positive`, `pill.negative`, `pill.neutral` | `#123824/#bdf2d3`, `#43191a/#ffc9c4`, `#2c3032/#d5dbda` | pills |
 
-`Theme.Color` declares each token once with its light and dark value (asset catalog colour sets or `UIColor(dynamicProvider:)`). The app follows the system setting; there is no in-app switch. The web stays light only.
+`Theme.Color` declares each token once with its light and dark value (asset catalog colour sets or `UIColor(dynamicProvider:)`). The app follows the system setting; there is no in-app switch. The web has dark mode too (System, Light, Dark in the sidebar), from the same table plus §8.4.

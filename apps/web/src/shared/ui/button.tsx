@@ -1,5 +1,5 @@
 import type { ComponentPropsWithRef } from 'react';
-import './button.css';
+import { Button as ShadcnButton, buttonVariants } from './shadcn/button';
 
 /**
  * - `primary`: ink fill, white text; at most one per screen.
@@ -13,15 +13,26 @@ export type ButtonVariant = 'primary' | 'secondary' | 'destructive' | 'danger-fi
 /** 32px by default; 28px inside table rows; 36px in dialogs and sign-in forms. */
 export type ButtonSize = 'regular' | 'small' | 'large';
 
+const VARIANT = {
+  primary: 'default',
+  secondary: 'outline',
+  destructive: 'destructive-text',
+  'danger-final': 'destructive',
+  text: 'link',
+} as const satisfies Record<ButtonVariant, string>;
+
+const SIZE = { regular: 'default', small: 'sm', large: 'lg' } as const satisfies Record<
+  ButtonSize,
+  string
+>;
+
 /** Class names for a button look, for links that must look like buttons. */
 export function buttonClassName(
   variant: ButtonVariant = 'secondary',
   size: ButtonSize = 'regular',
   extra?: string,
 ): string {
-  return ['ui-button', `ui-button--${variant}`, `ui-button--${size}`, extra]
-    .filter(Boolean)
-    .join(' ');
+  return buttonVariants({ variant: VARIANT[variant], size: SIZE[size], className: extra });
 }
 
 /** Props for {@link Button}: every native button prop plus the look. */
@@ -35,8 +46,7 @@ export function Button({
   variant = 'secondary',
   size = 'regular',
   type = 'button',
-  className,
   ...rest
 }: ButtonProps) {
-  return <button type={type} className={buttonClassName(variant, size, className)} {...rest} />;
+  return <ShadcnButton type={type} variant={VARIANT[variant]} size={SIZE[size]} {...rest} />;
 }

@@ -39,7 +39,6 @@ ASYNC240 src/my_petkit/features/media/routes.py 2
 ASYNC240 src/my_petkit/features/pets/routes.py 1
 ASYNC240 src/my_petkit/features/setup/routes.py 1
 ASYNC240 src/my_petkit/features/sounds/routes.py 1
-ASYNC240 src/my_petkit/web/panel.py 1
 S101 src/my_petkit/patchers/cacert.py 1
 S105 src/my_petkit/http/redact/rules.py 1
 S107 tests/test_sidebar.py 1
@@ -55,10 +54,6 @@ S324 src/my_petkit/features/sounds/routes.py 1
 S324 tests/test_bucket.py 1
 S324 tests/test_cloud_fetch.py 1
 S603 tests/test_media_stitch.py 3
-S603 tests/test_panel_script_loads.py 2
 S603 tests/test_patcher_firmware.py 1
-S603 tests/test_provision_js.py 1
 S607 tests/test_media_stitch.py 1
-S607 tests/test_panel_script_loads.py 2
 S607 tests/test_patcher_firmware.py 1
-S607 tests/test_provision_js.py 1

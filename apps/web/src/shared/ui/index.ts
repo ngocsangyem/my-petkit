@@ -1,5 +1,6 @@
 // Public surface of the shared UI layer. Importing it loads the fonts, the
 // tokens and the global base styles once.
+import './theme.css';
 import './global.css';
 
 export { Button, buttonClassName } from './button';
@@ -75,7 +76,10 @@ export { RiskNotice, StepUpPill } from './step-up';
 export type { RiskNoticeProps, StepUpPillProps } from './step-up';
 export { LogLevelText, Table } from './table';
 export type { LogLevel, LogLevelTextProps, TableColumn, TableProps } from './table';
-export { SegmentedChips, TabPanel, Tabs, tabId, tabPanelId } from './tabs';
-export type { SegmentedChipsProps, TabItem, TabPanelProps, TabsProps } from './tabs';
+export { SegmentedChips, Tabs } from './tabs';
+export type { SegmentedChipsProps, TabItem, TabsProps } from './tabs';
+export { ThemeModeControl, ThemeModeProvider, useThemeMode } from './theme-mode';
+export type { ThemeMode } from './theme-mode';
+export { ToastProvider, useToast } from './toast';
 export { useModalFocus } from './use-modal-focus';
 export type { ModalFocusOptions } from './use-modal-focus';

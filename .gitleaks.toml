@@ -55,6 +55,14 @@ description = "Home Assistant EntityDef keys are identifiers, not credentials"
 paths = ['''^services/api/src/my_petkit/ha/entities/[a-z_]+\.py$''']
 regexes = ['''EntityDef\(component="[a-z_]+", key="[a-z0-9_]+"''']
 
+# The web preview's device fixtures build entities as `entity({ key: 'n50_durability', ... })`:
+# entity keys again, which the generic-api-key rule reads as a credential.
+[[allowlists]]
+description = "Web preview fixture entity keys are identifiers, not credentials"
+paths = ['''^apps/web/preview/fixtures-devices\.ts$''']
+regexTarget = "line"
+regexes = ['''entity\(\{ key: '[a-z0-9_]+', component: ''']
+
 # The golden check registers fixture devices with obviously fake credentials so
 # the recorded output never depends on a random secret.
 [[allowlists]]

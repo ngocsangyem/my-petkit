@@ -11,9 +11,11 @@ function urlsOf(streams: Record<string, unknown>): [string, string][] {
 function CopyRow({ label, url }: { label: string; url: string }) {
   const [said, setSaid] = useState<string | null>(null);
   return (
-    <div className="devices-stream-row">
-      <span className="devices-stream-row__label">{label}</span>
-      <code className="devices-mono devices-stream-row__url">{url}</code>
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 min-[901px]:grid-cols-[120px_minmax(0,1fr)_auto_auto]">
+      <span className="col-span-full text-sm text-muted-foreground min-[901px]:col-span-1">
+        {label}
+      </span>
+      <code className="overflow-x-auto font-mono text-sm whitespace-nowrap">{url}</code>
       <Button
         size="small"
         aria-label={`Copy ${label} URL`}
@@ -25,7 +27,7 @@ function CopyRow({ label, url }: { label: string; url: string }) {
       >
         Copy
       </Button>
-      <span className="devices-muted" role="status">
+      <span className="text-muted-foreground" role="status">
         {said ?? ''}
       </span>
     </div>
@@ -49,7 +51,7 @@ export function StreamUrls({
   const direct = urls.filter(([k]) => k !== 'rtsp');
   if (!urls.length) {
     return (
-      <p className="devices-note">
+      <p className="text-sm text-muted-foreground">
         No live stream. The device is checked for one every few minutes, and it answers once Local
         Camera Streaming is applied on the Patchers screen
         {hasIp ? '' : ', and it has not reported an IP yet either'}.
@@ -57,17 +59,17 @@ export function StreamUrls({
     );
   }
   return (
-    <div className="devices-stack">
+    <div className="flex min-w-0 flex-col gap-2.5">
       {rtsp && <CopyRow label="Camera stream" url={rtsp[1]} />}
       {rtsp && (
-        <p className="devices-note">
+        <p className="text-sm text-muted-foreground">
           Give this one to Home Assistant as a Generic Camera. This app’s go2rtc stands between it
           and the device.
         </p>
       )}
       {direct.length > 0 && (
         <>
-          <p className="devices-note">
+          <p className="text-sm text-muted-foreground">
             Straight from the device (VLC, ffmpeg; not Home Assistant):
           </p>
           {direct.map(([k, url]) => (

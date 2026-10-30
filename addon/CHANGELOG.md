@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **The new dashboard is the panel.** Opening the add-on (through Ingress or on
+  the TLS port) now shows the web app that was at `/app/`, and the old
+  server-rendered panel is gone. A bookmark to `/app/`, including its
+  `#/...` screen, is redirected to the same screen at the root.
 - **The T6's camera can be panned: Pan Left, Pan Right and Pan Home.** The
   buttons appear once the new **Camera Pan (T6)** patcher is applied, and only
   on a Purobot Ultra. Each press runs the firmware's own `pktool motor_test`

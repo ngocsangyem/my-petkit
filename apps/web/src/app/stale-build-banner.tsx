@@ -1,6 +1,5 @@
 import { useServerInfo } from '@/auth/use-server-info';
 import { Button } from '@/shared/ui';
-import './stale-build-banner.css';
 
 /** The entry script this page was loaded from, e.g. `index-Ab12cd.js`. */
 function ownEntry(): string | null {
@@ -18,7 +17,10 @@ export function StaleBuildBanner() {
   const current = info.data?.web_entry ?? null;
   if (!mine || !current || mine === current) return null;
   return (
-    <div className="stale-build" role="status">
+    <div
+      className="flex items-center justify-between gap-3 rounded-lg bg-pill-warning px-3.5 py-2.5 text-sm text-pill-warning-ink"
+      role="status"
+    >
       <span>This page is out of date: the server has a newer version.</span>
       <Button
         variant="secondary"

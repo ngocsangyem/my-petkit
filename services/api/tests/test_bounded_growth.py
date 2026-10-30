@@ -109,30 +109,36 @@ NOT_IN_PANEL = {RAW_CATEGORY}
 
 
 def test_every_retention_category_is_editable_from_the_panel():
-    """`RETENTION_LABELS` in setup.js is the single source for the retention table
-    AND its save payload, so a category missing from it renders no row and can
-    never be changed.
+    """`RETENTION_SIZED` and `RETENTION_AGE_ONLY` in the web app's
+    `retention-and-blocked-model.ts` are the single source for the retention
+    table AND its save payload, so a category missing from them renders no row
+    and can never be changed.
 
     Checks the WHOLE server-side table, not a hand-listed pair: the point is to
     catch a category added to `DEFAULT_RETENTION` and then forgotten in the UI,
     which is how `wasteCheck` and `healthPic` stayed unreachable. Dropping one
     on purpose means naming it in `NOT_IN_PANEL` with the reason.
     """
-    js = Path(__file__).resolve().parents[1] / "src/my_petkit/web/static/js/setup.js"
-    text = js.read_text()
-    labels = text[text.index("const RETENTION_LABELS = {"):]
-    labels = labels[: labels.index("};")]
+    model = (Path(__file__).resolve().parents[3] / "apps" / "web" / "src" / "features"
+             / "setup" / "retention-and-blocked-model.ts").read_text(encoding="utf-8")
 
-    # `events` and `blocked` are age-only, so they get their own hardcoded rows
-    # rather than RETENTION_LABELS entries (which also carry a size cap).
-    age_only = {"events", "blocked"}
-    for c in age_only:
-        assert f"ret_{c}_days" in text, f"{c} has no age input in the panel"
-    expected = {c for c in DEFAULT_RETENTION if c not in NOT_IN_PANEL and c not in age_only}
-    missing = sorted(c for c in expected if f"{c}:" not in labels)
+    def listed(table: str) -> str:
+        block = model[model.index(f"export const {table} = ["):]
+        return block[: block.index("] as const")]
+
+    sized, age_only = listed("RETENTION_SIZED"), listed("RETENTION_AGE_ONLY")
+
+    def row(category: str, block: str) -> bool:
+        return f"['{category}'," in block or f'["{category}",' in block
+
+    # `events` and `blocked` are age-only: they carry no size cap.
+    for c in ("events", "blocked"):
+        assert row(c, age_only), f"{c} has no age input in the panel"
+    expected = {c for c in DEFAULT_RETENTION if c not in NOT_IN_PANEL and c not in {"events", "blocked"}}
+    missing = sorted(c for c in expected if not row(c, sized))
     assert not missing, f"no panel row, so these caps can never be changed: {missing}"
 
-    stale = sorted(c for c in NOT_IN_PANEL if f"{c}:" in labels)
+    stale = sorted(c for c in NOT_IN_PANEL if row(c, sized) or row(c, age_only))
     assert not stale, f"listed as deliberately absent but present in the panel: {stale}"
 
 

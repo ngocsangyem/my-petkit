@@ -1,0 +1,135 @@
+/*
+ * Tailwind and the shadcn theme. shadcn components read the variables below;
+ * each one points at a design token in tokens.css, so the colours stay there
+ * and dark mode only has to redefine the tokens. Nothing here holds a hex.
+ *
+ * All other CSS sits in Tailwind's base layer (base.css): an unlayered rule
+ * would beat every utility class.
+ */
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: var(--pk-surface);
+  --foreground: var(--pk-text);
+  --card: var(--pk-surface);
+  --card-foreground: var(--pk-text);
+  --popover: var(--pk-surface);
+  --popover-foreground: var(--pk-text);
+  /* The primary button is near-black ink, never the accent. */
+  --primary: var(--pk-text);
+  --primary-foreground: var(--pk-on-dark);
+  --secondary: var(--pk-surface);
+  --secondary-foreground: var(--pk-text);
+  --muted: var(--pk-raised);
+  --muted-foreground: var(--pk-muted);
+  /* shadcn's "accent" is the hover and selected-row fill, not our data accent. */
+  --accent: var(--pk-active);
+  --accent-foreground: var(--pk-text);
+  --destructive: var(--pk-negative);
+  --border: var(--pk-border);
+  --input: var(--pk-control);
+  --ring: var(--pk-accent);
+  --chart-1: var(--pk-accent);
+  --chart-2: var(--pk-chart2);
+  --chart-3: var(--pk-chart3);
+  --chart-4: var(--pk-muted);
+  --chart-5: var(--pk-muted);
+  --sidebar: var(--pk-ground);
+  --sidebar-foreground: var(--pk-text);
+  --sidebar-primary: var(--pk-text);
+  --sidebar-primary-foreground: var(--pk-on-dark);
+  --sidebar-accent: var(--pk-active);
+  --sidebar-accent-foreground: var(--pk-text);
+  --sidebar-border: var(--pk-border);
+  --sidebar-ring: var(--pk-accent);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Design tokens with no shadcn counterpart, for components we write. */
+  --color-ground: var(--pk-ground);
+  --color-raised: var(--pk-raised);
+  --color-active: var(--pk-active);
+  --color-rule: var(--pk-rule);
+  --color-control: var(--pk-control);
+  --color-ink: var(--pk-text);
+  --color-ink-hover: var(--pk-text-hover);
+  --color-on-dark: var(--pk-on-dark);
+  --color-data: var(--pk-accent);
+  --color-data-hover: var(--pk-accent-hover);
+  --color-positive: var(--pk-positive);
+  --color-warning: var(--pk-warning);
+  --color-negative: var(--pk-negative);
+  --color-pill-positive: var(--pk-pill-positive-bg);
+  --color-pill-positive-ink: var(--pk-pill-positive-ink);
+  --color-pill-negative: var(--pk-pill-negative-bg);
+  --color-pill-negative-ink: var(--pk-pill-negative-ink);
+  --color-pill-warning: var(--pk-pill-warning-bg);
+  --color-pill-warning-ink: var(--pk-pill-warning-ink);
+  --color-pill-neutral: var(--pk-pill-neutral-bg);
+  --color-pill-neutral-ink: var(--pk-pill-neutral-ink);
+  --color-backdrop: var(--pk-overlay-backdrop);
+
+  /* Radii are set outright, not derived from one --radius. */
+  --radius-sm: var(--pk-radius-lane);
+  --radius-md: var(--pk-radius-control);
+  --radius-lg: var(--pk-radius-card);
+  --radius-xl: var(--pk-radius-dialog);
+  --radius-2xl: var(--pk-radius-sheet);
+
+  --shadow-overlay: var(--pk-overlay-shadow);
+
+  --font-sans: var(--pk-font-sans);
+  --font-mono: var(--pk-font-mono);
+  /*
+   * The design's type scale on Tailwind's own size names, so class merging
+   * (cn) knows they are sizes, not colours: xs caption 12, sm small 13,
+   * base body 14, lg section 16, xl title 22, 3xl figure 28.
+   */
+  --text-xs: var(--pk-text-caption);
+  --text-xs--line-height: var(--pk-line-height);
+  --text-sm: var(--pk-text-small);
+  --text-sm--line-height: var(--pk-line-height);
+  --text-base: var(--pk-text-body);
+  --text-base--line-height: var(--pk-line-height);
+  --text-lg: var(--pk-text-section);
+  --text-lg--line-height: 1.35;
+  --text-xl: var(--pk-text-title);
+  --text-xl--line-height: 1.3;
+  --text-3xl: var(--pk-text-figure);
+  --text-3xl--line-height: 1.15;
+}

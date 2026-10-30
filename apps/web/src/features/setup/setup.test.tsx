@@ -116,7 +116,7 @@ describe('SetupPage', () => {
     renderWithProviders(<SetupPage />);
 
     await user.click(await screen.findByRole('switch', { name: 'Block firmware updates' }));
-    const dialog = screen.getByRole('dialog', { name: /Turn off “Block firmware updates”/ });
+    const dialog = screen.getByRole('alertdialog', { name: /Turn off “Block firmware updates”/ });
     await user.click(within(dialog).getByRole('button', { name: 'Turn off' }));
     expect(screen.getByRole('switch', { name: 'Block firmware updates' })).not.toBeChecked();
 

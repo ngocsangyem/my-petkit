@@ -31,7 +31,7 @@ describe('TokensSection', () => {
       'GET /api/auth/tokens': { body: { tokens: TOKENS } },
     });
     renderWithProviders(<TokensSection />);
-    const list = await screen.findByRole('list', { name: 'Client tokens' });
+    const list = await screen.findByRole('table', { name: 'Client tokens' });
     expect(within(list).getByText('iPhone 16')).toBeInTheDocument();
     expect(within(list).getByText(/last used never/)).toBeInTheDocument();
     expect(await screen.findByText(groupFingerprint(SHA))).toBeInTheDocument();
@@ -55,7 +55,7 @@ describe('TokensSection', () => {
     const user = userEvent.setup();
     renderWithProviders(<TokensSection />);
     await user.click(await screen.findByRole('button', { name: 'Revoke' }));
-    const dialog = screen.getByRole('dialog', { name: /Revoke “iPhone 16”/ });
+    const dialog = screen.getByRole('alertdialog', { name: /Revoke “iPhone 16”/ });
     await user.click(within(dialog).getByRole('button', { name: 'Revoke' }));
     await waitFor(() => {
       expect(calls.some(c => c.method === 'DELETE' && c.url.endsWith('/api/auth/tokens/3'))).toBe(

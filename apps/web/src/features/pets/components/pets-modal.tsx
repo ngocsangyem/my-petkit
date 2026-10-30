@@ -1,6 +1,6 @@
-import { useId, useRef, type ReactNode, type RefObject } from 'react';
-import { createPortal } from 'react-dom';
-import { useModalFocus } from '@/shared/ui';
+import type { ReactNode } from 'react';
+import { cn } from 'cn';
+import { Dialog, DialogContent, DialogTitle } from '@/shared/ui/shadcn/dialog';
 
 interface PetsModalProps {
   open: boolean;
@@ -10,15 +10,14 @@ interface PetsModalProps {
   busy?: boolean;
   /** The cropper needs room for the stage and the preview side by side. */
   wide?: boolean;
-  /** Element to focus first; defaults to the first focusable element. */
-  initialFocus?: RefObject<HTMLElement | null>;
   children: ReactNode;
 }
 
 /**
  * A modal sheet in the shared dialog look, for the forms on this screen (add,
  * import, crop). The shared ConfirmDialog only asks a question; these hold
- * inputs, so they need their own body and buttons.
+ * inputs, so they need their own body and buttons. Focus is trapped, opens on
+ * the first focusable element and returns to the opener on close.
  */
 export function PetsModal({
   open,
@@ -26,38 +25,26 @@ export function PetsModal({
   onClose,
   busy = false,
   wide = false,
-  initialFocus,
   children,
 }: PetsModalProps) {
-  const titleId = useId();
-  const panel = useRef<HTMLDivElement>(null);
-  useModalFocus(panel, { open, onEscape: busy ? null : onClose, initialFocus });
-
-  if (!open) return null;
-  return createPortal(
-    <div className="ui-dialog-layer">
-      <div
-        className="ui-dialog-backdrop"
-        aria-hidden="true"
-        onClick={() => {
-          if (!busy) onClose();
-        }}
-      />
-      <div
-        ref={panel}
-        className={wide ? 'ui-dialog pets-modal--wide' : 'ui-dialog'}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={next => {
+        if (!next && !busy) onClose();
+      }}
+    >
+      <DialogContent
+        showCloseButton={false}
         aria-busy={busy || undefined}
-        tabIndex={-1}
+        className={cn(
+          'flex max-h-[calc(100vh-32px)] w-[calc(100%-32px)] max-w-[440px] flex-col gap-4 overflow-y-auto text-base sm:max-w-[440px]',
+          wide && 'max-w-[720px] sm:max-w-[720px]',
+        )}
       >
-        <h2 id={titleId} className="ui-dialog__title">
-          {title}
-        </h2>
+        <DialogTitle className="text-[18px] leading-normal font-semibold">{title}</DialogTitle>
         {children}
-      </div>
-    </div>,
-    document.body,
+      </DialogContent>
+    </Dialog>
   );
 }

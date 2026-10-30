@@ -10,6 +10,7 @@ import {
   SearchField,
   Skeleton,
   Table,
+  useToast,
   ValueText,
 } from '@/shared/ui';
 import { useHubEvents } from '@/shared/ws/use-event-stream';
@@ -39,7 +40,8 @@ export function emptyReason(listing: DeviceLogListing): string {
     : 'No device has debug log collection turned on.';
 }
 
-export function DeviceLogsSection({ onNotice }: { onNotice: (message: string) => void }) {
+export function DeviceLogsSection() {
+  const toast = useToast();
   const list = useDeviceLogList();
   const queryClient = useQueryClient();
   const [picked, setPicked] = useState<string | null>(null);
@@ -73,7 +75,7 @@ export function DeviceLogsSection({ onNotice }: { onNotice: (message: string) =>
     try {
       saveBlob(await fetchDeviceLogFile(file.rel), file.name);
     } catch (e) {
-      onNotice(`Download failed: ${errorMessage(e)}`);
+      toast(`Download failed: ${errorMessage(e)}`, { error: true });
     } finally {
       setDownloading(null);
     }
@@ -98,6 +100,7 @@ export function DeviceLogsSection({ onNotice }: { onNotice: (message: string) =>
         <Table
           label="Device logs"
           variant="compact"
+          minWidth={560}
           rows={files}
           rowKey={f => f.rel}
           selectedKey={selected}
@@ -109,7 +112,7 @@ export function DeviceLogsSection({ onNotice }: { onNotice: (message: string) =>
               cell: f => (
                 <button
                   type="button"
-                  className="devlog-pick"
+                  className="text-left hover:text-data aria-pressed:font-medium"
                   aria-pressed={f.rel === selected}
                   onClick={() => {
                     setPicked(f.rel);
@@ -155,13 +158,11 @@ export function DeviceLogsSection({ onNotice }: { onNotice: (message: string) =>
   }
 
   return (
-    <section className="log-section" aria-labelledby="devlog-title">
-      <div className="log-section__head">
-        <h2 id="devlog-title" className="log-section__title">
-          Device logs
-        </h2>
+    <section className="flex min-w-0 flex-col gap-3" aria-labelledby="devlog-title">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        <h2 id="devlog-title">Device logs</h2>
         <SearchField
-          className="log-section__grep"
+          className="w-[220px]"
           aria-label="Search the device log"
           placeholder="grep pattern"
           mono
@@ -171,7 +172,7 @@ export function DeviceLogsSection({ onNotice }: { onNotice: (message: string) =>
           onValueChange={setGrep}
         />
       </div>
-      <p className="log-section__sub">
+      <p className="text-xs text-muted-foreground">
         The device’s own devRun.log, uploaded here instead of to PetKit. Off until you turn on
         Collect debug logs on a device, and the device decides when to send one.
       </p>

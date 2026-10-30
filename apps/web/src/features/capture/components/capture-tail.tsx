@@ -27,7 +27,7 @@ export function CaptureTail({
 
   if (name === null) {
     return (
-      <div className="capture-tail">
+      <div className="flex min-w-0 flex-col gap-3">
         <EmptyBlock>Pick a file to read its last records.</EmptyBlock>
       </div>
     );
@@ -49,7 +49,10 @@ export function CaptureTail({
     const { records, total } = tail.data;
     caption = `Last ${records.length} of ${total} lines · secrets are masked in this view only`;
     body = records.length ? (
-      <pre className="capture-tail__records" aria-label={`Last records of ${name}`}>
+      <pre
+        className="min-h-[560px] max-h-[600px] overflow-auto rounded-lg border border-border bg-background px-4 py-3.5 font-mono text-xs leading-[1.7] whitespace-pre"
+        aria-label={`Last records of ${name}`}
+      >
         {records.map(recordLine).join('\n')}
       </pre>
     ) : (
@@ -58,12 +61,12 @@ export function CaptureTail({
   }
 
   return (
-    <section className="capture-tail" aria-labelledby="capture-tail-title">
-      <div className="capture-tail__head">
-        <h2 id="capture-tail-title" className="capture-tail__name">
+    <section className="flex min-w-0 flex-col gap-3" aria-labelledby="capture-tail-title">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="capture-tail-title" className="font-mono text-base font-medium wrap-anywhere">
           {name}
         </h2>
-        <div className="capture-tail__actions">
+        <div className="flex items-center gap-4">
           <Button
             disabled={downloading}
             onClick={() => {
@@ -83,7 +86,7 @@ export function CaptureTail({
           </Button>
         </div>
       </div>
-      <p className="capture-tail__caption">{caption}</p>
+      <p className="text-xs text-muted-foreground">{caption}</p>
       {body}
     </section>
   );

@@ -56,23 +56,23 @@ export function ModelBlock({ device, visitsToday }: ModelBlockProps) {
   });
   if (!cells.length && !consumables.length) return null;
   return (
-    <div className="devices-stack">
+    <div className="flex min-w-0 flex-col gap-2.5">
       {cells.length > 0 && <FigureContainer label={`${device.name} figures`} cells={cells} />}
       {(consumables.length > 0 || filter !== null) && (
-        <ul className="devices-consumables" aria-label="Consumables">
+        <ul className="m-0 flex list-none flex-col p-0" aria-label="Consumables">
           {consumables.map(c => {
             const low = c.days <= CONSUMABLE_WARN_DAYS;
             return (
-              <li key={c.key} className="devices-consumables__row">
+              <li key={c.key} className="flex justify-between gap-4 border-b border-rule py-2">
                 <span>{c.label}</span>
-                <span className={low ? 'devices-warning' : undefined}>
+                <span className={low ? 'text-warning' : undefined}>
                   {c.days <= 0 ? 'Used up' : `${c.days} ${c.days === 1 ? 'day' : 'days'}`}
                 </span>
               </li>
             );
           })}
           {filter !== null && (
-            <li className="devices-consumables__bar">
+            <li className="py-2">
               <RatioBar
                 name="Filter left"
                 value={filter}

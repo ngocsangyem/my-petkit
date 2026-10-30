@@ -1,5 +1,6 @@
-import type { KeyboardEvent, ReactNode } from 'react';
-import './tabs.css';
+import type { ReactNode } from 'react';
+import { Tabs as TabsRoot, TabsContent, TabsList, TabsTrigger } from './shadcn/tabs';
+import { ToggleGroup, ToggleGroupItem } from './shadcn/toggle-group';
 
 /** One tab or chip choice. */
 export interface TabItem<Id extends string = string> {
@@ -8,96 +9,61 @@ export interface TabItem<Id extends string = string> {
   disabled?: boolean;
 }
 
-/** DOM id of a tab button, for `aria-labelledby` on its panel. */
-export function tabId(idPrefix: string, id: string): string {
-  return `${idPrefix}-tab-${id}`;
-}
-
-/** DOM id of a tab panel, for `aria-controls` on its tab. */
-export function tabPanelId(idPrefix: string, id: string): string {
-  return `${idPrefix}-panel-${id}`;
-}
-
 /** Props for {@link Tabs}. */
 export interface TabsProps<Id extends string> {
   /** Accessible name of the tab list. */
   label: string;
-  /** Prefix for tab and panel ids; unique on the page. */
-  idPrefix: string;
   tabs: readonly TabItem<Id>[];
   selected: Id;
   onSelect: (id: Id) => void;
-}
-
-/** Underlined tab list (ARIA tabs, arrow keys move between tabs; the selected tab gets the accent line). */
-export function Tabs<Id extends string>({
-  label,
-  idPrefix,
-  tabs,
-  selected,
-  onSelect,
-}: TabsProps<Id>) {
-  const enabled = tabs.filter(t => !t.disabled);
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    const index = enabled.findIndex(t => t.id === selected);
-    let next: TabItem<Id> | undefined;
-    if (event.key === 'ArrowRight') next = enabled[(index + 1) % enabled.length];
-    else if (event.key === 'ArrowLeft')
-      next = enabled[(index - 1 + enabled.length) % enabled.length];
-    else if (event.key === 'Home') next = enabled[0];
-    else if (event.key === 'End') next = enabled[enabled.length - 1];
-    if (!next) return;
-    event.preventDefault();
-    onSelect(next.id);
-    document.getElementById(tabId(idPrefix, next.id))?.focus();
-  };
-  return (
-    <div className="ui-tabs" role="tablist" aria-label={label} onKeyDown={onKeyDown}>
-      {tabs.map(t => {
-        const isSelected = t.id === selected;
-        return (
-          <button
-            key={t.id}
-            type="button"
-            role="tab"
-            id={tabId(idPrefix, t.id)}
-            aria-selected={isSelected}
-            aria-controls={tabPanelId(idPrefix, t.id)}
-            tabIndex={isSelected ? 0 : -1}
-            disabled={t.disabled}
-            className="ui-tabs__tab"
-            onClick={() => {
-              onSelect(t.id);
-            }}
-          >
-            {t.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-/** Props for {@link TabPanel}. */
-export interface TabPanelProps {
-  idPrefix: string;
-  /** The tab this panel belongs to. */
-  tab: string;
+  /** The selected tab's panel. */
   children: ReactNode;
 }
 
-/** Panel for the selected tab; render only the selected one. */
-export function TabPanel({ idPrefix, tab, children }: TabPanelProps) {
+/**
+ * Underlined tab list and the selected tab's panel (ARIA tabs; arrow keys move between tabs; the
+ * selected tab gets the accent line).
+ */
+export function Tabs<Id extends string>({
+  label,
+  tabs,
+  selected,
+  onSelect,
+  children,
+}: TabsProps<Id>) {
   return (
-    <div
-      role="tabpanel"
-      id={tabPanelId(idPrefix, tab)}
-      aria-labelledby={tabId(idPrefix, tab)}
-      tabIndex={0}
-      className="ui-tab-panel"
+    <TabsRoot
+      value={selected}
+      onValueChange={value => {
+        onSelect(value as Id);
+      }}
+      className="gap-3"
     >
-      {children}
-    </div>
+      <TabsList
+        variant="line"
+        aria-label={label}
+        // Arrow keys, Home and End select as they move, as the tabs always did.
+        activateOnFocus
+        className="h-auto w-full justify-start gap-5 overflow-x-auto border-b border-border p-0"
+      >
+        {tabs.map(t => (
+          <TabsTrigger
+            key={t.id}
+            value={t.id}
+            disabled={t.disabled}
+            className="h-8 flex-none rounded-none border-0 px-0 py-0 text-base font-normal text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring data-active:font-medium data-active:text-foreground after:bg-data group-data-[orientation=horizontal]/tabs:after:bottom-[-1px]"
+          >
+            {t.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+      <TabsContent
+        value={selected}
+        className="text-base focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+      >
+        {children}
+      </TabsContent>
+    </TabsRoot>
   );
 }
 
@@ -118,21 +84,22 @@ export function SegmentedChips<Id extends string>({
   onChange,
 }: SegmentedChipsProps<Id>) {
   return (
-    <div className="ui-chips" role="group" aria-label={label}>
+    <ToggleGroup
+      aria-label={label}
+      variant="outline"
+      size="sm"
+      value={[value]}
+      onValueChange={values => {
+        const next = values[0] as Id | undefined;
+        if (next) onChange(next);
+      }}
+      className="flex-wrap"
+    >
       {options.map(o => (
-        <button
-          key={o.id}
-          type="button"
-          className="ui-chips__chip"
-          aria-pressed={o.id === value}
-          disabled={o.disabled}
-          onClick={() => {
-            onChange(o.id);
-          }}
-        >
+        <ToggleGroupItem key={o.id} value={o.id} disabled={o.disabled}>
           {o.label}
-        </button>
+        </ToggleGroupItem>
       ))}
-    </div>
+    </ToggleGroup>
   );
 }

@@ -30,7 +30,6 @@ import {
   StatusMark,
   StepUpPill,
   Switch,
-  TabPanel,
   Table,
   Tabs,
   TextInput,
@@ -48,7 +47,12 @@ import {
   type FixtureDeviceRow,
   type FixtureLogLine,
 } from './gallery-fixtures';
-import './gallery.css';
+
+const ATTENTION_INK = { warning: 'text-warning', negative: 'text-negative', plain: '' } as const;
+
+const ROW = 'flex flex-wrap items-center gap-x-3 gap-y-2';
+const TWO =
+  'grid grid-cols-[minmax(0,1fr)] items-start gap-6 min-[901px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]';
 
 const deviceColumns: TableColumn<FixtureDeviceRow>[] = [
   {
@@ -56,10 +60,10 @@ const deviceColumns: TableColumn<FixtureDeviceRow>[] = [
     header: 'Device',
     width: '34%',
     cell: r => (
-      <span className="gallery-cell-stack">
-        <span className="gallery-strong">{r.name}</span>
-        <span className="gallery-sub">
-          {r.model} · {r.deviceId ? <span className="ui-mono">{r.deviceId}</span> : <Missing />}
+      <span className="flex flex-col">
+        <span className="font-medium">{r.name}</span>
+        <span className="text-xs text-muted-foreground">
+          {r.model} · {r.deviceId ? <span className="font-mono">{r.deviceId}</span> : <Missing />}
         </span>
       </span>
     ),
@@ -71,7 +75,7 @@ const deviceColumns: TableColumn<FixtureDeviceRow>[] = [
     header: 'Needs you',
     cell: r =>
       r.attention ? (
-        <span className={`gallery-${r.attentionTone ?? 'plain'}`}>{r.attention}</span>
+        <span className={ATTENTION_INK[r.attentionTone ?? 'plain']}>{r.attention}</span>
       ) : (
         <Missing />
       ),
@@ -108,13 +112,13 @@ export function UiGallery() {
   const [hideHb, setHideHb] = useState(true);
 
   return (
-    <div className="gallery">
+    <div className="flex flex-col gap-6">
       <PageHeading
         title="Devices"
         aside="4 devices · 2 reporting · nothing sent to PetKit's cloud today"
         finding={
           <>
-            <span className="gallery-negative gallery-strong">
+            <span className="font-medium text-negative">
               Water fountain has not reported since 06:10
             </span>
             , 8 h 37 m ago. The litter box needs a new N60 deodorizer in 3 days.
@@ -142,7 +146,7 @@ export function UiGallery() {
         />
       </SectionCard>
 
-      <section className="gallery-section" aria-label="All devices">
+      <section className="flex flex-col gap-2" aria-label="All devices">
         <h2>All devices</h2>
         <Table
           label="All devices"
@@ -154,10 +158,10 @@ export function UiGallery() {
         />
       </section>
 
-      <div className="gallery-two">
+      <div className={TWO}>
         <SectionCard title="Litter box" aside="Idle · last clean 14:05 · sealed door closed">
           <FigureContainer label="Litter box figures" cells={fixtureFigures} />
-          <div className="gallery-stack gallery-gap-10">
+          <div className="flex flex-col gap-2.5">
             {fixtureConsumables.map(c => (
               <RatioBar
                 key={c.name}
@@ -170,8 +174,8 @@ export function UiGallery() {
               />
             ))}
           </div>
-          <div className="gallery-stack gallery-gap-8">
-            <div className="gallery-row">
+          <div className="flex flex-col gap-2">
+            <div className={ROW}>
               <Button
                 onClick={() => {
                   setConfirmOpen(true);
@@ -183,13 +187,15 @@ export function UiGallery() {
               <Button>Open sealed door</Button>
               <Button disabled>Dump litter</Button>
             </div>
-            <span className="gallery-sub">Each command asks before it runs. {lastAnswer}</span>
+            <span className="text-xs text-muted-foreground">
+              Each command asks before it runs. {lastAnswer}
+            </span>
           </div>
         </SectionCard>
-        <div className="gallery-stack gallery-gap-24">
+        <div className="flex flex-col gap-6">
           <SectionCard title="Kitchen feeder" end={<a href="#feeder">Edit plan</a>}>
             <RatioBar value={35} max={65} ariaLabel="Fed today" />
-            <span className="gallery-sub">
+            <span className="text-xs text-muted-foreground">
               Fed 35 of 65 g today · polling, takes changes on its next heartbeat
             </span>
           </SectionCard>
@@ -212,7 +218,7 @@ export function UiGallery() {
         Each patch runs shell commands on the box as root. Firmware files are never overwritten: a
         boot script bind-mounts patched copies, and undo removes it and reboots.
       </RiskNotice>
-      <div className="gallery-row">
+      <div className={ROW}>
         <Button variant="primary">Add a device</Button>
         <Button>Clean now</Button>
         <Button variant="destructive">Delete capture</Button>
@@ -275,15 +281,15 @@ export function UiGallery() {
         />
       </SettingsSection>
 
-      <section id="log" className="gallery-section" aria-label="Server log">
-        <div className="gallery-row">
+      <section id="log" className="flex flex-col gap-2" aria-label="Server log">
+        <div className={ROW}>
           <SearchField
             aria-label="Search log lines"
             placeholder="grep"
             mono
             value={query}
             onValueChange={setQuery}
-            className="gallery-search"
+            className="max-w-[360px] flex-[1_1_240px]"
           />
           <InlineField label="Level">
             <Select
@@ -314,11 +320,10 @@ export function UiGallery() {
         />
       </section>
 
-      <div className="gallery-two">
-        <div className="gallery-stack gallery-gap-16">
+      <div className={TWO}>
+        <div className="flex flex-col gap-4">
           <Tabs
             label="Screen"
-            idPrefix="gallery-tabs"
             tabs={[
               { id: 'sign', label: 'Sign in' },
               { id: 'first', label: 'First run' },
@@ -326,8 +331,7 @@ export function UiGallery() {
             ]}
             selected={tab}
             onSelect={setTab}
-          />
-          <TabPanel idPrefix="gallery-tabs" tab={tab}>
+          >
             <SegmentedChips
               label="Cat shown in colour"
               options={[
@@ -337,9 +341,9 @@ export function UiGallery() {
               value={cat}
               onChange={setCat}
             />
-          </TabPanel>
+          </Tabs>
           <EmptyBlock>No channel usage in this range.</EmptyBlock>
-          <span className="gallery-row" aria-busy="true">
+          <span className={ROW} aria-busy="true">
             <Skeleton width={56} height={28} />
             <Skeleton width={160} height={14} />
           </span>
@@ -349,7 +353,7 @@ export function UiGallery() {
           summary="Raw state from the last report"
           storageKey="gallery.debug.open"
         >
-          <span className="ui-mono">workState 0 · lightState 0</span>
+          <span className="font-mono">workState 0 · lightState 0</span>
         </CollapsiblePanel>
       </div>
 

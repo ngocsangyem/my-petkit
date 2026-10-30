@@ -33,7 +33,7 @@ export function PointsEditor({ value, onChange }: PointsEditorProps) {
   };
 
   return (
-    <div className="sched-list">
+    <div className="flex min-w-0 flex-col gap-2">
       {sections.map(section => {
         const rows = value
           .map((entry, i) => ({ entry, i }))
@@ -41,12 +41,18 @@ export function PointsEditor({ value, onChange }: PointsEditorProps) {
             section.type === null ? !KNOWN_TYPES.has(entry.type) : entry.type === section.type,
           );
         return (
-          <div className="sched-entry" key={section.name}>
-            <h3 className="sched-entry__title">{section.name}</h3>
+          <div
+            className="flex flex-col gap-2 rounded-lg border border-border p-3"
+            key={section.name}
+          >
+            <h3 className="text-base font-semibold">{section.name}</h3>
             {rows.length ? (
               rows.map(({ entry, i }, n) => (
-                <div className="sched-row" key={i}>
-                  <div className="sched-row__values">
+                <div
+                  className="flex min-h-(--pk-row-height-compact) flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg bg-raised px-3 py-2"
+                  key={i}
+                >
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
                     <TimeInput
                       aria-label={`${section.name} time ${n + 1}`}
                       value={minToClock(entry.time)}
@@ -68,10 +74,10 @@ export function PointsEditor({ value, onChange }: PointsEditorProps) {
                       }}
                     />
                     {section.type === null && (
-                      <span className="sched-row__note">type {entry.type}</span>
+                      <span className="text-sm text-muted-foreground">type {entry.type}</span>
                     )}
                   </div>
-                  <div className="sched-row__actions">
+                  <div className="flex items-center gap-1">
                     <Button
                       variant="destructive"
                       size="small"
@@ -86,7 +92,7 @@ export function PointsEditor({ value, onChange }: PointsEditorProps) {
                 </div>
               ))
             ) : (
-              <p className="sched-muted">No times set.</p>
+              <p className="text-sm text-muted-foreground">No times set.</p>
             )}
             {section.type !== null && (
               <div>

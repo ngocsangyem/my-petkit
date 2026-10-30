@@ -28,16 +28,16 @@ function CacheLine({
       return null;
     case 'empty':
       return (
-        <p className="pets-small pets-muted">
+        <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">
           No face photos cached on the device yet. It re-reads them at boot and about once an hour;
           a reboot forces it.
         </p>
       );
     default:
       return (
-        <p className="pets-small pets-muted">
+        <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">
           Cached on device: {plural(verdict.ids.length, 'photo')}{' '}
-          <code className="pets-mono">{verdict.ids.join(', ')}</code>
+          <code className="font-mono text-xs">{verdict.ids.join(', ')}</code>
           {verdict.kind === 'ours' && '. They are yours, so it matches against your photos.'}
           {verdict.kind === 'foreign' &&
             `. Not yours: it is still using photos from PetKit's cloud. Turn proxy mode off and reboot the device to switch it to your ${plural(ourFaceIds.length, 'photo')}.`}
@@ -54,11 +54,14 @@ export function RecognitionSection({ devices, ourFaceIds, notify }: RecognitionS
   const setAi = useSetRecognition();
   return (
     <SectionCard title="On-device recognition" aside="What each device's camera matches against">
-      <ul className="pets-recognition">
+      <ul className="m-0 flex list-none flex-col p-0">
         {devices.map(d => (
-          <li key={d.id} className="pets-recognition__row">
-            <div className="pets-recognition__text">
-              <span className="pets-recognition__name">{d.name || `#${d.id}`}</span>
+          <li
+            key={d.id}
+            className="flex min-h-(--pk-row-height-compact) flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-rule py-2"
+          >
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <span className="font-medium [overflow-wrap:anywhere]">{d.name || `#${d.id}`}</span>
               <CacheLine device={d} ourFaceIds={ourFaceIds} />
             </div>
             <Switch
@@ -82,7 +85,7 @@ export function RecognitionSection({ devices, ourFaceIds, notify }: RecognitionS
           </li>
         ))}
       </ul>
-      <p className="pets-small pets-muted">
+      <p className="text-sm text-muted-foreground">
         Yowling, urine pH and the other detection switches are on the Devices page.
       </p>
     </SectionCard>

@@ -1,29 +1,11 @@
-import { useRef, useState, type ReactNode } from 'react';
-import { NavLink } from 'react-router';
-import { DrumMark } from '../shared/ui/drum-mark';
-import { Icon, type IconName } from '../shared/ui/icons';
-import { LiveIndicator, type LiveState } from '../shared/ui/status-mark';
-import { useModalFocus } from '../shared/ui/use-modal-focus';
-import './app-shell.css';
+import { useState, type ReactNode } from 'react';
+import { Icon } from '@/shared/ui/icons';
+import { Sheet, SheetClose, SheetContent, SheetTrigger } from '@/shared/ui/shadcn/sheet';
+import { Sidebar, SidebarInset, SidebarProvider } from '@/shared/ui/shadcn/sidebar';
+import { LiveIndicator, type LiveState } from '@/shared/ui/status-mark';
+import { ShellNav, type ShellNavGroup } from './app-shell-nav';
 
-/** One destination in the sidebar. */
-export interface ShellNavItem {
-  to: string;
-  label: string;
-  icon: IconName;
-  /** Match the path exactly (for an index route). */
-  end?: boolean;
-}
-
-/** A group of destinations; the first group (Home) has no visible label. */
-export interface ShellNavGroup {
-  id: string;
-  /** Visible group label, e.g. "Tools" or "Advanced · needs step-up"; also its accessible name. */
-  label?: string;
-  /** Accessible name when there is no visible label, e.g. "Sections". */
-  ariaLabel?: string;
-  items: readonly ShellNavItem[];
-}
+export type { ShellNavGroup, ShellNavItem } from './app-shell-nav';
 
 /** Props for {@link AppShell}. */
 export interface AppShellProps {
@@ -48,60 +30,13 @@ export interface AppShellProps {
   children: ReactNode;
 }
 
-function navClass({ isActive }: { isActive: boolean }): string {
-  return isActive ? 'shell-nav__link shell-nav__link--active' : 'shell-nav__link';
-}
-
-interface SidebarContentProps {
-  navGroups: readonly ShellNavGroup[];
-  serverLine?: ReactNode;
-  account?: ReactNode;
-  onNavigate?: () => void;
-}
-
-function SidebarContent({ navGroups, serverLine, account, onNavigate }: SidebarContentProps) {
-  return (
-    <>
-      <div className="shell-brand">
-        <DrumMark size={20} />
-        <span className="shell-brand__name">my-petkit</span>
-      </div>
-      {serverLine && <div className="shell-server-line">{serverLine}</div>}
-      {navGroups.map(group => (
-        <nav
-          key={group.id}
-          className="shell-nav"
-          aria-label={group.label ?? group.ariaLabel ?? group.id}
-        >
-          {group.label && (
-            <span className="shell-nav__group" aria-hidden="true">
-              {group.label}
-            </span>
-          )}
-          {group.items.map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={navClass}
-              onClick={onNavigate}
-            >
-              <Icon name={item.icon} size={16} />
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-      ))}
-      <div className="shell-spacer" />
-      {account && <div className="shell-account">{account}</div>}
-    </>
-  );
-}
+/** The 44px icon button of the phone bar and the menu sheet. */
+const PHONE_BUTTON = 'flex size-11 items-center border-0 bg-transparent p-0 text-foreground';
 
 /**
  * The tinted L-frame: a 228px sidebar and a 48px top bar on `ground`, with the page on a white
- * sheet inset 8px (1px edge, radius 16, no shadow). Under 900px the frame folds into a 48px phone
- * bar whose menu button opens a full-screen menu sheet.
+ * sheet inset 8px right and bottom (1px edge, radius 16, no shadow). At 900px and under the frame
+ * folds into a 48px phone bar whose menu button opens a full-screen menu sheet.
  */
 export function AppShell(props: AppShellProps) {
   const {
@@ -117,81 +52,85 @@ export function AppShell(props: AppShellProps) {
     children,
   } = props;
   const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
   const close = () => {
     setMenuOpen(false);
   };
-  useModalFocus(menuRef, { open: menuOpen, onEscape: close });
 
   return (
-    <div className="shell">
-      <a className="shell-skip" href="#main">
+    <SidebarProvider className="min-h-screen bg-ground text-foreground">
+      <a
+        className="absolute top-2 left-2 z-[200] -translate-y-[200%] rounded-md bg-background px-2.5 py-1.5 text-foreground focus:translate-y-0"
+        href="#main"
+      >
         Skip to content
       </a>
-      <aside className="shell-side">
-        <SidebarContent navGroups={navGroups} serverLine={serverLine} account={account} />
+      <aside className="hidden flex-none min-[901px]:flex">
+        <Sidebar collapsible="none" className="h-auto gap-5 bg-ground px-3 pt-3.5 pb-4">
+          <ShellNav navGroups={navGroups} serverLine={serverLine} account={account} />
+        </Sidebar>
       </aside>
 
-      <header className="shell-topbar">
-        <div className="shell-topbar__search">{search}</div>
-        <div className="shell-topbar__status">
-          <LiveIndicator state={liveState} />
-          {(serverLabel || badge) && (
-            <span>
-              {serverLabel && <span className="shell-topbar__server">{serverLabel}</span>}
-              {serverLabel && badge && ' · '}
-              {badge}
-            </span>
-          )}
-        </div>
-      </header>
-
-      <div className="shell-phonebar">
-        <button
-          type="button"
-          className="shell-phonebar__button"
-          aria-label="Open menu"
-          aria-expanded={menuOpen}
-          aria-haspopup="dialog"
-          onClick={() => {
-            setMenuOpen(true);
-          }}
-        >
-          <Icon name="menu" size={20} strokeWidth={2} />
-        </button>
-        <span className="shell-phonebar__title">{pageTitle}</span>
-        <span className="shell-phonebar__action">{phoneAction}</span>
-      </div>
-
-      <main id="main" className="shell-sheet" tabIndex={-1}>
-        {children}
-      </main>
-
-      {menuOpen && (
-        <div ref={menuRef} className="shell-menu" role="dialog" aria-modal="true" aria-label="Menu">
-          <div className="shell-menu__bar">
-            <button
-              type="button"
-              className="shell-phonebar__button"
-              aria-label="Close menu"
-              onClick={close}
-            >
-              <Icon name="close" size={20} strokeWidth={2} />
-            </button>
-          </div>
-          <SidebarContent
-            navGroups={navGroups}
-            serverLine={serverLine}
-            account={account}
-            onNavigate={close}
-          />
-          <div className="shell-menu__status">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="hidden h-(--pk-topbar-height) min-w-0 items-center justify-between gap-4 pr-4 min-[901px]:flex">
+          <div className="min-w-0 flex-[0_1_420px]">{search}</div>
+          <div className="flex flex-none items-center gap-4 text-sm text-muted-foreground">
             <LiveIndicator state={liveState} />
-            {serverLabel && <span className="shell-topbar__server">{serverLabel}</span>}
-            {badge}
+            {(serverLabel || badge) && (
+              <span>
+                {serverLabel && <span className="font-mono text-xs">{serverLabel}</span>}
+                {serverLabel && badge && ' · '}
+                {badge}
+              </span>
+            )}
           </div>
-        </div>
-      )}
-    </div>
+        </header>
+
+        <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+          <div className="flex h-(--pk-topbar-height) items-center justify-between bg-ground px-4 min-[901px]:hidden">
+            <SheetTrigger
+              render={<button type="button" className={PHONE_BUTTON} aria-label="Open menu" />}
+            >
+              <Icon name="menu" size={20} strokeWidth={2} />
+            </SheetTrigger>
+            <span className="min-w-0 truncate font-semibold">{pageTitle}</span>
+            <span className="flex w-11 justify-end">{phoneAction}</span>
+          </div>
+          <SheetContent
+            side="left"
+            showCloseButton={false}
+            aria-label="Menu"
+            className="gap-5 overflow-y-auto bg-ground px-3 pt-0 pb-4 data-[side=left]:w-full data-[side=left]:border-r-0 data-[side=left]:sm:max-w-none"
+          >
+            <div className="flex h-(--pk-topbar-height) flex-none items-center px-1">
+              <SheetClose
+                render={<button type="button" className={PHONE_BUTTON} aria-label="Close menu" />}
+              >
+                <Icon name="close" size={20} strokeWidth={2} />
+              </SheetClose>
+            </div>
+            <ShellNav
+              navGroups={navGroups}
+              serverLine={serverLine}
+              account={account}
+              onNavigate={close}
+              touch
+            />
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-2 text-sm text-muted-foreground">
+              <LiveIndicator state={liveState} />
+              {serverLabel && <span className="font-mono text-xs">{serverLabel}</span>}
+              {badge}
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        <SidebarInset
+          id="main"
+          tabIndex={-1}
+          className="w-auto min-w-0 gap-6 border-y border-border p-4 wrap-anywhere focus:outline-none min-[901px]:mr-(--pk-sheet-inset) min-[901px]:mb-(--pk-sheet-inset) min-[901px]:rounded-2xl min-[901px]:border min-[901px]:p-(--pk-pad) min-[901px]:wrap-normal"
+        >
+          {children}
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 }

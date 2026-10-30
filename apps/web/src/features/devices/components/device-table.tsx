@@ -19,10 +19,10 @@ const COLUMNS: readonly TableColumn<DeviceRow>[] = [
   {
     key: 'device',
     header: 'Device',
-    width: '30%',
+    width: '34%',
     cell: r => (
       <a
-        className="devices-row-link"
+        className="flex flex-col text-foreground"
         href={`#device-${r.key}`}
         onClick={e => {
           // Hash routing owns the URL fragment, so scroll to the panel instead of navigating.
@@ -30,9 +30,9 @@ const COLUMNS: readonly TableColumn<DeviceRow>[] = [
           document.getElementById(`device-${r.key}`)?.scrollIntoView({ block: 'start' });
         }}
       >
-        <span className="devices-row-link__name">{r.name}</span>
-        <span className="devices-row-link__model">
-          {r.model} · <span className="devices-mono">{r.id}</span>
+        <span className="font-medium">{r.name}</span>
+        <span className="text-xs text-muted-foreground">
+          {r.model} · <span className="font-mono">{r.id}</span>
         </span>
       </a>
     ),
@@ -48,7 +48,7 @@ const COLUMNS: readonly TableColumn<DeviceRow>[] = [
     header: 'Needs you',
     cell: r =>
       r.attention ? (
-        <span className={r.attention.tone === 'negative' ? 'devices-negative' : 'devices-warning'}>
+        <span className={r.attention.tone === 'negative' ? 'text-negative' : 'text-warning'}>
           {r.attention.text}
         </span>
       ) : (
@@ -67,8 +67,8 @@ const COLUMNS: readonly TableColumn<DeviceRow>[] = [
 /** "All devices": one row per device and accessory; the name jumps to its panel. */
 export function DeviceTable({ rows }: { rows: readonly DeviceRow[] }) {
   return (
-    <section className="devices-stack" aria-labelledby="devices-all-heading">
-      <h2 id="devices-all-heading" className="devices-section-title">
+    <section className="flex min-w-0 flex-col gap-2" aria-labelledby="devices-all-heading">
+      <h2 id="devices-all-heading" className="text-lg font-semibold">
         All devices
       </h2>
       <Table label="All devices" columns={COLUMNS} rows={rows} rowKey={r => r.key} minWidth={760} />

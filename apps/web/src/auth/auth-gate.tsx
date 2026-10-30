@@ -4,6 +4,7 @@ import { onSignedOut } from '@/shared/api/credential-prompt';
 import { ApiError, errorMessage } from '@/shared/api/errors';
 import { eventStream } from '@/shared/ws/event-stream';
 import { ErrorBlock, Skeleton } from '@/shared/ui';
+import { AuthPage } from './auth-page';
 import { SignInScreen } from './sign-in-screen';
 import { StepUpDialog } from './step-up-dialog';
 import { SERVER_INFO_KEY, useServerInfo } from './use-server-info';
@@ -38,9 +39,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   if (info.isPending) {
     return (
-      <main className="auth-page" aria-busy="true">
+      <AuthPage busy>
         <Skeleton width={440} height={320} />
-      </main>
+      </AuthPage>
     );
   }
   if (info.error instanceof ApiError && info.error.status === 401) return <SignInScreen />;
@@ -49,13 +50,13 @@ export function AuthGate({ children }: { children: ReactNode }) {
   // shows that the server is unreachable instead.
   if (info.isError && info.data === undefined) {
     return (
-      <main className="auth-page">
+      <AuthPage>
         <ErrorBlock
           message={errorMessage(info.error)}
           onRetry={() => void info.refetch()}
           retrying={info.isFetching}
         />
-      </main>
+      </AuthPage>
     );
   }
   return (

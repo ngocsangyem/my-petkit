@@ -1,92 +1,85 @@
 /* Global base: reset, the ground, type defaults and the one focus ring. */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+/*
+ * In Tailwind's base layer: unlayered rules would beat every utility class
+ * (a bare `button { color: inherit }` overrode text-destructive).
+ */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
 
-html {
-  -webkit-text-size-adjust: 100%;
-}
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
 
-body {
-  margin: 0;
-  background: var(--ground);
-  color: var(--text);
-  font-family: var(--font-sans);
-  font-size: var(--text-body);
-  line-height: var(--line-height);
-  font-variant-numeric: tabular-nums;
-  -webkit-font-smoothing: antialiased;
-}
+  body {
+    margin: 0;
+    background: var(--pk-ground);
+    color: var(--pk-text);
+    font-family: var(--pk-font-sans);
+    font-size: var(--pk-text-body);
+    line-height: var(--pk-line-height);
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+  }
 
-h1,
-h2,
-h3,
-p {
-  margin: 0;
-}
+  h1,
+  h2,
+  h3,
+  p {
+    margin: 0;
+  }
 
-h1 {
-  font-size: var(--text-title);
-  font-weight: 600;
-}
+  h1 {
+    font-size: var(--pk-text-title);
+    font-weight: 600;
+  }
 
-h2 {
-  font-size: var(--text-section);
-  font-weight: 600;
-}
+  h2 {
+    font-size: var(--pk-text-section);
+    font-weight: 600;
+  }
 
-button,
-input,
-select,
-textarea {
-  font: inherit;
-  color: inherit;
-}
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
 
-button {
-  cursor: pointer;
-}
+  button {
+    cursor: pointer;
+  }
 
-button:disabled {
-  cursor: not-allowed;
-}
+  button:disabled {
+    cursor: not-allowed;
+  }
 
-a {
-  color: var(--accent);
-  text-decoration: none;
-}
+  a {
+    color: var(--pk-accent);
+    text-decoration: none;
+  }
 
-a:hover {
-  color: var(--accent-hover);
-}
+  a:hover {
+    color: var(--pk-accent-hover);
+  }
 
-table {
-  font-variant-numeric: tabular-nums;
-}
+  table {
+    font-variant-numeric: tabular-nums;
+  }
 
-code,
-kbd,
-samp,
-pre,
-.ui-mono {
-  font-family: var(--font-mono);
-}
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--pk-font-mono);
+  }
 
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.ui-visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-  border: 0;
+  :focus-visible {
+    outline: 2px solid var(--pk-accent);
+    outline-offset: 2px;
+  }
 }

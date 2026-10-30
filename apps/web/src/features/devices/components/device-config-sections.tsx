@@ -1,11 +1,13 @@
+import { cn } from 'cn';
 import { Link } from 'react-router';
 import { Button, SettingsRow, SettingsSection, Switch } from '@/shared/ui';
+import { Input } from '@/shared/ui/shadcn/input';
 import { type DeviceDetail, deviceKeys } from '../api';
 import { setLogUpload, setTimezone } from '../api-calls';
 import { usePendingEdit } from '../hooks/pending-edits';
 import { useDeviceCall } from '../hooks/use-device-call';
 import { LOG_REASONS } from '../lib/delivery-text';
-import { FeedbackLine } from './panel-parts';
+import { dirtyClass, FeedbackLine } from './panel-parts';
 
 const SOURCE_TEXT: Readonly<Record<string, string>> = {
   override: 'this override',
@@ -56,11 +58,11 @@ export function TimezoneSection({ device }: { device: DeviceDetail }) {
         kind="field"
         description={`Hours, -12 to 14 in quarter steps. Empty for automatic.${pending !== undefined ? ' Not sent yet.' : ''}`}
         control={props => (
-          <span className="devices-set-field">
-            <input
+          <span className="flex min-w-0 gap-1.5">
+            <Input
               {...props}
               type="number"
-              className={`ui-control ui-control--end${pending !== undefined ? ' devices-dirty' : ''}`}
+              className={cn('min-w-0 flex-1 text-right', dirtyClass(pending !== undefined))}
               min={-12}
               max={14}
               step={0.25}

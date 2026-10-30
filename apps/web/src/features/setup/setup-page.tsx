@@ -9,7 +9,6 @@ import { RetentionSection } from './components/retention-section';
 import { SettingsForm } from './components/settings-form';
 import { BLOCKED_LIMIT } from './retention-and-blocked-model';
 import { BLOCKING_GUARDS, type ServerInfo } from './setup-model';
-import './setup.css';
 
 /** "Cloud guards are on. Proxying to PetKit's cloud is off." from the saved settings. */
 function Finding({ info, blocked }: { info: ServerInfo; blocked: number | undefined }) {
@@ -19,7 +18,7 @@ function Finding({ info, blocked }: { info: ServerInfo; blocked: number | undefi
       {off === 0
         ? 'Cloud guards are on. '
         : `${off} of ${BLOCKING_GUARDS.length} cloud guards are off. `}
-      <span className="setup-strong">
+      <span className="font-medium">
         Proxying to PetKit’s cloud is {info.settings.proxy_mode ? 'on' : 'off'}
       </span>
       {'. '}
@@ -73,7 +72,7 @@ export function SetupPage() {
         badge={data.settings_writable ? undefined : <Pill tone="warning">Read-only</Pill>}
         aside={
           <>
-            version <span className="setup-mono">{data.version}</span>
+            version <span className="font-mono text-xs wrap-anywhere">{data.version}</span>
           </>
         }
         finding={<Finding info={data} blocked={blocked.data?.records.length} />}

@@ -20,7 +20,6 @@ import { useNowSeconds } from './hooks/use-now';
 import { useOpenState } from './hooks/use-open-state';
 import { useOverview } from './hooks/use-overview';
 import { findEntity, numericValue } from './lib/entity-sections';
-import './devices.css';
 
 const NO_PETS: readonly PetWithFaces[] = [];
 
@@ -104,14 +103,14 @@ export function DevicesPage() {
 
   return (
     <PendingEditsProvider>
-      <div className="devices-page">
+      <div className="flex flex-col gap-(--pk-gap)">
         <PageHeading
           title="Devices"
           aside={`${devices.length} ${devices.length === 1 ? 'device' : 'devices'} · ${reporting} reporting`}
           finding={
             offline?.attention ? (
               <>
-                <span className="devices-negative">
+                <span className="text-negative">
                   {offline.name}: {offline.attention.text}
                 </span>
                 .

@@ -3,9 +3,14 @@ import { type SyntheticEvent, useState } from 'react';
 import { api } from '@/shared/api/client';
 import { ApiError, errorMessage, toApiError } from '@/shared/api/errors';
 import { Button, DrumMark, StackedField, TextInput } from '@/shared/ui';
-import './auth.css';
+import { AuthPage } from './auth-page';
 
 type Mode = 'sign-in' | 'first-run';
+
+/** Muted 13px copy inside the sign-in card. */
+const NOTE = 'text-sm text-muted-foreground';
+/** Mono 12px ink for the host and the recovery command. */
+const CODE = 'font-mono text-xs text-foreground';
 
 /**
  * Sign in with the admin password, or, on a server with no admin yet, create
@@ -59,21 +64,25 @@ export function SignInScreen() {
   }
 
   return (
-    <main className="auth-page">
-      <div className="auth-column">
-        <div className="auth-brand">
+    <AuthPage>
+      <div className="grid w-full max-w-[440px] gap-4">
+        <div className="flex items-center gap-2.5 text-[15px] font-semibold">
           <DrumMark size={20} />
           <span>my-petkit</span>
         </div>
-        <form className="auth-card" onSubmit={e => void submit(e)} noValidate>
+        <form
+          className="grid gap-4 rounded-2xl border border-border bg-background p-8"
+          onSubmit={e => void submit(e)}
+          noValidate
+        >
           {mode === 'sign-in' ? (
             <>
               <h1>Sign in</h1>
-              <div className="auth-server">
+              <div className="grid gap-1 rounded-lg bg-raised px-3.5 py-3 text-xs text-muted-foreground">
                 <span>
                   Is this your server? Check the certificate fingerprint your browser shows
                 </span>
-                <code>{window.location.host}</code>
+                <code className={CODE}>{window.location.host}</code>
               </div>
               <StackedField label="Username">
                 <TextInput large value="admin" readOnly autoComplete="username" />
@@ -94,7 +103,7 @@ export function SignInScreen() {
           ) : (
             <>
               <h1>Set up the admin</h1>
-              <p>
+              <p className={NOTE}>
                 The server printed a one-time setup token in its log when it started. It works once
                 and expires after 30 minutes.
               </p>
@@ -137,7 +146,7 @@ export function SignInScreen() {
             </>
           )}
           {error && (
-            <p className="auth-error" role="alert">
+            <p className="text-sm text-negative" role="alert">
               {error}
             </p>
           )}
@@ -145,15 +154,15 @@ export function SignInScreen() {
             type="submit"
             variant="primary"
             size="large"
-            className="auth-wide-button"
+            className="w-full"
             disabled={busy || !password}
           >
             {mode === 'sign-in' ? 'Sign in' : 'Create admin'}
           </Button>
           {mode === 'sign-in' ? (
-            <p>
-              Forgot it? Run <code>my-petkit admin set-password</code> on the server. First time
-              here?{' '}
+            <p className={NOTE}>
+              Forgot it? Run <code className={CODE}>my-petkit admin set-password</code> on the
+              server. First time here?{' '}
               <Button
                 type="button"
                 variant="text"
@@ -180,12 +189,12 @@ export function SignInScreen() {
             </Button>
           )}
         </form>
-        <p className="auth-footnote">
+        <p className="text-xs leading-normal text-muted-foreground">
           Your browser warns once about this server&apos;s certificate because the server made it
           itself. Check that the fingerprint it shows matches the one in the server log before you
           continue.
         </p>
       </div>
-    </main>
+    </AuthPage>
   );
 }

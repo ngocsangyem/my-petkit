@@ -54,7 +54,7 @@ export function DayStripCard({
     body = <EmptyBlock>No pets, feeders or fountains to draw yet.</EmptyBlock>;
   else {
     body = (
-      <div className="devices-strip-scroll">
+      <div className="overflow-x-auto">
         <HouseholdDayStrip
           label={`Today at home, ${aside ?? ''}`}
           lanes={strip.lanes}

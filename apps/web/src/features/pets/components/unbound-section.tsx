@@ -29,7 +29,7 @@ function BindPicker({
 }) {
   const [choice, setChoice] = useState(String(pets[0]?.id ?? ''));
   return (
-    <span className="pets-bind">
+    <span className="inline-flex flex-wrap justify-end gap-2">
       <Select
         aria-label={`Pet to bind ${refId} to`}
         value={choice}
@@ -107,11 +107,10 @@ export function UnboundSection({ unbound, error, onRetry, pets, notify }: Unboun
             }}
           />
         ) : (
-          <span className="pets-bind">
+          <span className="inline-flex flex-wrap justify-end gap-2">
             {pets.map(p => (
               <Button
                 key={p.id}
-                size="small"
                 disabled={bind.isPending}
                 aria-label={`Bind ${u.pet_ref} to ${p.name}`}
                 onClick={() => {
@@ -127,10 +126,12 @@ export function UnboundSection({ unbound, error, onRetry, pets, notify }: Unboun
   ];
 
   return (
-    <section className="pets-unbound" aria-labelledby="pets-unbound-title">
-      <div className="pets-unbound__head">
-        <h2 id="pets-unbound-title">Unbound identities</h2>
-        <span className="pets-muted pets-small">
+    <section className="flex min-w-0 flex-col gap-2" aria-labelledby="pets-unbound-title">
+      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+        <h2 id="pets-unbound-title" className="text-lg font-semibold">
+          Unbound identities
+        </h2>
+        <span className="text-sm text-muted-foreground">
           Your device reported these pet ids, but they are not yours: it is still matching against
           faces cached from PetKit's cloud. Bind one to a pet to name its past events. Once the
           device picks up your own photos it reports your ids instead, and this list empties.

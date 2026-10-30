@@ -82,7 +82,7 @@ describe('CapturePage', () => {
     renderWithProviders(<CapturePage />);
     fireEvent.click(await screen.findByRole('button', { name: 'mqtt #2.jsonl' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Delete' }));
-    const dialog = screen.getByRole('dialog', { name: 'Delete mqtt #2.jsonl?' });
+    const dialog = screen.getByRole('alertdialog', { name: 'Delete mqtt #2.jsonl?' });
     expect(within(dialog).getByText(/cannot be undone/)).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
     expect(await screen.findByText('Deleted mqtt #2.jsonl')).toBeInTheDocument();

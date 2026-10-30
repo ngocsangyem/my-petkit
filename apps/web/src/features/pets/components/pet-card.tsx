@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { cn } from 'cn';
 import { serverUrl } from '@/shared/api/base-path';
 import { errorMessage } from '@/shared/api/errors';
 import { Button, ConfirmDialog, FigureContainer, petSlot, StatusMark } from '@/shared/ui';
@@ -11,8 +12,15 @@ import {
   type DeviceSummary,
   type Pet,
 } from '../pet-model';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/shadcn/avatar';
 import { FaceStrip } from './face-strip';
 import { PetNameEditor } from './pet-name-editor';
+
+/** Each pet's identity tint, by slot; the same pair the household day strip uses. */
+const TINTS = [
+  'bg-(--pk-pet-0-tint) text-(--pk-pet-0-ink)',
+  'bg-(--pk-pet-1-tint) text-(--pk-pet-1-ink)',
+] as const;
 
 interface PetCardProps {
   pet: Pet;
@@ -57,27 +65,35 @@ export function PetCard({ pet, index, devices, aiDetails, onAddPhoto, notify }: 
   };
 
   return (
-    <article className="pets-card" aria-label={pet.name}>
-      <div className="pets-card__top">
-        {first ? (
-          <img
-            className="pets-avatar"
-            src={serverUrl(first.url)}
-            alt={`${pet.name}, first face photo`}
-            width={112}
-            height={112}
-          />
-        ) : (
-          <span className={`pets-avatar pets-avatar--empty pets-tint-${slot}`} aria-hidden="true">
+    <article
+      className="flex min-w-0 flex-col gap-4 rounded-lg border border-border p-5"
+      aria-label={pet.name}
+    >
+      <div className="flex items-start gap-4 max-[900px]:flex-col">
+        {/* Until the first photo loads (or with none) the pet's initial stands in, in its tint. */}
+        <Avatar className="size-28 rounded-lg after:hidden">
+          {first && (
+            <AvatarImage
+              className="rounded-lg"
+              src={serverUrl(first.url)}
+              alt={`${pet.name}, first face photo`}
+              width={112}
+              height={112}
+            />
+          )}
+          <AvatarFallback
+            className={cn('rounded-lg text-3xl font-semibold', TINTS.at(slot))}
+            aria-hidden="true"
+          >
             {pet.name.slice(0, 1).toUpperCase()}
-          </span>
-        )}
-        <div className="pets-card__main">
-          <div className="pets-card__head">
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
             {editing ? (
               <PetNameEditor name={pet.name} onDone={saveName} />
             ) : (
-              <h2 className="pets-card__name">{pet.name}</h2>
+              <h2 className="text-lg font-semibold [overflow-wrap:anywhere]">{pet.name}</h2>
             )}
             <StatusMark status={status.status} label={status.label} />
           </div>
@@ -92,14 +108,14 @@ export function PetCard({ pet, index, devices, aiDetails, onAddPhoto, notify }: 
         </div>
       </div>
 
-      <div className="pets-card__faces">
+      <div className="flex flex-wrap items-center gap-2">
         <FaceStrip pet={pet} onAdd={onAddPhoto} onRemove={setRemoveFace} busy={delFace.isPending} />
-        <span className="pets-small pets-muted">
+        <span className="text-sm text-muted-foreground">
           {aliases.length ? `Alias ${aliases.join(', ')}` : 'No alias yet'}
         </span>
       </div>
 
-      <p className="pets-small pets-muted pets-card__devices">
+      <p className="text-sm text-muted-foreground">
         {deviceIds.length === 0
           ? 'No devices assigned'
           : deviceIds.map((id, i) => {
@@ -117,7 +133,7 @@ export function PetCard({ pet, index, devices, aiDetails, onAddPhoto, notify }: 
             })}
       </p>
 
-      <div className="pets-card__actions">
+      <div className="flex flex-wrap gap-2">
         <Button onClick={onAddPhoto} disabled={full}>
           {full ? 'Photos full' : 'Upload photo'}
         </Button>

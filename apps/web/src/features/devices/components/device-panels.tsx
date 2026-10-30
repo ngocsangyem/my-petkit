@@ -76,7 +76,7 @@ export function DevicePanels({
   setOpen,
 }: DevicePanelsProps) {
   return (
-    <div className="devices-panels">
+    <div className="flex flex-col gap-4">
       {entries.map(entry => {
         const key = panelKey(entry);
         const open = isOpen(`${key}:panel`, true);

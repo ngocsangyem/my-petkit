@@ -26,7 +26,8 @@ const featureZones = features.map(name => ({
 }));
 
 export default tseslint.config(
-  { ignores: ['dist', 'coverage', 'src/api/schema.d.ts'] },
+  // public/ holds plain scripts served as they are (theme-init.js), outside the TS project.
+  { ignores: ['dist', 'preview/dist', 'coverage', 'public', 'src/api/schema.d.ts'] },
   js.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
   security.configs.recommended,
@@ -74,12 +75,12 @@ export default tseslint.config(
     rules: { '@typescript-eslint/no-non-null-assertion': 'off' },
   },
   {
-    files: ['*.config.ts', 'eslint.config.js', 'scripts/**'],
+    files: ['*.config.ts', 'eslint.config.js', 'scripts/**', 'preview/*.config.ts', 'preview/*.mjs'],
     ...tseslint.configs.disableTypeChecked,
   },
   {
     // Build-time tools reading the repository, never request data.
-    files: ['*.config.ts', 'eslint.config.js', 'scripts/**'],
+    files: ['*.config.ts', 'eslint.config.js', 'scripts/**', 'preview/*.config.ts', 'preview/*.mjs'],
     languageOptions: { globals: { ...globals.node } },
     rules: { 'security/detect-non-literal-fs-filename': 'off' },
   },

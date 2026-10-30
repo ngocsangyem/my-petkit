@@ -1636,7 +1636,7 @@ export interface components {
             };
         };
         SetupServerInfo: {
-            /** @description Hash of the panel assets this process serves. */
+            /** @description Always empty. It hashed the server-rendered panel's assets, which are no longer served; kept so a client that requires it still decodes. Use `web_entry`. */
             asset_version: string;
             version: string;
             /** @description File name of the web app build's entry script (`index-<hash>.js`), or null when no build is present. A page loaded from an older build sees a different name. */

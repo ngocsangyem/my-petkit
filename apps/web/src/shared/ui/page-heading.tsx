@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import './page-heading.css';
+import { cn } from 'cn';
 
 /** Props for {@link PageHeading}. */
 export interface PageHeadingProps {
@@ -18,22 +18,17 @@ export interface PageHeadingProps {
 /** Page title row: title, aside or pill, the one finding line, and actions on the right. */
 export function PageHeading({ title, aside, badge, finding, actions }: PageHeadingProps) {
   return (
-    <div className="ui-page-heading">
-      <div className="ui-page-heading__text">
-        <div
-          className={
-            badge
-              ? 'ui-page-heading__title-row ui-page-heading__title-row--badge'
-              : 'ui-page-heading__title-row'
-          }
-        >
+    <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex min-w-0 flex-col gap-1.5">
+        {/* A pill is centred on the title; a plain aside sits on its baseline. */}
+        <div className={cn('flex flex-wrap gap-3', badge ? 'items-center' : 'items-baseline')}>
           <h1>{title}</h1>
           {badge}
-          {aside && <span className="ui-page-heading__aside">{aside}</span>}
+          {aside && <span className="text-muted-foreground">{aside}</span>}
         </div>
-        {finding && <p className="ui-page-heading__finding">{finding}</p>}
+        {finding && <p>{finding}</p>}
       </div>
-      {actions && <div className="ui-page-heading__actions">{actions}</div>}
+      {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>
   );
 }

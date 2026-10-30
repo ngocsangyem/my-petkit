@@ -9,11 +9,11 @@ import { serverUrl } from '@/shared/api/base-path';
 export function PetAvatar({ photoUrl }: { photoUrl: string | null | undefined }) {
   const [failed, setFailed] = useState<string | null>(null);
   if (!photoUrl || failed === photoUrl) {
-    return <span className="tl-avatar tl-avatar--none" aria-hidden="true" />;
+    return <span className="inline-block size-6 rounded-full bg-rule" aria-hidden="true" />;
   }
   return (
     <img
-      className="tl-avatar"
+      className="size-6 rounded-full object-cover"
       src={serverUrl(photoUrl)}
       alt=""
       onError={() => {

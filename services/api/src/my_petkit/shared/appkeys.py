@@ -75,8 +75,6 @@ HA_PUBLISHER = "ha_publisher"
 BACKGROUND_TASKS = "background_tasks"
 #: The user plane's `AuthService` (features/auth/service.py), or None.
 AUTH = "auth"
-#: The panel assets' content hash, set by `web/panel.py`, which owns the assets.
-PANEL_ASSET_VERSION = "panel_asset_version"
 
 #: Set from `main/lifecycle.py`, not from `create_panel_app`.
 MQTT_BROKER = "mqtt_broker"

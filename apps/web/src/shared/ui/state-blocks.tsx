@@ -1,6 +1,8 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { Button } from './button';
-import './state-blocks.css';
+import { Alert } from './shadcn/alert';
+import { Empty } from './shadcn/empty';
+import { Skeleton as ShadcnSkeleton } from './shadcn/skeleton';
 
 /** A value that may be absent: `null`, `undefined` and `''` are missing; `0` is a real zero. */
 export type MaybeValue = number | string | null | undefined;
@@ -13,9 +15,9 @@ export function isMissing(value: MaybeValue): boolean {
 /** Muted em dash for a missing value; screen readers hear "No value". */
 export function Missing() {
   return (
-    <span className="ui-missing">
+    <span className="text-muted-foreground">
       <span aria-hidden="true">—</span>
-      <span className="ui-visually-hidden">No value</span>
+      <span className="sr-only">No value</span>
     </span>
   );
 }
@@ -36,10 +38,10 @@ export interface EmptyBlockProps {
 /** Empty section body: one sentence in a 1px dashed box; the section keeps its header. */
 export function EmptyBlock({ children, action }: EmptyBlockProps) {
   return (
-    <div className="ui-empty">
+    <Empty className="col-span-full min-h-[38px] flex-none flex-row flex-wrap items-center justify-start gap-x-3 gap-y-1 rounded-lg border border-dashed border-control px-3 py-2 text-left text-sm text-muted-foreground">
       <span>{children}</span>
       {action}
-    </div>
+    </Empty>
   );
 }
 
@@ -61,14 +63,14 @@ export function ErrorBlock({
   retrying = false,
 }: ErrorBlockProps) {
   return (
-    <div className="ui-error" role="alert">
+    <Alert className="col-span-full flex min-h-[38px] flex-wrap items-center gap-x-2 gap-y-1 border-0 bg-transparent p-0 text-sm text-foreground">
       <span>{message}</span>
       {onRetry && (
         <Button variant="text" onClick={onRetry} disabled={retrying}>
           {retryLabel}
         </Button>
       )}
-    </div>
+    </Alert>
   );
 }
 
@@ -85,8 +87,8 @@ export interface SkeletonProps {
 export function Skeleton({ width = '100%', height = 14, className }: SkeletonProps) {
   const style: CSSProperties = { width, height };
   return (
-    <span
-      className={className ? `ui-skeleton ${className}` : 'ui-skeleton'}
+    <ShadcnSkeleton
+      className={['inline-block max-w-full align-middle', className].filter(Boolean).join(' ')}
       style={style}
       aria-hidden="true"
     />

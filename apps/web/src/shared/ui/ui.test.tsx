@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { CollapsiblePanel } from './collapsible-panel';
@@ -7,8 +7,10 @@ import { minuteToPercent, spanAt } from './day-strip-geometry';
 import { FigureContainer } from './figure-container';
 import { parseNumberInput } from './form-controls';
 import { HouseholdDayStrip, petSlot, type DayStripLane } from './household-day-strip';
-import { ratioPercent } from './ratio-bar';
+import { RatioBar, ratioPercent } from './ratio-bar';
 import { StatusMark } from './status-mark';
+import { Tabs } from './tabs';
+import { ThemeModeControl, ThemeModeProvider } from './theme-mode';
 
 describe('FigureContainer', () => {
   it('prints a real zero as 0 and a missing value as a muted em dash', () => {
@@ -93,14 +95,29 @@ describe('ConfirmDialog', () => {
     render(<DialogHarness onConfirm={onConfirm} onCancel={onCancel} />);
     const opener = screen.getByRole('button', { name: 'Clean now' });
     await user.click(opener);
-    const dialog = screen.getByRole('dialog', { name: 'Clean the litter box now?' });
-    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    const dialog = screen.getByRole('alertdialog', { name: 'Clean the litter box now?' });
+    // Modal: everything outside the dialog is hidden from assistive tech.
+    expect(opener.closest('[aria-hidden="true"]')).not.toBeNull();
     expect(dialog).toHaveAccessibleDescription('The drum turns once.');
     await user.click(within(dialog).getByRole('button', { name: 'Clean' }));
     expect(onConfirm).toHaveBeenCalledTimes(1);
     expect(onCancel).not.toHaveBeenCalled();
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
     expect(opener).toHaveFocus();
+  });
+
+  it('cancels on a click on the backdrop', async () => {
+    const user = userEvent.setup();
+    const onConfirm = vi.fn();
+    const onCancel = vi.fn();
+    render(<DialogHarness onConfirm={onConfirm} onCancel={onCancel} />);
+    await user.click(screen.getByRole('button', { name: 'Clean now' }));
+    await screen.findByRole('alertdialog');
+    const backdrop = document.querySelector('[data-slot="dialog-overlay"]');
+    expect(backdrop).not.toBeNull();
+    await user.click(backdrop as Element);
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(onConfirm).not.toHaveBeenCalled();
   });
 
   it('cancels with the Cancel button', async () => {
@@ -122,17 +139,18 @@ describe('ConfirmDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Clean now' }));
     const cancel = screen.getByRole('button', { name: 'Cancel' });
     const confirm = screen.getByRole('button', { name: 'Clean' });
-    expect(cancel).toHaveFocus();
+    await waitFor(() => expect(cancel).toHaveFocus());
     await user.tab();
     expect(confirm).toHaveFocus();
+    // Base UI wraps the popup in focus guards that send focus back around.
     await user.tab();
-    expect(cancel).toHaveFocus();
+    await waitFor(() => expect(cancel).toHaveFocus());
     await user.tab({ shift: true });
-    expect(confirm).toHaveFocus();
+    await waitFor(() => expect(confirm).toHaveFocus());
     await user.keyboard('{Escape}');
     expect(onCancel).toHaveBeenCalledTimes(1);
     expect(onConfirm).not.toHaveBeenCalled();
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
   });
 
   it('ignores Escape and disables its buttons while busy', async () => {
@@ -267,6 +285,23 @@ describe('HouseholdDayStrip', () => {
   });
 });
 
+describe('RatioBar', () => {
+  it('is a named meter with the true amount, and has no amount when it is unknown', () => {
+    render(
+      <>
+        <RatioBar value={3} max={30} ariaLabel="N60 deodorizer remaining" label="3 days" />
+        <RatioBar value={null} max={30} ariaLabel="Desiccant remaining" />
+      </>,
+    );
+    const known = screen.getByRole('meter', { name: 'N60 deodorizer remaining' });
+    expect(known).toHaveAttribute('aria-valuenow', '3');
+    expect(known).toHaveAttribute('aria-valuemax', '30');
+    expect(screen.getByText('3 days')).toBeInTheDocument();
+    const unknown = screen.getByRole('meter', { name: 'Desiccant remaining' });
+    expect(unknown).not.toHaveAttribute('aria-valuenow');
+  });
+});
+
 describe('value helpers', () => {
   it('clamps ratio bars and parses number inputs', () => {
     expect(ratioPercent(35, 65)).toBeCloseTo(53.85, 2);
@@ -276,5 +311,62 @@ describe('value helpers', () => {
     expect(parseNumberInput('')).toBeNull();
     expect(parseNumberInput('0')).toBe(0);
     expect(parseNumberInput('abc')).toBeNull();
+  });
+});
+
+function TabsHarness() {
+  const [tab, setTab] = useState<'a' | 'b' | 'c'>('a');
+  return (
+    <Tabs
+      label="Plans"
+      tabs={[
+        { id: 'a', label: 'Alpha' },
+        { id: 'b', label: 'Beta' },
+        { id: 'c', label: 'Gamma' },
+      ]}
+      selected={tab}
+      onSelect={setTab}
+    >
+      Panel {tab}
+    </Tabs>
+  );
+}
+
+describe('Tabs', () => {
+  it('selects with the arrow keys, Home and End as focus moves', async () => {
+    const user = userEvent.setup();
+    render(<TabsHarness />);
+    await user.click(screen.getByRole('tab', { name: 'Alpha' }));
+    await user.keyboard('{ArrowRight}');
+    expect(screen.getByRole('tab', { name: 'Beta' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel')).toHaveTextContent('Panel b');
+    await user.keyboard('{End}');
+    expect(screen.getByRole('tab', { name: 'Gamma' })).toHaveAttribute('aria-selected', 'true');
+    await user.keyboard('{Home}');
+    expect(screen.getByRole('tabpanel')).toHaveTextContent('Panel a');
+  });
+});
+
+describe('ThemeModeControl', () => {
+  it('keeps every mounted control and the page on one choice', async () => {
+    const user = userEvent.setup();
+    render(
+      <ThemeModeProvider>
+        <div data-testid="sidebar">
+          <ThemeModeControl />
+        </div>
+        <div data-testid="menu">
+          <ThemeModeControl />
+        </div>
+      </ThemeModeProvider>,
+    );
+    const menu = within(screen.getByTestId('menu'));
+    const sidebar = within(screen.getByTestId('sidebar'));
+    await user.click(menu.getByRole('button', { name: 'Dark' }));
+    expect(sidebar.getByRole('button', { name: 'Dark' })).toHaveAttribute('aria-pressed', 'true');
+    expect(document.documentElement).toHaveClass('dark');
+    await user.click(sidebar.getByRole('button', { name: 'Light' }));
+    expect(menu.getByRole('button', { name: 'Light' })).toHaveAttribute('aria-pressed', 'true');
+    expect(document.documentElement).not.toHaveClass('dark');
   });
 });

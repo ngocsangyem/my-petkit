@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Button, Icon, Skeleton, Table, type TableColumn } from '@/shared/ui';
+import { Button, Icon, LogLevelText, Skeleton, Table, type TableColumn } from '@/shared/ui';
 import { formatTime } from '@/shared/format/format';
 import type { HubEvent } from '@/shared/ws/hub-event';
 import { deviceText, detailText, entryText, eventKey, levelOf } from '../log-format';
@@ -26,14 +26,28 @@ function MessageCell({
   onToggle: () => void;
 }) {
   const detail = useMemo(() => detailText(event.detail), [event.detail]);
-  if (!detail) return <span className="log-entry__summary">{event.summary}</span>;
+  if (!detail) return <span className="wrap-anywhere">{event.summary}</span>;
   return (
     <>
-      <button type="button" className="log-entry__toggle" aria-expanded={open} onClick={onToggle}>
-        <Icon name="chevron" size={12} strokeWidth={2} className="log-entry__chev" />
-        <span className="log-entry__summary">{event.summary}</span>
+      <button
+        type="button"
+        className="group flex w-full items-baseline gap-1.5 text-left"
+        aria-expanded={open}
+        onClick={onToggle}
+      >
+        <Icon
+          name="chevron"
+          size={12}
+          strokeWidth={2}
+          className="flex-none -rotate-90 text-muted-foreground group-aria-expanded:rotate-0"
+        />
+        <span className="wrap-anywhere">{event.summary}</span>
       </button>
-      {open && <pre className="log-entry__detail">{detail}</pre>}
+      {open && (
+        <pre className="mt-1.5 mb-1 rounded-md bg-raised px-3 py-2.5 font-mono text-xs whitespace-pre-wrap wrap-anywhere">
+          {detail}
+        </pre>
+      )}
     </>
   );
 }
@@ -58,9 +72,28 @@ export function LiveLogTable({ rows, autoscroll, loading, emptyText, onCopy }: L
   };
 
   const columns: TableColumn<HubEvent>[] = [
-    { key: 'time', header: 'Time', width: '96px', nowrap: true, cell: e => formatTime(e.ts) },
-    { key: 'kind', header: 'Kind', width: '72px', muted: true, cell: e => e.kind },
-    { key: 'device', header: 'Device', width: '110px', nowrap: true, cell: deviceText },
+    {
+      key: 'time',
+      header: 'Time',
+      width: '96px',
+      nowrap: true,
+      muted: true,
+      cell: e => formatTime(e.ts),
+    },
+    {
+      key: 'kind',
+      header: 'Kind',
+      width: '72px',
+      cell: e => <LogLevelText level={levelOf(e)}>{e.kind}</LogLevelText>,
+    },
+    {
+      key: 'device',
+      header: 'Device',
+      width: '110px',
+      nowrap: true,
+      muted: true,
+      cell: deviceText,
+    },
     {
       key: 'message',
       header: 'Message',
@@ -98,7 +131,11 @@ export function LiveLogTable({ rows, autoscroll, loading, emptyText, onCopy }: L
 
   if (loading && rows.length === 0) {
     return (
-      <div className="log-scroll log-scroll--loading" aria-busy="true" aria-label="Loading the log">
+      <div
+        className="flex max-h-[480px] flex-col gap-4 overflow-y-auto rounded-lg border border-border p-3"
+        aria-busy="true"
+        aria-label="Loading the log"
+      >
         {Array.from({ length: 6 }, (_, i) => (
           <Skeleton key={i} height={14} />
         ))}
@@ -109,7 +146,7 @@ export function LiveLogTable({ rows, autoscroll, loading, emptyText, onCopy }: L
   return (
     <div
       ref={scroller}
-      className="log-scroll"
+      className="max-h-[480px] overflow-y-auto rounded-lg [&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-1 [&_thead_th]:bg-background"
       onScroll={e => {
         const el = e.currentTarget;
         nearBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < NEAR_BOTTOM_PX;

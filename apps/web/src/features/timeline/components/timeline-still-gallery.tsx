@@ -1,6 +1,8 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { mediaUrl } from '@/shared/api/base-path';
-import { Button, Icon, useModalFocus } from '@/shared/ui';
+import { Button, Icon } from '@/shared/ui';
+import { AspectRatio } from '@/shared/ui/shadcn/aspect-ratio';
+import { Dialog, DialogContent, DialogTitle } from '@/shared/ui/shadcn/dialog';
 
 /**
  * A media-root image that removes itself when it fails to load. A thumbnail can be asked for
@@ -44,24 +46,28 @@ export function StillTiles({
 }) {
   if (!groups.length) return null;
   return (
-    <div className="tl-stills">
-      <span className="tl-label">Waste and health captures</span>
-      <div className="tl-stills__row">
+    <div className="flex flex-col gap-1.5">
+      <span className="text-xs text-muted-foreground">Waste and health captures</span>
+      <div className="flex flex-wrap gap-2">
         {groups.map(g => (
           <button
             key={g.title}
             type="button"
-            className="tl-still"
+            className="flex cursor-zoom-in flex-col gap-1 border-0 bg-transparent p-0 text-left text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             aria-label={`${g.title}, ${String(g.paths.length)} picture${g.paths.length === 1 ? '' : 's'}`}
             onClick={() => {
               onOpen(g.paths, g.title);
             }}
           >
-            <span className="tl-still__frame">
-              {g.paths[0] && <MediaImage path={g.paths[0]} thumb className="tl-still__img" />}
-              <span className="tl-still__count">{g.paths.length}</span>
-            </span>
-            <span className="tl-still__caption">{g.title}</span>
+            <AspectRatio ratio={4 / 3} className="block w-22 overflow-hidden rounded-md bg-rule">
+              {g.paths[0] && (
+                <MediaImage path={g.paths[0]} thumb className="size-full object-contain" />
+              )}
+              <span className="absolute right-1 bottom-1 min-w-5 rounded-full bg-background px-1.5 text-center text-xs text-foreground">
+                {g.paths.length}
+              </span>
+            </AspectRatio>
+            <span className="text-xs">{g.title}</span>
           </button>
         ))}
       </div>
@@ -70,69 +76,89 @@ export function StillTiles({
 }
 
 export interface StillGalleryProps {
-  paths: readonly string[];
-  title: string;
+  /** The pictures to show; `null` closes the gallery. */
+  gallery: { paths: readonly string[]; title: string } | null;
   onClose: () => void;
 }
 
-/**
- * One picture at a time with "n of m". The true total is counted here from the group: a file
- * name carries only a bare index because the total is unknown when the device uploads it.
- */
-export function StillGallery({ paths, title, onClose }: StillGalleryProps) {
+/** The open gallery's body; it unmounts on close, so the next open starts at the first picture. */
+function GalleryBody({
+  paths,
+  title,
+  onClose,
+}: {
+  paths: readonly string[];
+  title: string;
+  onClose: () => void;
+}) {
   const [index, setIndex] = useState(0);
-  const dialog = useRef<HTMLDivElement>(null);
-  useModalFocus(dialog, { open: true, onEscape: onClose });
   const count = paths.length;
   const current = paths[Math.min(index, count - 1)];
   const step = (n: number) => {
     setIndex(i => (i + n + count) % count);
   };
   return (
-    <div className="ui-dialog-layer">
-      <div className="ui-dialog-backdrop" aria-hidden="true" onClick={onClose} />
-      <div
-        ref={dialog}
-        className="ui-dialog tl-gallery"
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        tabIndex={-1}
-      >
-        <div className="tl-gallery__head">
-          <b>{title}</b>
-          <span className="tl-grow" />
-          <Button
-            size="small"
-            aria-label="Previous picture"
-            disabled={count < 2}
-            onClick={() => {
-              step(-1);
-            }}
-          >
-            <Icon name="chevron" className="tl-icon-btn__prev" />
-          </Button>
-          <span className="tl-muted tl-num">
-            {Math.min(index, count - 1) + 1} of {count}
-          </span>
-          <Button
-            size="small"
-            aria-label="Next picture"
-            disabled={count < 2}
-            onClick={() => {
-              step(1);
-            }}
-          >
-            <Icon name="chevron" className="tl-icon-btn__next" />
-          </Button>
-          <Button size="small" variant="text" onClick={onClose}>
-            Close
-          </Button>
-        </div>
-        {current && (
-          <MediaImage key={current} path={current} thumb={false} className="tl-gallery__img" />
-        )}
+    <>
+      <div className="flex items-center gap-2.5">
+        <DialogTitle className="flex-1 text-base leading-normal font-semibold">{title}</DialogTitle>
+        <Button
+          size="small"
+          aria-label="Previous picture"
+          disabled={count < 2}
+          onClick={() => {
+            step(-1);
+          }}
+        >
+          <Icon name="chevron" className="rotate-90" />
+        </Button>
+        <span className="text-muted-foreground">
+          {Math.min(index, count - 1) + 1} of {count}
+        </span>
+        <Button
+          size="small"
+          aria-label="Next picture"
+          disabled={count < 2}
+          onClick={() => {
+            step(1);
+          }}
+        >
+          <Icon name="chevron" className="-rotate-90" />
+        </Button>
+        <Button size="small" variant="text" onClick={onClose}>
+          Close
+        </Button>
       </div>
-    </div>
+      {current && (
+        <MediaImage
+          key={current}
+          path={current}
+          thumb={false}
+          className="max-h-[70vh] w-full rounded-lg bg-ink object-contain dark:bg-ground"
+        />
+      )}
+    </>
+  );
+}
+
+/**
+ * One picture at a time with "n of m". The true total is counted here from the group: a file
+ * name carries only a bare index because the total is unknown when the device uploads it.
+ * Escape and the backdrop close it, and focus goes back to the tile that opened it.
+ */
+export function StillGallery({ gallery, onClose }: StillGalleryProps) {
+  // Kept while the closing transition runs, so the picture does not vanish mid-fade.
+  const [shown, setShown] = useState(gallery);
+  if (gallery && gallery !== shown) setShown(gallery);
+  return (
+    <Dialog
+      open={gallery !== null}
+      onOpenChange={open => {
+        if (!open) onClose();
+      }}
+    >
+      <DialogContent showCloseButton={false} className="gap-2 sm:max-w-240">
+        {shown && <GalleryBody paths={shown.paths} title={shown.title} onClose={onClose} />}
+      </DialogContent>
+    </Dialog>
   );
 }

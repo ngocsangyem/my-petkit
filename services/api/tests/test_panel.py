@@ -6,11 +6,9 @@ import os
 import re
 import tempfile
 from pathlib import Path
-from urllib.parse import urljoin
 
 import pytest
 
-from aiohttp import web
 from aiohttp.test_utils import make_mocked_request
 
 from my_petkit.config import PANEL_LIVE_KEYS
@@ -51,215 +49,12 @@ async def _mk_client(app):
     return c
 
 
-async def test_index_served():
-    app, reg, hub = _panel()
-    c = await _mk_client(app)
-    try:
-        r = await c.get("/")
-        assert r.status == 200
-        assert "My PetKit" in await r.text()
-    finally:
-        await c.close()
-
-
-def _asset_hrefs(html: str) -> list[str]:
-    """Every EXTERNAL `href=`/`src=` value the index page pulls in.
-
-    In-document fragments (`href="#..."`, used by the cropper's SVG guide) are
-    not assets — nothing is fetched for them. Excluding them keeps this test
-    about the property it exists for: the page loads no CDN and no third-party
-    resource, which is what the artifact CSP and the offline-first design need.
-    """
-    return [h for h in re.findall(r'(?:href|src)="([^"]+)"', html)
-            if not h.startswith("#")]
-
-
-async def test_index_renders_template_and_links_assets():
-    app, reg, hub = _panel()
-    c = await _mk_client(app)
-    try:
-        html = await (await c.get("/")).text()
-        # Markup survived the extraction...
-        assert '<section id="tab-timeline"' in html and "Provision via Bluetooth" in html
-        # ...and the CSS/JS are now external, not inline.
-        assert "<style>" not in html and "<script>\n" not in html
-        # RELATIVE, so they resolve under whatever opaque prefix Ingress uses;
-        # an absolute /static/... would escape it and 404. Cache-busting must
-        # not turn them into absolute URLs either.
-        #
-        # The stylesheet carries its version in a query, the entry module in a
-        # PATH SEGMENT. An ES module's `import './core.js'` resolves against the
-        # module's own URL, so a query on the entry point versions only the
-        # entry point; a path segment is inherited by all nineteen imports.
-        from my_petkit.web import panel as panel_mod
-        assert _asset_hrefs(html) == [
-            f"static/styles.css?v={panel_mod.ASSET_VERSION}",
-            f"asset/{panel_mod.ASSET_VERSION}/js/main.js",
-        ]
-    finally:
-        await c.close()
-
-
-async def test_static_assets_are_served():
-    app, reg, hub = _panel()
-    c = await _mk_client(app)
-    try:
-        css = await c.get("/static/styles.css")
-        assert css.status == 200 and css.headers["Content-Type"].startswith("text/css")
-        assert "--accent" in await css.text()
-        js = await c.get("/static/js/main.js")
-        assert js.status == 200 and "javascript" in js.headers["Content-Type"]
-        # The entry point reaches the rest by relative path, so every module it
-        # names has to be served from the same directory too.
-        assert "import { loadDevices } from './devices.js'" in await js.text()
-        core = await c.get("/static/js/core.js")
-        assert core.status == 200
-        assert "const BASE = location.pathname" in await core.text()
-    finally:
-        await c.close()
-
-
-async def test_index_assets_resolve_under_an_ingress_prefix():
-    # Home Assistant mounts the panel at an opaque /api/hassio_ingress/<token>/
-    # path. Asset URLs must be *relative* so the browser resolves them under
-    # that prefix — an absolute /static/... would escape it and 404.
-    prefix = "/api/hassio_ingress/K7d2Xq"
-    panel, reg, hub = _panel()
-    outer = web.Application()
-    outer.add_subapp(prefix, panel)
-    c = await _mk_client(outer)
-    try:
-        doc = prefix + "/"
-        html = await (await c.get(doc)).text()
-        for href in _asset_hrefs(html):
-            assert not href.startswith("/"), href
-            resolved = urljoin(doc, href)
-            assert resolved.startswith(doc), resolved
-            r = await c.get(resolved)
-            assert r.status == 200, (resolved, r.status)
-    finally:
-        await c.close()
-
-
-async def test_index_is_only_routed_at_a_trailing_slash_path():
-    # Relative asset URLs are only safe because the document path always ends
-    # in "/": the page has exactly one route and it is "/".
-    app, reg, hub = _panel()
-    c = await _mk_client(app)
-    try:
-        assert (await c.get("/index.html")).status == 404
-        assert (await c.get("/panel")).status == 404
-    finally:
-        await c.close()
-
-
-async def test_frontend_has_no_inline_event_handlers():
-    # The XSS vector this replaced: device-derived strings reach innerHTML, and
-    # an apostrophe in one closed an onclick='...' and opened a real attribute.
-    # Behaviour is now bound through the [data-action]/[data-change] delegation
-    # table, so any reintroduced on*= attribute is a regression.
-    app, reg, hub = _panel()
-    c = await _mk_client(app)
-    try:
-        js = _panel_js()
-        html = await (await c.get("/")).text()
-        inline = re.compile(r"""\bon[a-z]+\s*=\s*["']""", re.I)
-        assert not inline.search(js), inline.search(js).group(0)
-        assert not inline.search(html), inline.search(html).group(0)
-        assert "data-action" in html and "data-action" in js
-    finally:
-        await c.close()
-
-
-async def test_devices_tab_is_one_collapsible_panel_per_device():
-    """The grid plus a single shared detail pane is gone. That pane is why the
-    `<details>` sections inside it collapsed a few seconds after being opened:
-    one global refresh reassigned its innerHTML and took their open state with
-    it."""
-    app, reg, hub = _panel()
-    c = await _mk_client(app)
-    try:
-        html = await (await c.get("/")).text()
-        js = _panel_js()
-        assert 'id="devPanels"' in html
-        assert 'id="devGrid"' not in html and 'id="devDetail"' not in html
-        # Open state is remembered per device AND per section, or expanding
-        # diagnostics on one device would expand it on all of them.
-        assert "devOpen" in js and "data-toggle" in js
-        # `toggle` does not bubble, so the listener must be in the capture phase.
-        assert "addEventListener('toggle'" in js and "true)" in js
-    finally:
-        await c.close()
-
-
-async def test_the_timeline_container_is_left_with_nothing_but_our_own_nodes():
-    """`index.html` ships `#timelineView` with a "…" placeholder, and it is a
-    TEXT node. Reassigning innerHTML used to wipe it; inserting elements beside
-    it does not, so it surfaced between the controls and the first card."""
-    js = _panel_js()
-    html = (Path(__file__).resolve().parents[1] / "src" / "my_petkit" / "web"
-            / "templates" / "index.html").read_text()
-    assert 'id="timelineView"' in html
-    # Whatever the placeholder is, the renderer must clear what is not its own.
-    assert "node !== controls && node !== list" in js
-
-
-async def test_a_filter_chip_with_no_events_is_not_shown():
-    """Eight chips did not fit the card. A device family that produced nothing
-    contributes a permanent zero, and the selected chip has to stay visible or
-    there would be no way back off it."""
-    js = _panel_js()
-    assert "function visibleFilters(" in js
-    assert "k === 'all' || k === TL_FILTER" in js
-
-
-async def test_timeline_refresh_does_not_rebuild_the_whole_view():
-    """The Timeline reruns 400ms after every event and media frame.
-
-    Rebuilding `#timelineView` wholesale restarted playing videos, collapsed a
-    `<details>` the moment it was opened, and closed the device `<select>` under
-    the pointer. Reported from a four-device install; invisible on a quiet one,
-    where the same code runs a few times a day rather than continuously.
-
-    Two properties keep it usable and both are asserted here, because either one
-    alone still breaks the dropdown: cards are reconciled by key so an unchanged
-    one is REUSED, and the controls are patched only where a value differs.
-    """
-    js = _panel_js()
-    tl = (Path(__file__).resolve().parents[1] / "src" / "my_petkit" / "web" / "static"
-          / "js" / "timeline.js").read_text()
-
-    # The wholesale swap this replaced.
-    assert "v.innerHTML" not in tl, "timeline still replaces the whole view"
-    # Reconciliation, and the key it hangs on.
-    assert "function reconcile(" in js and "data-tlkey" in js and "tlkey" in tl
-    # A video whose source did not change is moved, not re-created.
-    assert "function adoptVideos(" in js and "lazyvid[data-src]" in js
-    # Writing an unchanged value to a live DOM is what closes an open dropdown.
-    assert "function patchControls(" in js
-    assert "el.textContent !== text" in js
-
-
-async def test_no_element_id_is_shared_between_device_panels():
-    """With one pane there was exactly one #cmdOut and one #cmdRaw. With a panel
-    per device those ids would collide and every device's result would land in
-    the first panel."""
-    app, reg, hub = _panel()
-    c = await _mk_client(app)
-    try:
-        js = _panel_js()
-        assert "id=\"cmdOut\"" not in js and "getElementById('cmdOut')" not in js
-        assert "id=\"cmdRaw\"" not in js and "getElementById('cmdRaw')" not in js
-        assert "cmd-out" in js and "cmd-raw" in js
-    finally:
-        await c.close()
-
-
-async def test_every_published_entity_component_has_somewhere_to_render():
+def test_every_published_entity_component_has_somewhere_to_render():
     """The anti-divergence check. `text`, `event`, `camera` and `image` entities
     were published to Home Assistant and rendered nowhere in the panel, which is
     invisible until someone goes looking for a schedule editor that does not
-    exist. Any NEW component must be routed too."""
+    exist. Any NEW component must be routed too: the web app's `ENTITY_SECTION`
+    names a section for each one."""
     from my_petkit.devices.ble import BLE_TYPES
     from my_petkit.ha.entities.ble import get_ble_entities
     from my_petkit.ha.categories import CATEGORY_SPECS
@@ -270,44 +65,33 @@ async def test_every_published_entity_component_has_somewhere_to_render():
     # (`get_ble_entities`), and this guard used to look only at the device one.
     # A CTW3 brought switches, selects and numbers in through that gap.
     published |= {e.component for t in BLE_TYPES for e in get_ble_entities(t)}
-    app, reg, hub = _panel()
-    c = await _mk_client(app)
-    try:
-        js = _panel_js()
-        table = js[js.index("const ENTITY_SECTION = {"):]
-        table = table[: table.index("};")]
-        for component in sorted(published):
-            assert f"{component}:" in table, (
-                f"{component} entities are published to HA but ENTITY_SECTION "
-                f"in devices.js does not route them to a card"
-            )
-    finally:
-        await c.close()
+    table = _web_source("features/devices/lib/entity-sections.ts")
+    table = table[table.index("export const ENTITY_SECTION"):]
+    table = table[: table.index("};")]
+    for component in sorted(published):
+        assert re.search(rf"^\s*['\"]?{component}['\"]?\s*:", table, re.M), (
+            f"{component} entities are published to HA but ENTITY_SECTION "
+            f"in entity-sections.ts does not route them to a section"
+        )
 
 
-async def test_the_accessory_panel_renders_every_component_an_accessory_has():
+def test_the_accessory_panel_renders_every_component_an_accessory_has():
     """`ENTITY_SECTION` routes a device panel. An accessory has its own
-    renderer, `accBody`, which picks components by name into three cards — so a
-    component that reaches HA fine can still land nowhere here. The filter
-    reset was the first: `button` was routed by ENTITY_SECTION and dropped by
-    accBody, which knew only switch, number, select and the two sensors."""
+    renderer, `AccessoryPanelBody`, which picks components by name into three
+    cards — so a component that reaches HA fine can still land nowhere here. The
+    filter reset was the first: `button` was routed by ENTITY_SECTION and
+    dropped by the accessory body, which knew only switch, number, select and
+    the two sensors."""
     from my_petkit.devices.ble import BLE_TYPES
     from my_petkit.ha.entities.ble import get_ble_entities
 
-    app, reg, hub = _panel()
-    c = await _mk_client(app)
-    try:
-        js = _panel_js()
-        body = js[js.index("function accBody("):]
-        body = body[: body.index("\nfunction ")]
-        for t in BLE_TYPES:
-            for e in get_ble_entities(t):
-                assert f"'{e.component}'" in body, (
-                    f"a {t} publishes a {e.component} entity and accBody has "
-                    f"no card that collects one"
-                )
-    finally:
-        await c.close()
+    body = _web_source("features/devices/components/accessory-panel-body.tsx")
+    for t in BLE_TYPES:
+        for e in get_ble_entities(t):
+            assert re.search(rf"""['"]{e.component}['"]""", body), (
+                f"a {t} publishes a {e.component} entity and the accessory "
+                f"panel has no card that collects one"
+            )
 
 
 async def test_device_detail_answers_in_one_request():
@@ -338,21 +122,6 @@ async def test_a_device_with_no_camera_or_ai_gets_null_sidecars():
         detail = await (await c.get("/api/devices/8")).json()
         assert detail["capInfo"] is None and detail["aiInfo"] is None
         assert detail["logInfo"] is not None
-    finally:
-        await c.close()
-
-
-async def test_esc_escapes_every_markup_breaking_character():
-    # esc() guards text nodes and double-quoted attributes; it must cover the
-    # quote characters too, not just angle brackets, or an attribute can be
-    # closed from inside a value.
-    app, reg, hub = _panel()
-    c = await _mk_client(app)
-    try:
-        js = _panel_js()
-        for ch, ent in [("&", "&amp;"), ("<", "&lt;"), (">", "&gt;"),
-                        ('"', "&quot;"), ("'", "&#39;"), ("/", "&#x2F;")]:
-            assert ent in js, f"esc() does not map {ch!r} to {ent}"
     finally:
         await c.close()
 
@@ -615,116 +384,12 @@ async def test_ws_streams_live_events():
         await c.close()
 
 
-async def test_provision_ui_has_ble_protocol():
-    app, reg, hub = _panel()
-    c = await _mk_client(app)
-    try:
-        html = await (await c.get("/")).text()
-        assert "Provision via Bluetooth" in html
-        js = _panel_js()
-        # PetKit Ingenic framed JSON.
-        assert "0000aaa0-0000-1000-8000-00805f9b34fb" in js  # service
-        assert "0000aaa2-0000-1000-8000-00805f9b34fb" in js  # RX (write)
-        assert "0000aaa1-0000-1000-8000-00805f9b34fb" in js  # TX (notify)
-        # PetKit ESP32 custom-data transport.
-        assert "0000ffff-0000-1000-8000-00805f9b34fb" in js  # service
-        assert "0000ff01-0000-1000-8000-00805f9b34fb" in js  # app -> ESP32
-        assert "0000ff02-0000-1000-8000-00805f9b34fb" in js  # ESP32 -> app
-        # Which one a device speaks is asked, not assumed from a model table --
-        # and asked BY NAME, per service. `getPrimaryServices()` returns what
-        # the browser has already discovered for the device, which is not what
-        # it hands over when asked directly: a D4SH that provisions through
-        # `getPrimaryService(0xAAA0)` was absent from the enumeration, so 1.5.0
-        # refused to pair a feeder that 1.4.0 paired fine. The enumeration may
-        # be read in exactly one place -- describing a device that answered to
-        # neither service -- and may never decide which protocol to speak.
-        assert "open(BLE_SERVICE)" in js
-        assert "open(BLUFI_SERVICE)" in js
-        assert js.count("gatt.getPrimaryServices()") == 1
-        # Quoted or bare, spaced or not — the payload key is what matters.
-        assert re.search(r"""["']?key["']?\s*:\s*151""", js)
-        # The decoders themselves are exercised for real in test_provision_js.
-        assert "function pkParse(" in js and "function pkCrc16(" in js
-        # ESP32 devices answer with PetKit documents inside custom data, and no
-        # native Wi-Fi provisioning constants should be present to tempt callers.
-        assert "BLUFI_DATA_CUSTOM" in js.split("function blufiExplain(")[1][:1200]
-        for never in ("SET_WIFI_OPMODE", "STA_SSID", "STA_PASSWD", "CONN_TO_AP"):
-            assert never not in js, never
-        for timeout in ("const T_IDENT = 5000", "const T_ACK = 10000",
-                        "const T_JOIN = 120000"):
-            assert timeout in js, timeout
-        # The self-signed HTTPS panel on 8098 is gone — it published this
-        # whole unauthenticated API to the LAN. Nothing may hand out that port.
-        info = await (await c.get("/api/info")).json()
-        assert "web_tls_port" not in info
-        assert "8098" not in js
-    finally:
-        await c.close()
-
-
 async def test_capture_disabled_message():
     app, reg, hub = _panel()
     c = await _mk_client(app)
     try:
         cap = await (await c.get("/api/capture")).json()
         assert cap["enabled"] is False
-    finally:
-        await c.close()
-
-
-async def test_the_timeline_filters_by_pet_with_chips_not_a_dropdown():
-    """A `<select>` sat on its own line under the device picker and looked like
-    an afterthought. The pet filter is now the same chip group the kind filters
-    use, each chip carrying that pet's mugshot — the same face the cards below
-    it show, so the filter and the results are visibly about one animal."""
-    app, reg, hub = _panel()
-    c = await _mk_client(app)
-    try:
-        js = _panel_js()
-        assert 'id="tlPet"' not in js, "the pet dropdown is back"
-        assert 'data-action="tl-pet"' in js and "petChip" in js
-        # The mugshot comes from the pets API's own face list, not a second
-        # source that could disagree with the cards.
-        assert "p.faces" in js and "chip-av" in js
-        # A face that 404s must hide rather than leave a broken-image glyph.
-        assert "hide-on-error" in js
-        css = await (await c.get("/static/styles.css")).text()
-        assert ".chip-av" in css
-    finally:
-        await c.close()
-
-
-async def test_the_capture_tab_warns_what_is_in_a_capture():
-    """The panel offers a download button for files that can contain the user's
-    Wi-Fi SSID and, in proxy mode, their PetKit account credentials — so this
-    warning is the only thing between a user and posting their credentials to a
-    public issue.
-
-    It asserts on what the warning SAYS, not on the word "redaction": that is an
-    internal mechanism, and naming it at a user explains nothing.
-    """
-    app, reg, hub = _panel()
-    c = await _mk_client(app)
-    try:
-        js = _panel_js()
-        assert "Every capture is sensitive" in js
-        assert "SSID" in js and "credential" in js.lower()
-        # No per-file "sensitive" badge: singling some out implies the rest are
-        # safe to post, and none of them are.
-        assert "SENSITIVE_CAPTURES" not in js
-    finally:
-        await c.close()
-
-
-async def test_the_capture_tab_no_longer_describes_capture_as_an_addon_option():
-    """It is a live panel setting: there is no `capture` add-on option, no
-    `--capture` flag, and no restart involved. The old copy said all three."""
-    app, reg, hub = _panel()
-    c = await _mk_client(app)
-    try:
-        js = _panel_js()
-        assert "--capture" not in js
-        assert "restart the add-on" not in js
     finally:
         await c.close()
 
@@ -807,19 +472,6 @@ async def test_delete_refuses_anything_that_is_not_a_capture_file():
             assert (Path(tmp) / "petkit.db").exists()
         finally:
             await c.close()
-
-
-async def test_the_capture_tab_offers_delete_next_to_download():
-    app, reg, hub = _panel()
-    c = await _mk_client(app)
-    try:
-        js = _panel_js()
-        assert 'data-action="delete-capture"' in js
-        # Irreversible, so it must confirm first.
-        assert "deleteCapture" in js and "confirm(" in js
-        assert "method: 'DELETE'" in js
-    finally:
-        await c.close()
 
 
 # --- settings persistence ---
@@ -1059,77 +711,6 @@ async def test_all_patchers_are_offered_on_every_next_gen_device():
         await c.close()
 
 
-async def test_assets_are_revalidated_not_heuristically_cached():
-    """Without Cache-Control a browser may reuse a cached asset WITHOUT asking.
-
-    That is not theoretical: after an add-on update the panel kept running the
-    previous panel script, so a deployed feature was invisible with nothing in
-    the
-    logs to say so. `no-cache` still permits storage — the ETag makes the
-    revalidation a 304 — it only forbids using it unasked.
-    """
-    app, _reg, _hub = _panel()
-    c = await _mk_client(app)
-    try:
-        for path in ("/", "/static/js/main.js", "/static/styles.css"):
-            r = await c.get(path)
-            assert r.status == 200, path
-            assert r.headers.get("Cache-Control") == "no-cache", path
-        # The ETag survives, so revalidation stays cheap.
-        r = await c.get("/static/js/main.js")
-        assert r.headers.get("ETag")
-    finally:
-        await c.close()
-
-
-async def test_the_index_says_no_cache_whatever_its_path_looks_like():
-    """The header used to come from a path match — `endswith("/")` — and the
-    index is the one response that cannot afford to depend on that. It is what
-    names the asset URLs, so a stale copy of it re-requests the OLD ones and
-    the content hash never gets a chance to work. Behind Ingress the panel is
-    mounted under an opaque prefix, and how that request arrives is not ours to
-    decide, so `handle_index` sets it itself."""
-    from my_petkit.web import panel as panel_mod
-
-    app, _reg, _hub = _panel()
-    c = await _mk_client(app)
-    try:
-        r = await c.get("/")
-        assert r.headers.get("Cache-Control") == "no-cache"
-        body = await r.text()
-        # And the document says which build it is, stamped by the same value
-        # that versions the asset URLs.
-        assert f'window.PANEL_ASSET_V = "{panel_mod.ASSET_VERSION}"' in body
-        assert f"asset/{panel_mod.ASSET_VERSION}/js/main.js" in body
-    finally:
-        await c.close()
-
-
-async def test_a_stale_page_can_tell_that_it_is_stale():
-    """`/api/info`'s `version` reports the SERVER's build, which is a different
-    question and cannot see this: a fresh server behind a cached page reports
-    the new number while running the old code. `asset_version` is the same
-    value from two moments — one that arrived with the document, one answered
-    live — so a mismatch means the page is old and nothing else can cause it.
-    """
-    from my_petkit.web import panel as panel_mod
-
-    app, _reg, _hub = _panel()
-    c = await _mk_client(app)
-    try:
-        info = await (await c.get("/api/info")).json()
-        assert info["asset_version"] == panel_mod.ASSET_VERSION
-        js = _panel_js()
-        # The comparison, and something visible when it fails — a check whose
-        # result goes nowhere is the same as no check.
-        assert "PANEL_ASSET_V" in js
-        assert "stale-banner" in js
-        css = await (await c.get("/static/styles.css")).text()
-        assert ".stale-banner" in css
-    finally:
-        await c.close()
-
-
 # --- proxy settings: validation and gating ---
 
 def _proxy_settings_app(tmp=None, store=None):
@@ -1309,65 +890,36 @@ async def test_blocked_filters_by_device_and_kind(event_store):
 
 # --- frontend contract ---
 #
-# These read the frontend source because there is no JS runtime here to render
-# it in. They match with REGEXES rather than literal substrings on purpose: an
-# earlier version pinned the exact spelling — `(key,val,title,hint)` with no
-# spaces, `${on?'':' disabled'}`, `.k.redact{` with no space before the brace —
-# so running a formatter over the panel failed seven assertions without a
-# single behaviour having changed. What each test wants to know is a property
-# of the rendered UI, so it must survive reformatting, requoting and rewrapping.
+# These read the web app's source, because the other side of each check is a
+# Python table and only this suite can see both. They match with REGEXES rather
+# than literal substrings on purpose: the frontend is formatted by prettier, so
+# what each test wants to know must survive requoting and rewrapping.
+
+WEB_SRC = Path(__file__).resolve().parents[3] / "apps" / "web" / "src"
 
 
-def _static(name: str) -> str:
-    """One of the panel's static assets, as source text."""
-    return (Path(__file__).resolve().parents[1] / "src" / "my_petkit" / "web" / "static"
-            / name).read_text()
-
-
-def _panel_js() -> str:
-    """Every panel module's source, concatenated.
-
-    The frontend is a graph of ES modules under `static/js/`, so a test that
-    wants to know something about "the panel's JavaScript" has to look at all
-    of them — which file a given helper landed in is exactly the detail these
-    tests must not depend on.
-    """
-    js_dir = Path(__file__).resolve().parents[1] / "src" / "my_petkit" / "web" / "static" / "js"
-    return "\n".join(p.read_text() for p in sorted(js_dir.glob("*.js")))
+def _web_source(relative: str) -> str:
+    """One file of the web app (`apps/web/src`), as source text."""
+    return (WEB_SRC / relative).read_text(encoding="utf-8")
 
 
 def test_every_hub_kind_the_proxy_publishes_has_a_colour():
-    """web/hub.py's kinds are rendered as `.k.<kind>`; one with no CSS rule is
-    an unstyled grey blob in the Log tab."""
-    css = _static("styles.css")
+    """web/hub.py's `redact` and `blocked` kinds must stand out in the Log tab:
+    the row's colour comes from `levelOf`, and a kind it does not name renders
+    as an ordinary info line."""
+    log_format = _web_source("features/log/log-format.ts")
     for kind in ("redact", "blocked"):
-        assert re.search(rf"\.k\.{kind}\s*\{{", css), kind
-
-
-def test_proxy_dependent_controls_are_gated_on_proxy_mode():
-    """Everything that only means something with proxy on must be hidden or
-    greyed out when it is off."""
-    js = _panel_js()
-    css = _static("styles.css")
-
-    # The guards render through a helper that greys them out with proxy mode.
-    assert re.search(r"const guard\s*=\s*\(\s*key\s*,\s*val\s*,", js)
-    # ...and that helper appends the greying class inside one interpolation.
-    assert re.search(r"ctrl\$\{\s*on\s*\?[^}]*disabled", js)
-    assert re.search(r"\.ctrl\.disabled\s*\{", css)
-    # The upstream picker and the blocked table are hidden outright.
-    assert re.search(r"\$\{\s*on\s*\?(?:.|\n){0,400}?Upstream server", js)
-    assert re.search(r"\$\{\s*on\s*\?(?:.|\n){0,200}?blockedView", js)
+        assert re.search(rf"""kind\s*===\s*['"]{kind}['"]""", log_format), kind
 
 
 def test_the_photo_cap_agrees_with_the_store():
-    """The panel disables its add-photo tile at MAX_FACES and the store refuses
-    past MAX_FACES_PER_PET. Two copies of one number the device enforces for
-    real, so a drift means the UI invites an upload the API then rejects."""
+    """The web app disables its add-photo tile at MAX_FACES and the store
+    refuses past MAX_FACES_PER_PET. Two copies of one number the device enforces
+    for real, so a drift means the UI invites an upload the API then rejects."""
     from my_petkit.events.store import MAX_FACES_PER_PET
 
-    m = re.search(r"const MAX_FACES\s*=\s*(\d+)", _panel_js())
-    assert m, "the panel no longer declares MAX_FACES"
+    m = re.search(r"export const MAX_FACES\s*=\s*(\d+)", _web_source("features/pets/pet-model.ts"))
+    assert m, "the web app no longer declares MAX_FACES"
     assert int(m.group(1)) == MAX_FACES_PER_PET
 
 
@@ -1424,35 +976,6 @@ async def test_the_ha_indicator_reports_ha_not_the_device_bridge():
     c = await _mk_client(app)
     try:
         assert (await (await c.get("/api/info")).json())["ha_publishing"] is True
-    finally:
-        await c.close()
-
-
-async def test_provision_refuses_a_bluetooth_only_accessory():
-    """A W5 or a CTW3 shows up in the chooser because the filter is a name
-    prefix, and selecting one used to end in a raw `NotFoundError` about a GATT
-    service. There is no WiFi on those models to configure at all."""
-    app, reg, hub = _panel()
-    c = await _mk_client(app)
-    try:
-        js = _panel_js()
-        for prefix in ("Petkit_W5", "Petkit_CTW3", "Petkit_K3"):
-            assert prefix in js, prefix
-        assert "BLE accessories" in js
-    finally:
-        await c.close()
-
-
-async def test_provision_does_not_claim_success_for_a_write_that_returned():
-    """"provisioned — device will restart" was printed because an ATT write
-    resolved, which is true of a payload the firmware never understood."""
-    app, reg, hub = _panel()
-    c = await _mk_client(app)
-    try:
-        js = _panel_js()
-        assert "the device never answered" in js
-        # And the link is no longer torn down before a reply can arrive.
-        assert "}, 1500);" not in js
     finally:
         await c.close()
 
@@ -1608,27 +1131,6 @@ async def test_an_accessory_write_is_refused_before_the_first_reading():
         await c.close()
 
 
-async def test_the_accessory_panel_is_its_own_panel_and_is_trimmed():
-    app, reg, hub = _panel()
-    c = await _mk_client(app)
-    try:
-        js = _panel_js()
-        assert "accpanel" in js and "accSummary" in js and "accBody" in js
-        assert "relayed by" in js
-        # A transport badge that is true of an accessory. `linkBadge`'s two
-        # answers are both false: no MQTT session, no heartbeat queue.
-        assert "badge ble" in js
-        css = await (await c.get("/static/styles.css")).text()
-        assert ".badge.ble" in css
-        # The parent's machinery must not follow it across.
-        body = js[js.index("function accBody("):]
-        body = body[: body.index("\n}\n")]
-        for absent in ("http_count", "mqtt_count", "queue", "patcher", "log_upload"):
-            assert absent not in body, absent
-    finally:
-        await c.close()
-
-
 async def test_the_panel_can_ask_for_a_reading_now():
     """The one action an accessory has, and it belongs to the relay: nothing in
     the CTW3 protocol is shaped like "do X now". Without it the only way to
@@ -1654,52 +1156,6 @@ async def test_the_panel_can_ask_for_a_reading_now():
         reg.get(10).mqtt_connected = False
         r = await c.post("/api/ble/700/poll")
         assert r.status == 409
-    finally:
-        await c.close()
-
-
-async def test_every_js_module_is_reachable_under_the_versioned_path():
-    """The entry module is the only one the markup names; the other nineteen are
-    reached by relative import from it, so a route that serves one but not the
-    rest fails only in a browser."""
-    from my_petkit.web import panel as panel_mod
-
-    app, _reg, _hub = _panel()
-    c = await _mk_client(app)
-    try:
-        names = sorted(p.name for p in (panel_mod.STATIC_DIR / "js").glob("*.js"))
-        assert len(names) > 1, "expected the panel's JS to be split"
-        for name in names:
-            r = await c.get(f"/asset/{panel_mod.ASSET_VERSION}/js/{name}")
-            assert r.status == 200, (name, r.status)
-    finally:
-        await c.close()
-
-
-async def test_the_versioned_asset_path_cannot_escape_the_js_directory():
-    app, _reg, _hub = _panel()
-    c = await _mk_client(app)
-    try:
-        for name in ("../styles.css", "..%2fstyles.css", "main.js.bak"):
-            r = await c.get(f"/asset/deadbeef/js/{name}")
-            assert r.status == 404, (name, r.status)
-    finally:
-        await c.close()
-
-
-async def test_a_hash_versioned_module_is_cacheable_forever():
-    """The opposite of every other asset here, and for the same reason: the hash
-    is in the URL, so the content behind it cannot change. Revalidating twenty
-    modules on every page load buys nothing."""
-    from my_petkit.web import panel as panel_mod
-
-    app, _reg, _hub = _panel()
-    c = await _mk_client(app)
-    try:
-        r = await c.get(f"/asset/{panel_mod.ASSET_VERSION}/js/main.js")
-        assert "immutable" in r.headers.get("Cache-Control", "")
-        css = await c.get("/static/styles.css")
-        assert css.headers.get("Cache-Control") == "no-cache"
     finally:
         await c.close()
 

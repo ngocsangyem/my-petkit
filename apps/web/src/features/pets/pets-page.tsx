@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { errorMessage } from '@/shared/api/errors';
-import { EmptyBlock, ErrorBlock, Skeleton } from '@/shared/ui';
+import { EmptyBlock, ErrorBlock, Skeleton, useToast } from '@/shared/ui';
 import { useHubEvents } from '@/shared/ws/use-event-stream';
 import {
   petsKeys,
@@ -18,9 +18,10 @@ import { PetCard } from './components/pet-card';
 import { PetsHeading } from './components/pets-heading';
 import { RecognitionSection } from './components/recognition-section';
 import { UnboundSection } from './components/unbound-section';
-import { useNotice } from './hooks/use-notice';
 import { isRecognising } from './pet-model';
-import './pets.css';
+
+/** Two pets side by side; one column once the screen is narrow. */
+const GRID = 'grid grid-cols-2 items-start gap-(--pk-gap) max-[900px]:grid-cols-1';
 
 function NoAiDevice({ names }: { names: readonly string[] }) {
   // The product list comes from the server rather than being spelled out here,
@@ -44,7 +45,14 @@ export function PetsPage() {
   const unboundQ = useUnboundRefs();
   const namesQ = useAiDeviceNames();
   const addFace = useAddFace();
-  const [notice, notify] = useNotice();
+  const toast = useToast();
+  // Every outcome on this screen is one sentence; a failure stays until it is closed.
+  const notify = useCallback(
+    (text: string, error = false) => {
+      toast(text, error ? { error: true } : undefined);
+    },
+    [toast],
+  );
   const [crop, setCrop] = useState<CropTarget | null>(null);
   const [adding, setAdding] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -89,7 +97,7 @@ export function PetsPage() {
     );
   } else if (!devices || !pets) {
     body = (
-      <div className="pets-grid" aria-busy="true">
+      <div className={GRID} aria-busy="true">
         <Skeleton height={238} />
         <Skeleton height={238} />
       </div>
@@ -123,7 +131,7 @@ export function PetsPage() {
             visits without saying who made them.
           </EmptyBlock>
         ) : (
-          <div className="pets-grid">
+          <div className={GRID}>
             {pets.map((pet, i) => (
               <PetCard
                 key={pet.id}
@@ -153,7 +161,7 @@ export function PetsPage() {
   }
 
   return (
-    <div className="pets-page">
+    <div className="flex min-w-0 flex-col gap-(--pk-gap)">
       <PetsHeading
         pets={!loadError && recognising ? (pets ?? null) : null}
         aiDetails={devices?.details ?? []}
@@ -167,13 +175,6 @@ export function PetsPage() {
           setAdding(true);
         }}
       />
-      <p
-        className={notice?.error ? 'pets-notice pets-notice--error' : 'pets-notice'}
-        role="status"
-        aria-live="polite"
-      >
-        {notice?.text}
-      </p>
       {body}
       <FaceCropper
         key={crop ? crop.petId : 'closed'}

@@ -1,7 +1,10 @@
+import { cn } from 'cn';
 import { useState } from 'react';
 import { Button, Select, SettingsRow, Switch } from '@/shared/ui';
+import { Input } from '@/shared/ui/shadcn/input';
 import { usePendingEdit } from '../hooks/pending-edits';
 import { type AnyEntity, ENTITY_HELP, optionValues } from '../lib/entity-sections';
+import { dirtyClass } from './panel-parts';
 
 interface EntityControlProps {
   entity: AnyEntity;
@@ -131,11 +134,11 @@ function TypedControl({
           .join(' · ') || undefined
       }
       control={props => (
-        <span className="devices-set-field">
-          <input
+        <span className="flex min-w-0 gap-1.5">
+          <Input
             {...props}
             type={isTime ? 'time' : 'number'}
-            className={`ui-control ui-control--end${pending !== undefined ? ' devices-dirty' : ''}`}
+            className={cn('min-w-0 flex-1 text-right', dirtyClass(pending !== undefined))}
             value={shown}
             min={isTime ? undefined : (e.min ?? undefined)}
             max={isTime ? undefined : (e.max ?? undefined)}

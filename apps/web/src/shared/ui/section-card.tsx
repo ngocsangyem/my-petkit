@@ -1,5 +1,5 @@
 import { useId, type ReactNode } from 'react';
-import './section-card.css';
+import { Card } from './shadcn/card';
 
 /** Props for {@link SectionCard}. */
 export interface SectionCardProps {
@@ -16,15 +16,15 @@ export interface SectionCardProps {
 export function SectionCard({ title, aside, end, children }: SectionCardProps) {
   const headingId = useId();
   return (
-    <section className="ui-card" aria-labelledby={headingId}>
-      <div className="ui-card__header">
-        <div className="ui-card__title-row">
+    <Card role="region" aria-labelledby={headingId} className="gap-3 p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-3">
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2.5 gap-y-1">
           <h2 id={headingId}>{title}</h2>
-          {aside && <span className="ui-card__aside">{aside}</span>}
+          {aside && <span className="text-sm text-muted-foreground">{aside}</span>}
         </div>
         {end}
       </div>
       {children}
-    </section>
+    </Card>
   );
 }

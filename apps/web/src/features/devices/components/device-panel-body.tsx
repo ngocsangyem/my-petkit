@@ -60,7 +60,7 @@ export function DevicePanelBody({
       <ModelBlock device={d} visitsToday={visitsToday} />
 
       {!d.actions.length && !groups.controls.length && !groups.sensors.length && (
-        <p className="devices-note">
+        <p className="text-sm text-muted-foreground">
           This device type ({d.type.toUpperCase()}) is not recognised, so no Home Assistant entities
           are defined for it. It still connects, appears here and its traffic is logged; raw
           commands are under Advanced below.
@@ -68,7 +68,7 @@ export function DevicePanelBody({
       )}
 
       {d.actions.length > 0 && (
-        <section className="devices-stack" aria-label="Commands">
+        <section className="flex min-w-0 flex-col gap-2.5" aria-label="Commands">
           <BlockHeading title="Commands" />
           <CommandList
             target={noun}
@@ -89,18 +89,20 @@ export function DevicePanelBody({
       )}
 
       {groups.media.length > 0 && (
-        <section className="devices-stack" aria-label="Camera">
+        <section className="flex min-w-0 flex-col gap-2.5" aria-label="Camera">
           <BlockHeading
             title="Camera"
             aside={<Link to="/timeline">Clips are on the Timeline</Link>}
           />
           <StreamUrls streams={d.streams} hasIp={hasIp} />
           {lastClip && (
-            <p className="devices-note">
-              Last clip <code className="devices-mono">{lastClip}</code>
+            <p className="text-sm text-muted-foreground">
+              Last clip <code className="font-mono text-sm wrap-anywhere">{lastClip}</code>
             </p>
           )}
-          <p className="devices-note">Entities: {groups.media.map(e => e.key).join(', ')}</p>
+          <p className="text-sm text-muted-foreground">
+            Entities: {groups.media.map(e => e.key).join(', ')}
+          </p>
         </section>
       )}
 
@@ -118,7 +120,7 @@ export function DevicePanelBody({
           <ScheduleRawJson device={d} entities={texts} />,
         )}
 
-      <div className="devices-settings">
+      <div className="flex flex-col">
         <EntityControlsSection device={d} title="Controls" entities={groups.controls} />
         <AiSection device={d} entities={groups.aiControls} pets={pets} />
         <CapabilitiesSection device={d} />
@@ -127,7 +129,7 @@ export function DevicePanelBody({
       </div>
 
       {groups.sensors.length > 0 && (
-        <section className="devices-stack" aria-label="State">
+        <section className="flex min-w-0 flex-col gap-2.5" aria-label="State">
           <BlockHeading title="State" aside="What this device is reporting now" />
           <EntityTable label={`${d.name} state`} sensors={groups.sensors} all={d.entities} />
           {section(
@@ -148,18 +150,18 @@ export function DevicePanelBody({
       {section(
         'diag',
         'Diagnostics and raw payloads',
-        <div className="devices-stack">
-          <span className="devices-label">Last HTTP state report</span>
+        <div className="flex min-w-0 flex-col gap-2.5">
+          <span className="text-sm font-medium">Last HTTP state report</span>
           <JsonBlock
             label="Last HTTP state report"
             value={d.diag.last_state_report ?? { note: 'none yet' }}
           />
-          <span className="devices-label">Last MQTT property post</span>
+          <span className="text-sm font-medium">Last MQTT property post</span>
           <JsonBlock
             label="Last MQTT property post"
             value={d.diag.last_property ?? { note: 'none yet' }}
           />
-          <span className="devices-label">MQTT connection</span>
+          <span className="text-sm font-medium">MQTT connection</span>
           <JsonBlock
             label="MQTT connection"
             value={
@@ -171,7 +173,7 @@ export function DevicePanelBody({
         </div>,
       )}
       {section('raw', 'Advanced: send a raw command', <RawCommand deviceId={d.id} />)}
-      <p className="devices-note">
+      <p className="text-sm text-muted-foreground">
         Firmware changes for this device are on the <Link to="/patchers">Patchers</Link> screen.
       </p>
       {section('danger', 'Remove device', <RemoveDevice device={d} />)}
@@ -182,9 +184,9 @@ export function DevicePanelBody({
 /** Entities this screen has no block for: a gap in ENTITY_SECTION, shown rather than hidden. */
 function Unrouted({ entities }: { entities: readonly DeviceEntity[] }) {
   return (
-    <section className="devices-stack" aria-label="Not shown above">
+    <section className="flex min-w-0 flex-col gap-2.5" aria-label="Not shown above">
       <BlockHeading title="Not shown above" />
-      <p className="devices-note">
+      <p className="text-sm text-muted-foreground">
         These entities are published to Home Assistant but this screen has no block for them. Please
         report it.
       </p>

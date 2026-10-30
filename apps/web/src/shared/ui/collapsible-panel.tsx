@@ -1,7 +1,7 @@
-import { useId, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Icon } from './icons';
 import { usePersistedState } from './persisted-state';
-import './collapsible-panel.css';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './shadcn/collapsible';
 
 /** Props for {@link CollapsiblePanel}. */
 export interface CollapsiblePanelProps {
@@ -25,28 +25,32 @@ export function CollapsiblePanel({
 }: CollapsiblePanelProps) {
   // Stored values come from localStorage and are validated here, not trusted.
   const [stored, setOpen] = usePersistedState<unknown>(storageKey, defaultOpen);
-  const bodyId = useId();
   const isOpen = typeof stored === 'boolean' ? stored : defaultOpen;
   return (
-    <section className="ui-collapsible">
-      <h2 className="ui-collapsible__heading">
-        <button
-          type="button"
-          className="ui-collapsible__toggle"
-          aria-expanded={isOpen}
-          aria-controls={bodyId}
-          onClick={() => {
-            setOpen(!isOpen);
-          }}
-        >
-          <span className="ui-collapsible__title">{title}</span>
-          {summary && <span className="ui-collapsible__summary">{summary}</span>}
-          <Icon name="chevron" size={16} className="ui-collapsible__chevron" />
-        </button>
+    <Collapsible
+      open={isOpen}
+      onOpenChange={setOpen}
+      render={<section />}
+      className="flex flex-col rounded-lg border border-border"
+    >
+      <h2 className="text-lg">
+        <CollapsibleTrigger className="group/trigger flex w-full items-baseline gap-2.5 rounded-lg border-0 bg-transparent p-5 text-left text-foreground">
+          <span className="max-w-full shrink-0 text-lg font-semibold">{title}</span>
+          {summary && (
+            <span className="min-w-0 truncate text-sm font-normal text-muted-foreground">
+              {summary}
+            </span>
+          )}
+          <Icon
+            name="chevron"
+            size={16}
+            className="ml-auto flex-none -rotate-90 self-center text-muted-foreground group-data-panel-open/trigger:rotate-0"
+          />
+        </CollapsibleTrigger>
       </h2>
-      <div id={bodyId} className="ui-collapsible__body" hidden={!isOpen}>
+      <CollapsibleContent keepMounted className="flex flex-col gap-4 px-5 pb-5">
         {children}
-      </div>
-    </section>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

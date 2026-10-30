@@ -26,15 +26,14 @@ function emptyText(listing: CaptureListing): string {
 export function CaptureFiles({ listing, selected, onSelect }: CaptureFilesProps) {
   const dir = listing.dir || '/data/capture';
   return (
-    <section className="capture-files" aria-labelledby="capture-files-title">
-      <h2 id="capture-files-title" className="capture-files__title">
-        Capture files
-      </h2>
+    <section className="flex min-w-0 flex-col gap-2" aria-labelledby="capture-files-title">
+      <h2 id="capture-files-title">Capture files</h2>
       {listing.files.length === 0 ? (
         <EmptyBlock>{emptyText(listing)}</EmptyBlock>
       ) : (
         <Table
           label="Capture files"
+          variant="dense"
           rows={listing.files}
           rowKey={f => f.name}
           selectedKey={selected}
@@ -46,7 +45,7 @@ export function CaptureFiles({ listing, selected, onSelect }: CaptureFilesProps)
               cell: f => (
                 <button
                   type="button"
-                  className="capture-pick"
+                  className="text-left font-mono text-sm wrap-anywhere hover:text-data aria-pressed:font-medium"
                   aria-pressed={f.name === selected}
                   onClick={() => {
                     onSelect(f.name);
@@ -61,11 +60,11 @@ export function CaptureFiles({ listing, selected, onSelect }: CaptureFilesProps)
           ]}
         />
       )}
-      <dl className="capture-facts">
+      <dl className="mt-2 grid grid-cols-[140px_minmax(0,1fr)] gap-x-4 gap-y-2.5 rounded-lg bg-raised p-4 text-sm [&_dt]:text-muted-foreground">
         <dt>Stored</dt>
         <dd>
-          On this server only, in <span className="capture-facts__path">{dir}</span>. Nothing is
-          uploaded.
+          On this server only, in <span className="font-mono text-xs wrap-anywhere">{dir}</span>.
+          Nothing is uploaded.
         </dd>
         <dt>Recording</dt>
         <dd>

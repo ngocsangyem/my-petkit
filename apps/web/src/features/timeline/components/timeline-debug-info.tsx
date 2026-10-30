@@ -1,9 +1,15 @@
 import { useState } from 'react';
+import { cn } from 'cn';
 import type { components } from '@/api/schema';
 import { errorMessage } from '@/shared/api/errors';
 import { Button, Skeleton } from '@/shared/ui';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/shared/ui/shadcn/collapsible';
+import { Table, TableBody, TableCell, TableRow } from '@/shared/ui/shadcn/table';
 import { useTimelineEvent } from '../api';
-import './timeline-debug-info.css';
 
 type EventDetail = components['schemas']['TimelineEventDetail'];
 type DecodedField = EventDetail['decoded'][number];
@@ -12,9 +18,41 @@ type DecodedField = EventDetail['decoded'][number];
  * A grade is the honest part of this panel: a value we confirmed, one inferred from captures,
  * one the firmware names but we never saw, or one passed through without understanding.
  */
+const GRADE_TONE = new Map([
+  ['confirmed', 'text-positive'],
+  ['inferred', 'text-chart-2'],
+  ['unverified', 'text-warning'],
+  ['conflicted', 'text-negative'],
+]);
+
 function Grade({ grade }: { grade: string | null | undefined }) {
   const g = grade || 'unknown';
-  return <span className={`tl-grade tl-grade--${g.replace(/[^a-z]/g, '')}`}>{g}</span>;
+  return (
+    <span className={cn('whitespace-nowrap', GRADE_TONE.get(g) ?? 'text-muted-foreground')}>
+      {g}
+    </span>
+  );
+}
+
+// Key-value rows: a 1px rule above each, no row hover, text allowed to wrap anywhere.
+const ROW = 'border-0 hover:bg-transparent';
+const CELL = 'border-t border-rule py-[3px] pr-1.5 pl-0 align-top whitespace-normal';
+const TABLE = 'text-xs wrap-anywhere';
+const HEADING = 'mt-1 text-sm font-semibold';
+const TRIGGER =
+  'cursor-pointer border-0 bg-transparent p-0 text-left focus-visible:outline-2 focus-visible:outline-ring';
+const PRE = 'mt-1.5 max-h-80 overflow-auto font-mono text-xs whitespace-pre-wrap wrap-anywhere';
+
+/** A collapsed raw JSON block. */
+function RawBlock({ title, value }: { title: string; value: unknown }) {
+  return (
+    <Collapsible>
+      <CollapsibleTrigger className={TRIGGER}>{title}</CollapsibleTrigger>
+      <CollapsibleContent>
+        <pre className={PRE}>{JSON.stringify(value, null, 2)}</pre>
+      </CollapsibleContent>
+    </Collapsible>
+  );
 }
 
 /**
@@ -54,95 +92,91 @@ function DetailBody({ d }: { d: EventDetail }) {
     ['Match score', e.score],
   ];
   return (
-    <div className="tl-dbg">
-      <h4>What this code means</h4>
+    <div className="flex flex-col gap-1.5 pt-2 text-foreground">
+      <h4 className={HEADING}>What this code means</h4>
       {c ? (
-        <table className="tl-dbg__table">
-          <tbody>
-            <tr>
-              <td>Means</td>
-              <td colSpan={2}>
-                <b>{c.label}</b>
-              </td>
-              <td>
+        <Table className={TABLE}>
+          <TableBody>
+            <TableRow className={ROW}>
+              <TableCell className={CELL}>Means</TableCell>
+              <TableCell className={CELL} colSpan={2}>
+                <b className="font-semibold">{c.label}</b>
+              </TableCell>
+              <TableCell className={CELL}>
                 <Grade grade={c.grade} />
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
             {c.firmware && (
-              <tr>
-                <td>Firmware</td>
-                <td colSpan={3}>
-                  <code>{c.firmware}</code>
-                </td>
-              </tr>
+              <TableRow className={ROW}>
+                <TableCell className={CELL}>Firmware</TableCell>
+                <TableCell className={CELL} colSpan={3}>
+                  <code className="font-mono text-xs">{c.firmware}</code>
+                </TableCell>
+              </TableRow>
             )}
             {c.note && (
-              <tr>
-                <td />
-                <td colSpan={3} className="tl-muted">
+              <TableRow className={ROW}>
+                <TableCell className={CELL} />
+                <TableCell className={cn(CELL, 'text-muted-foreground')} colSpan={3}>
                   {c.note}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       ) : (
-        <p className="tl-muted">This code is in no table yet; it reads as a bare "Event N".</p>
+        <p className="text-muted-foreground">
+          This code is in no table yet; it reads as a bare "Event N".
+        </p>
       )}
-      <h4>Decoded payload</h4>
+      <h4 className={HEADING}>Decoded payload</h4>
       {d.decoded.length ? (
-        <table className="tl-dbg__table">
-          <tbody>
+        <Table className={TABLE}>
+          <TableBody>
             {d.decoded.map(f => [
-              <tr key={f.key}>
-                <td>{f.label}</td>
-                <td>
-                  <b>{fieldText(f)}</b>
-                </td>
-                <td className="tl-muted">
-                  <code>{JSON.stringify(f.raw)}</code>
-                </td>
-                <td>
+              <TableRow className={ROW} key={f.key}>
+                <TableCell className={CELL}>{f.label}</TableCell>
+                <TableCell className={CELL}>
+                  <b className="font-semibold">{fieldText(f)}</b>
+                </TableCell>
+                <TableCell className={cn(CELL, 'text-muted-foreground')}>
+                  <code className="font-mono text-xs">{JSON.stringify(f.raw)}</code>
+                </TableCell>
+                <TableCell className={CELL}>
                   <Grade grade={f.grade} />
-                </td>
-              </tr>,
+                </TableCell>
+              </TableRow>,
               f.note ? (
-                <tr key={`${f.key}-note`}>
-                  <td />
-                  <td colSpan={3} className="tl-muted">
+                <TableRow className={ROW} key={`${f.key}-note`}>
+                  <TableCell className={CELL} />
+                  <TableCell className={cn(CELL, 'text-muted-foreground')} colSpan={3}>
                     {f.note}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : null,
             ])}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       ) : (
-        <p className="tl-muted">The device sent no content.</p>
+        <p className="text-muted-foreground">The device sent no content.</p>
       )}
-      <h4>Event record</h4>
-      <table className="tl-dbg__table">
-        <tbody>
+      <h4 className={HEADING}>Event record</h4>
+      <Table className={TABLE}>
+        <TableBody>
           {meta
             .filter(([, v]) => v !== null && v !== undefined && v !== '')
             .map(([k, v]) => (
-              <tr key={k}>
-                <td>{k}</td>
-                <td colSpan={3}>
-                  <code>{text(v)}</code>
-                </td>
-              </tr>
+              <TableRow className={ROW} key={k}>
+                <TableCell className={CELL}>{k}</TableCell>
+                <TableCell className={CELL} colSpan={3}>
+                  <code className="font-mono text-xs">{text(v)}</code>
+                </TableCell>
+              </TableRow>
             ))}
-        </tbody>
-      </table>
-      <details className="tl-dbg__raw">
-        <summary>Raw content JSON</summary>
-        <pre>{JSON.stringify(d.content, null, 2)}</pre>
-      </details>
-      <details className="tl-dbg__raw">
-        <summary>Raw state snapshot</summary>
-        <pre>{JSON.stringify(d.state, null, 2)}</pre>
-      </details>
+        </TableBody>
+      </Table>
+      <RawBlock title="Raw content JSON" value={d.content} />
+      <RawBlock title="Raw state snapshot" value={d.state} />
     </div>
   );
 }
@@ -151,16 +185,11 @@ function EventDebug({ id, title }: { id: number; title: string }) {
   const [open, setOpen] = useState(false);
   const q = useTimelineEvent(id, open);
   return (
-    <details
-      className="tl-dbg__event"
-      onToggle={e => {
-        setOpen(e.currentTarget.open);
-      }}
-    >
-      <summary>{title}</summary>
-      {open &&
-        (q.error ? (
-          <div className="tl-dbg__error" role="alert">
+    <Collapsible open={open} onOpenChange={setOpen} className="rounded-md bg-raised px-2.5 py-1.5">
+      <CollapsibleTrigger className={TRIGGER}>{title}</CollapsibleTrigger>
+      <CollapsibleContent>
+        {q.error ? (
+          <div className="flex flex-wrap items-center gap-2 pt-1.5 text-foreground" role="alert">
             <span>Could not load this event. {errorMessage(q.error)}</span>
             <Button variant="text" onClick={() => void q.refetch()}>
               Retry
@@ -170,8 +199,9 @@ function EventDebug({ id, title }: { id: number; title: string }) {
           <DetailBody d={q.data} />
         ) : (
           <Skeleton height={120} />
-        ))}
-    </details>
+        )}
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
@@ -184,13 +214,13 @@ export interface DebugEntry {
 export function TimelineDebugInfo({ entries }: { entries: readonly DebugEntry[] }) {
   if (!entries.length) return null;
   return (
-    <details className="tl-debug">
-      <summary>Debug info</summary>
-      <div className="tl-debug__list">
+    <Collapsible className="text-sm text-muted-foreground">
+      <CollapsibleTrigger className={TRIGGER}>Debug info</CollapsibleTrigger>
+      <CollapsibleContent className="flex flex-col gap-1.5 pt-1.5">
         {entries.map(e => (
           <EventDebug key={e.id} id={e.id} title={e.title} />
         ))}
-      </div>
-    </details>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

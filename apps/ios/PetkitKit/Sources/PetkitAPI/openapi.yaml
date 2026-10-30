@@ -4,8 +4,8 @@ openapi: 3.1.0
 info:
   title: my-petkit user-plane API
   version: 1.0.0
-  description: 'The HTTP API the panel, the web app and the iOS app use. The server code is the source
-    of truth; this document follows it, and `services/api/tests/test_contract_spec_paths_exist.py` checks
+  description: 'The HTTP API the web app and the iOS app use. The server code is the source of
+    truth; this document follows it, and `services/api/tests/test_contract_spec_paths_exist.py` checks
     that every operation here exists with the risk tier it claims.
 
 
@@ -27,7 +27,7 @@ info:
 
 
     Not described here: the WebSocket streams `/api/ws` (see `ws-events.md`) and `/api/devices/{id}/talk`,
-    and the static shell and assets.'
+    and the web app''s document and build files, served at `/`.'
   license:
     name: GPL-3.0-or-later
     identifier: GPL-3.0-or-later
@@ -4504,7 +4504,8 @@ components:
       properties:
         asset_version:
           type: string
-          description: Hash of the panel assets this process serves.
+          description: Always empty. It hashed the server-rendered panel's assets, which are
+            no longer served; kept so a client that requires it still decodes. Use `web_entry`.
         version:
           type: string
         web_entry:

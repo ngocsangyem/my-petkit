@@ -44,14 +44,17 @@ export function RangeList({ ranges, onChange, context }: RangeListProps) {
   if (!ranges.length) return <EmptyBlock action={add}>{SCHED_EMPTY}</EmptyBlock>;
 
   return (
-    <div className="sched-list">
+    <div className="flex min-w-0 flex-col gap-2">
       {ranges.map((pair, i) => {
         const allDay = isAllDay(pair);
         return (
-          <div className="sched-row" key={i}>
-            <div className="sched-row__values">
+          <div
+            className="flex min-h-(--pk-row-height-compact) flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg bg-raised px-3 py-2"
+            key={i}
+          >
+            <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
               {allDay ? (
-                <span className="sched-row__allday">All day</span>
+                <span className="font-semibold">All day</span>
               ) : (
                 <>
                   <TimeInput
@@ -61,7 +64,7 @@ export function RangeList({ ranges, onChange, context }: RangeListProps) {
                       set(i, 0, v);
                     }}
                   />
-                  <span className="sched-row__arrow" aria-hidden="true">
+                  <span className="text-sm text-muted-foreground" aria-hidden="true">
                     to
                   </span>
                   <TimeInput
@@ -71,11 +74,13 @@ export function RangeList({ ranges, onChange, context }: RangeListProps) {
                       set(i, 1, v);
                     }}
                   />
-                  {pair[1] < pair[0] && <span className="sched-row__note">next day</span>}
+                  {pair[1] < pair[0] && (
+                    <span className="text-sm text-muted-foreground">next day</span>
+                  )}
                 </>
               )}
             </div>
-            <div className="sched-row__actions">
+            <div className="flex items-center gap-1">
               <Button
                 variant="text"
                 size="small"

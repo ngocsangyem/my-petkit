@@ -26,7 +26,7 @@ export function PetNameEditor({ name, onDone }: PetNameEditorProps) {
 
   return (
     <TextInput
-      className="pets-name-input"
+      className="max-w-[260px] min-w-0 flex-1"
       aria-label="Pet name"
       defaultValue={name}
       autoFocus

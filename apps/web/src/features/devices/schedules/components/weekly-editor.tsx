@@ -33,11 +33,11 @@ export function WeeklyEditor({ value, onChange }: WeeklyEditorProps) {
     );
   };
   return (
-    <div className="sched-list">
+    <div className="flex min-w-0 flex-col gap-2">
       {value.map((entry, i) => (
-        <div className="sched-entry" key={i}>
-          <div className="sched-row">
-            <div className="sched-row__values">
+        <div className="flex flex-col gap-2 rounded-lg border border-border p-3" key={i}>
+          <div className="flex min-h-(--pk-row-height-compact) flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg bg-raised px-3 py-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
               <Switch
                 small
                 label="Enabled"
@@ -58,7 +58,7 @@ export function WeeklyEditor({ value, onChange }: WeeklyEditorProps) {
                 }}
               />
             </div>
-            <div className="sched-row__actions">
+            <div className="flex items-center gap-1">
               <Button
                 variant="destructive"
                 size="small"

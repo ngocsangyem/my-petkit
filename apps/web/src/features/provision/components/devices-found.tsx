@@ -1,5 +1,6 @@
 import { EmptyBlock } from '@/shared/ui';
 import type { FoundDevice } from '../hooks/use-provision-session';
+import { FIELDSET, LEGEND } from './provision-form';
 
 interface DevicesFoundProps {
   devices: readonly FoundDevice[];
@@ -15,18 +16,22 @@ interface DevicesFoundProps {
  */
 export function DevicesFound({ devices, selectedId, onSelect, disabled }: DevicesFoundProps) {
   return (
-    <fieldset className="provision-fieldset">
-      <legend className="provision-legend">Devices found</legend>
+    <fieldset className={FIELDSET}>
+      <legend className={LEGEND}>Devices found</legend>
       {devices.length === 0 ? (
         <EmptyBlock>
           No device chosen yet. Use Find device, then pick it from the browser’s list.
         </EmptyBlock>
       ) : (
-        <div className="provision-found">
+        <div className="flex flex-col">
           {devices.map(d => (
-            <label key={d.id} className="provision-found__row">
+            <label
+              key={d.id}
+              className="flex min-h-(--pk-row-height) cursor-pointer items-center gap-3 border-t border-rule py-1.5"
+            >
               <input
                 type="radio"
+                className="m-0 size-4 accent-data"
                 name="provision-found"
                 value={d.id}
                 checked={d.id === selectedId}
@@ -35,9 +40,11 @@ export function DevicesFound({ devices, selectedId, onSelect, disabled }: Device
                   onSelect(d.id);
                 }}
               />
-              <span className="provision-found__text">
-                <span className="provision-strong">{d.name}</span>
-                <span className="provision-found__id provision-mono">{d.id}</span>
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="font-medium">{d.name}</span>
+                <span className="font-mono text-xs wrap-anywhere text-muted-foreground">
+                  {d.id}
+                </span>
               </span>
             </label>
           ))}

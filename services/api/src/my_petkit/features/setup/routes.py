@@ -29,7 +29,7 @@ from my_petkit.utils.jsonio import atomic_write_json, read_json
 from my_petkit.shared.live_settings import LIVE_SETTINGS, _current_settings
 from my_petkit.shared.panel_request import MAX_EVENT_LIMIT, _json_body, _limit_param
 from my_petkit.shared.appkeys import (
-    CFG, PANEL_ASSET_VERSION, EVENT_STORE, HA_PUBLISHER, HUB, LIVE_CONFIG, REGISTRY, RETENTION_CONFIG,
+    CFG, EVENT_STORE, HA_PUBLISHER, HUB, LIVE_CONFIG, REGISTRY, RETENTION_CONFIG,
 )
 from my_petkit.shared.redact_client import redact_for_client
 from my_petkit.shared.request_auth import require_step_up
@@ -223,14 +223,11 @@ async def api_info(request: web.Request) -> web.Response:
     cert = cfg.get("cert_path", "")
     ha_pub = request.app.get(HA_PUBLISHER)
     return web.json_response({
-        # The hash of the assets THIS process would serve, so the panel can
-        # compare it with the one baked into the page it is running from. They
-        # are the same value from two different moments: `asset_version` in the
-        # markup came with the document, possibly out of a cache, while this
-        # one is answered live. A mismatch is the one failure the `version`
-        # below cannot see — a fresh server running behind a stale page.
-        # Set by `web/panel.py`, which renders the page this hash is stamped into.
-        "asset_version": request.app.get(PANEL_ASSET_VERSION, ""),
+        # Always empty: it hashed the server-rendered panel's assets, which are
+        # gone. Kept because the contract marks it required and a client
+        # generated from that contract fails to decode a reply without it;
+        # `web_entry` below answers the same question for the web app.
+        "asset_version": "",
         # The running version. First thing to check when a device reports the
         # entities of a release you thought you had replaced.
         "version": VERSION,

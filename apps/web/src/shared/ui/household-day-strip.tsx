@@ -1,6 +1,6 @@
 import { useId, type ReactNode } from 'react';
+import { cn } from 'cn';
 import { formatMinute, leftAt, spanAt } from './day-strip-geometry';
-import './household-day-strip.css';
 
 /** A litter-box visit by one pet, at minutes since the device's local midnight. */
 export interface DayStripVisit {
@@ -55,35 +55,110 @@ export interface HouseholdDayStripProps {
   nowMinute?: number | null;
   /** Label above the now line; defaults to HH:MM of `nowMinute`. */
   nowLabel?: string;
-  /** Lane height: 32 on the devices screen, 28 on the design sheet. */
-  laneHeight?: 28 | 32;
+  /**
+   * Lane height: 32 on the devices screen, 28 on the design sheet, 40 on the timeline, which also
+   * labels every third hour and rules each one across the lanes.
+   */
+  laneHeight?: 28 | 32 | 40;
   /** Accessible name, e.g. "Today at home, Tue 28 Oct". */
   label: string;
 }
+
+/** Identity ink per pet slot; `ui-pet-ink-<slot>` stays as a hook for tests. */
+const PET_INK = ['text-(--pk-pet-0-ink)', 'text-(--pk-pet-1-ink)'] as const;
+
+function petInk(index: number): string {
+  const slot = petSlot(index);
+  return cn(`ui-pet-ink-${slot}`, PET_INK[slot]);
+}
+
+/** Lane height, the offset and size of each mark (centred in the lane), the row gap, and the axis. */
+const LANE = {
+  40: {
+    lane: 'h-10',
+    visit: 'top-2.5 h-5',
+    meal: 'top-4',
+    band: 'top-3.5',
+    rowGap: 'gap-y-2',
+    hourStep: 3,
+  },
+  32: {
+    lane: 'h-8',
+    visit: 'top-2 h-4',
+    meal: 'top-3',
+    band: 'top-2.5',
+    rowGap: 'gap-y-1.5',
+    hourStep: 6,
+  },
+  28: {
+    lane: 'h-7',
+    visit: 'top-1.5 h-4',
+    meal: 'top-2.5',
+    band: 'top-2',
+    rowGap: 'gap-y-1.5',
+    hourStep: 6,
+  },
+} as const;
+
+type LaneGeometry = (typeof LANE)[keyof typeof LANE];
 
 /** `useId` output made safe inside an SVG `url(#…)` reference. */
 function svgSafeId(id: string): string {
   return `strip${id.replace(/[^a-zA-Z0-9_-]/g, '')}`;
 }
 
-const AXIS = [
-  { label: '00', minute: 0 },
-  { label: '06', minute: 360 },
-  { label: '12', minute: 720 },
-  { label: '18', minute: 1080 },
-  { label: '24', minute: 1440 },
-];
+/** Axis labels every `step` hours, 00 to 24. */
+function axisFor(step: number): { label: string; minute: number }[] {
+  const out = [];
+  for (let h = 0; h <= 24; h += step)
+    out.push({ label: String(h).padStart(2, '0'), minute: h * 60 });
+  return out;
+}
+
+/** 1px hour rules inside a lane, at every labelled hour except the two ends. */
+function HourRules({ step }: { step: number }) {
+  if (step >= 6) return null;
+  return axisFor(step)
+    .filter(a => a.minute > 0 && a.minute < 1440)
+    .map(a => (
+      <span
+        key={a.minute}
+        className="pointer-events-none absolute inset-y-0 w-px bg-border"
+        style={{ left: leftAt(a.minute) }}
+        aria-hidden="true"
+      />
+    ));
+}
 
 function NowLine({ minute }: { minute: number | null | undefined }) {
   if (minute === null || minute === undefined) return null;
-  return <span className="ui-strip__now" style={{ left: leftAt(minute) }} aria-hidden="true" />;
+  return (
+    <span
+      className="ui-strip__now pointer-events-none absolute inset-y-0 w-px bg-data"
+      style={{ left: leftAt(minute) }}
+      aria-hidden="true"
+    />
+  );
 }
 
 /** Hatch drawn as an SVG pattern (never a gradient). */
-function NoReportHatch({ span, patternId }: { span: DayStripSpan; patternId: string }) {
+function NoReportHatch({
+  span,
+  patternId,
+  top,
+}: {
+  span: DayStripSpan;
+  patternId: string;
+  top: string;
+}) {
   const geo = spanAt(span.start, span.end);
   return (
-    <svg className="ui-strip__hatch" style={geo} role="img" aria-label={span.title ?? 'No report'}>
+    <svg
+      className={cn('absolute h-3', top)}
+      style={geo}
+      role="img"
+      aria-label={span.title ?? 'No report'}
+    >
       {span.title && <title>{span.title}</title>}
       <defs>
         <pattern
@@ -93,7 +168,7 @@ function NoReportHatch({ span, patternId }: { span: DayStripSpan; patternId: str
           patternUnits="userSpaceOnUse"
           patternTransform="rotate(45)"
         >
-          <rect className="ui-strip__hatch-line" width="1" height="5" />
+          <rect className="fill-negative" width="1" height="5" />
         </pattern>
       </defs>
       <rect width="100%" height="100%" fill={`url(#${patternId})`} />
@@ -101,13 +176,25 @@ function NoReportHatch({ span, patternId }: { span: DayStripSpan; patternId: str
   );
 }
 
-function LaneMarks({ lane, patternId }: { lane: DayStripLane; patternId: string }) {
+function LaneMarks({
+  lane,
+  patternId,
+  geometry,
+}: {
+  lane: DayStripLane;
+  patternId: string;
+  geometry: LaneGeometry;
+}) {
   switch (lane.kind) {
     case 'pet':
       return lane.visits.map((v, i) => (
         <span
           key={`${v.minute}-${i}`}
-          className={`ui-strip__visit ui-pet-ink-${petSlot(lane.petIndex)}`}
+          className={cn(
+            'absolute w-[3px] rounded-[1px] bg-current',
+            geometry.visit,
+            petInk(lane.petIndex),
+          )}
           style={{ left: leftAt(v.minute) }}
           title={v.title}
           role="img"
@@ -118,7 +205,11 @@ function LaneMarks({ lane, patternId }: { lane: DayStripLane; patternId: string 
       return lane.meals.map((m, i) => (
         <span
           key={`${m.minute}-${i}`}
-          className={m.fed ? 'ui-strip__meal ui-strip__meal--fed' : 'ui-strip__meal'}
+          className={cn(
+            'absolute size-2 border-[1.5px] border-foreground',
+            geometry.meal,
+            m.fed ? 'ui-strip__meal--fed bg-foreground' : 'bg-background',
+          )}
           style={{ left: leftAt(m.minute) }}
           title={m.title}
           role="img"
@@ -130,14 +221,19 @@ function LaneMarks({ lane, patternId }: { lane: DayStripLane; patternId: string 
         s.state === 'reporting' ? (
           <span
             key={`${s.start}-${i}`}
-            className="ui-strip__band"
+            className={cn('absolute h-3 bg-(--pk-fountain-reporting)', geometry.band)}
             style={spanAt(s.start, s.end)}
             title={s.title}
             role="img"
             aria-label={s.title ?? `Reporting ${formatMinute(s.start)}–${formatMinute(s.end)}`}
           />
         ) : (
-          <NoReportHatch key={`${s.start}-${i}`} span={s} patternId={`${patternId}-${i}`} />
+          <NoReportHatch
+            key={`${s.start}-${i}`}
+            span={s}
+            patternId={`${patternId}-${i}`}
+            top={geometry.band}
+          />
         ),
       );
   }
@@ -157,45 +253,63 @@ export function HouseholdDayStrip({
 }: HouseholdDayStripProps) {
   const baseId = svgSafeId(useId());
   const hasNow = nowMinute !== null && nowMinute !== undefined;
+  const geometry = LANE[laneHeight];
   return (
     <div
-      className={laneHeight === 28 ? 'ui-strip ui-strip--compact' : 'ui-strip'}
+      className={cn(
+        'ui-strip grid grid-cols-[84px_minmax(0,1fr)] items-center gap-x-3 min-[901px]:grid-cols-[120px_minmax(0,1fr)]',
+        geometry.rowGap,
+      )}
       role="group"
       aria-label={label}
     >
       <span />
-      <div className="ui-strip__axis" aria-hidden="true">
-        {AXIS.map(a => (
+      <div className="relative h-[18px] text-xs text-muted-foreground" aria-hidden="true">
+        {axisFor(geometry.hourStep).map(a => (
           <span
             key={a.label}
-            className={`ui-strip__tick ui-strip__tick--${a.label}`}
+            className={cn(
+              'absolute top-0',
+              a.minute === 0 && 'left-0',
+              a.minute === 1440 && 'right-0',
+              a.minute > 0 && a.minute < 1440 && '-translate-x-1/2',
+            )}
             style={a.minute === 0 || a.minute === 1440 ? undefined : { left: leftAt(a.minute) }}
           >
             {a.label}
           </span>
         ))}
         {hasNow && (
-          <span className="ui-strip__now-label" style={{ left: leftAt(nowMinute) }}>
+          <span
+            className="ui-strip__now-label absolute top-0 -translate-x-1/2 bg-background px-1 font-semibold text-data"
+            style={{ left: leftAt(nowMinute) }}
+          >
             {nowLabel ?? formatMinute(nowMinute)}
           </span>
         )}
       </div>
       {lanes.map((lane, laneIndex) => (
-        <div className="ui-strip__row" key={`${lane.kind}-${lane.id}`}>
+        <div className="contents" key={`${lane.kind}-${lane.id}`}>
           <span
-            className={
-              lane.kind === 'pet' ? 'ui-strip__name ui-strip__name--pet' : 'ui-strip__name'
-            }
+            className={cn(
+              'min-w-0 truncate',
+              lane.kind === 'pet'
+                ? 'flex items-center gap-2 font-medium text-foreground [&_img]:size-6 [&_img]:flex-none [&_img]:rounded-full [&_img]:object-cover'
+                : 'text-muted-foreground',
+            )}
           >
             {lane.kind === 'pet' && lane.avatar}
             {lane.name}
           </span>
           <div
-            className={
-              lane.kind === 'fountain' ? 'ui-strip__lane ui-strip__lane--clip' : 'ui-strip__lane'
-            }
+            className={cn(
+              'relative rounded-sm bg-raised',
+              geometry.lane,
+              lane.kind === 'fountain' && 'overflow-hidden',
+            )}
           >
-            <LaneMarks lane={lane} patternId={`${baseId}-${laneIndex}`} />
+            <HourRules step={geometry.hourStep} />
+            <LaneMarks lane={lane} patternId={`${baseId}-${laneIndex}`} geometry={geometry} />
             <NowLine minute={nowMinute} />
           </div>
         </div>
@@ -208,21 +322,27 @@ export function HouseholdDayStrip({
 export function DayStripLegend() {
   const patternId = `${svgSafeId(useId())}-legend`;
   return (
-    <ul className="ui-strip-legend" aria-label="Legend">
+    <ul
+      className="m-0 flex list-none flex-wrap items-center gap-4 p-0 text-xs text-muted-foreground max-[901px]:hidden [&>li]:inline-flex [&>li]:items-center [&>li]:gap-1.5"
+      aria-label="Legend"
+    >
       <li>
-        <span className="ui-strip-legend__visit ui-pet-ink-0" aria-hidden="true" />
+        <span className={cn('h-3 w-[3px] bg-current', petInk(0))} aria-hidden="true" />
         Visit
       </li>
       <li>
-        <span className="ui-strip-legend__meal ui-strip__meal--fed" aria-hidden="true" />
+        <span
+          className="size-2 border-[1.5px] border-foreground bg-foreground"
+          aria-hidden="true"
+        />
         Meal fed
       </li>
       <li>
-        <span className="ui-strip-legend__meal" aria-hidden="true" />
+        <span className="size-2 border-[1.5px] border-foreground" aria-hidden="true" />
         Meal planned
       </li>
       <li>
-        <span className="ui-strip-legend__band" aria-hidden="true" />
+        <span className="h-2 w-3.5 bg-(--pk-fountain-reporting)" aria-hidden="true" />
         Reporting
       </li>
       <li>
@@ -235,7 +355,7 @@ export function DayStripLegend() {
               patternUnits="userSpaceOnUse"
               patternTransform="rotate(45)"
             >
-              <rect className="ui-strip__hatch-line" width="1" height="4" />
+              <rect className="fill-negative" width="1" height="4" />
             </pattern>
           </defs>
           <rect width="14" height="8" fill={`url(#${patternId})`} />

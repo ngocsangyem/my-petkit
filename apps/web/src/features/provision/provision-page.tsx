@@ -10,7 +10,6 @@ import { ProvisionProgress } from './components/provision-progress';
 import { SessionLog } from './components/session-log';
 import { useBluetoothEnvironment } from './hooks/use-bluetooth-environment';
 import { useProvisionSession } from './hooks/use-provision-session';
-import './provision.css';
 
 /** Provisioning over Web Bluetooth: Wi-Fi, this server's address and the time zone. */
 export function ProvisionPage() {
@@ -41,8 +40,8 @@ export function ProvisionPage() {
   };
 
   return (
-    <div className="provision-page">
-      <div className="provision-intro">
+    <div className="flex min-w-0 flex-col gap-6">
+      <div className="flex max-w-[760px] flex-col gap-1.5">
         <PageHeading
           title="Provision a device"
           aside="Sends Wi-Fi, this server’s address and the time zone over Bluetooth. No PetKit app involved."
@@ -54,7 +53,7 @@ export function ProvisionPage() {
         />
       </div>
       <EnvironmentNotice block={block} />
-      <div className="provision-columns">
+      <div className="grid grid-cols-1 items-start gap-8 min-[901px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <ProvisionForm
           values={values}
           onChange={patch => {
@@ -77,7 +76,7 @@ export function ProvisionPage() {
           }}
           onSend={send}
         />
-        <div className="provision-side">
+        <div className="flex min-w-0 flex-col gap-6">
           <DevicesFound
             devices={session.found}
             selectedId={session.selectedId}
