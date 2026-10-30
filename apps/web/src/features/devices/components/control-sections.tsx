@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { components } from '@/api/schema';
 import { SettingsRow, SettingsSection, Switch } from '@/shared/ui';
 import { type DeviceDetail, type PetWithFaces, deviceKeys } from '../api';
@@ -17,14 +18,17 @@ export function EntityControlsSection({
   title,
   description,
   entities,
+  children,
 }: {
   device: DeviceDetail;
   title: string;
   description?: string;
   entities: readonly DeviceEntity[];
+  /** Rows after the entity controls (Sounds, the camera's pan). */
+  children?: ReactNode;
 }) {
   const call = useDeviceCall();
-  if (!entities.length) return null;
+  if (!entities.length && !children) return null;
   return (
     <SettingsSection title={title} description={description}>
       {entities.map(e => (
@@ -36,6 +40,7 @@ export function EntityControlsSection({
           onSet={value => call.run(() => setEntity(device.id, e.key, value), refreshFor(device.id))}
         />
       ))}
+      {children}
       <FeedbackLine feedback={call.feedback} />
     </SettingsSection>
   );

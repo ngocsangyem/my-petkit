@@ -1,7 +1,7 @@
 import type { QueryKey } from '@tanstack/react-query';
 import { type ReactNode, useState } from 'react';
-import { Button, ConfirmDialog } from '@/shared/ui';
-import { useDeviceCall } from '../hooks/use-device-call';
+import { ConfirmDialog, type IconName, QuickAction } from '@/shared/ui';
+import { type Feedback, useDeviceCall } from '../hooks/use-device-call';
 import { FeedbackLine } from './panel-parts';
 
 /** One command button. */
@@ -13,42 +13,49 @@ export interface Command {
   run: () => Promise<string>;
 }
 
-interface CommandListProps {
-  commands: readonly Command[];
-  /** "Litter box", for the confirm sheet's question. */
+/** The icon above a command's label, by the words in its key; a plain arrow otherwise. */
+export function commandIcon(key: string): IconName {
+  const k = key.toLowerCase();
+  if (k.includes('clean') && !k.includes('cancel')) return 'clean';
+  if (k.includes('pack') || k.includes('bag')) return 'bag';
+  if (k.includes('level')) return 'level';
+  if (k.includes('deodor') || k.includes('spray') || k.includes('odor')) return 'leaf';
+  if (k.includes('light')) return 'light';
+  if (k.includes('dump') || k.includes('empty')) return 'trash';
+  if (k.includes('water') || k.includes('refill') || k.includes('drain')) return 'drop';
+  if (k.includes('feed') || k.includes('food')) return 'plus';
+  if (k.includes('cancel') || k.includes('stop') || k.includes('pause')) return 'pause';
+  if (k.includes('reset')) return 'refresh';
+  if (k.includes('sound') || k.includes('play')) return 'play';
+  if (k.includes('reboot') || k.includes('restart')) return 'refresh';
+  return 'forward';
+}
+
+interface CommandsOptions {
+  /** "litter box", for the confirm's question. */
   target: string;
-  /** What happens on the wire, said in the confirm sheet. */
+  /** What happens on the wire, said in the confirm. */
   route: string;
   refresh: readonly QueryKey[];
-  /** Commands that need no confirmation (a read request, not a command). */
-  extra?: ReactNode;
+}
+
+/** What a page needs to run commands: one confirm, one busy flag, one answer line. */
+export interface CommandRunner {
+  ask: (command: Command) => void;
+  busy: boolean;
+  feedback: Feedback | null;
+  /** The confirm dialog; render it once. */
+  dialog: ReactNode;
 }
 
 /**
- * Device commands (R2): secondary buttons, destructive ones in a group of their
- * own after the rest, and each asks before it runs. Destructive commands are not
- * red: the design allows red once per object, and a panel can carry several of
- * them (dump litter, reset a consumable); the group label and the confirm sheet
- * say what they do. The confirm sheet's title is a question and its body says
- * what moves and how it gets there.
+ * Device commands (R2). Every command asks before it runs, wherever its button sits (a quick
+ * action, the page header, the live view's bar). The confirm's title is a question and its body
+ * says what moves and how it gets there.
  */
-export function CommandList({ commands, target, route, refresh, extra }: CommandListProps) {
+export function useCommands({ target, route, refresh }: CommandsOptions): CommandRunner {
   const call = useDeviceCall();
   const [asking, setAsking] = useState<Command | null>(null);
-  const routine = commands.filter(cmd => !cmd.destructive);
-  const destructive = commands.filter(cmd => cmd.destructive);
-  const button = (cmd: Command) => (
-    <Button
-      key={cmd.key}
-      variant="secondary"
-      disabled={call.busy}
-      onClick={() => {
-        setAsking(cmd);
-      }}
-    >
-      {cmd.name}
-    </Button>
-  );
 
   const confirm = async () => {
     const cmd = asking;
@@ -57,35 +64,71 @@ export function CommandList({ commands, target, route, refresh, extra }: Command
     setAsking(null);
   };
 
+  const dialog = (
+    <ConfirmDialog
+      open={asking !== null}
+      title={`${asking?.name ?? ''} on the ${target}?`}
+      confirmLabel={asking?.name ?? 'Send'}
+      busy={call.busy}
+      onConfirm={() => void confirm()}
+      onCancel={() => {
+        setAsking(null);
+      }}
+    >
+      <p>
+        This sends “{asking?.name}” to the {target}. {route}
+      </p>
+      {asking?.destructive && <p>The device acts on it at once and it cannot be called back.</p>}
+    </ConfirmDialog>
+  );
+  return { ask: setAsking, busy: call.busy, feedback: call.feedback, dialog };
+}
+
+interface CommandListProps {
+  commands: readonly Command[];
+  runner: CommandRunner;
+  /** A button that needs no confirmation (a read request, not a command), first in the grid. */
+  extra?: ReactNode;
+  /** The muted line under the grid; defaults to "Each command asks before it runs." */
+  note?: string;
+}
+
+/**
+ * The quick-action grid of a device: routine commands as icon-over-label buttons, destructive ones
+ * in a labelled group of their own after the rest. Destructive commands are not red: red is once
+ * per object, and the group label and the confirm say what they do.
+ */
+export function CommandList({ commands, runner, extra, note }: CommandListProps) {
+  const routine = commands.filter(cmd => !cmd.destructive);
+  const destructive = commands.filter(cmd => cmd.destructive);
+  const button = (cmd: Command) => (
+    <QuickAction
+      key={cmd.key}
+      icon={commandIcon(cmd.key)}
+      label={cmd.name}
+      disabled={runner.busy}
+      onClick={() => {
+        runner.ask(cmd);
+      }}
+    />
+  );
+  const grid = 'grid grid-cols-[repeat(auto-fill,minmax(124px,1fr))] gap-2';
   return (
-    <div className="flex min-w-0 flex-col gap-2.5">
-      <div className="flex flex-wrap items-center gap-2">
-        {extra}
-        {routine.map(button)}
-      </div>
+    <section className="flex min-w-0 flex-col gap-2.5" aria-label="Commands">
+      {(extra || routine.length > 0) && (
+        <div className={grid}>
+          {extra}
+          {routine.map(button)}
+        </div>
+      )}
       {destructive.length > 0 && (
         <div className="grid gap-1.5" role="group" aria-label="Cannot be undone">
           <span className="text-sm text-muted-foreground">Cannot be undone</span>
-          <div className="flex flex-wrap items-center gap-2">{destructive.map(button)}</div>
+          <div className={grid}>{destructive.map(button)}</div>
         </div>
       )}
-      <p className="text-xs text-muted-foreground">Each command asks before it runs.</p>
-      <FeedbackLine feedback={call.feedback} />
-      <ConfirmDialog
-        open={asking !== null}
-        title={`${asking?.name ?? ''} on the ${target}?`}
-        confirmLabel={asking?.name ?? 'Send'}
-        busy={call.busy}
-        onConfirm={() => void confirm()}
-        onCancel={() => {
-          setAsking(null);
-        }}
-      >
-        <p>
-          This sends “{asking?.name}” to the {target}. {route}
-        </p>
-        {asking?.destructive && <p>The device acts on it at once and it cannot be called back.</p>}
-      </ConfirmDialog>
-    </div>
+      <p className="text-xs text-muted-foreground">{note ?? 'Each command asks before it runs.'}</p>
+      <FeedbackLine feedback={runner.feedback} />
+    </section>
   );
 }

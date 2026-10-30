@@ -24,53 +24,6 @@ export function FeedbackLine({ feedback }: { feedback: Feedback | null }) {
   );
 }
 
-interface PanelFrameProps {
-  /** Anchor id, so the device list can link to the panel. */
-  id: string;
-  title: string;
-  /** Kept visible while collapsed: status, model, last report. */
-  summary: ReactNode;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  /** Rendered only while open: a collapsed panel costs no DOM and no refresh. */
-  children: () => ReactNode;
-}
-
-/**
- * One collapsible device panel: a bordered card whose header keeps the status
- * line visible. The body is rendered only while open; a collapsed body must not
- * exist at all, so it never fetches or re-renders in the background.
- */
-export function PanelFrame({ id, title, summary, open, onOpenChange, children }: PanelFrameProps) {
-  return (
-    <Collapsible
-      render={<section />}
-      id={id}
-      aria-label={title}
-      open={open}
-      onOpenChange={onOpenChange}
-      className="flex scroll-mt-4 flex-col rounded-lg border border-border bg-card"
-    >
-      <h2 className="text-lg">
-        <CollapsibleTrigger className="group/panel flex w-full items-baseline gap-2.5 rounded-lg p-5 text-left text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-          <span className="max-w-full shrink-0 text-lg font-semibold">{title}</span>
-          <span className="ml-auto min-w-0 truncate text-sm font-normal text-muted-foreground">
-            {summary}
-          </span>
-          <Icon
-            name="chevron"
-            size={16}
-            className="flex-none -rotate-90 self-center text-muted-foreground group-aria-expanded/panel:rotate-0"
-          />
-        </CollapsibleTrigger>
-      </h2>
-      <CollapsibleContent className="flex flex-col gap-4 px-5 pb-5">
-        {open && children()}
-      </CollapsibleContent>
-    </Collapsible>
-  );
-}
-
 interface DisclosureProps {
   summary: string;
   open: boolean;
@@ -88,9 +41,18 @@ export function Disclosure({ summary, open, onOpenChange, children }: Disclosure
 }
 
 /** The trigger and body of a disclosure, inside a `Collapsible` root (controlled or not). */
-export function DisclosureFrame({ summary, children }: { summary: string; children: ReactNode }) {
+export function DisclosureFrame({
+  summary,
+  children,
+  plain,
+}: {
+  summary: string;
+  children: ReactNode;
+  /** No rule above it, e.g. as the first thing on a panel. */
+  plain?: boolean;
+}) {
   return (
-    <div className="border-t border-rule pt-3">
+    <div className={plain ? undefined : 'border-t border-rule pt-3'}>
       <CollapsibleTrigger className="group/disclosure inline-flex items-center gap-1.5 rounded-md font-medium text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
         <Icon
           name="chevron"

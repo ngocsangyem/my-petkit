@@ -1,17 +1,21 @@
+import { useId } from 'react';
 import { formatEntityValue } from '@/shared/format/format';
-import { FigureContainer, type FigureCell, RatioBar } from '@/shared/ui';
+import { Card, type FigureCell, RatioBar } from '@/shared/ui';
 import type { DeviceDetail } from '../api';
-import { CONSUMABLES, CONSUMABLE_WARN_DAYS, FIGURES, deviceFamily } from '../lib/device-family';
+import {
+  CONSUMABLE_SCALE_DAYS,
+  CONSUMABLES,
+  CONSUMABLE_WARN_DAYS,
+  FIGURES,
+  deviceFamily,
+} from '../lib/device-family';
 import { binaryOn, entityLike, findEntity, numericValue } from '../lib/entity-sections';
 
-interface ModelBlockProps {
-  device: DeviceDetail;
-  /** Litter-box visits today in the device's own day; null when not known. */
-  visitsToday: number | null;
-}
-
-/** The figure cells this model publishes, in the family's order. */
-function figureCells(device: DeviceDetail, visitsToday: number | null): FigureCell[] {
+/**
+ * The figure cells this model publishes, in the family's order. Only figures whose entity the
+ * device actually publishes are drawn, so a model with fewer sensors gets fewer cells.
+ */
+export function figureCells(device: DeviceDetail, visitsToday: number | null): FigureCell[] {
   const family = deviceFamily(device.type);
   const cells: FigureCell[] = [];
   for (const spec of FIGURES[family]) {
@@ -42,49 +46,69 @@ function figureCells(device: DeviceDetail, visitsToday: number | null): FigureCe
   return cells;
 }
 
+const daysText = (days: number) =>
+  days <= 0 ? 'Used up' : `${days} ${days === 1 ? 'day' : 'days'}`;
+
+/** True when the device publishes any consumable this card shows. */
+export function hasConsumables(device: DeviceDetail): boolean {
+  return (
+    CONSUMABLES.some(c => numericValue(findEntity(device.entities, c.key)) !== null) ||
+    numericValue(findEntity(device.entities, 'filter_percent')) !== null
+  );
+}
+
 /**
- * The top of a device panel, laid out like the design's litter-box block and
- * reused for every model with its own entities: a figure container, then the
- * consumables. Only what the model publishes is drawn.
+ * Consumables: each one's name and days left over a bar against a month; running low turns the
+ * figure and the bar to the warning colour. The filter's percentage gets a bar of its own.
  */
-export function ModelBlock({ device, visitsToday }: ModelBlockProps) {
-  const cells = figureCells(device, visitsToday);
+export function ConsumablesCard({ device }: { device: DeviceDetail }) {
+  const headingId = useId();
   const filter = numericValue(findEntity(device.entities, 'filter_percent'));
   const consumables = CONSUMABLES.flatMap(c => {
     const days = numericValue(findEntity(device.entities, c.key));
     return days === null ? [] : [{ ...c, days }];
   });
-  if (!cells.length && !consumables.length) return null;
+  if (!consumables.length && filter === null) return null;
   return (
-    <div className="flex min-w-0 flex-col gap-2.5">
-      {cells.length > 0 && <FigureContainer label={`${device.name} figures`} cells={cells} />}
-      {(consumables.length > 0 || filter !== null) && (
-        <ul className="m-0 flex list-none flex-col p-0" aria-label="Consumables">
-          {consumables.map(c => {
-            const low = c.days <= CONSUMABLE_WARN_DAYS;
-            return (
-              <li key={c.key} className="flex justify-between gap-4 border-b border-rule py-2">
+    <Card as="section" aria-labelledby={headingId} className="flex flex-col gap-3">
+      <h2 id={headingId}>Consumables</h2>
+      <ul className="m-0 flex list-none flex-col gap-3.5 p-0" aria-label="Consumables">
+        {consumables.map(c => {
+          const low = c.days <= CONSUMABLE_WARN_DAYS;
+          return (
+            <li key={c.key} className="flex flex-col gap-1.5">
+              <span className="flex justify-between gap-4">
                 <span>{c.label}</span>
-                <span className={low ? 'text-warning' : undefined}>
-                  {c.days <= 0 ? 'Used up' : `${c.days} ${c.days === 1 ? 'day' : 'days'}`}
+                <span className={low ? 'font-semibold text-warning' : undefined}>
+                  {daysText(c.days)}
                 </span>
-              </li>
-            );
-          })}
-          {filter !== null && (
-            <li className="py-2">
+              </span>
               <RatioBar
-                name="Filter left"
-                value={filter}
-                max={100}
-                tone={filter <= 10 ? 'warning' : 'accent'}
-                label={`${filter} %`}
-                ariaLabel="Filter remaining"
+                value={Math.max(0, c.days)}
+                max={CONSUMABLE_SCALE_DAYS}
+                tone={low ? 'warning' : 'accent'}
+                ariaLabel={`${c.label} remaining`}
               />
             </li>
-          )}
-        </ul>
-      )}
-    </div>
+          );
+        })}
+        {filter !== null && (
+          <li className="flex flex-col gap-1.5">
+            <span className="flex justify-between gap-4">
+              <span>Filter left</span>
+              <span className={filter <= 10 ? 'font-semibold text-warning' : undefined}>
+                {filter} %
+              </span>
+            </span>
+            <RatioBar
+              value={filter}
+              max={100}
+              tone={filter <= 10 ? 'warning' : 'accent'}
+              ariaLabel="Filter remaining"
+            />
+          </li>
+        )}
+      </ul>
+    </Card>
   );
 }
