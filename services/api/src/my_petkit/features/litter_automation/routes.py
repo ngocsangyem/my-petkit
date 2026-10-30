@@ -140,7 +140,7 @@ async def api_auto_pack(request: web.Request) -> web.Response:
     log.info(
         "auto_pack_rule device=%d enabled=%s trigger=%s",
         device.petkit_id,
-        rule["enabled"],
-        rule["trigger"],
+        one_line(rule["enabled"]),
+        one_line(rule["trigger"]),
     )
     return web.json_response({"rule": rule, "status": status})
