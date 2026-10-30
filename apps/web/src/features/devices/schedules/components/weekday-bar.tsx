@@ -42,7 +42,7 @@ export function WeekdayBar({ days, onChange, label }: WeekdayBarProps) {
           role="checkbox"
           aria-label={name}
           aria-checked={on.has(i + 1)}
-          className="px-2 text-muted-foreground aria-pressed:font-semibold aria-pressed:text-foreground"
+          className="px-2 text-muted-foreground aria-pressed:font-semibold aria-pressed:text-primary-foreground"
         >
           {name}
         </ToggleGroupItem>

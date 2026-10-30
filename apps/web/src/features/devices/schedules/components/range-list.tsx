@@ -44,12 +44,12 @@ export function RangeList({ ranges, onChange, context }: RangeListProps) {
   if (!ranges.length) return <EmptyBlock action={add}>{SCHED_EMPTY}</EmptyBlock>;
 
   return (
-    <div className="flex min-w-0 flex-col gap-2">
+    <div className="flex min-w-0 flex-col">
       {ranges.map((pair, i) => {
         const allDay = isAllDay(pair);
         return (
           <div
-            className="flex min-h-(--pk-row-height-compact) flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg bg-raised px-3 py-2"
+            className="flex min-h-13 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-rule py-2 first:border-t-0"
             key={i}
           >
             <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">

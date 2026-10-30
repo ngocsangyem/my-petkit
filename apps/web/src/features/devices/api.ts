@@ -22,6 +22,7 @@ export const deviceKeys = {
   timelineDay: (date: string) => ['devices', 'timeline', date] as const,
   pets: ['devices', 'pets'] as const,
   sounds: (id: number) => ['devices', 'sounds', id] as const,
+  blocked: ['devices', 'blocked'] as const,
 };
 
 /** `GET /api/devices`: a bare array of summaries. */
@@ -92,5 +93,16 @@ export function useSounds(id: number, enabled: boolean) {
     queryFn: async () =>
       (await unwrap(api.GET('/api/devices/{id}/sounds', { params: { path: { id } } }))).sounds,
     enabled,
+  });
+}
+
+/**
+ * `GET /api/blocked`: what the real cloud tried and was refused, newest first. Home counts this
+ * week's attempts for its "Needs you" card; the records themselves stay on Settings.
+ */
+export function useBlockedAttempts() {
+  return useQuery({
+    queryKey: deviceKeys.blocked,
+    queryFn: async () => (await unwrap(api.GET('/api/blocked'))).records,
   });
 }

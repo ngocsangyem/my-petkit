@@ -55,15 +55,16 @@ export const FIGURES: Readonly<Record<DeviceFamily, readonly FigureSpec[]>> = {
   litter: [
     { key: 'package_count', label: 'Bags left' },
     { key: 'litter_percent', label: 'Litter level' },
-    { key: 'waste_bin', label: 'Bin', binary: ['Not full', 'Full'] },
+    { key: 'waste_bin', label: 'Waste bin', binary: ['Not full', 'Full'] },
   ],
   feeder: [
-    { key: 'total_dispensed', label: 'Fed today' },
-    { key: 'amount_eaten', label: 'Eaten today' },
     { key: 'food_in_bowl', label: 'In the bowl' },
+    { key: 'amount_eaten', label: 'Eaten today' },
+    { key: 'total_dispensed', label: 'Fed today' },
     { key: 'food_low', label: 'Hopper', binary: ['Has food', 'Low'] },
   ],
   fountain: [
+    { key: 'water_level', label: 'Water' },
     { key: 'filter_percent', label: 'Filter' },
     { key: 'drink_times', label: 'Drinks today' },
     { key: 'temperature', label: 'Water' },
@@ -86,6 +87,9 @@ export const CONSUMABLES: readonly ConsumableSpec[] = [
   { key: 'desiccant_days', label: 'Desiccant' },
   { key: 'filter_days', label: 'Filter' },
 ];
+
+/** A days-left bar is drawn against this many days: a fresh refill reads as full. */
+export const CONSUMABLE_SCALE_DAYS = 30;
 
 /** At or under this many days a consumable "needs you". */
 export const CONSUMABLE_WARN_DAYS = 7;

@@ -48,7 +48,7 @@ export function DeferredFeedForm({ deviceId, dual, offset }: DeferredFeedFormPro
 
   return (
     <form
-      className="flex flex-col gap-2 rounded-lg border border-border p-3"
+      className="flex flex-col gap-2 rounded-md bg-raised px-4 py-3 [--pk-fill-field:var(--pk-surface)] [--pk-fill-secondary:var(--pk-surface)]"
       aria-label="Schedule a one-off feed"
       onSubmit={e => {
         e.preventDefault();
