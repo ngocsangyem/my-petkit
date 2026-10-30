@@ -57,7 +57,10 @@ export interface PageHeaderProps {
   aside?: ReactNode;
   /** The one finding sentence under the title; lead with a {@link StatusWord} when it is news. */
   finding?: ReactNode;
-  /** Actions on the right (at most one primary); they wrap under the title on a phone. */
+  /**
+   * Actions on the right (at most one primary). From 900px they stay on the right and the finding
+   * wraps beside them; under 900px they wrap under the title.
+   */
   actions?: ReactNode;
 }
 
@@ -75,8 +78,8 @@ export function PageHeader({
   actions,
 }: PageHeaderProps) {
   return (
-    <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
-      <div className="flex min-w-0 flex-col gap-1.5">
+    <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 min-[900px]:flex-nowrap">
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         {back && (
           <Link
             to={back.to}
@@ -95,7 +98,9 @@ export function PageHeader({
         {finding && <p className="max-w-[760px] text-md text-lede">{finding}</p>}
       </div>
       {actions && (
-        <div className="flex flex-wrap items-center gap-2 max-[900px]:w-full">{actions}</div>
+        <div className="flex flex-wrap items-center gap-2 max-[900px]:w-full min-[900px]:max-w-[60%] min-[900px]:justify-end">
+          {actions}
+        </div>
       )}
     </header>
   );
