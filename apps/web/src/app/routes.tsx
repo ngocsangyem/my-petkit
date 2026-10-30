@@ -46,17 +46,22 @@ export const router = createHashRouter([
       },
       {
         path: SCREENS.setup.path,
-        // The setup screen also carries the client tokens (pairing the iOS app).
+        // Settings: the server setup, the client tokens (pairing the iOS app), then this
+        // browser's appearance and the account.
         lazy: async () => {
-          const [{ SetupPage }, { TokensSection }] = await Promise.all([
-            import('@/features/setup'),
-            import('@/features/tokens'),
-          ]);
+          const [{ SetupPage }, { TokensSection }, { AppearanceSection, AccountSection }] =
+            await Promise.all([
+              import('@/features/setup'),
+              import('@/features/tokens'),
+              import('./settings-appearance-and-account'),
+            ]);
           return {
             Component: () => (
               <>
                 <SetupPage />
                 <TokensSection />
+                <AppearanceSection />
+                <AccountSection />
               </>
             ),
           };

@@ -8,9 +8,14 @@ const NAV: readonly ShellNavGroup[] = [
     id: 'home',
     ariaLabel: 'Home',
     items: [
-      { to: '/devices', label: 'Devices', icon: 'devices' },
+      { to: '/devices', label: 'Home', icon: 'home' },
       { to: '/timeline', label: 'Timeline', icon: 'timeline' },
     ],
+  },
+  {
+    id: 'server',
+    label: 'Server',
+    items: [{ to: '/setup', label: 'Settings', icon: 'settings' }],
   },
   {
     id: 'advanced',
@@ -28,7 +33,6 @@ function renderShell() {
         liveState="live"
         serverLabel="192.168.1.20:8443"
         badge="TLS"
-        pageTitle="Devices"
       >
         <p>the page</p>
       </AppShell>
@@ -40,7 +44,7 @@ describe('AppShell', () => {
   it('names each nav group and marks the current page', () => {
     renderShell();
     const home = screen.getByRole('navigation', { name: 'Home' });
-    expect(within(home).getByRole('link', { name: 'Devices' })).toHaveAttribute(
+    expect(within(home).getByRole('link', { name: 'Home' })).toHaveAttribute(
       'aria-current',
       'page',
     );
@@ -51,7 +55,16 @@ describe('AppShell', () => {
       screen.getByRole('navigation', { name: 'Advanced · needs step-up' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('main')).toHaveTextContent('the page');
-    expect(screen.getByText('192.168.1.20:8443')).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'Server' })).toBeInTheDocument();
+  });
+
+  it('shows the live state, the server address and the connection in the sidebar foot', () => {
+    renderShell();
+    const sidebar = screen.getByRole('complementary', { name: 'Main menu' });
+    expect(within(sidebar).getByRole('status')).toHaveTextContent('Live');
+    expect(within(sidebar).getByText('192.168.1.20:8443')).toBeInTheDocument();
+    expect(within(sidebar).getByText('TLS')).toBeInTheDocument();
+    expect(within(sidebar).getByText('Home server · v2.1.0')).toBeInTheDocument();
   });
 
   it('opens the phone menu as a modal sheet and closes it after a link is followed', async () => {

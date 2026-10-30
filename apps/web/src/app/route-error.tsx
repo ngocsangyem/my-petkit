@@ -13,18 +13,20 @@ export function RouteError() {
   const message = errorMessage(error);
   if (STALE_CHUNK.test(message)) {
     return (
-      <>
-        <PageHeading title="This page is out of date" />
-        <p>The server has a newer version of the app. Reload to open this screen.</p>
-        <Button
-          variant="primary"
-          onClick={() => {
-            window.location.reload();
-          }}
-        >
-          Reload
-        </Button>
-      </>
+      <PageHeading
+        title="This page is out of date"
+        finding="The server has a newer version of the app. Reload to open this screen."
+        actions={
+          <Button
+            variant="primary"
+            onClick={() => {
+              window.location.reload();
+            }}
+          >
+            Reload
+          </Button>
+        }
+      />
     );
   }
   return (

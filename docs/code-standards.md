@@ -57,13 +57,14 @@ Why the protocol core is kept as-is:
 - **UI**: follows `design/design-reference.md` (in the repo: `docs/design/`).
   - Color, type and spacing tokens are declared only once: `apps/web/src/shared/ui/tokens.css` and `PetkitCore/Theme/`.
   - Shared components go in `src/shared/ui/` and `MyPetkit/Shared/`.
-  - Each screen is built from the artboard listed in the table in §4.
-  - The hard rules in §6 block at review.
+  - The web follows **§8 (Web v3)**, which supersedes the web rows of §2–§6: the frame, controls, overlays and rules are in §8.1–§8.2, the screen-to-artboard map in §8.3, dark mode in §8.4. iOS follows §7. Each screen is built from the artboard listed in its screen map.
+  - The hard rules in §6, as relaxed by §7.3 and §8.2 (radius-20 cards, pill controls, shadows on dialogs and sheets only, the dark caption pill over photos), block at review.
 - **Web components are shadcn/ui on Base UI, styled with Tailwind v4.**
   - The CLI copies components into `apps/web/src/shared/ui/shadcn/` (`components.json`); they are our code. Call the CLI at a pinned version (`pnpm dlx shadcn@<x.y.z> add <name>`), never `@latest`, and never re-`add` a component that exists: compare with `shadcn diff` and edit by hand.
-  - After every `add`, edit the file for the design: radius, the accent focus outline instead of a ring, no resting shadow, theme colours only. Note the edit in a comment at the top. `scripts/check-design-rules.mjs` (part of `pnpm lint`) rejects resting shadows, letter-spacing, uppercase, blur, gradients and Tailwind palette colours.
-  - `src/shared/ui/*.tsx` wraps them with the props screens use (`Button`, `Pill`, `ConfirmDialog`, `Tabs`, form controls, `useToast`); prefer the wrapper.
-  - `src/shared/ui/theme.css` maps shadcn's variables onto the `--pk-` tokens. The type scale uses Tailwind's size names (`text-xs` 12 to `text-3xl` 28) so class merging reads them as sizes.
+  - After every `add`, edit the file for the design: radius, the accent focus outline instead of a ring, no resting shadow, theme colours only. Note the edit in a comment at the top. `scripts/check-design-rules.mjs` (part of `pnpm lint`) rejects resting shadows (only overlay files may use `shadow-overlay` / `shadow-sheet`), letter-spacing, uppercase, blur, gradients, emoji and Tailwind palette colours, in classes and in plain CSS.
+  - `src/shared/ui/*.tsx` wraps them with the props screens use (`Card`, `Panel`, `PageHeader`, `Button`, `Chip`, `Segmented`, `Stepper`, `Pill`, `ConfirmDialog`, state blocks, the device drawings in `device-drawings/`, form controls, `useToast`); prefer the wrapper.
+  - Radii use Tailwind's size names so `cn` can merge them: `rounded-sm` 8, `rounded-md` 14 (fields, inner panels), `rounded-lg` 16, `rounded-xl` 20 (cards), `rounded-2xl` 24 (dialogs, sheets), `rounded-full` for controls.
+  - `src/shared/ui/theme.css` maps shadcn's variables onto the `--pk-` tokens. The type scale uses Tailwind's size names so class merging reads them as sizes: `text-xs` 12, `text-sm` 13, `text-base` 14, `text-md` 15 (lede, fields), `text-lg` 17 (section), `text-xl` 22 (dialog title), `text-2xl` 28 (page title), `text-3xl` 30 (figure).
   - Never use a component that injects `<style>` at runtime: the SPA's CSP has no `style-src`. Sonner and Base UI's Select do, so the toast is built on Base UI's Toast primitive and selects are native.
   - Any plain CSS must sit in a cascade layer (`base.css` is in `@layer base`): unlayered rules beat every utility class.
 
