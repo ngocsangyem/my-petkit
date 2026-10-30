@@ -23,6 +23,9 @@ export function slots(over: Partial<MediaSlots> = {}): MediaSlots {
 
 export function session(over: Partial<TimelineSession> = {}): TimelineSession {
   return {
+    pet_source: 'device',
+    passing: false,
+    unbound_pet_ref: null,
     kind: 'visit',
     id: 501,
     related_event: 'ep-1',
@@ -70,6 +73,7 @@ export const SESSIONS: TimelineSession[] = [
     id: 401,
     pet_id: 2,
     pet_name: 'Mochi',
+    pet_source: 'weight',
     pet_photo_url: null,
     display_ts: DAY_START + 11 * 3600 + 5 * 60,
     ts: DAY_START + 11 * 3600 + 7 * 60,
@@ -83,6 +87,7 @@ export const SESSIONS: TimelineSession[] = [
     kind: 'event',
     id: 301,
     pet_id: null,
+    pet_source: null,
     pet_name: null,
     pet_photo_url: null,
     event_kind: 'feeding',
@@ -112,6 +117,7 @@ export function day(over: Partial<TimelineDay> = {}): TimelineDay {
       cleaning: 0,
       health_alert: 0,
       fault: 0,
+      passing: 0,
     },
     sessions: SESSIONS,
     ...over,
@@ -152,7 +158,12 @@ export const DEVICES: TimelineDevice[] = [
   device(20000002, 'Kitchen feeder', true),
 ];
 
-function pet(id: number, name: string, faces: { id: number; url: string }[]): TimelinePet {
+export function pet(
+  id: number,
+  name: string,
+  faces: { id: number; url: string }[],
+  weightG: number | null = null,
+): TimelinePet {
   return {
     id,
     name,
@@ -161,12 +172,16 @@ function pet(id: number, name: string, faces: { id: number; url: string }[]): Ti
     face_id: null,
     photo_path: null,
     weight: null,
+    weight_g: weightG,
+    weight_updated_at: null,
+    weight_tolerance_g: null,
+    weight_match: 1,
     created_at: 0,
     faces,
   };
 }
 
 export const PETS: TimelinePet[] = [
-  pet(1, 'Miso', [{ id: 3, url: 'api/pets/1/faces/3/photo' }]),
-  pet(2, 'Mochi', []),
+  pet(1, 'Miso', [{ id: 3, url: 'api/pets/1/faces/3/photo' }], 5430),
+  pet(2, 'Mochi', [], 3860),
 ];

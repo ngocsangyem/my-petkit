@@ -30,7 +30,11 @@ export function isDateString(value: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
 }
 
-/** One chip per bucket `filter_counts` fills, in the legacy order. */
+/**
+ * One chip per bucket `filter_counts` fills, in the legacy order. "Light visits" are the ones too
+ * light to be any registered cat: "All" and "Toileting" never show them, so this chip is where
+ * they are found (a light visit that raised a health alert or fault also shows under that chip).
+ */
 export const FILTERS: readonly { key: FilterKey; label: string }[] = [
   { key: 'all', label: 'All' },
   { key: 'pet', label: 'Pet' },
@@ -40,6 +44,7 @@ export const FILTERS: readonly { key: FilterKey; label: string }[] = [
   { key: 'cleaning', label: 'Cleaning' },
   { key: 'health_alert', label: 'Health alert' },
   { key: 'fault', label: 'Faults' },
+  { key: 'passing', label: 'Light visits' },
 ];
 
 export function isFilterKey(value: unknown): value is FilterKey {

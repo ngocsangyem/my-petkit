@@ -130,7 +130,9 @@ export function TimelinePage() {
           </div>
           {events}
         </section>
-        {current && <TimelineSessionDetail key={currentKey ?? undefined} session={current} />}
+        {current && (
+          <TimelineSessionDetail key={currentKey ?? undefined} session={current} pets={petList} />
+        )}
       </div>
     </div>
   );

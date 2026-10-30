@@ -1,4 +1,5 @@
 import { Button, PageHeading } from '@/shared/ui';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/shadcn/tooltip';
 import { listNames, petStatus, plural, type DeviceDetail, type Pet } from '../pet-model';
 
 interface PetsHeadingProps {
@@ -9,6 +10,8 @@ interface PetsHeadingProps {
   canImport: boolean;
   /** Shows "Add a pet" (at least one device is recognising). */
   canAdd: boolean;
+  /** Why "Add a pet" is disabled (every box is full), or null when it is not. */
+  addBlocked?: string | null;
   onImport: () => void;
   onAdd: () => void;
 }
@@ -45,9 +48,15 @@ export function PetsHeading({
   unboundCount,
   canImport,
   canAdd,
+  addBlocked = null,
   onImport,
   onAdd,
 }: PetsHeadingProps) {
+  const add = (
+    <Button variant="primary" onClick={onAdd} disabled={addBlocked !== null}>
+      Add a pet
+    </Button>
+  );
   const finding = pets ? findingLine(pets, aiDetails, unboundCount) : '';
   return (
     <PageHeading
@@ -62,11 +71,16 @@ export function PetsHeading({
         canImport || canAdd ? (
           <>
             {canImport && <Button onClick={onImport}>Import from PetKit account</Button>}
-            {canAdd && (
-              <Button variant="primary" onClick={onAdd}>
-                Add a pet
-              </Button>
-            )}
+            {canAdd &&
+              (addBlocked === null ? (
+                add
+              ) : (
+                // A disabled button takes no pointer events, so a focusable wrapper holds the tip.
+                <Tooltip>
+                  <TooltipTrigger render={<span tabIndex={0} />}>{add}</TooltipTrigger>
+                  <TooltipContent>{addBlocked}</TooltipContent>
+                </Tooltip>
+              ))}
           </>
         ) : undefined
       }

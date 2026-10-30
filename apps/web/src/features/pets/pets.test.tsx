@@ -250,6 +250,76 @@ describe('PetsPage', () => {
     expect(within(card).getByRole('button', { name: 'Photos full' })).toBeDisabled();
   });
 
+  it('edits the registered weight and matching, sending only what changed', async () => {
+    const calls = mockApi(
+      routes({ 'POST /api/pets/1': { body: { pet: pet(), bound_events: 0 } } }),
+    );
+    renderWithProviders(<PetsPage />);
+    const card = await screen.findByRole('article', { name: 'Miso' });
+    expect(within(card).getByText('Registered weight 5.43 kg')).toBeInTheDocument();
+    await userEvent.click(within(card).getByRole('button', { name: 'Weight' }));
+    const dialog = screen.getByRole('dialog', { name: "Miso's weight" });
+    const weight = within(dialog).getByLabelText('Registered weight');
+    expect(weight).toHaveValue('5.43');
+    expect(within(dialog).getByText('Only when no other cat is within 600 g.')).toBeInTheDocument();
+    expect(within(dialog).getByText('1 of 15 cats on this box')).toBeInTheDocument();
+    expect(
+      within(dialog).getByRole('switch', { name: 'Match by weight when the camera cannot' }),
+    ).toBeChecked();
+
+    await userEvent.type(within(dialog).getByLabelText('Weight tolerance'), '250');
+    expect(within(dialog).getByText('Only when no other cat is within 500 g.')).toBeInTheDocument();
+    await userEvent.clear(weight);
+    await userEvent.type(weight, '50');
+    expect(within(dialog).getByText('Enter a weight from 0.20 to 20.00 kg.')).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Save' })).toBeDisabled();
+    await userEvent.clear(weight);
+    await userEvent.type(weight, '4.8');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+    expect(await jsonBody(calls, 'POST', '/api/pets/1')).toEqual({
+      weight_g: 4800,
+      weight_tolerance_g: 250,
+    });
+    expect(await screen.findByText("Saved Miso's weight settings")).toBeInTheDocument();
+  });
+
+  it('closes the weight dialog without a request when nothing changed', async () => {
+    const calls = mockApi(routes());
+    renderWithProviders(<PetsPage />);
+    const card = await screen.findByRole('article', { name: 'Miso' });
+    await userEvent.click(within(card).getByRole('button', { name: 'Weight' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(screen.queryByRole('dialog', { name: "Miso's weight" })).not.toBeInTheDocument();
+    expect(calls.some(c => c.method === 'POST')).toBe(false);
+  });
+
+  it('shows the per-box limit when the server refuses another cat', async () => {
+    mockApi(
+      routes({
+        'POST /api/pets': {
+          status: 409,
+          body: { error: { code: 'too_many_pets', message: 'device 10001 already has 15.' } },
+        },
+      }),
+    );
+    renderWithProviders(<PetsPage />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Add a pet' }));
+    const dialog = screen.getByRole('dialog', { name: 'Add a pet' });
+    await userEvent.type(within(dialog).getByLabelText('Name'), 'Tofu');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add pet' }));
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      'That box already recognises 15 cats, the most it can hold.',
+    );
+  });
+
+  it('disables adding a pet once every box holds 15 cats', async () => {
+    const pets = Array.from({ length: 15 }, (_, i) => pet({ id: i + 1, name: `Cat ${i + 1}` }));
+    mockApi(routes({ 'GET /api/pets': { body: { pets } } }));
+    renderWithProviders(<PetsPage />);
+    await screen.findByRole('article', { name: 'Cat 1' });
+    expect(screen.getByRole('button', { name: 'Add a pet' })).toBeDisabled();
+  });
+
   it('keeps a load failure inside the page with Retry', async () => {
     mockApi(routes({ 'GET /api/pets': { status: 500, body: { error: 'store down' } } }));
     renderWithProviders(<PetsPage />);

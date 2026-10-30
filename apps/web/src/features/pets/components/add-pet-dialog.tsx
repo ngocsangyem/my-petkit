@@ -1,8 +1,8 @@
 import { useId, useState, type SyntheticEvent } from 'react';
-import { errorMessage } from '@/shared/api/errors';
 import { Button, Select, StackedField, TextInput } from '@/shared/ui';
 import { useCreatePet } from '../api';
 import type { DeviceSummary } from '../pet-model';
+import { deviceLoadText, isDeviceFull, petSaveError } from '../pet-weight-model';
 import { PetsModal } from './pets-modal';
 
 interface AddPetDialogProps {
@@ -10,13 +10,18 @@ interface AddPetDialogProps {
   onClose: () => void;
   /** The AI-capable devices a new pet can be assigned to. */
   devices: readonly DeviceSummary[];
+  /** How many pets each device recognises; a full box cannot take another. */
+  load: ReadonlyMap<number, number>;
   notify: (text: string, error?: boolean) => void;
 }
 
 /** Name a new pet and assign it to one recognising device. */
-export function AddPetDialog({ open, onClose, devices, notify }: AddPetDialogProps) {
+export function AddPetDialog({ open, onClose, devices, load, notify }: AddPetDialogProps) {
   const [name, setName] = useState('');
-  const [deviceId, setDeviceId] = useState(String(devices[0]?.id ?? ''));
+  const [deviceId, setDeviceId] = useState(() => {
+    const room = devices.find(d => !isDeviceFull(load, d.id)) ?? devices[0];
+    return String(room?.id ?? '');
+  });
   const [error, setError] = useState<string | null>(null);
   const create = useCreatePet();
   // The name field is the first focusable element, so the sheet opens on it.
@@ -41,7 +46,7 @@ export function AddPetDialog({ open, onClose, devices, notify }: AddPetDialogPro
           onClose();
         },
         onError: e => {
-          setError(errorMessage(e));
+          setError(petSaveError(e));
         },
       },
     );
@@ -72,7 +77,11 @@ export function AddPetDialog({ open, onClose, devices, notify }: AddPetDialogPro
               onChange={e => {
                 setDeviceId(e.target.value);
               }}
-              options={devices.map(d => ({ value: String(d.id), label: d.name || `#${d.id}` }))}
+              options={devices.map(d => ({
+                value: String(d.id),
+                label: `${d.name || `#${d.id}`} · ${deviceLoadText(load.get(d.id) ?? 0)}`,
+                disabled: isDeviceFull(load, d.id),
+              }))}
             />
           </StackedField>
         )}

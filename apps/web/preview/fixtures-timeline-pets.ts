@@ -21,7 +21,11 @@ export const PETS: Pet[] = [
     device_pet_ids_json: '[88412]',
     face_id: null,
     photo_path: null,
-    weight: 5420,
+    weight: null,
+    weight_g: 5430,
+    weight_updated_at: at(13, 58),
+    weight_tolerance_g: null,
+    weight_match: 1,
     created_at: at(0, 0) - 40 * 86400,
     faces: [11, 12, 13].map(id => ({ id, url: faceUrl(1, id) })),
   },
@@ -32,7 +36,11 @@ export const PETS: Pet[] = [
     device_pet_ids_json: null,
     face_id: null,
     photo_path: null,
-    weight: 3860,
+    weight: null,
+    weight_g: 3860,
+    weight_updated_at: at(11, 5),
+    weight_tolerance_g: 250,
+    weight_match: 1,
     created_at: at(0, 0) - 12 * 86400,
     faces: [{ id: 21, url: faceUrl(2, 21) }],
   },
@@ -51,9 +59,11 @@ interface VisitSpec {
   seconds: number;
   grams: number;
   media?: Partial<components['schemas']['TimelineMediaSlots']>;
+  /** Who decided the pet and anything else that differs from a recognised visit. */
+  over?: Partial<Session>;
 }
 
-function visit({ id, pet, h, m, seconds, grams, media }: VisitSpec): Session {
+function visit({ id, pet, h, m, seconds, grams, media, over }: VisitSpec): Session {
   const start = at(h, m);
   return session({
     id,
@@ -78,6 +88,27 @@ function visit({ id, pet, h, m, seconds, grams, media }: VisitSpec): Session {
       },
     ],
     media: slots(media),
+    ...over,
+  });
+}
+
+/** Too light for any registered cat: only the "Light visits" chip shows these. */
+function lightVisit(id: number, h: number, m: number, grams: number): Session {
+  return visit({
+    id,
+    pet: PETS[0] as Pet,
+    h,
+    m,
+    seconds: 20,
+    grams,
+    over: {
+      pet_id: null,
+      pet_name: null,
+      pet_photo_url: null,
+      pet_source: null,
+      passing: true,
+      sub_events: [],
+    },
   });
 }
 
@@ -132,6 +163,22 @@ const [miso, mochi] = PETS as [Pet, Pet];
 /** Newest first, the order the server answers in. */
 export const SESSIONS: Session[] = [
   visit({
+    id: 970,
+    pet: miso,
+    h: 14,
+    m: 31,
+    seconds: 122,
+    grams: 5400,
+    over: {
+      pet_id: null,
+      pet_name: null,
+      pet_photo_url: null,
+      pet_source: null,
+      unbound_pet_ref: 7_301_552,
+      sub_events: [],
+    },
+  }),
+  visit({
     id: 960,
     pet: miso,
     h: 13,
@@ -146,7 +193,17 @@ export const SESSIONS: Session[] = [
   }),
   meal(950, 12),
   sighting(940, mochi, 11, 40),
-  visit({ id: 930, pet: mochi, h: 11, m: 5, seconds: 110, grams: 3860 }),
+  lightVisit(935, 12, 20, 1840),
+  visit({
+    id: 930,
+    pet: mochi,
+    h: 11,
+    m: 5,
+    seconds: 110,
+    grams: 3860,
+    over: { pet_source: 'weight' },
+  }),
+  lightVisit(915, 9, 40, 2210),
   sighting(920, miso, 9, 12),
   visit({ id: 910, pet: miso, h: 8, m: 31, seconds: 160, grams: 5420 }),
   meal(900, 7),
@@ -164,16 +221,19 @@ export function timelineDay(params: URLSearchParams): TimelineDay {
   const scoped = (date === DAY ? SESSIONS : []).filter(
     s => (!device || String(s.device_id) === device) && (!pet || String(s.pet_id) === pet),
   );
-  const visits = scoped.filter(s => s.event_kind === 'toilet_visit').length;
+  const light = scoped.filter(s => s.passing);
+  const shown = scoped.filter(s => !s.passing);
+  const visits = shown.filter(s => s.event_kind === 'toilet_visit').length;
   const counts = {
-    all: scoped.length,
-    pet: scoped.filter(s => s.event_kind === 'pet').length,
+    all: shown.length,
+    pet: shown.filter(s => s.event_kind === 'pet').length,
     toileting: visits,
     drinking: 0,
-    feeding: scoped.filter(s => s.event_kind === 'feeding').length,
-    cleaning: scoped.reduce((n, s) => n + s.sub_events.length, 0),
+    feeding: shown.filter(s => s.event_kind === 'feeding').length,
+    cleaning: shown.reduce((n, s) => n + s.sub_events.length, 0),
     health_alert: 0,
     fault: 0,
+    passing: light.length,
   };
   const byFilter = new Map<string, (s: Session) => boolean>([
     ['all', () => true],
@@ -183,7 +243,8 @@ export function timelineDay(params: URLSearchParams): TimelineDay {
     ['cleaning', s => s.sub_events.length > 0],
   ]);
   const keep = byFilter.get(filter) ?? (() => false);
-  return { date, tz_offset: 7 * 3600, counts, sessions: scoped.filter(keep) };
+  const sessions = filter === 'passing' ? light : shown.filter(keep);
+  return { date, tz_offset: 7 * 3600, counts, sessions };
 }
 
 /** Debug info for one event: what the store would hold for it. */

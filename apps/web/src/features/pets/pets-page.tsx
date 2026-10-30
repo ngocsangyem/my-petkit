@@ -19,6 +19,7 @@ import { PetsHeading } from './components/pets-heading';
 import { RecognitionSection } from './components/recognition-section';
 import { UnboundSection } from './components/unbound-section';
 import { isRecognising } from './pet-model';
+import { isDeviceFull, MAX_PETS_PER_DEVICE, petsPerDevice } from './pet-weight-model';
 
 /** Two pets side by side; one column once the screen is narrow. */
 const GRID = 'grid grid-cols-2 items-start gap-(--pk-gap) max-[900px]:grid-cols-1';
@@ -67,6 +68,9 @@ export function PetsPage() {
   const recognising = devices ? devices.details.some(isRecognising) : false;
   const capable = devices?.capable ?? [];
   const unbound = recognising && pets?.length ? (unboundQ.data ?? []) : [];
+  const load = petsPerDevice(pets ?? []);
+  // Adding needs a recognising box with room; the server refuses a 16th cat on any box.
+  const allFull = capable.length > 0 && capable.every(d => isDeviceFull(load, d.id));
 
   const saveFace = (petId: number, jpeg: Blob) => {
     addFace.mutate(
@@ -139,6 +143,7 @@ export function PetsPage() {
                 index={i}
                 devices={devices.all}
                 aiDetails={devices.details}
+                load={load}
                 notify={notify}
                 onAddPhoto={() => {
                   setCrop({ petId: pet.id, name: pet.name });
@@ -168,6 +173,11 @@ export function PetsPage() {
         unboundCount={unbound.length}
         canImport={capable.length > 0}
         canAdd={recognising}
+        addBlocked={
+          allFull
+            ? `Every box already recognises ${MAX_PETS_PER_DEVICE} cats, the most it can hold.`
+            : null
+        }
         onImport={() => {
           setImporting(true);
         }}
@@ -188,6 +198,7 @@ export function PetsPage() {
         <AddPetDialog
           open
           devices={capable}
+          load={load}
           notify={notify}
           onClose={() => {
             setAdding(false);

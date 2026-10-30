@@ -103,6 +103,10 @@ const WRITES: [string, Handler][] = [
   ['DELETE /api/ble/{id}', () => ({ ok: true, accessories: ACCESSORIES, note: '' })],
   ['POST /api/ble/import', () => ({ imported: 0, results: [], accessories: ACCESSORIES })],
   ['POST /api/pets/import', () => ({ imported: 0, results: [] })],
+  [
+    'PUT /api/timeline/{id}/pet',
+    () => ({ updated: 1, pet_id: null, pet_source: 'manual', passing: false, pet: null }),
+  ],
   ['POST /api/devices/{id}/sounds', () => ({ ok: true, sound: SOUNDS[0] })],
 ];
 

@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, unwrap } from '@/shared/api/client';
 import { ApiError } from '@/shared/api/errors';
 import { withAlias, type DeviceDetail, type DeviceSummary } from './pet-model';
+import type { PetUpdateRequest } from './pet-weight-model';
 
 export const petsKeys = {
   all: ['pets'] as const,
@@ -85,6 +86,16 @@ export function useRenamePet() {
   return useMutation({
     mutationFn: ({ id, name }: { id: number; name: string }) =>
       unwrap(api.POST('/api/pets/{id}', { params: { path: { id } }, body: { name } })),
+    onSettled: invalidate,
+  });
+}
+
+/** Save a pet's registered weight and weight-matching settings. */
+export function useUpdatePetWeight() {
+  const invalidate = useInvalidatePets();
+  return useMutation({
+    mutationFn: ({ id, body }: { id: number; body: PetUpdateRequest }) =>
+      unwrap(api.POST('/api/pets/{id}', { params: { path: { id } }, body })),
     onSettled: invalidate,
   });
 }

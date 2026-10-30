@@ -85,6 +85,7 @@ legacy panel ledger's §11.1. Talk has no web client in the old panel and gets n
 | timeline | `GET /api/media/{path}` | `getMediaFile` | cropper.js, media.js, setup.js | abd0764 | ✓ |
 | timeline | `GET /api/timeline/{id}` | `getTimelineEventDetail` | nav.js, timeline.js | abd0764 | ✓ |
 | timeline | `GET /api/timeline` | `getTimeline` | nav.js, timeline.js | abd0764 | ✓ |
+| timeline | `PUT /api/timeline/{id}/pet` | `setVisitPet` | — (new) | pending | ✓ |
 | tokens | `DELETE /api/auth/tokens/{id}` | `authRevokeToken` | — | a0f2e26 | ✓ |
 | tokens | `GET /api/auth/tokens` | `authListTokens` | — | a0f2e26 | ✓ |
 | tokens | `POST /api/auth/pairing/redeem` | `authPairingRedeem` | — | n/a: the iOS app's call | n/a |
@@ -122,8 +123,12 @@ legacy panel ledger's §11.1. Talk has no web client in the old panel and gets n
 | timeline | Day picker, kind chips with counts before filtering, device and pet filters | timeline.js | abd0764 | ✓ |
 | timeline | Visit cards with sub-events, lazy video, waste/health gallery, "assembling…" | timeline.js, media.js | abd0764 | ✓ |
 | timeline | Debug expander with the raw event | timeline.js | abd0764 | ✓ |
+| timeline | Change cat on a visit (sheet on a phone, dialog elsewhere): cats nearest the visit weight first with "closest weight", "No cat, just passing", "Use this for <name>'s weight" (only for a reading the server accepts), bind the box's unclaimed identity, "Nothing is sent to the litter box"; "by weight" pill and "not recognised" beside a visit (new, not in the old panel) | — (new) | pending | ✓ (`ios-change-cat`) |
+| timeline | "Light visits" chip with its count: visits too light for any registered cat, never under All or Toileting (new, not in the old panel) | — (new) | pending | ✓ (`ios-change-cat`) |
 | pets | Pets CRUD, rename, faces with the 224² cropper and its rules | pets.js, cropper.js | ebc9088 | ✓ |
 | pets | Bind an unbound reference; import pets from the cloud | pets.js | ebc9088 | ✓ |
+| pets | Weight per pet: registered weight in kg with when it last changed, "Match by weight when the camera cannot" with the real guard distance (twice the tolerance), weight tolerance ± g (new, not in the old panel) | — (new) | pending | ✓ (`ios-pet-edit`, without its "Hide light visits" switch, which the Timeline chip replaces) |
+| pets | 15 cats per box: "N of 15 cats on this box", a full box cannot be picked when adding, "Add a pet" disabled with a tooltip when every box is full, the server's `too_many_pets` refusal and an import's "device full" results shown in words (new, not in the old panel) | — (new) | pending | n/a |
 | provision | Web Bluetooth provisioning, with the secure-context / URL / port 80 warnings | provision.js | fd3704c | ✓ |
 | provision | Protocol in TypeScript with the same test vectors as the old tests, plus CRC `{"key":110}` seq 0 → `0x3234` | provision.js, test_provision_js.py | fd3704c | n/a |
 | log | Live log: cap 600 lines, hide heartbeats, autoscroll, copy and download | log.js | b6c372c | ✓ |
