@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { mediaUrl } from '@/shared/api/base-path';
-import { Button, Icon } from '@/shared/ui';
-import { AspectRatio } from '@/shared/ui/shadcn/aspect-ratio';
+import { Button, CaptionPill, Icon } from '@/shared/ui';
 import { Dialog, DialogContent, DialogTitle } from '@/shared/ui/shadcn/dialog';
 
 /**
@@ -36,7 +35,10 @@ export interface StillGroup {
   paths: string[];
 }
 
-/** Waste and health captures: one tile per role, its count, and a click to open the gallery. */
+/**
+ * Waste and health captures: one square photo per role with its name and count on the dark
+ * caption pill, and a click to open the gallery.
+ */
 export function StillTiles({
   groups,
   onOpen,
@@ -46,28 +48,25 @@ export function StillTiles({
 }) {
   if (!groups.length) return null;
   return (
-    <div className="flex flex-col gap-1.5">
-      <span className="text-xs text-muted-foreground">Waste and health captures</span>
-      <div className="flex flex-wrap gap-2">
+    <div className="flex flex-col gap-2">
+      <span className="text-sm text-muted-foreground">Photos</span>
+      <div className="grid grid-cols-4 gap-2 max-[900px]:grid-cols-3">
         {groups.map(g => (
           <button
             key={g.title}
             type="button"
-            className="flex cursor-zoom-in flex-col gap-1 border-0 bg-transparent p-0 text-left text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            className="relative block aspect-square cursor-zoom-in overflow-hidden rounded-lg border-0 bg-ink p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring dark:bg-ground"
             aria-label={`${g.title}, ${String(g.paths.length)} picture${g.paths.length === 1 ? '' : 's'}`}
             onClick={() => {
               onOpen(g.paths, g.title);
             }}
           >
-            <AspectRatio ratio={4 / 3} className="block w-22 overflow-hidden rounded-md bg-rule">
-              {g.paths[0] && (
-                <MediaImage path={g.paths[0]} thumb className="size-full object-contain" />
-              )}
-              <span className="absolute right-1 bottom-1 min-w-5 rounded-full bg-background px-1.5 text-center text-xs text-foreground">
-                {g.paths.length}
-              </span>
-            </AspectRatio>
-            <span className="text-xs">{g.title}</span>
+            {g.paths[0] && (
+              <MediaImage path={g.paths[0]} thumb className="size-full object-cover" />
+            )}
+            <CaptionPill className="absolute bottom-2 left-2 max-w-[calc(100%-16px)] truncate">
+              {g.title} · {g.paths.length}
+            </CaptionPill>
           </button>
         ))}
       </div>
@@ -109,7 +108,7 @@ function GalleryBody({
             step(-1);
           }}
         >
-          <Icon name="chevron" className="rotate-90" />
+          <Icon name="back" />
         </Button>
         <span className="text-muted-foreground">
           {Math.min(index, count - 1) + 1} of {count}
@@ -122,7 +121,7 @@ function GalleryBody({
             step(1);
           }}
         >
-          <Icon name="chevron" className="-rotate-90" />
+          <Icon name="forward" />
         </Button>
         <Button size="small" variant="text" onClick={onClose}>
           Close
@@ -133,7 +132,7 @@ function GalleryBody({
           key={current}
           path={current}
           thumb={false}
-          className="max-h-[70vh] w-full rounded-lg bg-ink object-contain dark:bg-ground"
+          className="max-h-[70vh] w-full rounded-md bg-ink object-contain dark:bg-ground"
         />
       )}
     </>

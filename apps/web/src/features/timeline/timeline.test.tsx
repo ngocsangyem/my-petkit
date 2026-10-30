@@ -89,7 +89,7 @@ afterEach(() => {
 });
 
 describe('TimelinePage', () => {
-  it('shows the day: summary, strip lanes, figures, chips with counts and sessions', async () => {
+  it('shows the day: summary, strip lanes, chips with counts and sessions', async () => {
     routes();
     renderWithProviders(<TimelinePage />);
     expect(
@@ -97,18 +97,17 @@ describe('TimelinePage', () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/Miso used the litter box once and Mochi once\./)).toBeInTheDocument();
     expect(screen.getByRole('group', { name: /Today at home/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'All 3' })).toHaveAttribute('aria-pressed', 'true');
     const chips = screen.getByRole('group', { name: 'Filter by kind' });
-    expect(within(chips).getByRole('button', { name: 'All 3' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
     expect(within(chips).getByRole('button', { name: 'Toileting 2' })).toBeInTheDocument();
     // A chip with nothing in it is hidden unless selected.
     expect(within(chips).queryByRole('button', { name: /Faults/ })).not.toBeInTheDocument();
-    expect(screen.getByText('1 min 55 s')).toBeInTheDocument();
-    expect(screen.getByText('5.43 kg', { selector: 'button > span' })).toBeInTheDocument();
+    const events = screen.getByRole('region', { name: 'Events' });
+    const miso = within(events).getAllByRole('button', { name: /Miso used the litter box/ })[0]!;
+    expect(within(miso).getByText('1 min 55 s')).toBeInTheDocument();
+    expect(within(miso).getByText('5.43 kg')).toBeInTheDocument();
     expect(screen.getAllByText('Assembling video…').length).toBeGreaterThan(0);
-    expect(screen.getByText('Meal dispensed')).toBeInTheDocument();
+    expect(within(events).getByText('Meal dispensed')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Next day' })).toBeDisabled();
   });
 
@@ -123,14 +122,51 @@ describe('TimelinePage', () => {
       expect(timelineCalls(calls).some(q => q.get('filter') === 'toileting')).toBe(true);
     });
 
-    await user.selectOptions(screen.getByLabelText('Device'), '10000001');
-    await user.selectOptions(screen.getByLabelText('Cat'), '2');
+    const byDevice = screen.getByRole('group', { name: 'Filter by device' });
+    await user.click(within(byDevice).getByRole('button', { name: 'Litter box' }));
+    const byCat = screen.getByRole('group', { name: 'Filter by cat' });
+    await user.click(within(byCat).getByRole('button', { name: 'Mochi' }));
     await waitFor(() => {
-      const last = timelineCalls(calls).at(-1);
+      const last = timelineCalls(calls).find(
+        q => q.get('filter') === 'toileting' && q.get('pet') === '2',
+      );
       expect(last?.get('device')).toBe('10000001');
-      expect(last?.get('pet')).toBe('2');
-      expect(last?.get('filter')).toBe('toileting');
     });
+    expect(within(byCat).getByRole('button', { name: 'Mochi' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    // "All" lets go of the kind, the cat and the device at once.
+    await user.click(screen.getByRole('button', { name: /^All/ }));
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /^All/ })).toHaveAttribute('aria-pressed', 'true');
+    });
+    expect(within(byCat).getByRole('button', { name: 'Mochi' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    const last = timelineCalls(calls).at(-1);
+    expect(last?.get('filter')).toBe('all');
+    expect(last?.get('pet')).toBeNull();
+    expect(last?.get('device')).toBeNull();
+  });
+
+  it('narrows to the visits nobody was recognised in, and asks who it was', async () => {
+    const unknown = session({ id: 601, pet_id: null, pet_name: null, pet_source: null });
+    routes({ 'GET /api/timeline': { body: day({ sessions: [unknown, ...SESSIONS] }) } });
+    const user = userEvent.setup();
+    renderWithProviders(<TimelinePage />);
+    const chip = await screen.findByRole('button', { name: 'Not recognised 1' });
+    await user.click(chip);
+    const events = screen.getByRole('region', { name: 'Events' });
+    await waitFor(() => {
+      expect(within(events).queryByText('Meal dispensed')).not.toBeInTheDocument();
+    });
+    expect(within(events).getAllByRole('button', { name: /Litter-box visit/ })).toHaveLength(1);
+
+    await user.click(within(events).getByRole('button', { name: 'Who was it?' }));
+    expect(await screen.findByRole('dialog', { name: /^Who used the box at/ })).toBeInTheDocument();
   });
 
   it('moves between days on the local calendar', async () => {

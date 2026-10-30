@@ -1,4 +1,4 @@
-import { Button, PageHeading } from '@/shared/ui';
+import { Button, Icon, PageHeader } from '@/shared/ui';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/shadcn/tooltip';
 import { listNames, petStatus, plural, type DeviceDetail, type Pet } from '../pet-model';
 
@@ -54,23 +54,28 @@ export function PetsHeading({
 }: PetsHeadingProps) {
   const add = (
     <Button variant="primary" onClick={onAdd} disabled={addBlocked !== null}>
+      <Icon name="plus" size={16} strokeWidth={2} />
       Add a pet
     </Button>
   );
-  const finding = pets ? findingLine(pets, aiDetails, unboundCount) : '';
+  const finding = pets
+    ? [`${plural(pets.length, 'pet')}.`, findingLine(pets, aiDetails, unboundCount)]
+        .filter(Boolean)
+        .join(' ')
+    : '';
   return (
-    <PageHeading
+    <PageHeader
       title="Pets"
-      aside={
-        pets
-          ? `${plural(pets.length, 'pet')} · face matching runs on the camera itself; this server only hands it the photos`
-          : undefined
-      }
       finding={finding || undefined}
       actions={
         canImport || canAdd ? (
           <>
-            {canImport && <Button onClick={onImport}>Import from PetKit account</Button>}
+            {canImport && (
+              <Button onClick={onImport}>
+                <Icon name="cloud" size={16} />
+                Import from PetKit account
+              </Button>
+            )}
             {canAdd &&
               (addBlocked === null ? (
                 add
