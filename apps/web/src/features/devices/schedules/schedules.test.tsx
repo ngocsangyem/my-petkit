@@ -204,12 +204,20 @@ describe('DeviceSchedules', () => {
         )}
       />,
     );
-    const time = screen.getByLabelText('Meal 1 of set 1 time');
+    expect(screen.getByRole('region', { name: 'Meal set 1' })).toHaveTextContent('12:56');
+    await userEvent.click(screen.getByRole('button', { name: 'Edit meal 1 of set 1' }));
+    const sheet = await screen.findByRole('dialog', { name: 'Edit meal' });
+    const time = within(sheet).getByLabelText('Meal 1 of set 1 time');
     expect(time).toHaveValue('12:56');
     fireEvent.change(time, { target: { value: '13:00' } });
-    const hopper2 = screen.getByLabelText('Hopper 2');
+    const hopper2 = within(sheet).getByLabelText('Hopper 2');
     await userEvent.clear(hopper2);
     await userEvent.type(hopper2, '3');
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Done' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Edit meal' })).toBeNull();
+    });
+    expect(screen.getByRole('region', { name: 'Meal set 1' })).toHaveTextContent('13:00');
     await userEvent.click(screen.getByRole('button', { name: 'Save Feeding Schedule' }));
 
     expect(await screen.findByRole('status')).toHaveTextContent('next poll');
