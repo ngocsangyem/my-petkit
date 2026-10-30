@@ -9,6 +9,8 @@ public extension Theme {
     enum Font {
         public static let title = sans(24, .semibold, relativeTo: .title2)
         public static let section = sans(17, .semibold, relativeTo: .headline)
+        /// The title of a bottom sheet drawn at 20/600 (`ios-device-t6-paused`, `ios-change-cat`).
+        public static let sheetTitle = sans(20, .semibold, relativeTo: .title3)
         public static let figure = sans(30, .medium, relativeTo: .largeTitle)
         public static let figureInRow = sans(22, .medium, relativeTo: .title2)
         public static let body = sans(15, .regular, relativeTo: .body)

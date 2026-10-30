@@ -62,9 +62,16 @@ struct EntityControlsCard: View {
     }
 }
 
+/// A row's own words in place of the entity's name, by entity key.
+struct EntityLabel: Equatable {
+    let title: String
+    var footnote: String?
+}
+
 struct EntityRows: View {
     let entities: [DeviceEntity]
     let enabled: Bool
+    var labels: [String: EntityLabel] = [:]
     let ask: (DeviceEntity, EntityWrite) -> Void
 
     var body: some View {
@@ -83,7 +90,13 @@ struct EntityRows: View {
         case "switch":
             Toggle(isOn: Binding(get: { DeviceFacts.isOn(entity) ?? false },
                                  set: { ask(entity, .toggle($0)) })) {
-                Text(entity.name).font(Theme.Font.body).foregroundStyle(Theme.Color.text)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title(entity)).font(Theme.Font.body).foregroundStyle(Theme.Color.text)
+                    if let footnote = labels[entity.key]?.footnote {
+                        Text(footnote).font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
             }
             .tint(Theme.Color.text)
             .frame(minHeight: Theme.Space.rowHeight)
@@ -93,19 +106,22 @@ struct EntityRows: View {
                     Button(label) { ask(entity, .option(label)) }
                 }
             } label: {
-                SettingsRow(title: entity.name, value: DeviceFacts.label(entity) ?? "Not reported")
+                SettingsRow(title: title(entity), value: DeviceFacts.label(entity) ?? "Not reported")
             }
             .buttonStyle(.plain)
         default:
-            NumberEntityRow(entity: entity) { ask(entity, .number($0)) }
+            NumberEntityRow(entity: entity, title: title(entity)) { ask(entity, .number($0)) }
         }
     }
+
+    private func title(_ entity: DeviceEntity) -> String { labels[entity.key]?.title ?? entity.name }
 }
 
 /// A number setting: − and + move a pending value inside the entity's range,
 /// and Set asks to send it.
 private struct NumberEntityRow: View {
     let entity: DeviceEntity
+    let title: String
     let set: (Double) -> Void
     @State private var pending: Double?
 
@@ -114,7 +130,7 @@ private struct NumberEntityRow: View {
         let shown = pending ?? current
         HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(entity.name).font(Theme.Font.body).foregroundStyle(Theme.Color.text)
+                Text(title).font(Theme.Font.body).foregroundStyle(Theme.Color.text)
                 if let min = entity.min, let max = entity.max {
                     Text("\(DeviceFigures.format(min))–\(DeviceFigures.format(max))\(entity.unit.map { " \($0)" } ?? "")")
                         .font(Theme.Font.extraSmall).monospacedDigit().foregroundStyle(Theme.Color.muted)

@@ -1,11 +1,11 @@
 import PetkitCore
 import SwiftUI
 
-/// The T6's auto-pack rule under "Automation" (`ios-device-t6`): the switch
+/// The T6's auto-pack rows inside "Automation" (`ios-device-t6`): the switch
 /// with its Experimental tag, the trigger, its threshold, optional quiet
 /// hours, PetKit's advice and what the rule last did. Turning it on asks
 /// first; other edits wait for Save, which sends the whole rule.
-struct AutoPackCard: View {
+struct AutoPackRows: View {
     let rule: AutoPackRule
     let status: AutoPackStatus?
     let zone: TimeZone?
@@ -36,8 +36,7 @@ struct AutoPackCard: View {
     private var isDirty: Bool { edited != rule }
 
     var body: some View {
-        SectionHeader("Automation").accessibilityAddTraits(.isHeader)
-        RowsCard {
+        VStack(spacing: 0) {
             enableRow
             RowRule()
             triggerRow
@@ -64,10 +63,10 @@ struct AutoPackCard: View {
         .onChange(of: rule) { _, saved in draft = AutoPackDraft(saved) }
     }
 
+    /// Laid out by hand and held at its ideal height: a Toggle, or a tight
+    /// height proposal, would squeeze the three-line label against its rules.
     private var enableRow: some View {
-        Toggle(isOn: Binding(get: { rule.enabled }, set: { on in
-            on ? askEnable(draft.rule(enabled: true)) : save(draft.rule(enabled: false))
-        })) {
+        HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 8) {
                     Text("Auto-pack").font(Theme.Font.body).foregroundStyle(Theme.Color.text)
@@ -76,11 +75,17 @@ struct AutoPackCard: View {
                 Text(AutoPackText.summary(edited)).font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            Spacer(minLength: 8)
+            Toggle("Auto-pack", isOn: Binding(get: { rule.enabled }, set: { on in
+                on ? askEnable(draft.rule(enabled: true)) : save(draft.rule(enabled: false))
+            }))
+            .labelsHidden()
+            .tint(Theme.Color.text)
+            .disabled(busy)
         }
-        .tint(Theme.Color.text)
-        .disabled(busy)
-        .padding(.vertical, 8)
+        .padding(.vertical, 10)
         .frame(minHeight: Theme.Space.rowHeight)
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     private var triggerRow: some View {
@@ -140,18 +145,4 @@ struct AutoPackCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 12)
     }
-}
-
-#Preview("Auto-pack") {
-    let automation = DevicePreviewFixtures.autoPackOn
-    ScrollView {
-        VStack(alignment: .leading, spacing: Theme.Space.gap) {
-            if let rule = automation.autoPack.rule {
-                AutoPackCard(rule: rule, status: automation.autoPack.status, zone: DevicePreviewFixtures.zone,
-                             now: DevicePreviewFixtures.now, busy: false, error: nil, save: { _ in }, askEnable: { _ in })
-            }
-        }
-        .padding()
-    }
-    .background(Theme.Color.ground)
 }

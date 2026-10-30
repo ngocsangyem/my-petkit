@@ -134,7 +134,9 @@ struct DeviceDetailView: View {
         DeviceTodayCard(device: device, sessions: model.sessions, today: today, meals: meals, zone: zone, now: now,
                         retry: { Task { await model.loadSessions(session) } })
         ConsumablesCard(rows: ConsumableRow.rows(device))
-        LitterAutomationSection(model: model, device: device, now: now, confirm: { sheet = .confirm($0) })
+        LitterAutomationSection(model: model, device: device, now: now,
+                                askEntity: { sheet = .confirm(entityConfirmation(device, $0, $1)) },
+                                confirm: { sheet = .confirm($0) })
         EntityControlsCard(title: "Settings", entities: EntityGroups(device).controls, enabled: device.online,
                            ask: { sheet = .confirm(entityConfirmation(device, $0, $1)) })
         if device.supportsAi {

@@ -47,7 +47,7 @@ over Bluetooth has its own section below.
 | devices | `POST /api/devices/{id}/logs` | `setDeviceLogSettings` | Device detail › Debug logs | dec52fb |
 | devices | `POST /api/devices/{id}/timezone` | `setDeviceTimezone` | Device detail › Timezone | dec52fb |
 | litter_automation | `GET /api/devices/{id}/litter-automation` | `getLitterAutomation` | Litter box detail (litter boxes only; read by hand, see below) | 54b7ab6 |
-| litter_automation | `POST /api/devices/{id}/force-continue` | `forceContinueLitter` | Paused litter box › Continue cleaning (step-up, then the sheet; 409 shown as its sentence) | 54b7ab6 |
+| litter_automation | `POST /api/devices/{id}/force-continue` | `forceContinueLitter` | Paused litter box › Continue cleaning (step-up, then the sheet; 409 and 503 shown as their sentence) | 54b7ab6 |
 | litter_automation | `PUT /api/devices/{id}/auto-pack` | `setAutoPackRule` | Litter box detail › Automation › Auto-pack (T6) | 54b7ab6 |
 | logs | `DELETE /api/capture/{name}` | `deleteCaptureFile` | Capture | 64097d1 |
 | logs | `GET /api/capture/{name}/download` | `downloadCaptureFile` | Capture (R3) | 64097d1 |
@@ -100,9 +100,10 @@ over Bluetooth has its own section below.
 | `ios-devices` | Home | dec52fb | ✓ |
 | `ios-devices-dark` | Home in dark mode (every snapshot also renders dark) | dec52fb | ✓ |
 | `ios-device-t6` | Litter box detail | dec52fb | ✓ |
-| `ios-device-t6` | Automation › Auto-pack: switch (asks to turn on), Experimental tag, trigger, cleans or time, quiet hours, PetKit's advice, status line | 54b7ab6 | ✓ (component snapshot `auto-pack`; the T6's auto clean and delay stay under Settings) |
+| `ios-device-t6` | Automation: "Auto clean after a visit" and "Clean delay" (moved out of Settings, artboard order and copy; entity keys and writes unchanged), for any litter box that has them | uncommitted | ✓ (component snapshots `auto-pack`, `automation-no-auto-pack`; the delay keeps its −/+ and Set control instead of the artboard's chevron) |
+| `ios-device-t6` | Automation › Auto-pack (T6 only): switch (asks to turn on), Experimental tag, trigger, cleans or time, quiet hours, PetKit's advice, status line | 54b7ab6, uncommitted | ✓ (component snapshot `auto-pack`) |
 | `ios-device-t6-paused` | Paused state; "Continue cleaning" only when the server offers it | dec52fb, 54b7ab6 | ✓ |
-| `ios-device-t6-paused` | Force-continue sheet: rows ticked from the blockers, no gram value or exit time (the API has neither), warning, footnote | 54b7ab6 | ✓ (component snapshot `force-continue-sheet`) |
+| `ios-device-t6-paused` | Force-continue sheet: 20/600 title (`Theme.Font.sheetTitle`), rows ticked from the blockers, no gram value or exit time (the API has neither), warning, footnote | 54b7ab6, uncommitted | ✓ (component snapshot `force-continue-sheet`) |
 | `ios-device-feeder` | Feeder detail; sprays and others reuse it | dec52fb | rendered |
 | `ios-device-fountain` | Fountain detail, offline variant | dec52fb | rendered |
 | `ios-schedules` | Schedules, four kinds, one-off feeds | 6e65187 | ✓ |

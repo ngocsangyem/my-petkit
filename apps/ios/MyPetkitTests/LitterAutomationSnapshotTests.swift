@@ -19,12 +19,22 @@ final class LitterAutomationSnapshotTests: XCTestCase {
             .background(Theme.Color.surface), named: "force-continue-sheet-refused", width: 390)
     }
 
-    func testAutoPackSection() throws {
-        let automation = DevicePreviewFixtures.autoPackOn
-        let rule = try XCTUnwrap(automation.autoPack.rule)
+    /// Auto clean and the clean delay, then auto-pack, under one "Automation".
+    func testAutoPackSection() {
+        let device = DevicePreviewFixtures.litterBox
         assertComponent(VStack(alignment: .leading, spacing: Theme.Space.gap) {
-            AutoPackCard(rule: rule, status: automation.autoPack.status, zone: DevicePreviewFixtures.zone,
-                         now: DevicePreviewFixtures.now, busy: false, error: nil, save: { _ in }, askEnable: { _ in })
-        }, named: "auto-pack")
+            LitterAutomationSection(
+                model: DeviceDetailModel(device: device, sessions: [], automation: DevicePreviewFixtures.autoPackOn),
+                device: device, now: DevicePreviewFixtures.now, askEntity: { _, _ in }, confirm: { _ in })
+        }.environment(ServerSession.preview), named: "auto-pack")
+    }
+
+    /// A litter box without auto-pack still gets its automation rows.
+    func testAutomationWithoutAutoPack() {
+        let device = DevicePreviewFixtures.litterBox
+        assertComponent(VStack(alignment: .leading, spacing: Theme.Space.gap) {
+            LitterAutomationSection(model: DeviceDetailModel(device: device, sessions: []), device: device,
+                                    now: DevicePreviewFixtures.now, askEntity: { _, _ in }, confirm: { _ in })
+        }.environment(ServerSession.preview), named: "automation-no-auto-pack")
     }
 }

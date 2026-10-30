@@ -94,10 +94,20 @@ struct EntityGroups: Equatable {
     var controls: [DeviceEntity] = []
     /// What the on-device AI watches for (only on a device that has the AI block).
     var aiControls: [DeviceEntity] = []
+    /// A litter box's cleaning automation, shown under "Automation" in the
+    /// artboard's order instead of under Settings.
+    var automationControls: [DeviceEntity] = []
 
     static let editable: Set<String> = ["switch", "select", "number"]
     static let aiKeys: Set<String> = ["yowling_detection", "ph_detection", "pet_detection",
                                       "drink_detection", "vomit_detection"]
+    static let automationKeys = ["auto_work", "cleaning_delay"]
+    /// The artboard's words for the automation rows; the entity keys, names in
+    /// confirmations and written values stay the server's.
+    static let automationLabels: [String: EntityLabel] = [
+        "auto_work": EntityLabel(title: "Auto clean after a visit", footnote: "Starts once the cat has left the box."),
+        "cleaning_delay": EntityLabel(title: "Clean delay"),
+    ]
 
     init(_ device: DeviceRecord) {
         // Capability switches have their own block, and AI detections live in
@@ -106,7 +116,13 @@ struct EntityGroups: Equatable {
             Self.editable.contains($0.component) && $0.settable && !$0.valuePath.hasPrefix("capabilities.")
         }
         let isAI = { (entity: DeviceEntity) in device.supportsAi && Self.aiKeys.contains(entity.key) }
-        controls = settable.filter { !isAI($0) }.enumerated()
+        if DeviceFamily(deviceType: device.type) == .litter {
+            automationControls = Self.automationKeys.compactMap { key in
+                settable.first { $0.key == key && !isAI($0) }
+            }
+        }
+        let automation = Set(automationControls.map(\.key))
+        controls = settable.filter { !isAI($0) && !automation.contains($0.key) }.enumerated()
             .sorted { ($0.element.entityCategory == nil ? 0 : 1, $0.offset) < ($1.element.entityCategory == nil ? 0 : 1, $1.offset) }
             .map(\.element)
         aiControls = settable.filter(isAI)

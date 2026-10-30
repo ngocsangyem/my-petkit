@@ -15,7 +15,7 @@ struct ForceContinueSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(ForceContinueRules.question).font(Theme.Font.section).accessibilityAddTraits(.isHeader)
+            Text(ForceContinueRules.question).font(Theme.Font.sheetTitle).accessibilityAddTraits(.isHeader)
             Text(ForceContinueRules.detail).font(Theme.Font.body).foregroundStyle(Theme.Color.lede)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, 8).padding(.bottom, 14)

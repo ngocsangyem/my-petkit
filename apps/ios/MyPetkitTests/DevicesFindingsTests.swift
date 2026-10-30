@@ -186,12 +186,23 @@ final class DevicesFindingsTests: XCTestCase {
         detection.settable = true
         box.entities += [capability, detection]
         let groups = EntityGroups(box)
-        XCTAssertEqual(groups.controls.map(\.key), ["auto_work", "cleaning_delay", "sand_type"])
+        XCTAssertEqual(groups.controls.map(\.key), ["sand_type"])
+        XCTAssertEqual(groups.automationControls.map(\.key), ["auto_work", "cleaning_delay"])
         XCTAssertEqual(groups.aiControls.map(\.key), ["pet_detection"])
     }
 
+    func testAutomationRowsStayUnderSettingsOutsideALitterBox() {
+        var feeder = Fixtures.feeder
+        var autoWork = DeviceEntity(component: "switch", key: "auto_work", name: "Auto Clean", value: .number(1))
+        autoWork.settable = true
+        feeder.entities.append(autoWork)
+        let groups = EntityGroups(feeder)
+        XCTAssertTrue(groups.automationControls.isEmpty)
+        XCTAssertTrue(groups.controls.contains { $0.key == "auto_work" })
+    }
+
     func testEntityWritesAndSteps() {
-        let delay = EntityGroups(Fixtures.litterBox).controls[1]
+        let delay = EntityGroups(Fixtures.litterBox).automationControls[1]
         XCTAssertEqual(EntityWrite.number(6).question(delay), "Set Clean Delay to 6 min?")
         XCTAssertEqual(EntityWrite.toggle(false).wire, "OFF")
         XCTAssertEqual(EntityWrite.stepped(60, by: 1, entity: delay), 60)
