@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Send Wi-Fi and server</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0f6e66;text-decoration:none}a:hover{text-decoration:underline}
+input{font:400 15px 'IBM Plex Sans', system-ui, sans-serif;color:#131416}
+input:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #0f6e66;outline-offset:2px}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; box-sizing: border-box; background: #ffffff; color: #131416; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 15px; line-height: 1.4; display: flex; flex-direction: column">
+
+  <header style="background: #f2f6f5; padding: 54px 16px 16px; display: flex; flex-direction: column; gap: 4px">
+    <a href="ios-devices.dc.html" aria-label="Back" style="width: 44px; height: 44px; margin-left: -10px; display: flex; align-items: center; justify-content: center; color: #131416"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#131416" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <h1 style="margin: 0; font-size: 24px; font-weight: 600">Send Wi-Fi and server</h1>
+    <p style="margin: 0; font-size: 14px; color: #5d6262">New device <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #131416">PETKIT_T6_8F2A</span></p>
+  </header>
+
+  <main style="flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 16px; padding: 16px 16px 34px">
+    <section aria-labelledby="prog-h" style="display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <h2 id="prog-h" style="margin: 0; font-size: 16px; font-weight: 600">Joining Wi-Fi…</h2>
+        <span style="font-size: 13px; color: #5d6262; font-variant-numeric: tabular-nums">2 of 4 done</span>
+      </div>
+      <div role="progressbar" aria-valuemin="0" aria-valuemax="4" aria-valuenow="2" aria-label="Setup progress" style="height: 4px; border-radius: 2px; background: #e8eded; overflow: hidden"><div style="width: 50%; height: 100%; background: #0f6e66"></div></div>
+      <ol aria-label="Progress" style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column">
+        <li style="display: flex; align-items: center; gap: 10px; min-height: 32px; font-size: 14px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0f6e66" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg><span>Connected over Bluetooth</span></li>
+        <li style="display: flex; align-items: center; gap: 10px; min-height: 32px; font-size: 14px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0f6e66" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg><span>Device identified · T6</span></li>
+        <li aria-current="step" style="display: flex; align-items: center; gap: 10px; min-height: 32px; font-size: 14px; font-weight: 600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#131416" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke-dasharray="30 20"></circle></svg><span>Joining Wi-Fi…</span></li>
+        <li style="display: flex; align-items: center; gap: 10px; min-height: 32px; font-size: 14px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cdd3d2" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle></svg><span>Waiting for it to reach the server</span></li>
+      </ol>
+    </section>
+
+    <section aria-labelledby="form-h" style="display: flex; flex-direction: column; gap: 10px">
+      <h2 id="form-h" style="margin: 0; font-size: 16px; font-weight: 600">Network</h2>
+      <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 500">Wi-Fi network
+        <input type="text" value="Nha-2.4G" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff">
+      </label>
+      <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 500">Password
+        <input type="password" value="placeholder" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff">
+      </label>
+      <div style="display: flex; flex-direction: column; border-top: 1px solid #eef1f1; font-size: 14px">
+        <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eef1f1"><span style="color: #5d6262">Server</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px">192.168.1.20</span></div>
+        <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eef1f1"><span style="color: #5d6262">Time zone</span><span style="font-variant-numeric: tabular-nums">UTC+7:00</span></div>
+      </div>
+      <p style="margin: 0; font-size: 12px; color: #5d6262">The server address comes from your server, not from this phone. 2.4 GHz networks only.</p>
+    </section>
+
+    <div style="flex: 1"></div>
+
+    <button type="button" style="height: 48px; border: 0; border-radius: 6px; background: #131416; color: #ffffff; font: 600 15px 'IBM Plex Sans', sans-serif">Send to device</button>
+    <div style="display: flex; justify-content: space-between; margin-top: -6px; font-size: 14px">
+      <a href="ios-provision.dc.html" style="min-height: 44px; display: flex; align-items: center">Trouble connecting?</a>
+      <a href="ios-provision.dc.html" style="min-height: 44px; display: flex; align-items: center">Share diagnostic log</a>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

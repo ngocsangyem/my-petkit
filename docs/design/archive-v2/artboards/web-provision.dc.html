@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>my-petkit · Provision</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2f6f5}
+a{color:#131416;text-decoration:none}a:hover{color:#0f6e66}
+.nav a:hover{background:#e8eded}
+.row:hover{background:#f5f7f7}
+.btn2:hover{background:#f5f7f7}
+.btn1:hover{background:#2a2c2f}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #0f6e66;outline-offset:2px}
+.phonebar{display:none !important}
+@media (max-width: 900px){
+  .shell{grid-template-columns:minmax(0,1fr) !important;grid-template-rows:auto 1fr !important}
+  .side,.topbar{display:none !important}
+  .phonebar{display:flex !important}
+  .sheet{margin:0 !important;overflow-wrap:anywhere;min-width:0 !important;border-radius:0 !important;border-left:0 !important;border-right:0 !important;padding:16px !important}
+  .two{grid-template-columns:1fr !important}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+  .hide-sm{display:none !important}
+}
+</style>
+</helmet>
+<div class="shell" style="min-height: 1000px; display: grid; grid-template-columns: 228px minmax(0, 1fr); grid-template-rows: 48px minmax(0, 1fr); background: #f2f6f5; color: #131416; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 14px; line-height: 1.45">
+
+  <aside class="side" style="grid-row: 1 / 3; display: flex; flex-direction: column; gap: 20px; padding: 14px 12px 16px">
+    <div style="display: flex; align-items: center; gap: 10px; height: 20px; padding: 0 8px">
+      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="none" stroke="#0f6e66" stroke-width="2"></circle><path d="M3.2 13.2 A8 8 0 0 0 16.8 13.2 Z" fill="#0f6e66"></path></svg>
+      <span style="font-size: 15px; font-weight: 600">my-petkit</span>
+    </div>
+    <div style="padding: 0 8px; font-size: 12px; color: #5d6262">Home server · v2.1.0</div>
+    <nav class="nav" aria-label="Sections" style="display: flex; flex-direction: column; gap: 2px">
+      <a href="web-devices.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M5 15h14"></path></svg>Devices</a>
+      <a href="web-timeline.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12h16M8 8v8M14 6v12"></path></svg>Timeline</a>
+      <a href="web-pets.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="13" r="6"></circle><path d="M7 8 6 3l4 3M17 8l1-5-4 3"></path></svg>Pets</a>
+    </nav>
+    <nav class="nav" aria-label="Tools" style="display: flex; flex-direction: column; gap: 2px">
+      <span style="padding: 0 8px 4px; font-size: 12px; color: #5d6262">Tools</span>
+      <a href="web-provision.dc.html" aria-current="page" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; background: #e8eded; font-weight: 500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#131416" stroke-width="1.8" aria-hidden="true"><path d="m7 7 10 10-5 5V2l5 5L7 17"></path></svg>Provision</a>
+      <a href="web-log.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13"></path></svg>Log</a>
+      <a href="web-setup.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 3v3M12 18v3M3 12h3M18 12h3"></path></svg>Setup</a>
+    </nav>
+    <nav class="nav" aria-label="Advanced" style="display: flex; flex-direction: column; gap: 2px">
+      <span style="padding: 0 8px 4px; font-size: 12px; color: #5d6262">Advanced · needs step-up</span>
+      <a href="web-capture.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M8 10h8M8 14h5"></path></svg>Capture</a>
+      <a href="web-patchers.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 4l6 6-10 10H4v-6z"></path></svg>Patchers</a>
+    </nav>
+    <div style="flex: 1"></div>
+    <a href="web-login.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 0 8px; font-size: 13px; color: #5d6262">Signed in as admin</a>
+  </aside>
+
+  <header class="topbar" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 16px 0 0">
+    <label style="display: flex; align-items: center; gap: 8px; width: 420px; height: 32px; padding: 0 10px; box-sizing: border-box; background: #ffffff; border: 1px solid #e3e8e7; border-radius: 6px; color: #5d6262">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+      <input type="search" aria-label="Search devices, cats and events" placeholder="Search devices, cats, events" style="flex: 1; border: 0; outline: 0; background: transparent; font: 14px 'IBM Plex Sans', sans-serif; color: #131416">
+    </label>
+    <div style="display: flex; align-items: center; gap: 16px; font-size: 13px; color: #5d6262">
+      <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 8px; height: 8px; border-radius: 50%; background: #1e7b4f"></span>Live</span>
+      <span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px">192.168.1.20:8443</span> · TLS pinned</span>
+    </div>
+  </header>
+
+  <main class="sheet" style="margin: 0 8px 8px 0; min-width: 0; background: #ffffff; border: 1px solid #e3e8e7; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 24px">
+
+    <div class="phonebar" style="align-items: center; justify-content: space-between; height: 48px; margin: -16px -16px 0; padding: 0 16px; background: #f2f6f5">
+      <button type="button" aria-label="Open menu" style="width: 44px; height: 44px; border: 0; background: transparent; padding: 0; display: flex; align-items: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#131416" stroke-width="2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></button>
+      <span style="font-weight: 600">Provision</span>
+      <span style="width: 44px"></span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 6px; max-width: 760px">
+      <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap">
+        <h1 style="margin: 0; font-size: 22px; font-weight: 600">Provision a device</h1>
+        <span style="font-size: 14px; color: #5d6262">Sends Wi-Fi, this server's address and the time zone over Bluetooth. No PetKit app involved.</span>
+      </div>
+      <p style="margin: 0; font-size: 14px"><span style="font-weight: 500">Two of three steps are filled in.</span> Next: send them to the device.</p>
+      <div role="progressbar" aria-label="Provisioning progress" aria-valuemin="0" aria-valuemax="3" aria-valuenow="2" style="height: 6px; background: #eef1f1; border-radius: 3px; overflow: hidden"><span style="display: block; height: 6px; width: 66.7%; background: #0f6e66"></span></div>
+      <ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 20px; font-size: 13px; color: #5d6262">
+        <li>Wi-Fi network, done</li>
+        <li>Server and time zone, done</li>
+        <li aria-current="step" style="color: #131416; font-weight: 500">Send to the device, next</li>
+      </ol>
+    </div>
+
+    <div class="two" style="display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 32px; align-items: start">
+      <form style="display: flex; flex-direction: column; gap: 24px; min-width: 0" onSubmit="{{noSubmit}}">
+        <fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 12px; min-width: 0">
+          <legend style="padding: 0; margin-bottom: 12px; font-size: 16px; font-weight: 600">Wi-Fi network</legend>
+          <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #5d6262">Wi-Fi name<input type="text" value="Nha-2.4G" style="height: 32px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 14px 'IBM Plex Sans', sans-serif; color: #131416; width: 100%"></label>
+          <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #5d6262">Password<input type="password" value="placeholder" style="height: 32px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 14px 'IBM Plex Sans', sans-serif; color: #131416; width: 100%"></label>
+        </fieldset>
+        <fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 12px; min-width: 0">
+          <legend style="padding: 0; margin-bottom: 12px; font-size: 16px; font-weight: 600">Server and time</legend>
+          <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #5d6262">Server devices will use<input type="text" value="192.168.1.20" style="height: 32px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 14px 'IBM Plex Sans', sans-serif; color: #131416; width: 100%; font-family: 'IBM Plex Mono', monospace; font-size: 13px"></label>
+          <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #5d6262">Time zone<select style="height: 32px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 14px 'IBM Plex Sans', sans-serif; color: #131416; width: 100%"><option>UTC+7:00 · Asia/Saigon</option><option>UTC+5:45 · Asia/Kathmandu</option></select></label>
+        </fieldset>
+        <div style="display: flex; flex-direction: column; gap: 12px">
+          <h2 style="margin: 0; font-size: 16px; font-weight: 600">Send</h2>
+          <span style="font-size: 14px; color: #5d6262">Hold the device's button until it beeps, then choose it from the browser's list.</span>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap">
+            <button type="button" class="btn2" style="height: 32px; padding: 0 12px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 500 14px 'IBM Plex Sans', sans-serif; color: #131416; cursor: pointer">Find device</button>
+            <button type="submit" class="btn1" style="height: 32px; padding: 0 12px; border: 0; border-radius: 6px; background: #131416; color: #ffffff; font: 500 14px 'IBM Plex Sans', sans-serif; cursor: pointer">Send to device</button>
+          </div>
+          <span style="font-size: 12px; color: #5d6262">Web Bluetooth needs Chrome or Edge on desktop or Android, and a secure context: a page with a trusted certificate. On an iPhone, use the my-petkit app.</span>
+        </div>
+      </form>
+
+      <div style="display: flex; flex-direction: column; gap: 24px; min-width: 0">
+        <fieldset style="margin: 0; padding: 0; border: 0; min-width: 0">
+          <legend style="padding: 0; margin-bottom: 8px; font-size: 16px; font-weight: 600">Devices found</legend>
+          <div style="display: flex; flex-direction: column">
+            <sc-for list="{{found}}" as="d" hint-placeholder-count="2">
+              <label style="display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 6px 0; border-top: 1px solid #eef1f1; cursor: pointer">
+                <input type="radio" name="found" value="{{d.id}}" checked="{{d.checked}}" onChange="{{d.pick}}" style="width: 16px; height: 16px; margin: 0; accent-color: #0f6e66">
+                <span style="display: flex; flex-direction: column; min-width: 0; flex: 1"><span style="font-weight: 500">{{d.name}}</span><span style="font-size: 12px; color: #5d6262"><span style="font-family: 'IBM Plex Mono', monospace">{{d.id}}</span> · {{d.model}}</span></span>
+                <span style="font-size: 13px; color: #5d6262; font-variant-numeric: tabular-nums; text-align: right">{{d.rssi}}</span>
+              </label>
+            </sc-for>
+          </div>
+        </fieldset>
+
+        <section aria-labelledby="log-h" style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap"><h2 id="log-h" style="margin: 0; font-size: 16px; font-weight: 600">Session log</h2><span style="font-size: 13px; color: #5d6262">Bluetooth frames, newest last</span></div>
+          <div role="log" aria-labelledby="log-h" style="overflow-x: auto; padding: 12px 16px; border-radius: 8px; background: #131416; color: #cdd3d2; font-family: 'IBM Plex Mono', monospace; font-size: 12px; line-height: 1.7">
+            <sc-for list="{{log}}" as="l" hint-placeholder-count="5"><div style="white-space: nowrap; color: {{l.ink}}">{{l.line}}</div></sc-for>
+          </div>
+        </section>
+      </div>
+    </div>
+
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const cur = (this.state && this.state.dev) || 'PETKIT_T6_8F2A';
+    const mk = (o) => Object.assign({}, o, { checked: o.id === cur, pick: () => this.setState({ dev: o.id }) });
+    return {
+      noSubmit: (e) => { if (e && e.preventDefault) e.preventDefault(); },
+      found: [
+        { id: 'PETKIT_T6_8F2A', name: 'Litter box', model: 'Purobot Ultra T6', rssi: '-52 dBm' },
+        { id: 'PETKIT_D4SH_31C7', name: 'Kitchen feeder', model: 'YumShare Dual-Hopper D4SH', rssi: '-71 dBm' }
+      ].map(mk),
+      log: [
+        { ink: '#cdd3d2', line: '14:02:11 connected PETKIT_T6_8F2A · service AAA0' },
+        { ink: '#cdd3d2', line: '14:02:12 → key 110 framed seq 0 crc 3234' },
+        { ink: '#cdd3d2', line: '14:02:13 ← identity T6 · fw 1.2.86' },
+        { ink: '#cdd3d2', line: '14:02:17 → key 151 credentials' },
+        { ink: '#7fd1c7', line: '14:02:22 ← state 1 · joining Wi-Fi' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

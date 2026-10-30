@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Feeding schedule</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#131416;text-decoration:none}a:hover{color:#0f6e66}
+button{font-family:inherit}
+.row:active{background:#f5f7f7}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #0f6e66;outline-offset:2px}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; box-sizing: border-box; background: #ffffff; color: #131416; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 15px; line-height: 1.4; display: flex; flex-direction: column">
+  <header style="background: #f2f6f5; padding: 54px 16px 14px; display: flex; flex-direction: column; gap: 4px">
+    <a href="ios-devices.dc.html" aria-label="Back" style="width: 44px; height: 44px; margin-left: -12px; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#131416" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <h1 style="margin: 0; font-size: 24px; font-weight: 600">Schedule</h1>
+    <p style="margin: 0; font-size: 14px">Next meal <span style="font-weight: 600; font-variant-numeric: tabular-nums">18:00, 20 g</span>, in 3 h 13 m. <span style="color: #5d6262">Kitchen feeder <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px">100198342</span></span></p>
+  </header>
+
+  <main style="flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 12px; padding: 12px 16px 34px">
+    <div role="tablist" aria-label="Schedule kind" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; padding: 2px; background: #e8eded; border-radius: 6px; flex-shrink: 0">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
+        <button type="button" role="tab" aria-selected="{{t.sel}}" onClick="{{t.pick}}" style="height: 40px; border: 0; border-radius: 4px; background: {{t.bg}}; color: {{t.ink}}; font-size: 14px; font-weight: {{t.weight}}">{{t.label}}</button>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{showRange}}" hint-placeholder-val="{{true}}">
+      <div style="display: flex; flex-direction: column; gap: 12px; min-height: 0">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums">Fed 35 of 65 g today</span><span style="font-size: 13px; color: #5d6262; font-variant-numeric: tabular-nums">30 g to go</span></div>
+          <div role="img" aria-label="35 of 65 grams fed, 54 percent" style="height: 8px; border-radius: 4px; background: #e8eded"><div style="width: 53.8%; height: 8px; border-radius: 4px; background: #0f6e66"></div></div>
+        </div>
+        <div style="position: relative; height: 396px; flex-shrink: 0">
+          <sc-for list="{{hours}}" as="h" hint-placeholder-count="6">
+            <div style="position: absolute; left: 0; right: 0; top: {{h.top}}; border-top: 1px solid #eef1f1"><span style="position: absolute; top: -7px; left: 0; font-size: 11px; color: #5d6262; font-variant-numeric: tabular-nums">{{h.label}}</span></div>
+          </sc-for>
+          <sc-for list="{{meals}}" as="m" hint-placeholder-count="4">
+            <button type="button" style="position: absolute; left: 36px; right: 0; top: {{m.top}}; height: 44px; box-sizing: border-box; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; border: {{m.border}}; border-radius: 6px; background: {{m.bg}}; color: #131416; text-align: left; font: 15px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums"><span><span style="font-weight: 600">{{m.time}}</span> <span>{{m.amount}}</span></span><span style="font-size: 13px; color: {{m.ink}}; white-space: nowrap">{{m.status}}</span></button>
+          </sc-for>
+          <div style="position: absolute; left: 30px; right: 0; top: 193px; height: 1px; background: #0f6e66"></div>
+          <span style="position: absolute; right: 0; top: 184px; padding: 0 4px; background: #ffffff; font-size: 11px; font-weight: 600; color: #0f6e66; font-variant-numeric: tabular-nums">Now 14:47</span>
+        </div>
+        <button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 500 14px 'IBM Plex Sans', sans-serif; width: 100%; flex-shrink: 0">Add a meal</button>
+        <p style="margin: 0; font-size: 12px; color: #5d6262; line-height: 1.45">Times use the feeder's own time zone, Asia/Saigon. Saved meals are pushed to the feeder straight away.</p>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{showWeekly}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div role="group" aria-label="Days" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-bottom: 8px">
+          <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+            <button type="button" aria-pressed="{{d.on}}" style="height: 44px; border: 1px solid #cdd3d2; border-radius: 6px; background: {{d.bg}}; color: #131416; font-size: 13px; font-weight: {{d.weight}}">{{d.label}}</button>
+          </sc-for>
+        </div>
+        <label for="wk-time" style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-top: 1px solid #eef1f1; font-size: 15px">Time<input id="wk-time" type="time" value="12:30" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 15px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums"></label>
+        <label for="wk-a" style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-top: 1px solid #eef1f1; font-size: 15px">Hopper A portions<input id="wk-a" type="number" value="1" min="0" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 15px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums; width: 80px"></label>
+        <label for="wk-b" style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-top: 1px solid #eef1f1; font-size: 15px">Hopper B portions<input id="wk-b" type="number" value="1" min="0" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 15px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums; width: 80px"></label>
+        <p style="margin: 8px 0 12px; font-size: 12px; color: #5d6262; line-height: 1.45">Repeats every selected day. Each portion is 10 g.</p>
+        <button type="button" style="height: 48px; border: 0; border-radius: 6px; background: #131416; color: #ffffff; font: 600 15px 'IBM Plex Sans', sans-serif; width: 100%">Save weekly meal</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{showPoint}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <label for="pt-date" style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-top: 1px solid #eef1f1; font-size: 15px; border-top: 0">Date<input id="pt-date" type="date" value="2026-10-29" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 15px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums"></label>
+        <label for="pt-time" style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-top: 1px solid #eef1f1; font-size: 15px">Time<input id="pt-time" type="time" value="07:30" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 15px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums"></label>
+        <label for="pt-a" style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-top: 1px solid #eef1f1; font-size: 15px">Hopper A portions<input id="pt-a" type="number" value="2" min="0" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 15px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums; width: 80px"></label>
+        <label for="pt-b" style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-top: 1px solid #eef1f1; font-size: 15px">Hopper B portions<input id="pt-b" type="number" value="0" min="0" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 15px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums; width: 80px"></label>
+        <div style="margin: 8px 0 12px"><p style="margin: 0; font-size: 12px; color: #5d6262; line-height: 1.5"><span style="color: #2f70bb; font-weight: 500">Polling · heartbeat.</span> This feeder checks in about once a minute, so the meal reaches it on its next check-in.</p></div>
+        <button type="button" style="height: 48px; border: 0; border-radius: 6px; background: #131416; color: #ffffff; font: 600 15px 'IBM Plex Sans', sans-serif; width: 100%">Schedule meal</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{showFeed}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <label for="fd-a" style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-top: 1px solid #eef1f1; font-size: 15px">Hopper A portions<input id="fd-a" type="number" value="1" min="0" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 15px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums; width: 80px"></label>
+        <label for="fd-b" style="display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-top: 1px solid #eef1f1; font-size: 15px">Hopper B portions<input id="fd-b" type="number" value="0" min="0" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 15px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums; width: 80px"></label>
+        <div style="margin: 8px 0 12px"><p style="margin: 0; font-size: 12px; color: #5d6262; line-height: 1.5"><span style="color: #2f70bb; font-weight: 500">Polling · heartbeat.</span> This feeder checks in about once a minute, so the meal reaches it on its next check-in.</p></div>
+        <button type="button" style="height: 48px; border: 0; border-radius: 6px; background: #131416; color: #ffffff; font: 600 15px 'IBM Plex Sans', sans-serif; width: 100%">Feed now</button>
+      </div>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'range' };
+  }
+  renderVals() {
+    const cur = this.state.tab;
+    const defs = [['range', 'Range'], ['weekly', 'Weekly'], ['point', 'One-off'], ['feed', 'Feed now']];
+    // Timeline axis: 06:00 to 24:00 at 22 px per hour.
+    const y = (h, m) => (((h - 6) * 60 + m) / 60 * 22).toFixed(1) + 'px';
+    const hours = [];
+    for (let h = 6; h <= 24; h++) {
+      hours.push({ top: y(h, 0), label: h % 3 === 0 ? String(h).padStart(2, '0') : '' });
+    }
+    const fed = { border: '1px solid #e3e8e7', bg: '#f5f7f7', ink: '#1e7b4f', status: 'Fed' };
+    const planned = { border: '1px solid #cdd3d2', bg: '#ffffff', ink: '#5d6262', status: 'Planned' };
+    const next = { border: '2px solid #0f6e66', bg: '#ffffff', ink: '#0f6e66', status: 'Next, in 3 h 13 m' };
+    const meals = [
+      { ...fed, top: y(7, 0), time: '07:00', amount: '20 g (2 × 10 g)' },
+      { ...fed, top: y(12, 0), time: '12:00', amount: '15 g' },
+      { ...next, top: y(18, 0), time: '18:00', amount: '20 g (2 × 10 g)' },
+      { ...planned, top: y(22, 0), time: '22:00', amount: '10 g' }
+    ];
+    const dayDefs = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return {
+      showRange: cur === 'range', showWeekly: cur === 'weekly', showPoint: cur === 'point', showFeed: cur === 'feed',
+      tabs: defs.map(([id, label]) => ({
+        label,
+        sel: cur === id ? 'true' : 'false',
+        bg: cur === id ? '#ffffff' : 'transparent',
+        ink: cur === id ? '#131416' : '#5d6262',
+        weight: cur === id ? 600 : 500,
+        pick: () => this.setState({ tab: id })
+      })),
+      hours,
+      meals,
+      days: dayDefs.map((label, i) => ({
+        label,
+        on: i < 5 ? 'true' : 'false',
+        bg: i < 5 ? '#e8eded' : '#ffffff',
+        weight: i < 5 ? 600 : 400
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>
