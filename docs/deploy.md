@@ -32,10 +32,15 @@ Every published image is signed with cosign keyless signing from the
 provenance attestation. Check the signature before you run a new version:
 
 ```sh
-cosign verify ghcr.io/ngocsangyem/my-petkit:0.0.1 \
+COSIGN_REPOSITORY=ghcr.io/ngocsangyem/my-petkit-signatures \
+cosign verify ghcr.io/ngocsangyem/my-petkit:0.0.2 \
   --certificate-identity-regexp '^https://github.com/ngocsangyem/my-petkit/\.github/workflows/publish\.yml@refs/tags/v' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```
+
+The signatures live in their own package, `my-petkit-signatures`, so the
+image package lists only versions; cosign 3.1 or newer is needed to read them
+there. `0.0.1` predates that move: verify it without `COSIGN_REPOSITORY`.
 
 For `dev`, the identity ends in `@refs/heads/main` instead. A signature made
 anywhere else (a fork, another workflow, a laptop) fails this check.
@@ -137,7 +142,9 @@ listed at the top of the workflow; then set the repository variable
 
 - **A new GHCR package is private.** After the first publish, set
   `ghcr.io/ngocsangyem/my-petkit` to public (package settings → Change
-  visibility), or the Supervisor and anonymous `docker pull` get 401.
+  visibility), or the Supervisor and anonymous `docker pull` get 401. The same
+  goes for `ghcr.io/ngocsangyem/my-petkit-signatures`, which the first signed
+  publish creates; until it is public, nobody else can run `cosign verify`.
 - **Cutting a release:** bump `version` in `addon/config.yaml` and
   `services/api/pyproject.toml`, add the `addon/CHANGELOG.md` entry, merge, then
   push the tag `v<version>`. The workflow refuses a tag that disagrees with
