@@ -4,7 +4,7 @@ import { Toggle as TogglePrimitive } from '@base-ui/react/toggle';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from 'cn';
 
-// Edited from the shadcn source for design-reference §8 (web v3):
+// Edited from the shadcn source for DESIGN.md (web v3):
 // - `outline` is the chip: a 36px pill on `--pk-fill-secondary` (white on the
 //   ground, ground-tinted inside a card); pressed, it fills with ink and
 //   inverts in dark mode, like the primary button (§8.4).

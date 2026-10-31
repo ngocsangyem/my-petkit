@@ -2,7 +2,7 @@ import { Progress as ProgressPrimitive } from '@base-ui/react/progress';
 import { cn } from 'cn';
 
 // Edited from the shadcn source: a 6px pill track on `--pk-track` with an
-// accent fill (design-reference §7, consumables and hopper levels).
+// accent fill (DESIGN.md, consumables and hopper levels).
 
 function Progress({ className, children, value, ...props }: ProgressPrimitive.Root.Props) {
   return (

@@ -69,6 +69,12 @@ def test_looks_plaintext_random_bytes_is_false():
     assert crypto.looks_plaintext(b"") is False
 
 
+def test_a_head_shorter_than_one_ts_packet_is_not_mpegts():
+    # Ciphertext starts with 0x47 for 1 key in 256; it must still be decrypted.
+    assert crypto.looks_plaintext(bytes([0x47]) + b"\x00" * 63) is False
+    assert crypto.looks_plaintext(bytes([0x47]) + b"\x00" * 187) is True
+
+
 def test_decrypt_aes_roundtrip():
     from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 

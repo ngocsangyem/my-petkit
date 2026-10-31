@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from 'cn';
 
 // Edited from the shadcn source: 22px pills in the design's four pill colour
-// pairs (design-reference §2), placed beside a value or a title only.
+// pairs (DESIGN.md), placed beside a value or a title only.
 const badgeVariants = cva(
   'group/badge inline-flex h-5.5 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-full border border-transparent px-[9px] text-xs leading-none font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:outline-ring [&>svg]:pointer-events-none [&>svg]:size-3!',
   {

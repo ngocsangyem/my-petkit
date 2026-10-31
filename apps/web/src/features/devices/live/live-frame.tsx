@@ -8,7 +8,7 @@ import { MODE_LABEL } from './live-copy';
 import type { LivePhase } from './use-live-player';
 
 // Controls sit on the dark live ground in both themes, so they take the live
-// tokens rather than the light button looks (design-reference §7.2).
+// tokens rather than the light button looks (DESIGN.md).
 export const ON_DARK =
   'h-10 rounded-full px-4.5 bg-live-control text-live-text hover:not-disabled:bg-live-control/80 hover:not-disabled:text-live-text';
 

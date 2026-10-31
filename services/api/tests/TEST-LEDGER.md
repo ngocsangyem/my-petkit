@@ -266,6 +266,8 @@ reviewer can find every place the suite was touched.
 - added: tests/test_repro_media_file_info_resend.py::test_resent_file_info_with_fresh_bytes_keeps_the_filed_copy
 - added: tests/test_repro_media_file_info_resend.py::test_a_ready_row_whose_file_is_gone_is_processed_again
 - added: tests/test_ingest_endpoints.py::test_a_replayed_upload_file_info_answers_success_and_keeps_the_item_ready
+- added: tests/test_media_crypto.py::test_a_head_shorter_than_one_ts_packet_is_not_mpegts
+  — a file shorter than one MPEG-TS packet is never taken for plaintext TS, so an encrypted one is decrypted.
 
 ### Session lookups scoped to the device (completes per-device event identity)
 

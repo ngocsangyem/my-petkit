@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from 'cn';
 
-// Edited from the shadcn source for design-reference §8 (web v3): a white card,
+// Edited from the shadcn source for DESIGN.md (web v3): a white card,
 // radius 20, no border, ring or shadow (the tone step from the ground is the
 // edge), 20px padding. Inside it a secondary button is ground-tinted and a
 // field is raised (the two context fills in tokens.css).

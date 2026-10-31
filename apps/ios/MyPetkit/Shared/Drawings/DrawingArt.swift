@@ -1,10 +1,10 @@
 import PetkitCore
 import SwiftUI
 
-/// The device drawings, in the 100 × 100 geometry of the design's generator
-/// (`docs/design/tools/ios-v3/build_artboards.py`): every number below is a
-/// coordinate from there, scaled to the drawn size. Single feeder, purifier and
-/// unknown have no generator glyph and are drawn in the same language.
+/// The device drawings, in the 100 × 100 geometry of the v3 design
+/// (`docs/design/DESIGN.md`, Device drawings): every number below is a
+/// coordinate on that grid, scaled to the drawn size. Single feeder, purifier and
+/// unknown have no reference drawing and are drawn in the same language.
 struct DrawingArt {
     let scale: CGFloat
     let context: GraphicsContext

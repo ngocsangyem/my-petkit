@@ -48,7 +48,7 @@ export interface QuickActionProps extends Omit<ComponentPropsWithRef<'button'>, 
 }
 
 /**
- * A device quick action: the icon above its label on `raised`, radius 16 (design-reference §7.3:
+ * A device quick action: the icon above its label on `raised`, radius 16 (DESIGN.md:
  * a button, not decoration, and never on a hue). Lay several out in a grid.
  */
 export function QuickAction({

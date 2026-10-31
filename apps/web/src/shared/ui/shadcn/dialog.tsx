@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
 import { cn } from 'cn';
 
-// Edited from the shadcn source for design-reference §8 (web v3): a centred
+// Edited from the shadcn source for DESIGN.md (web v3): a centred
 // white dialog, radius 24, 24px padding and 16px gaps, no border; the overlay
 // shadow token instead of a ring (dialogs float, so they may carry one). Inside
 // it a secondary button is ground-tinted and a field is raised.

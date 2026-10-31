@@ -1,4 +1,4 @@
-// Line drawings of the devices (design-reference §7.1, §8.1), drawn from geometry rather than
+// Line drawings of the devices (DESIGN.md), drawn from geometry rather than
 // product photos. Each takes its levels from props and its colours from the drawing tokens.
 export { levelFraction } from './drawing-frame';
 export type { DrawingLevel, DrawingProps } from './drawing-frame';

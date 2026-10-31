@@ -21,7 +21,7 @@ import { Skeleton } from '@/shared/ui/shadcn/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/shadcn/tooltip';
 import { PanelLeftIcon } from 'lucide-react';
 
-// Edited from the shadcn source for the design (design-reference §3, §6): the
+// Edited from the shadcn source for the design (DESIGN.md): the
 // sidebar is the 228px token wide; no resting shadow or ring-shadow (a 1px
 // border instead); focus uses the global accent outline instead of a ring; and
 // the open state is neither written to a cookie nor bound to Ctrl/Cmd+B (the
