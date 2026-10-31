@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from 'cn';
 
 // Edited from the shadcn source: the accent focus outline instead of a ring
-// (design-reference §2), and form controls at radius 6 on the surface colour.
+// (DESIGN.md), and form controls at radius 6 on the surface colour.
 
 function Tabs({ className, orientation = 'horizontal', ...props }: TabsPrimitive.Root.Props) {
   return (

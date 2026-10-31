@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from 'cn';
 
-// Edited from the shadcn source for design-reference §8 (web v3): borderless,
+// Edited from the shadcn source for DESIGN.md (web v3): borderless,
 // radius 14 on `--pk-fill-field`, the accent focus outline instead of a ring.
 
 function Textarea({ className, ...props }: React.ComponentProps<'textarea'>) {

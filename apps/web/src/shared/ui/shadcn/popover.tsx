@@ -3,7 +3,7 @@ import { Popover as PopoverPrimitive } from '@base-ui/react/popover';
 import { cn } from 'cn';
 
 // Edited from the shadcn source: overlays get a 1px `border` edge and the one
-// overlay shadow token instead of a ring (design-reference §6).
+// overlay shadow token instead of a ring (DESIGN.md).
 
 function Popover({ ...props }: PopoverPrimitive.Root.Props) {
   return <PopoverPrimitive.Root data-slot="popover" {...props} />;

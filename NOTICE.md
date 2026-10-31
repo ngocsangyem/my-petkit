@@ -34,8 +34,8 @@ localkit and others); those credits are carried in `README.md`.
 | Dropbear SSH (prebuilt `dropbear-mipsel`, `dropbear-armv7`) | MIT-style, see its licence file | `services/api/src/my_petkit/web/static/bin/LICENSE.dropbear` (must ship with the binaries) |
 | IBM Plex Sans / IBM Plex Mono | SIL Open Font License 1.1 | Self-hosted by the web app and bundled by the iOS app; the OFL text ships next to the font files |
 
-Design mockup photos (`docs/design/assets/`, CC BY-SA) are **not** committed and not shipped;
-they are used only to render the design canvas locally.
+Design mockup photos (CC0 and CC BY-SA, credited in `docs/design/DESIGN.md`) are **not** shipped;
+they appear only in the reference screenshots under `docs/design/screenshots/`.
 
 ## Fixture audit
 

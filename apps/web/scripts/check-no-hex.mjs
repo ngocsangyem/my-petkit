@@ -1,5 +1,5 @@
 // Fails when a hex colour appears in src/ outside the token file: every colour
-// is a token (docs/design/design-reference.md §2). In CSS any `#rgb`..`#rrggbbaa`
+// is a token (docs/design/DESIGN.md). In CSS any `#rgb`..`#rrggbbaa`
 // counts; in TypeScript only a string that IS a colour (`'#0f6e66'`), so a
 // media path such as `.../#10000001/...` is not mistaken for one.
 import { readdirSync, readFileSync } from 'node:fs';

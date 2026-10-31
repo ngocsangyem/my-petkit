@@ -3,7 +3,7 @@ import { Menu as MenuPrimitive } from '@base-ui/react/menu';
 import { cn } from 'cn';
 
 // Edited from the shadcn source: overlays get a 1px `border` edge and the one
-// overlay shadow token instead of a ring (design-reference §6).
+// overlay shadow token instead of a ring (DESIGN.md).
 import { ChevronRightIcon, CheckIcon } from 'lucide-react';
 
 function DropdownMenu({ ...props }: MenuPrimitive.Root.Props) {

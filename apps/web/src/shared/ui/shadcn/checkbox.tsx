@@ -2,7 +2,7 @@ import { Checkbox as CheckboxPrimitive } from '@base-ui/react/checkbox';
 import { cn } from 'cn';
 
 // Edited from the shadcn source: the accent focus outline instead of a ring
-// (design-reference §2), and form controls at radius 6 on the surface colour.
+// (DESIGN.md), and form controls at radius 6 on the surface colour.
 import { CheckIcon } from 'lucide-react';
 
 function Checkbox({ className, ...props }: CheckboxPrimitive.Root.Props) {

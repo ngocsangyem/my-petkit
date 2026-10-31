@@ -54,7 +54,7 @@ Why the protocol core is kept as-is:
   - `MyPetkit/Features/<Name>/` holds `<Name>View.swift`, `<Name>Model.swift` (`@Observable`), plus the subviews.
   - Logic that can be tested without UI lives in `PetkitKit`: `PetkitAPI`, `PetkitCore`, `PetkitBLE`.
 - Feature names are the same in all three places (API, web, iOS), so searching for one feature finds all three.
-- **UI**: follows `design/design-reference.md` (in the repo: `docs/design/`).
+- **UI**: follows `docs/design/DESIGN.md`.
   - Color, type and spacing tokens are declared only once: `apps/web/src/shared/ui/tokens.css` and `PetkitCore/Theme/`.
   - Shared components go in `src/shared/ui/` and `MyPetkit/Shared/`.
   - The web follows **§8 (Web v3)**, which supersedes the web rows of §2–§6: the frame, controls, overlays and rules are in §8.1–§8.2, the screen-to-artboard map in §8.3, dark mode in §8.4. iOS follows §7. Each screen is built from the artboard listed in its screen map.

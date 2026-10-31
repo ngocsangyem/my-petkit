@@ -10,7 +10,7 @@ export interface CaptionPillProps {
 
 /**
  * The dark caption pill over a photo or video thumbnail ("Live view", "14:05 · 48 s"): 22px,
- * `rgba(0,0,0,.55)` with white text. The only overlay allowed on a photo (design-reference §7.3).
+ * `rgba(0,0,0,.55)` with white text. The only overlay allowed on a photo (DESIGN.md).
  */
 export function CaptionPill({ children, className }: CaptionPillProps) {
   return (

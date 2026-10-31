@@ -3,7 +3,7 @@
 import { Switch as SwitchPrimitive } from '@base-ui/react/switch';
 import { cn } from 'cn';
 
-// Edited from the shadcn source for design-reference §7/§8 (v3): the iOS
+// Edited from the shadcn source for DESIGN.md (v3): the iOS
 // switch, 51x31 with a 27px thumb (40x24 small). On is the ink track with a
 // white thumb (inverted in dark mode, like the primary button); off is a grey
 // track. The focus ring is the accent outline. A disabled switch dims to 60%

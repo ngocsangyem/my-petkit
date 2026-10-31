@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from 'cn';
 
-// Edited from the shadcn source for design-reference §8 (web v3): borderless
+// Edited from the shadcn source for DESIGN.md (web v3): borderless
 // 44px fields at radius 14 on `--pk-fill-field` (white on the ground, raised
 // inside a card or dialog, white inside a raised panel), 15px text, the accent
 // focus outline instead of a ring, and a 1px red outline when invalid.

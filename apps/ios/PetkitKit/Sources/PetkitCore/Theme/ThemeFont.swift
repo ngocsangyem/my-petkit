@@ -1,7 +1,7 @@
 import CoreText
 import SwiftUI
 
-/// The type scale (design-reference §2, §7.2). IBM Plex Sans for everything,
+/// The type scale (DESIGN.md). IBM Plex Sans for everything,
 /// IBM Plex Mono only for IDs, firmware, URLs, fingerprints, keys, file names
 /// and log lines. Sizes scale with Dynamic Type relative to a text style.
 /// When the Plex files are not bundled the system face stands in.

@@ -55,7 +55,7 @@ import {
 } from 'lucide-react';
 
 /**
- * Each artboard glyph (docs/design/tools/ios-v3/build_artboards.py ICONS, web-v3 additions)
+ * Each artboard glyph (from the v3 artboards, see docs/design/screenshots)
  * mapped to the closest lucide glyph. The older names (`devices`, `setup`, `capture`, `patchers`)
  * stay for existing callers.
  */

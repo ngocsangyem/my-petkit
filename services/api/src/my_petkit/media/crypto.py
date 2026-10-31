@@ -85,11 +85,12 @@ def _looks_like_mpegts(head: bytes) -> bool:
 
     MPEG-TS has no file signature at all: it is a stream of fixed 188-byte
     packets each starting with 0x47, so the packet *pitch* is the only real
-    evidence. Only a head shorter than two packets falls back to the
-    single-byte check.
+    evidence. A head of one whole packet falls back to the single-byte check;
+    anything shorter is no packet at all, and treating its first byte as a
+    sync byte would skip decrypting 1 in 256 short encrypted files.
     """
     if len(head) < 189:
-        return len(head) >= 1 and head[0] == 0x47
+        return len(head) >= 188 and head[0] == 0x47
     return head[0] == 0x47 and head[188] == 0x47
 
 

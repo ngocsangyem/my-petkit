@@ -1,4 +1,4 @@
-// Fails on code that breaks the hard design rules: docs/design/design-reference.md
+// Fails on code that breaks the hard design rules: docs/design/DESIGN.md
 // §6, as relaxed for v3 by §7.3 and §8.2. shadcn components arrive with some of
 // these by default, so every `shadcn add` is followed by an edit and this check
 // keeps the edits from being undone.
@@ -100,7 +100,7 @@ function check(path, rules) {
 walk('src');
 if (hits.length) {
   console.error(
-    `Design rule violations (design-reference.md §6, §7.3, §8.2):\n${hits.join('\n')}`,
+    `Design rule violations (DESIGN.md):\n${hits.join('\n')}`,
   );
   process.exit(1);
 }
