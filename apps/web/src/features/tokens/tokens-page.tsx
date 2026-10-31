@@ -33,7 +33,7 @@ function ServerFacts() {
     <Panel className="flex flex-col gap-1.5">
       <p className="text-sm">
         Pair a phone makes a single-use code that lives five minutes and asks for your password
-        first. The my-petkit app scans it and trusts this server only.
+        first. The MyPetKit app scans it and trusts this server only.
       </p>
       {facts}
     </Panel>

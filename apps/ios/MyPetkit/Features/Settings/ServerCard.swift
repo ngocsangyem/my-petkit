@@ -33,7 +33,7 @@ struct ServerCard: View {
                 if case .failed(let message) = model.facts {
                     Text(message).font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted)
                 } else if let facts = model.facts.value {
-                    Text("my-petkit \(facts.version) · \(facts.proxyMode ? "proxy mode" : "local mode")")
+                    Text("MyPetKit \(facts.version) · \(facts.proxyMode ? "proxy mode" : "local mode")")
                         .font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted)
                 }
             }

@@ -110,9 +110,9 @@ struct OnboardingView: View {
         switch model.step {
         case .found(_, let address), .confirmFingerprint(let address, _), .signIn(let address),
              .firstRun(let address):
-            "my-petkit · \(address.host)"
+            "MyPetKit · \(address.host)"
         default:
-            "my-petkit"
+            "MyPetKit"
         }
     }
 

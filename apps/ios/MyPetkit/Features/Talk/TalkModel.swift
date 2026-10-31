@@ -17,7 +17,7 @@ final class TalkModel {
         case failed(String)
     }
 
-    nonisolated static let deniedSentence = "Turn on microphone access for my-petkit in Settings to talk."
+    nonisolated static let deniedSentence = "Turn on microphone access for MyPetKit in Settings to talk."
 
     let deviceID: Int
     private(set) var state: State

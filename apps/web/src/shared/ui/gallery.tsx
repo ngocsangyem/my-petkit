@@ -228,7 +228,7 @@ export function UiGallery() {
         <Pill tone="positive">Applied</Pill>
         <Pill tone="warning">Low</Pill>
         <Pill>Idle</Pill>
-        <DrumMark size={56} title="my-petkit" />
+        <DrumMark size={56} title="MyPetKit" />
       </div>
 
       <SettingsSection

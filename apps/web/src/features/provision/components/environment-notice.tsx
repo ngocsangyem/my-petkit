@@ -34,7 +34,7 @@ export function EnvironmentNotice({ block }: { block: EnvironmentBlock }) {
     return (
       <RiskNotice>
         This browser has no Web Bluetooth. It is only in Chrome and Edge, on desktop or Android;
-        Firefox, Safari and iOS cannot provision. On an iPhone, use the my-petkit app.
+        Firefox, Safari and iOS cannot provision. On an iPhone, use the MyPetKit app.
       </RiskNotice>
     );
   }

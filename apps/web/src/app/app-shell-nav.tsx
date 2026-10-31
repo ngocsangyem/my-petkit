@@ -34,7 +34,7 @@ export function ShellBrand() {
   return (
     <span className="inline-flex items-center gap-2.5 px-2 text-lg font-semibold">
       <DrumMark size={18} />
-      my-petkit
+      MyPetKit
     </span>
   );
 }

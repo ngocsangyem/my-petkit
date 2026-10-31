@@ -27,7 +27,7 @@ export function ServerSummaryCard({ info, blocked }: ServerSummaryCardProps) {
           </StatusWord>
         </span>
         <span className="text-xs text-muted-foreground">
-          my-petkit <span className="font-mono wrap-anywhere">{info.version}</span> ·{' '}
+          MyPetKit <span className="font-mono wrap-anywhere">{info.version}</span> ·{' '}
           {info.settings.proxy_mode ? 'proxy mode' : 'local mode'}
           {info.settings_writable ? '' : ' · settings read-only'}
         </span>
