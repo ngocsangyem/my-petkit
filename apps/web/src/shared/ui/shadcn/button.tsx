@@ -2,7 +2,7 @@ import { Button as ButtonPrimitive } from '@base-ui/react/button';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from 'cn';
 
-// Edited from the shadcn source for design-reference §8 (web v3): every
+// Edited from the shadcn source for DESIGN.md (web v3): every
 // button is a full pill. The primary fill is ink, never the accent; secondary
 // takes `--pk-fill-secondary` (white on the ground, ground-tinted inside a card
 // or dialog, set by those containers); red is either text or, for the final

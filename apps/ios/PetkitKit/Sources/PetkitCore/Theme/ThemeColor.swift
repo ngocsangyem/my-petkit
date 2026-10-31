@@ -4,7 +4,7 @@ import UIKit
 #endif
 
 /// Every colour the app paints with, declared once with its light and dark
-/// value (docs/design/design-reference.md §2, §7.2, §7.5). No view may carry
+/// value (docs/design/DESIGN.md). No view may carry
 /// a colour literal; SwiftLint enforces it outside this folder.
 public enum Theme {}
 

@@ -9,7 +9,7 @@ import { cn } from 'cn';
 import { toggleVariants } from '@/shared/ui/shadcn/toggle';
 
 // Edited from the shadcn source: a `segment` group draws the segmented-control
-// track (a pill on `--pk-segment` with 3px padding, design-reference §7.1);
+// track (a pill on `--pk-segment` with 3px padding, DESIGN.md);
 // other groups are a row of separate chips.
 
 const ToggleGroupContext = React.createContext<

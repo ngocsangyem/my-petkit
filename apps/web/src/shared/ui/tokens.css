@@ -1,8 +1,7 @@
 /*
  * Design tokens: the only file in src/ allowed to hold a hex colour
- * (scripts/check-no-hex.mjs). Values come from docs/design/design-reference.md
- * §2, §7.2 and §8 (web v3: soft white cards on a tinted ground, pill controls),
- * and from the artboard CSS in docs/design/tools/web-v3/web.css; components
+ * (scripts/check-no-hex.mjs). Values come from docs/design/DESIGN.md
+ * (web v3: soft white cards on a tinted ground, pill controls); components
  * read them as CSS custom properties.
  */
 :root {
@@ -63,7 +62,7 @@
   --pk-pet-1-tint: #f8eedb;
   --pk-pet-1-ink: #7a4f08;
 
-  /* Live video (design-reference §7.2, frame per the web v3 artboards' video block): the same
+  /* Live video (DESIGN.md, frame per the web v3 artboards' video block): the same
      dark frame in light and dark mode, so these are not redefined under .dark. The frame is a
      step above the dark ground, so it still reads as a block in dark mode. */
   --pk-live-ground: #1b1d1e;
@@ -124,8 +123,8 @@
 
 /*
  * Dark mode: `.dark` on <html>, set before the first paint by public/theme-init.js.
- * Values come from design-reference §7.5 (shared with iOS) and §8.4 (the web
- * frame, approved 2026-10-30), and from the `.dark` rules of the artboard CSS.
+ * Values come from the dark tokens in DESIGN.md (shared with iOS, extended to
+ * the web frame, approved 2026-10-30).
  * Tokens none of them covers are marked "derived": picked to keep the light
  * theme's contrast steps.
  */

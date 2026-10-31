@@ -1,6 +1,6 @@
 import CoreGraphics
 
-/// Spacing and radius (design-reference §2, §7.2).
+/// Spacing and radius (DESIGN.md).
 public extension Theme {
     enum Space {
         public static let gap: CGFloat = 12

@@ -11,14 +11,13 @@ only when every row below is ticked. The panel's files were last present at
 - **Done (commit)** `n/a` marks a route this app deliberately does not call, with
   the reason.
 - **Design:** ticked against the web v3 artboard named in the cell
-  (`docs/design/screenshots/web-*.webp`, design-reference §8.3) when the screen
+  (`docs/design/screenshots/web-*.webp`, screen map in `docs/design/DESIGN.md`) when the screen
   matches it at 1440×1000 and 390×844, in light and dark mode, in layout,
   hierarchy, spacing and colour; copy and data may differ. Evidence: the
   screenshots and side-by-side comparisons in `plans/reports/web-v3-final/`
   (git-ignored), taken from the fixture preview (`preview/`) served with the
   production CSP, with no CSP violation or console error on any screen or
-  dialog (2026-10-31). The v2 ticks were dropped; the v2 boards are kept in
-  `docs/design/archive-v2/`. Rows with no screen of their own (a background
+  dialog (2026-10-31). The v2 ticks were dropped with the v2 boards. Rows with no screen of their own (a background
   call) carry `n/a`. Deliberate deviations are listed under "Known gaps".
 
 Sources: the router (every `/api` operation in `packages/contracts/openapi.yaml`,

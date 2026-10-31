@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Dialog as SheetPrimitive } from '@base-ui/react/dialog';
 import { cn } from 'cn';
 
-// Edited from the shadcn source for design-reference §8 (web v3): a side
+// Edited from the shadcn source for DESIGN.md (web v3): a side
 // sheet is white with radius 24 on its inner edge, 24px padding, no border,
 // and the sheet shadow token (sheets float). The right sheet holds editors and
 // is 440px wide. Inside it a secondary button is ground-tinted and a field is
