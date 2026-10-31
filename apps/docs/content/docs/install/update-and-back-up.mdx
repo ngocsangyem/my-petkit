@@ -1,0 +1,38 @@
+---
+title: Update and back up
+description: How to update each install, what to back up first, and how to roll back.
+---
+
+The `/data` directory holds the device identities, the TLS keys and the user plane's secrets. If you lose it, every device has to be provisioned again and every phone paired again. Back it up before every update, and treat the archive like a password.
+
+## Home Assistant add-on
+
+The Supervisor deletes the old image before it pulls the new one, so a bad release cannot be rolled back by reinstalling the old version.
+
+- Tick **Create a backup before updating** in the update dialog, or run `ha backups new --addons <slug>`.
+- To roll back, restore that backup. It brings back the add-on at its old version together with its `/data`.
+
+## Docker and VPS
+
+Back up the data volume:
+
+```bash
+docker run --rm -v my-petkit_data:/data:ro -v "$PWD":/backup alpine \
+  tar czf /backup/my-petkit-data-$(date +%F).tgz -C /data .
+```
+
+Update to the tag in your settings file:
+
+```bash
+docker compose pull && docker compose up -d
+```
+
+To roll back, set `MY_PETKIT_TAG` to the previous release, or to an exact digest such as `ghcr.io/ngocsangyem/my-petkit@sha256:...`, and run `docker compose up -d` again.
+
+## Keep the iOS app in step
+
+The app version equals the server version. Update both together. See [The iOS app](/docs/guides/ios-app).
+
+## Supported versions
+
+Only the latest release gets fixes. There is no backport branch.

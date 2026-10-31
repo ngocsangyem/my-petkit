@@ -1,0 +1,55 @@
+---
+title: First sign-in
+description: Set the admin password with the one-time setup code, and check the server's certificate.
+---
+
+A new server has no admin. Until you create one, it prints a one-time setup code in its log each time it starts.
+
+<Steps>
+<Step>
+
+### Find the setup code
+
+- Add-on: open the add-on's **Log** tab.
+- Docker or VPS: `docker compose logs my-petkit | grep -i "setup token"`
+
+The code is valid for 30 minutes.
+
+</Step>
+<Step>
+
+### Open the dashboard
+
+- Add-on: click **My PetKit** in the Home Assistant sidebar, or open `https://<host>:8443/`.
+- Docker: `https://<host>:8443/`
+- VPS: `https://<your domain>/`
+
+On port 8443 the browser warns about the certificate, because it is self-signed. Before you accept it, compare its SHA-256 fingerprint with the one printed in the log (also served at `/api/info`).
+
+</Step>
+<Step>
+
+### Create the admin password
+
+Enter the setup code and a new password twice. You are signed in.
+
+![The first-run screen asking for the setup code and a new password](/screenshots/web-first-run.webp)
+
+</Step>
+</Steps>
+
+## Forgot the password, or the code expired
+
+Run this inside the container:
+
+```bash
+my-petkit admin set-password --data-dir /data
+```
+
+For Docker that is `docker exec -it my-petkit my-petkit admin set-password --data-dir /data`. Setting the password this way also signs every browser out.
+
+## Step-up
+
+Some actions ask for the password again even though you are signed in: patchers, raw device commands, proxy and capture settings, downloading captures and device logs, revealing blocked payloads, and pairing a new phone. After you enter it, it counts for 5 minutes.
+
+![The step-up dialog asking for the admin password again](/screenshots/web-step-up.webp)

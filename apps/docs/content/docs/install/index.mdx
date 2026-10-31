@@ -1,0 +1,32 @@
+---
+title: Install
+description: Pick where the server runs. All three options use the same signed image.
+---
+
+There is one image, `ghcr.io/ngocsangyem/my-petkit`, built for amd64, arm64 and armv7. You can run it three ways:
+
+| Mode | Where it runs | Pick it when |
+|---|---|---|
+| [Home Assistant add-on](/docs/install/home-assistant-add-on) | Home Assistant OS or Supervised | You already run Home Assistant with the add-on store |
+| [Docker on your LAN](/docs/install/docker) | Any Docker host on the same network as the devices | You run HA Container, HA Core, or no Home Assistant at all |
+| [VPS](/docs/install/vps) | A cloud server that reaches your home over WireGuard | You want the dashboard on a public domain with a real certificate |
+
+armv7 is built in CI on every push but has never been run on real 32-bit ARM hardware.
+
+## Image tags
+
+| Tag | What it points to |
+|---|---|
+| a version, such as `0.0.2` | A release, cut by the matching `v0.0.2` git tag. The add-on pulls exactly this. |
+| `latest` | The newest stable release. A prerelease does not move it. |
+| `dev` | The last commit on `main`. Untested by definition. |
+
+To hold one exact build, use a release's digest (`ghcr.io/ngocsangyem/my-petkit@sha256:...`). Do not pin a `dev` digest: once `dev` moves on, its old digest is deleted after 14 days.
+
+Before you run a new version, you can [verify its signature](/docs/install/verify-image).
+
+## Before you start
+
+- The device ports 80 and 443 must be free on the host. Home Assistant itself usually runs on 8123, so that is fine, but another web server on 80 is not.
+- The host needs a fixed LAN IP. Devices are handed that IP when they are provisioned, and embedded PetKit devices cannot resolve `.local` names.
+- Plan how the device will find the server: [Bluetooth provisioning or a DNS redirect](/docs/configuration/networking).

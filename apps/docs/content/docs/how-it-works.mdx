@@ -1,0 +1,49 @@
+---
+title: How it works
+description: One process that pretends to be the PetKit cloud, and what follows from that.
+---
+
+MyPetKit is a cloud, not a client. A device is pointed at it instead of PetKit's servers, and it believes it is talking to the real cloud. So every answer has to be shaped like the cloud's. A wrong answer does not produce an error message: the device reboots, retries forever, or silently stops doing anything.
+
+## One process, four servers
+
+Everything runs in one Python process inside one container:
+
+| Server | Default port | Who uses it |
+|---|---|---|
+| Device HTTP API | 80 | The device registers here and asks where everything else is |
+| MQTT broker | 443 (TLS) | Devices that can reach it switch to MQTT for faster commands |
+| Media bucket | 9000 | The device uploads photos and video here, as it would to Aliyun OSS |
+| User plane (dashboard and API) | 8443 (TLS) | You, from a browser or the iOS app |
+
+There is also one outgoing connection: an MQTT client that publishes entities to Home Assistant's own broker. Do not confuse the two brokers. The one MyPetKit runs is for devices. The one it connects to belongs to Home Assistant.
+
+```text
+PetKit device ──HTTP───► MyPetKit ──MQTT discovery──► Home Assistant
+              ──MQTT──►  embedded broker ──bridge──►
+              ──HTTPS─►  media bucket ──decrypt/remux──► /media/petkit
+```
+
+## Two planes with opposite rules
+
+The device plane (HTTP API, broker, bucket) talks to firmware. The firmware has no credential to offer before it is registered, so these endpoints are unauthenticated and must stay on your LAN or a VPN. They are never meant to face the internet.
+
+The user plane (dashboard, its API, the iOS app) is default-deny. Every request carries the admin password or a paired client token, and it is served over TLS in every deployment mode. This is the only part you may expose outside your network. See [Security](/docs/configuration/security) for the full picture.
+
+## HTTP first, then MQTT
+
+A device speaks HTTP or MQTT, never both at the same time. It always starts on HTTP, because that is where it signs up and learns the broker's address. If it can then reach the broker, it connects and stops polling the HTTP heartbeat entirely. On a T5 the HTTP side went quiet about 40 seconds after the MQTT connection opened. From then on its state, its visit and cleaning events, and its accessories' readings all arrive over MQTT.
+
+What MQTT buys you is latency. A command sent over MQTT reaches the device the moment you flip a control. Over HTTP it waits in a queue until the device's next heartbeat poll.
+
+The camera models (T5, T6, T7, D4H, D4SH, W7H) only trust the PetKit cloud's certificate for MQTT, so they stay on HTTP until the [MQTT TLS Bypass](/docs/firmware/patchers#mqtt-tls-bypass) patcher is applied.
+
+## Media
+
+The device uploads to the bucket under a key it chooses. MyPetKit decrypts each file, remuxes it, gives it a readable path and records it. Recordings arrive as many chunks of about 4 seconds each, which are joined into one file per episode. The sources are deleted only after the joined file has been verified.
+
+Live video goes through a bundled [go2rtc](https://github.com/AlexxIT/go2rtc), because the device refuses a second connection for several seconds and because Home Assistant crashes when it reads the device's FLV stream directly. See [Live video and talk](/docs/guides/live-video-and-talk).
+
+## Proxy mode
+
+With proxy mode on (dashboard, Settings), MyPetKit still answers every request itself first, then also forwards it to PetKit and returns PetKit's reply if it is usable and passes a redaction filter. If PetKit is unreachable, slow, or refuses the device, the local answer is returned instead. Proxy mode never hands a device an upstream credential, server address or firmware update. It is a debugging tool for recording what the real cloud says, which is how support for new models gets added.

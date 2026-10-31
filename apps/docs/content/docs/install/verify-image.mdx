@@ -1,0 +1,36 @@
+---
+title: Verify the image
+description: Check the cosign signature, SBOM and provenance before you run a new version.
+---
+
+Every published image is signed with cosign keyless signing by the repository's `publish` workflow. Every per-architecture image also carries an SBOM and a provenance attestation.
+
+## Signature
+
+```bash
+COSIGN_REPOSITORY=ghcr.io/ngocsangyem/my-petkit-signatures \
+cosign verify ghcr.io/ngocsangyem/my-petkit:0.0.2 \
+  --certificate-identity-regexp '^https://github.com/ngocsangyem/my-petkit/\.github/workflows/publish\.yml@refs/tags/v' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
+
+The signatures live in their own package, `my-petkit-signatures`, so the image package lists only versions. You need cosign 3.1 or newer to read them there. Version `0.0.1` predates that move: verify it without `COSIGN_REPOSITORY`.
+
+For `dev`, the identity ends in `@refs/heads/main` instead of a tag. A signature made anywhere else (a fork, another workflow, a laptop) fails this check.
+
+## SBOM and provenance
+
+```bash
+docker buildx imagetools inspect ghcr.io/ngocsangyem/my-petkit:0.0.1 \
+  --format '{{ json (index .SBOM "linux/amd64").SPDX }}' | head
+docker buildx imagetools inspect ghcr.io/ngocsangyem/my-petkit:0.0.1 \
+  --format '{{ json (index .Provenance "linux/amd64").SLSA }}' | head
+```
+
+## The iOS app
+
+Each release also ships an unsigned IPA. Check that it was built by the repository's workflow:
+
+```bash
+gh attestation verify MyPetkit-<version>.ipa --repo ngocsangyem/my-petkit
+```

@@ -1,0 +1,89 @@
+---
+title: Architecture
+description: The packages in my_petkit, and how a device request and a Home Assistant command travel through them.
+---
+
+Read [How it works](/docs/how-it-works) first for the big picture. This page is the map of the code. The repository's `ARCHITECTURE.md` and `AGENTS.md` are the long versions.
+
+## Packages
+
+```text
+my_petkit/
+├── main/          process lifecycle: cli -> wiring -> lifecycle
+├── config.py      every setting, from /data/options.json, the Supervisor, the CLI and the panel
+├── http/          the cloud a device believes it is talking to
+│   ├── server.py      route table, and the catch-all that must stay last
+│   ├── handlers/      one module per endpoint
+│   ├── middleware/    device identity, proxy forwarding, request logging
+│   ├── redact/        what a cloud reply is allowed to contain
+│   ├── bucket.py      the unauthenticated media upload sink
+│   └── cloud_fetch.py signs as the device to ask PetKit something directly
+├── mqtt/          broker (amqtt), Aliyun HMAC auth, topics, bridge, BLE relay, upstream
+├── devices/       Device identity and state, response payloads, registry, state parsers, BLE
+├── ha/            device category -> entities, discovery, publisher, command router
+├── events/        codes.py (the protocol tables), decode, normalize, sessions, store
+├── media/         decrypt -> remux -> path -> row, chunk stitching, retention, go2rtc
+├── features/      the user plane, one package per feature; features never import each other
+├── shared/        what several features need
+├── web/           composition root: the app and the whole route table; serves apps/web
+├── patchers/      on-device patches: cacert, mqtt, cloud, camera, ssh, talk, pan
+├── ai/pets.py     pets and the face photos the device matches against
+└── utils/         constants, crypto, capture, JSON I/O, paths, coercion, clock
+```
+
+`devices` depends only on `events` and `utils`; it does not know Home Assistant exists. "Which entities does this device publish" is answered in `ha/categories.py`.
+
+## A request over HTTP
+
+Four middlewares wrap every request, outermost first:
+
+```text
+device --HTTP--> http/server.py          /{path:.*} is registered LAST, so an
+                   │                     unknown endpoint is answered, never 404'd
+                   ├─ never_fail         no failure of ours reaches the device as a 5xx
+                   ├─ logging            live log, capture file, online/last_seen
+                   ├─ device             X-Device + URL -> device_type, ...
+                   └─ proxy              off: call the handler, return its answer
+                        │                on:  call the handler FIRST and keep its answer,
+                        │                     then forward; PetKit's reply is used only if
+                        │                     it is usable and survives http/redact/
+                        └─> handlers/<endpoint>.py
+                              └─> devices/payloads.py builds the body the firmware expects
+```
+
+The local handler runs even in proxy mode. That is what makes "PetKit is unreachable, slow, or refuses this device" a non-event.
+
+A command for a device on HTTP waits in `Device.command_queue` until the device polls `dev_heartbeat` and gets it in the reply.
+
+## A frame over MQTT
+
+```text
+device --MQTT--> mqtt/broker.py (amqtt)
+                   ├─ mqtt/auth.py    HMAC on CONNECT, and it subscribes the device itself,
+                   │                  because a T5 sends no SUBSCRIBE of its own
+                   └─ mqtt/bridge.py  one `#` subscription, dispatching each frame to
+                          ├─> devices/state_parsers.py -> device.state
+                          ├─> events/normalize.py -> events/store.py
+                          └─> ha/publisher.py -> Home Assistant
+```
+
+One `#` subscription covers every device, so anything that escapes per-message handling takes the bridge down for all of them.
+
+## A command from Home Assistant
+
+```text
+HA's broker --MQTT--> ha/publisher.py     subscribes my-petkit/+/cmd/+
+                        └─> ha/command_router.py
+                              └─> ha/commands.py builds the device command
+                                    ├─ device.mqtt_connected?  published over MQTT
+                                    └─ otherwise               queued for the next heartbeat
+```
+
+`Device.mqtt_connected` picks the transport, and the transport has no delivery report. Publishing to a topic nobody subscribes to raises nothing, so a stale `True` swallows commands silently.
+
+## Where the protocol knowledge lives
+
+- `events/codes.py`: every event code, in seven namespaces that must never be merged. Each row is graded by its evidence and names the firmware function it came from.
+- `devices/payloads.py`: the response bodies. A value invented here is served to the device as its owner's setting, which is why several fields are deliberately left unset.
+
+Both are large on purpose. Read `AGENTS.md` before changing either.

@@ -1,0 +1,28 @@
+---
+title: Pointing devices at the server
+description: Bluetooth provisioning works for every model. A DNS redirect works only for the ESP32 models.
+---
+
+A device has to reach the server at the address in `api_url`. There are two ways to make that happen.
+
+## Bluetooth provisioning (every Wi-Fi model)
+
+The dashboard's **Add a device** screen sends the device its Wi-Fi credentials, a custom server URL (`apiServers`) and a time zone over Bluetooth. This is the most reliable route and the only one for the Linux camera models, which insist on HTTPS and so ignore a DNS override. The steps are in [Add a device](/docs/guides/add-a-device).
+
+## DNS redirect (ESP32 models only)
+
+The ESP32 models (T3, T4, D3, D4, D4S, Feeder, Feeder Mini) talk plain HTTP, so you can redirect them by answering PetKit's host names with your server's IP in your DNS server.
+
+There is no single name to redirect. Like the Linux models, these devices are given their API server during Bluetooth setup, so the name is whichever of PetKit's regional servers the PetKit app handed that device. Find it in your DNS server's query log, or redirect every PetKit domain.
+
+The device dials port 80 and cannot be told otherwise, so the API must be reachable on 80.
+
+The Bluetooth-only fountains and sprays are never on this list. They have no network of their own, so there is no name to redirect. They reach the server through a parent device.
+
+### Proxy mode on a redirected network
+
+A DNS redirect also redirects the name for MyPetKit itself, so proxy mode would reach itself instead of PetKit. The server notices and stops forwarding rather than labelling its own reply as PetKit's. To use proxy mode on such a network, set **DNS for upstream lookups** in Settings to a resolver that still answers truthfully. That setting is used only to find the upstream server.
+
+## The Linux models need a patch for MQTT
+
+T5, T6, T7, D4H, D4SH and W7H compile PetKit's certificate authority into their `ctrl` binary, so they will not trust any other MQTT broker. Without a patch they stay on HTTP, which works but delivers commands only at the next heartbeat. The [MQTT TLS Bypass](/docs/firmware/patchers#mqtt-tls-bypass) patcher fixes that.

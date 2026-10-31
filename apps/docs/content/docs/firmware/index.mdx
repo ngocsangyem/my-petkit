@@ -1,0 +1,44 @@
+---
+title: Firmware and patchers
+description: What the on-device patches are for, which models take them, and what can go wrong.
+---
+
+The Linux camera models (T5, T6, T7, D4H, D4SH, W7H) work against MyPetKit over HTTP without any change. Some features need the device's own software changed: MQTT, local media uploads, local live video, talk, SSH and the T6's camera pan. The **Patchers** screen applies those changes from the server, one patcher at a time, and can remove each one again.
+
+The ESP32 models and the Bluetooth-only accessories cannot be patched. The Patchers screen reports them as unsupported.
+
+<Callout type="error" title="Read this before you apply anything">
+A patched device is outside its warranty and outside PetKit's update path, and a failed patch can leave it unable to start. Applying a patcher asks for the admin password again, and each patcher's card in the dashboard describes exactly what it changes. Read it first.
+</Callout>
+
+## The patchers
+
+| Patcher | What it is for | Writes to the device |
+|---|---|---|
+| [MQTT TLS Bypass](/docs/firmware/patchers#mqtt-tls-bypass) | The device trusts MyPetKit's broker, so commands arrive at once | A patched copy of `ctrl` |
+| [CA Certificate](/docs/firmware/patchers#ca-certificate-bucket-tls) | The uploader trusts the local bucket's certificate | A copy of `ca.crt` with the server's certificate appended |
+| [Local Storage](/docs/firmware/patchers#local-storage-cloud-upload) | The uploader accepts a LAN address for media | A patched copy of `cloud` |
+| [Local Camera Streaming](/docs/firmware/patchers#local-camera-streaming) | Live video on your LAN instead of through Agora | Nothing; one line in the boot wrapper |
+| [Two-Way Talk](/docs/firmware/patchers#two-way-talk-intercom) | Your microphone to the device speaker | A small shell script |
+| [Persistent SSH Access](/docs/firmware/patchers#persistent-ssh-access) | SSH on port 22 with your public key | A static dropbear build, its host key and your key |
+| [Camera Pan (T6)](/docs/firmware/camera-pan-t6) | Pan Left, Pan Right and Pan Home buttons | Nothing |
+
+Local Storage and CA Certificate work together: apply both for local media uploads.
+
+## Two CPU families
+
+| Family | Models | Patch storage |
+|---|---|---|
+| Ingenic MIPS | T5, T6, T7, D4H, D4SH | `/system` |
+| Axera ARM | W7H, and some D4SH units | `/opt` |
+
+The D4SH ships with both board families under the same model name, so the server never decides from the model name. Before each patch it checks whether `/system/user.conf` or `/opt/user.conf` exists and uses that directory. The SSH patcher reads the ELF header of the device's own `ctrl` to pick the matching dropbear build. MQTT TLS Bypass and Local Storage pick their byte patch from the binary itself.
+
+<Callout type="info">
+The add-on's own documentation still says MQTT TLS Bypass, Local Storage and Persistent SSH Access are MIPS-only. The current patcher code disagrees: it carries an ARM patch for `ctrl` and `cloud` and an ARM dropbear build, and the firmware test suite patches W7H (ARM) binaries offline. Until the two agree, check a patcher's card on your device before you rely on it for an ARM unit.
+</Callout>
+
+## Next
+
+- [How patching works](/docs/firmware/how-patching-works): the exact steps, the boot wrapper, removing a patch, and reading firmware images yourself.
+- [The patchers](/docs/firmware/patchers): each patcher in detail.

@@ -1,0 +1,35 @@
+---
+title: Pets and visits
+description: Which cat used the box, how the server decides, and how to correct it.
+---
+
+The litter boxes with on-device AI (T5, T6, T7) match a visiting cat's face against reference photos the server hands them. The server then records the visit on the timeline under that cat.
+
+## Add your cats
+
+On **Pets**, add each cat with a name, reference photos and a registered weight. A box recognises up to 15 cats.
+
+If your cats are already set up in PetKit's app, you can import them. The server asks PetKit directly, signed as the device, only when you press the import button. Nothing in MyPetKit polls PetKit on a schedule.
+
+<div className="grid grid-cols-2 gap-4">
+  <img className="shot" src="/screenshots/web-pets.webp" alt="The Pets screen" />
+  <img className="shot" src="/screenshots/ios-pet-edit.webp" alt="Editing a pet in the iOS app" />
+</div>
+
+## How a visit gets its cat
+
+1. If the camera recognised the cat, the visit is that cat's. Recognised visits also keep the cat's registered weight up to date.
+2. If the camera did not recognise anyone, the server tries the weight. It assigns the visit only when no other cat is close: within twice that cat's tolerance, which is ±300 g by default. Such a visit is labelled "by weight".
+3. Visits lighter than every registered cat are hidden behind a **Light visits** filter. They are never deleted.
+
+A box that still holds faces cached from PetKit's cloud reports PetKit's id for the cat. Imported pets keep that id as an alias, so those visits land on the right cat too.
+
+## Correct a visit
+
+From the timeline, in the dashboard or the iOS app, you can give a visit to another cat or mark it "no cat, just passing". Only the server's record changes, and nothing the box sends later overrides it.
+
+![Changing the cat on a visit](/screenshots/web-change-cat.webp)
+
+## When recognition does not work
+
+The device's state report carries `discernPic`: the ids of the reference photos it downloaded and processed. That readback is the only proof the photos were accepted, so look for it first in the device's parsed state.

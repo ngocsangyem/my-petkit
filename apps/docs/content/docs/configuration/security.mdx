@@ -1,0 +1,38 @@
+---
+title: Security
+description: What the server protects, what it cannot protect, and how to report a vulnerability.
+---
+
+Nothing in MyPetKit relies on obscurity. Every secret (the session signing key, the signed-URL key, the TLS certificates) is generated per install, and none has a hard-coded default.
+
+## Two planes
+
+| Plane | Who talks to it | Exposure | Rule |
+|---|---|---|---|
+| Device plane: device HTTP API, media bucket, MQTT broker | PetKit firmware on your LAN | LAN or VPN only. Never the internet. | Unauthenticated where the firmware has no credential to offer. Limited by interface binding, size caps, path checks, and parsers that never raise. |
+| User plane: dashboard API, web app, iOS app | You | LAN, VPN, or the internet in the VPS setup | Default deny. Every route declares a tier and needs a token, except public static files and signed media links. TLS in every mode. |
+
+## What stays open on the device plane
+
+These risks remain by design, and they are why the device plane must stay on a network you control:
+
+- The device HTTP API is unauthenticated. The firmware presents no credential before it is registered, so anything on the LAN can call device endpoints, report state for a device id, and upload into the bucket.
+- The `X-Device` signature is not verified. A check would lock out any device whose signing input the server reproduces imperfectly, and a device that gets no answer or a 4xx retries forever.
+- `dev_signup` is open, because a factory-fresh device has nothing to authenticate with. Anyone on the LAN who presents a registered device's id (or its MAC, for a device that never had one) gets that device's identity and signing secret back.
+- In proxy mode, the connection to PetKit's Aliyun MQTT broker is encrypted but not authenticated. The chain ends at a private Aliyun root that is never sent and is in no public store, and the device does not verify it either. Firmware updates stay blocked and redaction still applies.
+
+What is closed: the plain MQTT listener binds loopback unless you set `mqtt_plain_expose`; an MQTT client without a device-shaped id is accepted only from loopback; the server dials a device only at a private, ULA or WireGuard address that a registered device reported; proxy mode forwards only to PetKit and Aliyun hosts and verifies PetKit's HTTPS certificate; ffmpeg reads only local files and pipes.
+
+## Signing in
+
+- While no admin password exists, the log prints a one-time setup token, valid for 30 minutes.
+- Risky actions ask for the password again, and it then counts for 5 minutes: patchers, raw device commands, proxy and capture settings, downloading captures and device logs, revealing blocked payloads, and pairing a new client. The dashboard calls this step-up.
+- The certificate on 8443 is self-signed. `/api/info` and the log show its SHA-256 fingerprint; compare it before you accept the browser warning. The iOS app pins it through the pairing QR code, so it is never rotated automatically. To rotate it on purpose, delete `/data/certs/user.*` and pair again.
+
+## Captures contain secrets
+
+A traffic capture is a verbatim recording of everything the device said and was told. It can contain your Wi-Fi SSID, LAN addresses, the device serial and its signing secret. With proxy mode on, `proxy_http.jsonl` and `proxy_mqtt.jsonl` also carry the full exchanges with PetKit, including your account credentials. Read a capture before you attach it anywhere, and attach only what the question needs.
+
+## Reporting a vulnerability
+
+Report privately through a [GitHub security advisory](https://github.com/ngocsangyem/my-petkit/security/advisories/new). Do not open a public issue for anything exploitable. The first response comes within 7 days. A fix is developed in the private advisory, released as a patch version, and only then disclosed.

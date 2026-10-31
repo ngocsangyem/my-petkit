@@ -1,0 +1,64 @@
+---
+title: The iOS app
+description: Install the MyPetKit app by sideloading, and pair it with your server through a QR code.
+---
+
+Every release ships the iOS app alongside the server. It is called MyPetKit on the home screen. The app version equals the server version, so keep the two together.
+
+## Install it
+
+The GitHub Release carries an unsigned IPA, so a sideloading tool signs it with your own Apple ID.
+
+| Asset | What it is |
+|---|---|
+| `MyPetkit-<version>.ipa` | The app, unsigned |
+| `apps.json` | An AltStore / SideStore source for this release |
+| `SHA256SUMS` | Checksums of the IPA and the source |
+
+With [AltStore](https://altstore.io) or [SideStore](https://sidestore.io), add this source once:
+
+```text
+https://github.com/ngocsangyem/my-petkit/releases/latest/download/apps.json
+```
+
+Each new stable release then shows up as an update. Sideloadly can also install the IPA by hand.
+
+A free Apple ID has to re-sign the app every 7 days (AltStore and SideStore do this in the background) and allows three sideloaded apps at a time.
+
+TestFlight is wired up in the release workflow but switched off, because it needs a paid Apple Developer account.
+
+## Pair it
+
+<Steps>
+<Step>
+
+In the dashboard, open **Settings → Phones and apps** and choose **Pair a phone**. This asks for the admin password again.
+
+</Step>
+<Step>
+
+Scan the QR code with the app. The code carries the server's address and its certificate fingerprint, and the app pins that certificate. If the code expired, create a new one.
+
+</Step>
+</Steps>
+
+<div className="grid grid-cols-2 gap-4">
+  <img className="shot" src="/screenshots/ios-pairing.webp" alt="Pairing the iOS app" />
+  <img className="shot" src="/screenshots/ios-devices.webp" alt="The device list in the iOS app" />
+</div>
+
+To unpair a phone, remove it from the list. The app on that phone is signed out at once and has to be paired again.
+
+## Pairing from outside your LAN
+
+The QR code sends the phone to `https://<host>:<user_port>` unless `user_url` is set. If phones reach the server through a proxy with a trusted certificate, such as `tailscale serve` or Cloudflare Tunnel, set `user_url` to that proxy's `https://` address. See [Remote access](/docs/configuration/remote-access) for which names iOS accepts.
+
+## What the app can do
+
+The app covers the same ground as the dashboard: devices and their controls, the timeline, pets, schedules, sounds, patchers, live video (it prefers WebRTC and falls back to HLS), and talking through a camera's speaker.
+
+<div className="grid grid-cols-3 gap-4">
+  <img className="shot" src="/screenshots/ios-device-t6.webp" alt="A T6 in the iOS app" />
+  <img className="shot" src="/screenshots/ios-timeline.webp" alt="The timeline in the iOS app" />
+  <img className="shot" src="/screenshots/ios-live.webp" alt="Live view in the iOS app" />
+</div>

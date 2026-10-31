@@ -1,0 +1,79 @@
+---
+title: Options
+description: Every setting, as an add-on option and as a command-line flag.
+---
+
+The add-on reads its options from the Home Assistant UI. The Docker and VPS setups pass the same settings as command-line flags in `docker-compose.yml`. Most installs need none of them changed.
+
+Proxy mode and payload capture are deliberately not here. You turn them on while watching a device, so they live in the dashboard under **Settings**, take effect at once, and persist to `/data/settings_overrides.json`.
+
+## Device side
+
+| Add-on option | Flag | Default | What it does |
+|---|---|---|---|
+| `api_url` | `--api-url` | empty: auto-detect | The URL the device is told to use for the HTTP API. Empty uses the host's LAN IP and the host port that 80/tcp is published on. Set it only for an address the mapping cannot express, such as a reverse proxy. An explicit value is used as-is, so include the port if it is not 80. A `.local` value is ignored, because embedded devices cannot resolve mDNS. |
+| `bucket_endpoint` | `--bucket-endpoint` | empty: derived | Where devices upload photos and video. Empty derives it from the host IP and the port 9000/tcp is published on. |
+| `offline_timeout` | `--offline-timeout` | `180` | Seconds without contact before a device is shown as unavailable. The add-on accepts 30 to 3600. |
+| `mqtt_tls` | `--mqtt-tls` | on | Adds a TLS listener to the device-facing broker. The certificate is self-signed and generated on first start. |
+| `mqtt_tls_port` | `--mqtt-tls-port` | `443` | Port for that listener. Change it together with the port mapping if your device dials a different one. |
+| `mqtt_strict_auth` | `--mqtt-strict-auth` | off | Enforce the Aliyun HMAC signature on MQTT connect. Off by default so a signature detail cannot lock a device out. |
+| `mqtt_plain_expose` | `--mqtt-plain-expose` | off | Serve the plain MQTT listener (1883) on every interface instead of loopback only. Only for a device that connects in plaintext; map the port too. |
+| `timezone` | `--timezone` | empty | IANA zone for local time, such as `Europe/Amsterdam`. See [Time zones](#time-zones). |
+
+## Home Assistant
+
+| Add-on option | Flag | Default | What it does |
+|---|---|---|---|
+| `ha_mqtt_host` | `--ha-mqtt-host` | empty | Your Home Assistant MQTT broker. The add-on detects it from the Supervisor if you run the Mosquitto add-on. Empty skips Home Assistant publishing; the device side still works. |
+| `ha_mqtt_port` | `--ha-mqtt-port` | `1883` | Broker port |
+| `ha_mqtt_user`, `ha_mqtt_pass` | `--ha-mqtt-user`, `--ha-mqtt-pass` | empty | Broker credentials. Empty means anonymous. |
+
+## Dashboard and iOS app
+
+| Add-on option | Flag | Default | What it does |
+|---|---|---|---|
+| `user_port` | `--user-port` | `8443` | The TLS port for the dashboard and the iOS app. Change it together with the port mapping. |
+| `user_hosts` | `--user-hosts` | empty | Host names, comma-separated, that browsers may use to reach the dashboard, such as a reverse proxy's name. IP addresses and `localhost` are always allowed. |
+| `user_url` | `--user-url` | empty | The `https://` address the iOS pairing QR code sends a phone to. Set it only when phones reach the dashboard through a proxy with a trusted certificate. |
+| `webrtc_candidates` | `--webrtc-candidates` | empty | `host:port` addresses, comma-separated, where viewers reach port 8555. Empty offers MSE and HLS only. See [Live video](/docs/guides/live-video-and-talk). |
+
+## Listener addresses
+
+Each listener binds its own address, and each value must be an IP literal. These are unset by default and the add-on lists them under "unused optional options".
+
+| Add-on option | Flag | Default | Listeners |
+|---|---|---|---|
+| `device_bind_host` | `--device-bind-host` | `0.0.0.0` | Device HTTP API, media bucket, MQTT TLS |
+| `mqtt_plain_bind` | `--mqtt-plain-bind` | `127.0.0.1` | Plain MQTT. Must include loopback, because the internal bridge dials `localhost`. |
+| `user_bind_host` | `--user-bind-host` | `0.0.0.0` | Dashboard on 8099 and 8443 |
+| `rtsp_bind` | `--rtsp-bind` | `:8554` | go2rtc RTSP, as `host:port` or `:port` |
+
+go2rtc's own API on 1984 always binds `127.0.0.1`.
+
+## Flags with no add-on option
+
+| Flag | What it does |
+|---|---|
+| `--data-dir` | Where identities, settings, the database and keys live. The containers use `/data`. |
+| `--no-ha` | Disable Home Assistant publishing |
+| `--no-mqtt` | Disable the embedded device broker |
+| `--webrtc-port` | go2rtc's WebRTC media port, TCP and UDP. Default 8555. |
+| `--wireguard-subnets` | CIDR networks, beyond the private ranges, where devices reach the server over WireGuard |
+| `--port`, `--web-port`, `--bucket-port` | Override the device HTTP port, the Ingress panel port (8099) and the bucket port (9000) |
+| `--mqtt-cert`, `--mqtt-key` | Use your own broker certificate instead of the generated one |
+| `--debug` | Debug logging. The add-on has a `log_level` option instead: `DEBUG`, `INFO` (default), `WARNING` or `ERROR`. |
+| `--ha-addon` | Read `/data/options.json` and the Supervisor, as the add-on does |
+
+## Time zones
+
+Feed-schedule days, the feeder's daily record, media file names and daily counts are read in the `timezone` option if it is set. Otherwise the server uses the device's own locale, and if the device reports none, UTC with a warning in the log. The host's or container's own zone is never used, because it says where the server runs, not where the device is. Set `timezone` if your devices report no locale.
+
+The device keeps a fixed UTC offset with no daylight saving. It gets that offset when it is provisioned over Bluetooth, so a device provisioned without one stamps UTC onto its video until it is provisioned again.
+
+## Admin password
+
+```bash
+my-petkit admin set-password --data-dir /data
+```
+
+Run it inside the container. It sets the first password, resets a forgotten one, and signs every browser out.

@@ -1,0 +1,104 @@
+---
+title: Contributing
+description: Set up the repository, run the tests and checks, and send a change.
+---
+
+MyPetKit is a monorepo:
+
+```text
+addon/              Home Assistant add-on manifest and docs
+services/api/       Python package my_petkit: the device protocol core and the user-plane API
+packages/contracts  OpenAPI spec and the WebSocket event contract
+apps/web/           React dashboard
+apps/ios/           SwiftUI app and the PetkitKit Swift package
+apps/docs/          this documentation site
+deploy/             local and cloud deploy recipes
+docs/               architecture, code standards, security rules, design reference
+```
+
+Read [Architecture](/docs/contributing/architecture) first, then [Rules](/docs/contributing/rules). The rules exist because, in a protocol nobody documented, the natural-looking change is often the wrong one.
+
+## The API
+
+Python 3.11 or newer. The suite needs no device and no broker.
+
+```bash
+cd services/api
+pip install -e '.[dev]'
+pytest
+```
+
+| Command | What it checks |
+|---|---|
+| `pytest` | The whole suite |
+| `pytest --firmware` | Also the patcher tests against real firmware, if `tests/firmware/` is populated. See [Reading a firmware image](/docs/firmware/how-patching-works#reading-a-firmware-image-yourself). |
+| `python ../../scripts/lint-baseline-gate.py ruff ruff ruff-baseline.txt src tests` | ruff, against the recorded baseline |
+| `python ../../scripts/lint-baseline-gate.py mypy mypy mypy-baseline.txt src/my_petkit` | mypy, against the recorded baseline |
+| `lint-imports` | Dependency rules between packages |
+| `HYPOTHESIS_PROFILE=nightly pytest tests/fuzz` | The long fuzz run |
+
+From the repository root:
+
+```bash
+python scripts/golden_device_responses.py --against "$(cat scripts/golden-baseline.sha)"
+python scripts/golden_device_responses.py --against-self --tz UTC --tz Pacific/Kiritimati
+gitleaks git --config .gitleaks.toml --redact .
+```
+
+The first proves the bytes devices receive did not change. The second proves the host's time zone makes no difference. Run gitleaks before every push; CI scans the full history too.
+
+CI installs ffmpeg before running the API tests, so install it locally too.
+
+## The web dashboard
+
+Node 22 or newer, and pnpm.
+
+```bash
+cd apps/web
+pnpm install
+pnpm dev
+```
+
+`pnpm lint` runs ESLint, `tsc`, Prettier and two design checks (no hex colours in the source, and the design rules). `pnpm test` runs vitest. `pnpm build` builds the bundle the server serves.
+
+## The iOS app
+
+Xcode 26 and Swift 6.2. The Xcode project is generated, not committed.
+
+```bash
+swift build --package-path apps/ios/PetkitKit
+swift test --package-path apps/ios/PetkitKit
+cd apps/ios && xcodegen generate && swiftlint lint --strict
+xcodebuild test -project apps/ios/MyPetkit.xcodeproj -scheme MyPetkit -skipPackagePluginValidation \
+  -destination 'platform=iOS Simulator,name=iPhone 17'
+```
+
+## CI gates
+
+Every one of these blocks a merge:
+
+| Gate | Tool |
+|---|---|
+| API tests | pytest, with test IDs matching the baseline |
+| Golden device check | `scripts/golden_device_responses.py` |
+| Lint, format, types | ruff, ruff format for new code, mypy |
+| Dependency rules | import-linter |
+| Web | ESLint, tsc, vitest, build |
+| iOS | SwiftLint, swift test, xcodebuild |
+| Contract | the spec matches the router; the generated client does not drift |
+| Static analysis | CodeQL, Semgrep (high and critical) |
+| Dependencies | pip-audit, osv-scanner, pnpm audit (high and critical) |
+| Secrets | gitleaks and GitHub push protection |
+| Image | Grype, critical with a fix available, on releases |
+| Fuzz | hypothesis, short run on every PR |
+
+## Sending a change
+
+- Conventional commits, one change per commit, and refactors separate from behaviour changes.
+- Every bug fix comes with a test that reproduced the bug before the fix.
+- Mask secrets in any capture-based fixture before you commit it; gitleaks scans `tests/` too.
+- Merge into `main` only through a pull request with CI green.
+
+## Adding a device model
+
+The most useful thing you can send is a capture. Turn on proxy mode and traffic capture in Settings, use the device normally, and attach the relevant `*.jsonl` files to an issue. Read [Captures contain secrets](/docs/configuration/security#captures-contain-secrets) first, and remove what the question does not need.

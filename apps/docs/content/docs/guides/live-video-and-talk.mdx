@@ -1,0 +1,49 @@
+---
+title: Live video and talk
+description: Watch a camera in the dashboard or the iOS app, and talk through its speaker.
+---
+
+Once a camera serves the local stream (the [Local Camera Streaming](/docs/firmware/patchers#local-camera-streaming) patcher), the device page in the dashboard and the device screen in the iOS app show a **Live** view.
+
+![Live view in the dashboard](/screenshots/web-live.webp)
+
+## How the video reaches you
+
+The live view goes through the server's own authenticated API, which fronts the bundled go2rtc. go2rtc's own API stays on loopback, so nothing extra needs a port.
+
+| Method | Used by | Needs |
+|---|---|---|
+| MSE | The browser | Nothing extra |
+| HLS | The browser and the iOS app | Nothing extra. A live HLS link lasts one viewing session, about an hour, and the apps fetch a new one when it runs out. |
+| WebRTC | Lower delay; the iOS app prefers it | A mapped port and `webrtc_candidates` |
+
+## Turn on WebRTC
+
+WebRTC carries its media outside the API, straight to go2rtc, so it needs one more step.
+
+<Steps>
+<Step>
+
+Map `8555/tcp` and `8555/udp` to the same free host port, for example `18555`. On the add-on, 8555 on the host clashes with the go2rtc add-on if you run it.
+
+</Step>
+<Step>
+
+Set `webrtc_candidates` to the host's LAN IP and that host port, for example `192.168.1.20:18555`. List several, comma-separated, if viewers reach the host by different addresses. In Docker, that is `MY_PETKIT_WEBRTC_CANDIDATES`.
+
+</Step>
+</Steps>
+
+Without candidates, WebRTC is not offered and the media port stays closed. WebRTC does not pass through Cloudflare Tunnel; MSE and HLS do.
+
+## Talk through the device speaker
+
+PetKit's app talks to the device over Agora, which the camera patch replaces, so talkback stops working once you leave the cloud. Listening still works, because the device microphone is part of the local stream. The [Two-Way Talk](/docs/firmware/patchers#two-way-talk-intercom) patcher adds the other half.
+
+- The dashboard sends your browser microphone; the server converts it to 16 kHz mono AAC for the device. The iOS app sends raw 16-bit, 16 kHz mono PCM.
+- Talk is half-duplex. Mute listening while you talk, because the device's echo cancellation was on the Agora path.
+- The patch needs a camera model with a speaker. Talk was verified end to end on a D4SH.
+
+<Callout type="warn">
+While Two-Way Talk is applied, its listener on TCP 9010 is unauthenticated and reachable from your whole LAN. It plays audio only and never runs a shell, but anyone on the network can push sound to the speaker. Apply it on a trusted network only.
+</Callout>

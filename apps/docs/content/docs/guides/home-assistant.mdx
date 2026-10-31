@@ -1,0 +1,57 @@
+---
+title: Home Assistant
+description: Entities over MQTT discovery, events, and the camera as a Generic Camera.
+---
+
+MyPetKit publishes every device to Home Assistant through MQTT discovery. Commands you send from Home Assistant go back to the device over whichever transport it is on: pushed at once over MQTT, or queued for the next heartbeat over HTTP.
+
+## Connect the broker
+
+You need the MQTT integration in Home Assistant and a broker MyPetKit can publish to.
+
+- With the Mosquitto add-on, the credentials come from the Supervisor and there is nothing to configure.
+- With any other broker, set `ha_mqtt_host`, plus `ha_mqtt_user` and `ha_mqtt_pass` if it needs them. In Docker, that is `MY_PETKIT_HA_MQTT_HOST`.
+
+If you skip this, nothing warns you. The device side and the dashboard work, and Home Assistant never gets a single entity.
+
+## Entities and events
+
+Controls render from the device's settings. They start from defaults and update on the first change, so a control may read "unknown" until then.
+
+Event entities fire for the device's cycles, such as a T5, T6 or T7 finishing a cleaning, a light, a smoothing or a spray cycle, and a W7H finishing a flush or water change. Each fired event carries its decoded content as attributes.
+
+Entity keys are stable on purpose. Renaming one would orphan the entity in your Home Assistant.
+
+## The camera
+
+<Steps>
+<Step>
+
+Apply the [Local Camera Streaming](/docs/firmware/patchers#local-camera-streaming) patcher. The bundled go2rtc then republishes the device's feed as RTSP.
+
+</Step>
+<Step>
+
+Copy the RTSP address from that patcher's card in the dashboard, or from the **Camera Stream URL** sensor. Copy it rather than typing it, because the host name depends on how the server was installed.
+
+</Step>
+<Step>
+
+Add a **Generic Camera** in Home Assistant with that address.
+
+</Step>
+</Steps>
+
+<Callout type="error" title="Never give Home Assistant the device's own stream">
+Do not use the device's `http://.../main.flv` address in Home Assistant. Home Assistant opens a stream with PyAV, which crashes inside libav on that stream and restarts the whole of Home Assistant. The device addresses are listed for VLC and your own tools. go2rtc is there to stand between the two.
+</Callout>
+
+- The device is only streamed from while somebody watches. go2rtc opens one connection on the first viewer and drops it after the last one leaves, however many people watch.
+- The device needs a few seconds between connections. Reopening the stream right after closing it can fail once; wait a moment and retry.
+- There is no snapshot URL. The device answers every path with the same video stream, so the MQTT camera entity stays empty and the sensor carries the URL instead.
+
+## What is not in Home Assistant
+
+Force continue and auto-pack for the litter boxes are only in the dashboard and the iOS app, behind the admin password. See [Litter box automation](/docs/guides/litter-box-automation).
+
+The W7H's Water Change button was removed because every press rebooted the fountain. The scheduled water change still works.

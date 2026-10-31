@@ -1,0 +1,59 @@
+---
+title: Home Assistant add-on
+description: Install MyPetKit from its add-on repository and open it from the sidebar.
+---
+
+The repository is also a Home Assistant add-on repository. The add-on pulls the published image instead of building it on your machine.
+
+<Steps>
+<Step>
+
+### Add the repository
+
+In Home Assistant open **Settings → Apps → Install app → ⋮ → Repositories** and add:
+
+```text
+https://github.com/ngocsangyem/my-petkit
+```
+
+Older Home Assistant releases call this place **Settings → Add-ons → Add-on Store**.
+
+</Step>
+<Step>
+
+### Install and configure
+
+Install **My PetKit**. Most options can stay empty: `api_url` and `bucket_endpoint` are detected from the host's LAN IP and the published ports. Read [Configuration](/docs/configuration) for the full list.
+
+If you do not run the Mosquitto add-on, set `ha_mqtt_host` (and the user and password if your broker needs them). Nothing warns you if you skip this. The device side and the dashboard work, and Home Assistant never sees a single entity.
+
+</Step>
+<Step>
+
+### Start it and set the admin password
+
+Start the add-on. On the first start the add-on log prints a one-time **setup token**, valid for 30 minutes. Continue with [First sign-in](/docs/guides/first-sign-in).
+
+</Step>
+<Step>
+
+### Point a device at it
+
+Follow [Add a device](/docs/guides/add-a-device), then power-cycle the device. It registers itself, and its entities appear in Home Assistant.
+
+</Step>
+</Steps>
+
+## How you reach the dashboard
+
+The **My PetKit** entry in the sidebar goes through Ingress, and Home Assistant authenticates it. The add-on trusts a request on its Ingress port (8099) only when it comes from the Supervisor's own address, `172.30.32.2`, never because of a header.
+
+Everywhere else, which means port 8443 or 8099 if you map it, you need the admin password in a browser or a paired client token in the iOS app.
+
+## Why the add-on runs as root
+
+The Supervisor owns `/data` and `/media` and gives the container no way to run as another user over them. The Docker and VPS setups run as an unprivileged user instead. See the comparison on the [Docker page](/docs/install/docker#container-privileges).
+
+<Callout type="warn" title="Back up before every update">
+The Supervisor deletes the old image before it pulls the new one, so you cannot roll back by reinstalling the old version. Tick "Create a backup before updating" in the update dialog. See [Update and back up](/docs/install/update-and-back-up).
+</Callout>

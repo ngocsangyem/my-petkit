@@ -1,0 +1,55 @@
+---
+title: Troubleshooting
+description: The usual problems, what causes them, and what to send when you ask for help.
+---
+
+## No entities in Home Assistant
+
+1. Check that the device reached the server. The log shows `Signup` and `State report` lines for it.
+2. Check that the MQTT integration is set up in Home Assistant, and that `ha_mqtt_host` is set if you do not run the Mosquitto add-on.
+
+## Controls show "unknown"
+
+Controls render from the device's settings. They start from defaults and update on the first change. On the models marked "Supported, not tested" in [Supported devices](/docs/supported-devices), some entity names come from PetKit's cloud API and may not match what the device sends.
+
+## A device shows as unavailable
+
+It has not reported within `offline_timeout` (180 seconds by default).
+
+## A device connects but then does nothing
+
+Power-cycle it before you investigate anything else. The firmware can abort its own start-up part-way and carry on looking healthy: the process stays alive and the MQTT session authenticates normally, so from the server's side it looks exactly like a device with nothing to say. This was seen on a T5 and on a W7H, and a reboot fixed both.
+
+If it happens again, the device's own `devRun.log` (device page, **Device logs**) names the file and line that handled each response. That is how the T5's cause was found.
+
+## An ESP32 device joins Wi-Fi but never reaches the server
+
+It was probably provisioned with a port other than 80. Provision it again with the server on port 80.
+
+## Video timestamps are in UTC
+
+The device was provisioned without a time zone. Provision it again from **Add a device**.
+
+## Scheduled feeds fire at the wrong hour
+
+Check the `timezone` option. If it is empty, the server uses the device's own locale, then UTC. See [Time zones](/docs/configuration#time-zones).
+
+## Opening the camera stream fails once
+
+The device needs a few seconds between connections. Wait a moment and retry.
+
+## Locked out of login
+
+Five wrong passwords lock login and pairing for up to 15 minutes. Behind a proxy that counts everyone as one client. Wait, or reset the password with `my-petkit admin set-password --data-dir /data`.
+
+## Asking for help
+
+- **Logs** shows every request a device makes and can save it to a file.
+- **Settings → Connection** shows the exact values a device needs and connection diagnostics.
+- Turn on traffic capture in Settings. It records raw payloads to `/data/capture/*.jsonl`, which is the most useful thing to attach for a model the project has not verified, or when sensor values look wrong.
+
+<Callout type="warn">
+Read a capture before you post it. It can contain your Wi-Fi SSID, LAN addresses, the device serial and its signing secret. With proxy mode on, the proxy files also contain your PetKit account credentials.
+</Callout>
+
+Report bugs as [GitHub issues](https://github.com/ngocsangyem/my-petkit/issues). Report security problems privately, as described in [Security](/docs/configuration/security#reporting-a-vulnerability).

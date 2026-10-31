@@ -1,0 +1,70 @@
+---
+title: The dashboard
+description: A tour of the web dashboard's screens.
+---
+
+The dashboard is served by the server itself, at the root of the user plane: through Ingress in Home Assistant, or on port 8443. It follows the same design as the iOS app, in light and dark. Pick the theme under **Settings → Appearance**.
+
+## Home
+
+Home lists your devices, drawn with their real litter, food and water levels, and puts what needs you at the top: devices that have gone quiet, consumables running out, and cloud requests that were blocked this week.
+
+![Home in light mode](/screenshots/web-home.webp)
+
+## A device's page
+
+Each device has its own page. What it shows depends on the model: controls, consumables, feed schedules, custom sounds, the live view for a camera, its patches, and a debug area with the parsed state, the last HTTP state report and MQTT property post, queued commands and the device's own logs.
+
+<Tabs items={['Litter box', 'Feeder', 'Fountain']}>
+<Tab value="Litter box">![A T6 litter box device page](/screenshots/web-device-t6.webp)</Tab>
+<Tab value="Feeder">![A feeder device page](/screenshots/web-device-feeder.webp)</Tab>
+<Tab value="Fountain">![A fountain device page](/screenshots/web-device-fountain.webp)</Tab>
+</Tabs>
+
+Feed schedules and custom sounds have their own sections. An uploaded sound is offered to the feeder the next time it asks for its sound list.
+
+![Feed schedules](/screenshots/web-schedules.webp)
+
+## Timeline
+
+Every visit, cleaning cycle, feed and other event, filterable by cat, device and kind, with its snapshots and clips. See [Pets and visits](/docs/guides/pets-and-visits).
+
+![The timeline](/screenshots/web-timeline.webp)
+
+## Pets
+
+Your cats, their reference photos for on-device recognition, and a chart of each cat's weight and visits.
+
+## Add a device
+
+Bluetooth provisioning. See [Add a device](/docs/guides/add-a-device).
+
+## Logs
+
+Every request a device makes, live, filterable, and downloadable to attach to an issue.
+
+![The live log](/screenshots/web-logs.webp)
+
+## Patchers
+
+The on-device patches for the Linux camera models. See [Firmware and patchers](/docs/firmware).
+
+![The patchers screen](/screenshots/web-patchers.webp)
+
+## Capture
+
+Raw traffic captures, when capture is turned on in Settings. Read [Captures contain secrets](/docs/configuration/security#captures-contain-secrets) before you share one.
+
+## Settings
+
+| Section | What is in it |
+|---|---|
+| Connection | The exact values a device needs, the server's certificate fingerprint, and connection diagnostics |
+| Proxy mode | Forwarding to PetKit, the upstream resolver and custom upstream URL |
+| Cloud guards and blocked attempts | What proxy mode refused to pass from PetKit to a device, by rule: shell command, firmware push, credential swap, log upload, server address, broker address, media upload, timezone |
+| Keep | A size cap in MB and an age cap in days for recordings, snapshots, highlights, motion clips, timelapses, waste photos, health photos, device logs and the thumbnail cache. Event history and blocked attempts have an age cap only. |
+| Phones and apps | Pairing codes for the iOS app, and the paired clients |
+| Appearance | Light or dark |
+| Account | The admin password |
+
+Settings changes take effect when you save, and nothing changes until you do.

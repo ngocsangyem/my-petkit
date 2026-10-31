@@ -1,0 +1,92 @@
+---
+title: VPS with WireGuard
+description: Run the server on a VPS, with your devices reaching it through a tunnel from the home router.
+---
+
+Your devices stay on the home LAN and reach the VPS through a WireGuard tunnel that ends on your home router. You reach the dashboard and the iOS app over public HTTPS through Caddy. The device plane never listens on the internet. The recipe is [`deploy/cloud/`](https://github.com/ngocsangyem/my-petkit/tree/main/deploy/cloud).
+
+```text
+device 192.168.1.x ──LAN──► home router ══WireGuard══► VPS wg0 10.66.0.1 ──► MyPetKit (80, 443, 9000)
+phone / browser ──HTTPS──► VPS public IP :443 ──► Caddy ──► MyPetKit user plane (8443)
+phone / browser ──WebRTC──► VPS public IP :8555 (tcp/udp)
+```
+
+The home router does no NAT into the tunnel, so the server sees each device's real address. The server only dials a device at an address that device reported from a private range, so NAT would break the camera, talk and the patchers.
+
+## What you need
+
+- A VPS with a public IPv4 address, Docker Engine 23 or later with the compose plugin, and `wireguard-tools`.
+- A DNS name for the dashboard: an A record pointing at the VPS, and no AAAA record. Nothing here listens on IPv6.
+- On AWS, GCP, Azure or Oracle, where the public address is NATed and not on any interface, set `MY_PETKIT_PUBLIC_BIND` in the settings file to the instance's private address.
+- A home router that runs WireGuard and is the devices' default gateway.
+
+<Steps>
+<Step>
+
+### Build the tunnel
+
+1. On the VPS and on the router, generate a key pair each:
+   ```bash
+   umask 077; wg genkey | tee private.key | wg pubkey > public.key
+   ```
+2. On the VPS, copy `wireguard/wg0.conf.example` to `/etc/wireguard/wg0.conf`, fill in the keys and your home subnet, then run `systemctl enable --now wg-quick@wg0`.
+3. On the router, enter `wireguard/home-router.conf.example` and apply the three router settings listed at its end: no masquerade, the forwarding rules, and MSS clamping.
+4. Make Docker start after the tunnel, so the published ports have their address:
+   ```bash
+   sudo systemctl edit docker.service
+   # add:
+   # [Unit]
+   # After=wg-quick@wg0.service
+   # Requires=wg-quick@wg0.service
+   ```
+
+Check from the VPS: `wg show wg0 latest-handshakes` shows a timestamp under two minutes old, and `ping -c3 192.168.1.1` gets replies from the router. A device itself will not answer ping, because the router only forwards the ports the server dials.
+
+</Step>
+<Step>
+
+### Install the host firewall
+
+`nftables.conf.example` drops everything the host answers except SSH, WireGuard and ICMP, and drops anything for the tunnel address that did not arrive on `wg0`. Install it as `/etc/nftables.conf`, keep a second SSH session open, run `nft -f /etc/nftables.conf`, then `systemctl enable nftables`.
+
+Never run `systemctl restart nftables`. The unit flushes every rule on stop, Docker's included, and the containers stop answering until you restart Docker. Reload with `nft -f /etc/nftables.conf` instead.
+
+Docker bypasses the host firewall for published ports, which is why `docker-compose.yml` binds each one to a specific address. Never change one to a bare `"80:80"`.
+
+</Step>
+<Step>
+
+### Start the containers
+
+```bash
+cp .env.example .env && $EDITOR .env
+docker compose pull
+docker compose up -d
+docker compose logs my-petkit | grep -i "setup token"
+```
+
+Open `https://<your domain>/`, enter the token and set the admin password. Then provision the devices with `http://<MY_PETKIT_WG_ADDRESS>/6/` as the server address. The iOS pairing QR code carries `https://<your domain>`.
+
+</Step>
+<Step>
+
+### Check it
+
+From the VPS:
+
+| Command | Expected |
+|---|---|
+| `docker compose ps` | both services `running`, my-petkit `healthy` |
+| `curl -s -o /dev/null -w '%{http_code}\n' http://10.66.0.1/6/dev_signup` | `200` |
+| `curl -s -o /dev/null -w '%{http_code}\n' https://<domain>/api/info` | `401` |
+| `curl -s http://<device IP>:8889/` on a device with a patcher applied | the patcher's read-back, not a timeout |
+| upload a large clip, then `ls -la` the media volume | the clip arrives complete. A hang here is the MTU/MSS problem. |
+
+From a machine outside your network, `sudo nmap -sS -sU -p- <VPS public IP>` should show only 22/tcp, 80/tcp, 443/tcp, 8555/tcp and udp, and 51820/udp. Port 9000, 1883, 8443, 8099, 8554 or 1984 showing up is a misconfiguration: stop the stack and compare the `ports:` lines with the repository's copy.
+
+</Step>
+</Steps>
+
+<Callout type="warn" title="Login lockout behind Caddy">
+Behind Caddy every login attempt comes from Caddy's address, so the failed-login limit counts the whole internet as one client. Five wrong passwords from anyone lock everyone out of login, step-up and pairing for up to 15 minutes. Sessions and paired phones keep working. Wait it out, or restrict who reaches Caddy with a VPN or Cloudflare Access.
+</Callout>
