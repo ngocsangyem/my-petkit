@@ -186,7 +186,9 @@
   .lp-block-tight { padding-top: 0 }
   .lp-ports { grid-template-columns: repeat(2, minmax(0, 1fr)) }
   .lp-families, .lp-modes { grid-template-columns: minmax(0, 1fr) }
-  .lp-demo { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 20px; min-height: calc(100svh - 56px); align-content: center }
+  /* Pinned below the header, so it must fit the small viewport exactly or its bottom is cut off */
+  .lp-demo { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 20px; box-sizing: border-box; height: calc(100svh - 56px); min-height: 0; padding-block: 16px; align-content: center }
+  /* phone-demo.tsx shrinks --s further when the screen is too short */
   .lp-demo .lp-phone { order: -1; --s: .56 }
   /* The steps stack absolutely here, so their column needs an explicit width */
   .lp-demo > div:first-child { width: 100%; max-width: 440px }
@@ -196,7 +198,6 @@
   .lp-step[data-active='true'] { opacity: 1; transition: opacity .3s }
   .lp-progress { max-width: 440px; width: 100% }
 }
-@media (max-height: 760px) and (max-width: 900px) { .lp-demo .lp-phone { --s: .48 } }
 @media (max-width: 760px) {
   .lp-track { flex-direction: column; width: auto; padding-right: max(20px, env(safe-area-inset-right, 0px)); padding-left: max(20px, env(safe-area-inset-left, 0px)) }
   .lp-browser { width: 100% }
