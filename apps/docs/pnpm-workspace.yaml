@@ -1,0 +1,4 @@
+# serve 14.2.6, the latest release, pins compression 1.8.1, which leaks memory
+# when a response closes early (GHSA-vc2v-76pw-4v95). 1.8.2 is the patch release.
+overrides:
+  compression: 1.8.2
