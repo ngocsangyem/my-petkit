@@ -8,6 +8,8 @@
 	<string>my-petkit</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -17,15 +19,17 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.1.0</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Bluetooth sends a new device your Wi-Fi details and this server's address. Nothing else is sent.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>The camera reads the pairing code on your my-petkit dashboard.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>The app talks to your my-petkit server and streams camera video from devices on your home network.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>The microphone is used only while you hold Talk on a camera's live view, to speak through the device.</string>
 	<key>UIAppFonts</key>

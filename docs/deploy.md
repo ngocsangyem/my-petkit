@@ -103,6 +103,36 @@ docker inspect my-petkit --format 'user={{.Config.User}} ro={{.HostConfig.Readon
 # user=10001:10001 ro=true secopt=[no-new-privileges:true] capdrop=[ALL]
 ```
 
+## iOS app
+
+Every release tag also ships the iOS app (`.github/workflows/ios-release.yml`).
+The GitHub Release carries:
+
+| Asset | What it is |
+|---|---|
+| `MyPetkit-<version>.ipa` | the app, **unsigned**: a sideloading tool signs it with your Apple ID |
+| `apps.json` | an AltStore / SideStore source for this release |
+| `SHA256SUMS` | checksums of the IPA and the source |
+
+Install it with [AltStore](https://altstore.io) or
+[SideStore](https://sidestore.io): add the source
+`https://github.com/ngocsangyem/my-petkit/releases/latest/download/apps.json`
+once, and each new stable release shows up as an update. Sideloadly installs
+the IPA by hand. A free Apple ID re-signs the app every 7 days (AltStore and
+SideStore do this in the background) and allows three sideloaded apps at a
+time. The app version equals the server version; keep the two together.
+
+Check that an IPA was built by this repository's workflow:
+
+```sh
+gh attestation verify MyPetkit-<version>.ipa --repo ngocsangyem/my-petkit
+```
+
+TestFlight is wired up but off. It needs a paid Apple Developer account, an
+App Store Connect record for `dev.mypetkit.app`, an app icon, and the secrets
+listed at the top of the workflow; then set the repository variable
+`TESTFLIGHT_ENABLED` to `true`.
+
 ## Maintainer notes
 
 - **A new GHCR package is private.** After the first publish, set
@@ -112,6 +142,9 @@ docker inspect my-petkit --format 'user={{.Config.User}} ro={{.HostConfig.Readon
   `services/api/pyproject.toml`, add the `addon/CHANGELOG.md` entry, merge, then
   push the tag `v<version>`. The workflow refuses a tag that disagrees with
   `config.yaml`.
+- **Try the iOS build before tagging:** Actions → `ios-release` → Run workflow
+  builds the IPA and `apps.json` at the `config.yaml` version and keeps them as
+  a workflow artifact for a week, without touching any release.
 - **A critical vulnerability with a fix available blocks the build** (Grype in
   `publish.yml`, on the exact digest that was pushed, before anything is tagged
   or signed). Bump the base image digest or the dependency; do not add an
