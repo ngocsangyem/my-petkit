@@ -1,0 +1,103 @@
+---
+title: Firmware by model
+description: CPU, patch storage, the firmware builds the patchers were checked against, and what has been measured on each model.
+---
+
+Everything on this page comes from the patcher code and the firmware tests in the repository. The PetKit manuals say nothing about firmware beyond "upgrade it through the app", so they are not a source here. Where the code has nothing on a model, this page says so.
+
+## Summary
+
+| Model | Product | CPU | Patch storage | SSH build | Firmware image in the test suite |
+|---|---|---|---|---|---|
+| T5 | Purobot Max Pro 2 | Ingenic MIPS32r2 LE | `/system` | `dropbear-mipsel` | `t5/943/app_261463.bin` |
+| T6 | Purobot Ultra | Ingenic MIPS32r2 LE | `/system` | `dropbear-mipsel` | `t6/daniel/app.bin` |
+| T7 | Purobot Crystal Duo | Ingenic MIPS32r2 LE | `/system` | `dropbear-mipsel` | none |
+| D4H | YumShare Solo, Solo 2 | Ingenic MIPS32r2 LE | `/system` | `dropbear-mipsel` | none |
+| D4SH | YumShare Dual-Hopper, Dual-Hopper 2 | Ingenic MIPS or Axera ARM, per unit | `/system` or `/opt` | matches the unit | `d4sh/867/app_261301.bin` |
+| W7H | EverSweet Ultra AI | ARMv7-A hard-float | probed | `dropbear-armv7` | `w7h/456/app_262863.bin` |
+
+The CPU column follows the comments in `patchers/ssh.py`, `patchers/common.py` and `patchers/mqtt.py`. The server does not trust it at run time: before every patch it checks which of `/system/user.conf` and `/opt/user.conf` exists, and it reads the ELF header of the device's own `ctrl` to pick a byte patch or a dropbear build. The code calls its ARM boards Axera and expects `/opt` on them.
+
+The test images live in `services/api/tests/firmware/`, which git ignores, so they are not in the repository. The table gives the folder and file names `test_patcher_firmware.py` expects.
+
+## Reading the firmware of your unit
+
+There are two ways in, and both are described in [How patching works](/docs/firmware/how-patching-works).
+
+From a running device, the files the patchers touch are in `/app/bin`: `ctrl` (the main process), `cloud` (the media uploader), `ca.crt` (the CA bundle), `tserver` and `agora` (video), and `pktool` (a factory tool). Persistent SSH Access gives you a shell to read them. Without it, the patchers fetch a file by starting a temporary `busybox httpd` on port 8888 that serves `/app/bin`.
+
+From an image file, an app image is a uImage. The first four bytes are `27 05 19 56`, then comes the rest of a 64-byte header, then a squashfs filesystem:
+
+```bash
+dd if=app.bin of=app.sqfs bs=64 skip=1
+unsquashfs -d root app.sqfs
+file root/bin/ctrl   # ELF 32-bit LSB, MIPS (Ingenic) or ARM (W7H)
+```
+
+The image's `bin/` folder holds `ctrl`, `cloud` and `ca.crt`, the same names the patchers download from `/app/bin` on a running device. The test suite fails an image that does not start with the uImage magic or has no `bin/ctrl`.
+
+## T5
+
+Ingenic MIPS, patches kept in `/system`. This is the model most of the hardware measurements in the code were taken on.
+
+| File | Size on a T5 |
+|---|---|
+| `ctrl` | 1,420,656 bytes |
+| `cloud` | 304,204 bytes |
+| `ca.crt` | 226,168 bytes |
+
+Measured on a T5, as recorded in the code:
+
+- It runs a `run_cmd` shell command sent from the server (2026-07-29). Every patcher depends on this.
+- With MQTT TLS Bypass applied it completes a TLS CONNECT to the embedded broker, with a 62-second keep-alive. Its HMAC signature matches the server's except that it is sent in upper-case hex. It offers only RSA and PSK cipher suites.
+- It sends no MQTT SUBSCRIBE of its own, so the broker subscribes it. It stops polling the HTTP heartbeat about 40 seconds after connecting over MQTT.
+- Its `ctrl` embeds only the GlobalSign Root CA, and the rootfs has no copy of the Aliyun root that PetKit's MQTT broker chains to.
+- `tserver` serves H.264 at 1056×1056 (`main.flv`) and 528×528 (`sub.flv`) with 16 kHz mono AAC, and needs a few seconds between connections (2026-07-31).
+- With Local Camera Streaming, the watchdog logs "kill agora" once a minute but never kills `tserver`; measured over 16 minutes.
+
+## T6
+
+Ingenic MIPS, patches kept in `/system`. The test image sits in a folder named `daniel` rather than a version number.
+
+The camera sits on a horizontal stepper behind `/dev/motor`, driven by `pk_motor.ko`, which the stock `app_init.sh` loads with `maxstep=2500`. On firmware 951 (app `T6-262561`, 2026-10-29) `pktool motor_test` moved the camera to the exact step asked for: 2500 points into the drum, 1250 is a quarter turn left. Camera Pan only runs if `pktool`'s MD5 is `626fce2bb4febf259e2a8490af3c17b5`, the build those commands were read from. See [Camera Pan (T6)](/docs/firmware/camera-pan-t6).
+
+For Two-Way Talk, the sink script looks for `pktool`'s libraries in several places; the code notes that the T6 keeps them outside `/app/bin`.
+
+## T7
+
+Ingenic MIPS according to the SSH patcher, which ships it the `dropbear-mipsel` build. There is no T7 image in the test suite and no T7 measurement in the code. The patchers apply to it because it is one of the embedded-Linux models, not because one has been patched.
+
+## D4H
+
+Ingenic MIPS according to the SSH patcher. There is no D4H image in the test suite, and no D4H has ever reported to a MyPetKit server, so nothing about its firmware is confirmed.
+
+## D4SH
+
+The D4SH ships with two board families under the same model name: Ingenic MIPS with patches in `/system`, and Axera ARM with patches in `/opt`. This is why the server probes storage instead of deciding from the model name. The sizes below are from the test image, whose `ctrl` the test suite treats as MIPS.
+
+| File | Size on the D4SH test image |
+|---|---|
+| `ctrl` | 903,148 bytes |
+| `cloud` | 188,452 bytes |
+| `ca.crt` | 11,171 bytes |
+
+`pktool` loads `libbase.so` from `/app/bin`; the firmware's own `media` process runs with `LD_LIBRARY_PATH=/app/bin:/usr/lib`. Without that path `pktool` fails to start, which is why the Two-Way Talk sink puts `/app/bin` first.
+
+## W7H
+
+ARMv7-A, the only fountain with Wi-Fi of its own. The ARM patches were written against its firmware:
+
+- MQTT TLS Bypass finds the certificate-verify function by a Thumb-2 prologue taken from the W7H 456 firmware. The test suite checks that this prologue occurs exactly once in `ctrl`, and the patch changes 8 bytes instead of the 16 on MIPS.
+- Local Storage applies six patches to the ARM `cloud` (one in `isCClassIP` and five `CURLOPT_CONNECT_TO` guards), where MIPS needs two.
+- Persistent SSH Access installs `dropbear-armv7`, 128 KB.
+
+The add-on's own documentation still calls some of these patchers MIPS-only. See the note on [Firmware and patchers](/docs/firmware#two-cpu-families).
+
+## Models with no firmware data
+
+| Models | Why there is nothing here |
+|---|---|
+| T3, T4, D3, D4, D4S, Feeder, Feeder Mini | Plain-HTTP Wi-Fi models. A comment in `utils/const.py` describes the non-camera feeders as ESP32, going by the D4, Feeder Mini and T4 images. They are not embedded Linux, and the Patchers screen reports them as unsupported. |
+| W4, W5, CTW2, CTW3, K2, K3 | Bluetooth only. They never reach the server on their own; a litter box or feeder relays for them. |
+
+If you have an image or a capture from one of these, open an issue. See [Adding a device model](/docs/contributing#adding-a-device-model).
