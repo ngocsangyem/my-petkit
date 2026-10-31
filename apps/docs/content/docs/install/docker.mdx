@@ -1,0 +1,93 @@
+---
+title: Docker on your LAN
+description: Run the image with Docker Compose on any host on the devices' network.
+---
+
+Use this when you have no Home Assistant add-on system: HA Container, HA Core, or no Home Assistant at all. The recipe lives in [`deploy/local/`](https://github.com/ngocsangyem/my-petkit/tree/main/deploy/local).
+
+<Steps>
+<Step>
+
+### Create your settings file
+
+```bash
+cd deploy/local
+cp .env.example .env
+```
+
+Edit the new `.env`. Only `MY_PETKIT_API_URL` is required.
+
+| Variable | Example | Meaning |
+|---|---|---|
+| `MY_PETKIT_API_URL` | `http://192.168.1.20/6/` | The address the device calls: this machine's LAN IP, port 80, and the `/6/` API prefix. Not a `.local` name. |
+| `MY_PETKIT_HA_MQTT_HOST` | `192.168.1.10` | Your Home Assistant MQTT broker. Empty runs without Home Assistant. |
+| `MY_PETKIT_TIMEZONE` | `Asia/Ho_Chi_Minh` | IANA zone. Days, feed schedules and the time sent to devices are read in it. Default `UTC`. |
+| `MY_PETKIT_USER_HOSTS` | `petkit.example.com` | Host names browsers may use for the dashboard, comma-separated. IP addresses and `localhost` are always allowed. |
+| `MY_PETKIT_WEBRTC_CANDIDATES` | `192.168.1.20:8555` | Where viewers reach port 8555 for WebRTC. Empty offers MSE and HLS only. |
+| `MY_PETKIT_TAG` | `latest` | Image tag: `latest`, a release such as `0.0.2`, or `dev`. |
+
+Compose refuses to start until the required value is set. Git ignores the file, so `git pull` never conflicts with it.
+
+</Step>
+<Step>
+
+### Start it
+
+```bash
+docker compose up -d
+docker compose logs my-petkit | grep -i "setup token"
+```
+
+The setup token is printed on the first start only and is valid for a limited time. Open `https://<this host>:8443/` and continue with [First sign-in](/docs/guides/first-sign-in).
+
+</Step>
+</Steps>
+
+If the token expired, set the password from inside the container:
+
+```bash
+docker exec -it my-petkit my-petkit admin set-password --data-dir /data
+```
+
+## What the compose file publishes
+
+| Host port | Purpose |
+|---|---|
+| 80 | Device HTTP API. Keep it on 80: ESP32 models fail to reach the server on any other port. |
+| 443 | Device MQTT over TLS |
+| 9000 | Media uploads from the device |
+| 8443 | Dashboard and iOS app, over TLS |
+| 8554 on loopback | RTSP from go2rtc. Drop the loopback prefix in the mapping if Home Assistant runs on another machine. |
+| 8555 TCP and UDP | WebRTC, only used when `MY_PETKIT_WEBRTC_CANDIDATES` is set |
+
+Port 1883 (plain MQTT) is not published: it is the internal listener the Home Assistant bridge uses. Port 8099 (Ingress) has no use without the Supervisor.
+
+If your broker needs credentials, add `--ha-mqtt-user` and `--ha-mqtt-pass` lines to the `command:` list in `docker-compose.yml`.
+
+## Volumes
+
+| Volume | Holds |
+|---|---|
+| `data` (`/data`) | Device identities, settings, the event database, certificates and the user plane's keys. Back this up. |
+| `media` (`/media/petkit`) | Recordings and snapshots |
+
+## Build it yourself
+
+Comment out `image:` in `docker-compose.yml`, uncomment `build: ../..`, then run `docker compose up -d --build`. This needs BuildKit, the default since Docker 23.
+
+## Container privileges
+
+| | Add-on | Compose and VPS |
+|---|---|---|
+| User | root | `mypetkit` (uid 10001) |
+| Root filesystem | writable | read-only, `/tmp` on tmpfs |
+| Capabilities | the Supervisor's default set | none (`cap_drop: ALL`) |
+| `no-new-privileges` | no | yes |
+| Binding 80 and 443 | as root | `net.ipv4.ip_unprivileged_port_start=0`, inside the container's own network namespace |
+
+That sysctl cannot be set on the host's network namespace, which is why the compose files use a bridge network. To check a running container:
+
+```bash
+docker inspect my-petkit --format 'user={{.Config.User}} ro={{.HostConfig.ReadonlyRootfs}} secopt={{.HostConfig.SecurityOpt}} capdrop={{.HostConfig.CapDrop}}'
+# user=10001:10001 ro=true secopt=[no-new-privileges:true] capdrop=[ALL]
+```

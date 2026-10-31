@@ -1,0 +1,18 @@
+{
+  "title": "MyPetKit",
+  "pages": [
+    "index",
+    "how-it-works",
+    "supported-devices",
+    "---Set up---",
+    "install",
+    "configuration",
+    "---Use---",
+    "guides",
+    "---Firmware---",
+    "firmware",
+    "devices",
+    "---Project---",
+    "contributing"
+  ]
+}

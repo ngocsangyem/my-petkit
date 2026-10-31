@@ -1,0 +1,57 @@
+---
+title: Device reference
+description: What PetKit's own user manuals say about each model, and what they leave out.
+---
+
+This section is built from 24 PetKit user manuals and leaflets (the English pages of each, read in full). Every fact here comes from a manual and names the page it is on, written as "T6 manual, p36". Where a manual is silent, these pages say so rather than fill the gap.
+
+For how a model behaves with MyPetKit, see [Supported devices](/docs/supported-devices). This section is about the hardware itself.
+
+## What the manuals do not cover
+
+Read this before you look for anything below.
+
+- **Firmware.** No manual explains how to read, dump, patch or flash firmware. None mentions a serial port, UART, JTAG, a bootloader, SSH, a local API, MQTT, or running without PetKit's cloud. The only firmware instruction, in four manuals (T3-4, D4H, D4-SH, CT-W3), is to keep the firmware updated in the PETKIT app. Everything this site says about firmware comes from the MyPetKit code: see [Firmware and patchers](/docs/firmware).
+- **Factory reset.** No manual describes a factory reset or a way to erase saved Wi-Fi. The litter boxes' menu "Reset" only turns the drum back to its home position. The nearest things to a reset are listed in [Pairing buttons and lights](/docs/devices/pairing-and-indicators#reset-and-power-buttons).
+- **Error codes.** No manual defines numeric error codes. The litter boxes show text prompts, and "Device failure" says to check the app for detail.
+- **Pairing protocol.** The manuals describe pairing only as steps in the PETKIT app. They name no Bluetooth service, access point, port or server.
+- **Chips and boards.** No manual names a chipset, flash part or board layout.
+
+## Models covered
+
+The "MyPetKit codename" column is filled only where the manual's product name matches a row in [Supported devices](/docs/supported-devices).
+
+| Manual file | Product name (from the manual) | Product code | Type | MyPetKit codename |
+|---|---|---|---|---|
+| T3-4 | PURAX | P9901 | Litter box | T3 |
+| T4 | PURA MAX | P9902 | Litter box | T4 |
+| T4-2 | PURA MAX 2 | P9902 | Litter box | not listed |
+| T4-3 | PUROBOT MAX 3 | P9906, P9911 | Litter box | not listed |
+| T5 | PUROBOT MAX PRO with Camera | P9904 | Litter box with camera | not listed |
+| T5-2 | PUROBOT MAX PRO 2 with Camera | P9904 | Litter box with camera | T5 |
+| T6 | PUROBOT ULTRA with Camera | P9903 | Litter box with camera and bagging | T6 |
+| T7 | PUROBOT CRYSTAL DUO with Camera | P9905 | Crystal-litter box with camera | T7 |
+| TP | AUTOSEAL Cat Litter Disposal System | P9910, P9912 | Waste bin with heat sealing | not listed |
+| D3-1 | FRESH ELEMENT 3 NEW | P560 | Feeder | not listed |
+| D4 | FRESH ELEMENT SOLO | P570 | Feeder | D4 |
+| D4H | YUMSHARE SOLO with Camera | P571 | Feeder with camera | D4H |
+| D4H-2 | YUMSHARE SOLO 2 with Camera | P572 | Feeder with camera | D4H |
+| D4-SH | YUMSHARE DUAL-HOPPER with Camera | P591 | Two-hopper feeder with camera | D4SH |
+| D4SH-2 | YUMSHARE DUAL-HOPPER 2 with Camera | P592 | Two-hopper feeder with camera | D4SH |
+| CT-W1 | EVERSWEET SOLO | P4103 | Fountain | not listed |
+| CT-W2 | EVERSWEET SOLO 2 | P4114 | Fountain, wireless pump | CTW2 |
+| W4X | EVERSWEET WIRELESS (SUS304) | P4108 | Fountain, wireless pump | W4 family (W4X) |
+| CT-W3 | EVERSWEET MAX (CORDLESS) | P4115 | Fountain, battery | CTW3 |
+| CT-W3-UV-100 | EVERSWEET MAX 2 (CORDLESS) | P4116 | Fountain, battery | not listed |
+| W7H | EVERSWEET ULTRA AI HEALTH CARE | P4117 | Fountain with camera | W7H |
+| HG | AIRSALON MAX | PD10 | Pet dryer | not listed |
+| K3 | PURA AIR SMART SPRAY | not stated | Air spray | K3 |
+
+T4 and T4-2 share product code P9902, and T5 and T5-2 share P9904. The manuals do not explain why. The file name `CT-W3-UV-100` contains "UV", but the manual never mentions UV. The K3 mapping rests on the file name, because the leaflet carries no product code.
+
+## Pages
+
+- [Pairing buttons and lights](/docs/devices/pairing-and-indicators): how each model enters pairing mode, what its lights mean, Wi-Fi bands, and the reset and power buttons that do exist.
+- [Litter boxes](/docs/devices/litter-boxes)
+- [Feeders](/docs/devices/feeders)
+- [Fountains and accessories](/docs/devices/fountains-and-accessories)

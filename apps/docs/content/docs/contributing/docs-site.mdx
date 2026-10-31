@@ -1,0 +1,37 @@
+---
+title: This docs site
+description: Run, edit and build the documentation in apps/docs.
+---
+
+The site is a [Fumadocs](https://fumadocs.dev) app on Next.js, configured for static export. Pages are MDX files in `apps/docs/content/docs/`, and each folder's `meta.json` sets the order in the sidebar.
+
+## Run it
+
+Node 22 or newer, and pnpm.
+
+```bash
+cd apps/docs
+pnpm install
+pnpm dev
+```
+
+Open `http://localhost:3000`.
+
+## Build it
+
+```bash
+pnpm build
+```
+
+The static site is written to `apps/docs/out/`. Any static host can serve it; `pnpm start` serves it locally.
+
+## Writing pages
+
+- Every claim needs a source in the repository or in a PetKit manual. If a fact is not known, say so instead of guessing.
+- Device-reference facts cite the manual and page, as "T6 manual, p36".
+- Write plainly: short sentences, sentence-case headings, no em dashes.
+- Screenshots live in `apps/docs/public/screenshots/`, copied from `docs/design/screenshots/`.
+
+## Theme
+
+The colours and fonts in `apps/docs/app/global.css` come from `docs/design/DESIGN.md`: the tinted ground, white cards, near-black ink, IBM Plex Sans and Mono, and teal (`#0f6e66`, `#4fc2b6` in dark mode) for links and the active item. Change the design file first, then this.

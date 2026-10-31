@@ -1,0 +1,64 @@
+---
+title: Add a device
+description: Hand a device its Wi-Fi, your server's address and a time zone over Bluetooth.
+---
+
+The **Add a device** screen provisions a device over Web Bluetooth. It sends the Wi-Fi name and password, the server URL the device will use (`apiServers`), and a time zone. Provisioning is the only way a device ever gets a time zone, so a box provisioned without one stamps UTC onto its video until you provision it again.
+
+For the ESP32 models you can use a DNS redirect instead. See [Pointing devices at the server](/docs/configuration/networking).
+
+## What you need
+
+- Chrome or Edge, on desktop or Android. Firefox, Safari and iOS have no Web Bluetooth.
+- A secure page. Web Bluetooth only runs over HTTPS with a certificate the browser trusts, such as a reverse proxy or Home Assistant's own TLS. Whether a browser accepts a self-signed certificate you clicked through is not verified yet.
+- Over plain HTTP the screen says so and links to a hosted build of the same page. That page runs entirely in your browser and talks to the device over Bluetooth. Your Wi-Fi password is never sent anywhere.
+
+<Steps>
+<Step>
+
+### Check the server address
+
+The screen shows the address devices will use. Use an IP address, or a name the device itself can resolve. Most PetKit devices cannot resolve `.local` names. ESP32 devices such as the T4 and D4 need the server on port 80; with any other port, provisioning works and the device then fails to reach the server.
+
+</Step>
+<Step>
+
+### Enter the network
+
+Enter the Wi-Fi network the device will join. It does not have to be the network this browser is on. A password is required: an open network cannot be provisioned this way.
+
+</Step>
+<Step>
+
+### Set the time zone
+
+The device has no clock settings of its own. It keeps the fixed UTC offset you send here, with no daylight saving. Changing it later means provisioning again.
+
+</Step>
+<Step>
+
+### Connect and send
+
+Put the device in pairing mode (see [Pairing buttons and lights](/docs/devices/pairing-and-indicators)), pick it in the browser's Bluetooth dialog and send. Each step and every reply from the device is shown in the progress log.
+
+</Step>
+<Step>
+
+### Power-cycle the device
+
+After a power cycle the device signs up with the server and appears on Home. With Home Assistant connected, its entities show up there too.
+
+</Step>
+</Steps>
+
+![The Add a device screen in the dashboard](/screenshots/web-provision.webp)
+
+How each model enters pairing mode, as its PetKit manual describes it, is in the [device reference](/docs/devices/pairing-and-indicators).
+
+## Bluetooth-only accessories
+
+Fountains and sprays without Wi-Fi are not provisioned. They are paired to a parent litter box or feeder that relays for them. Open the parent's device page and pair the accessory there: pick the accessory type, enter its Bluetooth address (MAC), and its pairing secret. **Advanced** has the identifier, the poll interval and the scan type.
+
+The parent asks the server what to scan for. That scan number has been read from a real pairing for the W5 and the CTW3 only. If an accessory never reports, change **Scan type** first.
+
+![Pairing a Bluetooth accessory from the parent's page](/screenshots/web-ble-pair.webp)

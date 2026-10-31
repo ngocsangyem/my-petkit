@@ -1,0 +1,42 @@
+---
+title: Releasing
+description: How a version is cut, what the publish workflow does, and the maintainer checklist.
+---
+
+## Cutting a release
+
+<Steps>
+<Step>
+
+Bump `version` in `addon/config.yaml` and in `services/api/pyproject.toml`.
+
+</Step>
+<Step>
+
+Add the entry to `addon/CHANGELOG.md`, and merge.
+
+</Step>
+<Step>
+
+Push the tag `v<version>`. The publish workflow refuses a tag that disagrees with `config.yaml`, which keeps the add-on and the image from drifting apart. The Supervisor pulls `image:version`, so a release is not usable until its tag has been published.
+
+</Step>
+</Steps>
+
+To try the iOS build before tagging: Actions → `ios-release` → Run workflow. It builds the IPA and `apps.json` at the `config.yaml` version and keeps them as a workflow artifact for a week, without touching any release.
+
+## What publishing does
+
+- Builds the image for amd64, arm64 and armv7.
+- Scans the exact pushed digest with Grype before anything is tagged or signed. A critical vulnerability with a fix available blocks the release. Bump the base image digest or the dependency; do not add an ignore without a written reason.
+- Signs with cosign keyless signing and attaches an SBOM and provenance per architecture. Signatures go to `ghcr.io/ngocsangyem/my-petkit-signatures`.
+- Moves `latest` for a stable release. A prerelease or a backport tag does not move it.
+- `prune-packages` deletes untagged versions nothing points at, weekly. Run it by hand with `dry_run` first after changing how images are built.
+
+## First publish of a new package
+
+A new GHCR package is private. After the first publish, set `ghcr.io/ngocsangyem/my-petkit` to public, or the Supervisor and anonymous `docker pull` get 401. Do the same for `my-petkit-signatures`, or nobody else can run `cosign verify`.
+
+## TestFlight
+
+Wired up but off. It needs a paid Apple Developer account, an App Store Connect record for `dev.mypetkit.app`, an app icon, and the secrets listed at the top of the workflow. Then set the repository variable `TESTFLIGHT_ENABLED` to `true`.

@@ -1,0 +1,129 @@
+---
+title: How patching works
+description: The steps a patcher runs, the boot wrapper that makes it stick, and how removal restores stock.
+---
+
+All patching happens on the server. The device only sends the original file and receives a version that has already been patched and checked. Nothing is flashed: patched copies live on the device's writable storage and are bind-mounted over the originals at boot, so the read-only firmware image is never touched.
+
+## Commands reach the device as `run_cmd`
+
+The server sends shell commands to the device inside the firmware's own `run_cmd` message, over whichever transport the device is on. Over MQTT a command arrives at once. Over HTTP it waits for the next heartbeat, which is why each step waits about 12 seconds before assuming the previous one ran. A patch run takes minutes, and the dashboard shows every step as it happens.
+
+Because `run_cmd` executes any shell command, proxy mode always blocks it when it comes from PetKit's side. It appears as "Shell command" under blocked attempts.
+
+## Applying a binary or certificate patch
+
+This is the sequence for MQTT TLS Bypass, Local Storage and CA Certificate:
+
+<Steps>
+<Step>
+
+### Find the writable storage
+
+The server asks whether `/system/user.conf` or `/opt/user.conf` exists, and keeps patched files in that directory.
+
+</Step>
+<Step>
+
+### Download the original
+
+The device is told to start a temporary `busybox httpd` on port 8888, serving `/app/bin`. The server downloads `ctrl`, `cloud` or `ca.crt` from it, then stops the httpd, even if the next step fails.
+
+</Step>
+<Step>
+
+### Check what came back
+
+Before anything is patched, the download is checked: a truncated transfer, a directory listing, or a binary from an unexpected family is rejected here, with a transport error rather than a confusing "firmware mismatch".
+
+</Step>
+<Step>
+
+### Patch on the server
+
+The patch keeps the file the same size. MQTT TLS Bypass changes 16 bytes on MIPS or 8 on ARM. The result's offset and MD5 are shown in the progress log.
+
+</Step>
+<Step>
+
+### Check free space
+
+The server measures free space on the device for the patched file plus the boot wrapper. A device that cannot fit the write is left untouched.
+
+</Step>
+<Step>
+
+### Upload and reboot
+
+The device fetches the patched file with `wget` from the server and marks it executable. The server then rewrites the boot wrapper from the full set of active patches and reboots the device.
+
+</Step>
+</Steps>
+
+The server connects to the device only at a private, ULA or WireGuard address that the registered device reported itself. It never dials a host name and never follows a redirect.
+
+## The boot wrapper
+
+Every patcher shares one generated script, `/system/app_init.sh` (or `/opt/app_init.sh` on Axera boards). It runs at boot, does its work, and then sources the stock `/app/script/app_init.sh`, which starts the device's processes. Because the bind-mounts happen first, every process starts from the patched files.
+
+A wrapper with every patch active looks like this on an Ingenic board:
+
+```sh
+#!/bin/sh
+# /system/app_init.sh - my-petkit patcher wrapper
+# Persistent SSH (dropbear on port 22)
+mkdir -p /tmp/.ssh
+cp /system/authorized_keys /tmp/.ssh/authorized_keys
+/system/dropbear -r /system/dbkey_ecdsa -p 22 &
+# Two-way talk: a TCP audio sink
+( while true; do nc -l -p 9010 -e /bin/sh /system/pktalk_sink.sh; sleep 1; done ) &
+mount --bind /system/ctrl_patched /app/bin/ctrl
+mount --bind /system/cloud_patched /app/bin/cloud
+mount --bind /system/ca_patched.crt /app/bin/ca.crt
+mount --bind /app/bin/tserver /app/bin/agora
+
+# Run the stock init (which starts all processes using the patched files)
+. /app/script/app_init.sh
+```
+
+The wrapper is always rebuilt from the whole active set, so patchers combine instead of overwriting each other.
+
+## Removing a patch
+
+Removing a patcher deletes that patcher's files from the device and uploads a wrapper built from the patches that remain, in one command, so the device never boots with a wrapper that points at missing files. Then it reboots. When the last patch is removed, the wrapper itself is deleted and the device boots stock.
+
+Camera Pan writes nothing, so removing it only takes the buttons away, without a reboot.
+
+## Firmware updates
+
+The patched copies and the wrapper live on writable storage, so they survive a reboot. Persistent SSH Access is documented to survive app OTA updates and factory resets too, as long as the writable app storage is not formatted. MyPetKit never offers a device a firmware update, and proxy mode blocks firmware pushes from PetKit.
+
+Camera Pan checks `pktool`'s checksum on every press, so an update that replaces `pktool` turns the buttons off rather than running an unverified tool.
+
+## Reading a firmware image yourself
+
+The repository does not ship firmware and does not document where to get images. If you have one, this is the format the test suite reads.
+
+An app image is a uImage: a 64-byte header followed by a squashfs filesystem. To unpack one:
+
+```bash
+dd if=app.bin of=app.sqfs bs=64 skip=1
+unsquashfs -d root app.sqfs
+ls root    # ctrl, cloud, ca.crt, pktool, tserver, ...
+```
+
+`unsquashfs` comes from the `squashfs` package (`brew install squashfs` on macOS).
+
+To run the patchers against real binaries, put images in `services/api/tests/firmware/` (git ignores the folder) and run `pytest --firmware`:
+
+```text
+services/api/tests/firmware/
+├── t5/943/app_261463.bin
+├── t6/daniel/app.bin
+├── d4sh/867/app_261301.bin
+└── w7h/456/app_262863.bin
+```
+
+The `w7h` folder is treated as ARM, the rest as MIPS.
+
+On a running device, Persistent SSH Access gives you a shell, and the read-back httpd on port 8889 shows command output from the device during patching.

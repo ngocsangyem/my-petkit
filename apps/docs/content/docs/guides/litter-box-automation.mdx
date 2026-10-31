@@ -1,0 +1,44 @@
+---
+title: Litter box automation
+description: Force continue on the T5, T6 and T7, auto-pack on the T6, and panning the T6 camera.
+---
+
+## Force continue (T5, T6, T7)
+
+When the box stops a cycle because it saw a cat near the entrance, the dashboard and the iOS app offer **Continue cleaning**. It asks for the admin password again.
+
+The server refuses it, and sends nothing, unless all of these hold:
+
+- the box paused for exactly that reason, a cat near the entrance;
+- it reports nobody inside;
+- no visit has been left open in the last 10 minutes;
+- it reports no error;
+- it was heard from in the last 90 seconds.
+
+A pause because a cat went in or the cover is open is never overridden. The firmware keeps all of its own checks: if a cat steps inside, the box stops again. One press sends one command, and nothing repeats it.
+
+![A T6 paused for a cat near the entrance](/screenshots/web-device-t6-paused.webp)
+
+The **Resume** button sends the same command, so on these models it is refused while the box is paused for a cat nearby, a cat inside or an open cover. After a Pause you pressed yourself, Resume works as usual.
+
+If the box keeps stopping for cats walking past, turn off **Wander Detection**. That is the box's own way to be less sensitive.
+
+## Auto-pack (T6, experimental)
+
+PetKit's app only bags the waste when you tap Pack. In the device's **Automation** section you can let the server press it for you:
+
+- after a number of cleanings,
+- when the bin is full,
+- or at a time of day, in the device's time zone,
+
+with optional quiet hours. It is off by default.
+
+The server waits while the box is busy, a cat is in or near it, it reports no bags or an error, or the last attempt was less than 30 minutes ago. A bagging error turns the rule off, and so does a second pack the box never answers. Turn it back on once you have checked the box.
+
+PetKit recommends that someone is nearby when it bags, and that the bag is taken out promptly. A daily time when you are home is the safest choice.
+
+Neither force continue nor auto-pack is available as a Home Assistant button.
+
+## Panning the T6 camera
+
+The Purobot Ultra's camera turns on one motor. The [Camera Pan (T6)](/docs/firmware/camera-pan-t6) patcher adds **Pan Left**, **Pan Right** and **Pan Home** buttons, in Home Assistant and the dashboard.

@@ -1,0 +1,37 @@
+---
+title: Ports
+description: What listens where, which ports you can remap, and which you should leave alone.
+---
+
+| Container port | Default host port | Purpose |
+|---|---|---|
+| 80 | 80 | Device HTTP API |
+| 443 | 443 | Device MQTT over TLS |
+| 1883 | not mapped | Plain MQTT, internal to the server and bound to loopback |
+| 9000 | 9000 | Media bucket the device uploads photos and video to |
+| 8099 | not mapped | The dashboard over plain HTTP, for Home Assistant Ingress |
+| 8443 | 8443 | The dashboard and iOS app over TLS, self-signed |
+| 8554 | not mapped (add-on) | Camera RTSP from the bundled go2rtc |
+| 8555 TCP and UDP | not mapped (add-on) | WebRTC live video |
+
+## Leave 80 and 443 alone
+
+Remapping is honoured where the server can tell the device about it. The host port that 80/tcp is published on goes into the address devices are handed, and the same goes for the bucket on 9000/tcp. These cannot follow a remap:
+
+- A device redirected by DNS dials port 80 and nothing tells it otherwise.
+- An ESP32 model provisioned with another port joins Wi-Fi and then fails to reach the server. A T4 provisioned with `:8080` does exactly this.
+- The MQTT port is compiled into the firmware.
+
+So keep 80 and 443 unless you know which of your devices is provisioned with what.
+
+## The two brokers do not clash
+
+The device-facing broker is separate from Home Assistant's. Its plain listener is unmapped and bound to loopback, so it cannot clash with the Mosquitto add-on.
+
+## Ports that clash with go2rtc
+
+If you also run the go2rtc add-on, it owns 8554 and 8555 on the host. Pick other host ports for MyPetKit's RTSP and WebRTC mappings.
+
+## Unauthenticated by design
+
+Port 9000 accepts uploads without authentication. It stands in for Aliyun OSS, whose credentials the server issues to the device itself. Like every device-plane port, keep it on your LAN.

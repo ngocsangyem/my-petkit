@@ -1,0 +1,67 @@
+---
+title: Supported devices
+description: Which PetKit models have been run against the server, and which are expected to work.
+---
+
+The test status below comes from upstream petkit-local's device table, which MyPetKit inherits along with the protocol core. "Confirmed" means somebody ran that model against the server and reported what happened. It does not mean every feature works.
+
+## Confirmed working
+
+| Product | Codename | Camera | On-device AI |
+|---|---|---|---|
+| Purobot Max Pro 2 | T5 | yes | yes |
+| Purobot Ultra | T6 | yes | yes |
+| EverSweet Ultra AI | W7H | yes | yes |
+| EverSweet Max Cordless | CTW3 (Bluetooth only) | no | no |
+| YumShare Dual-Hopper | D4SH | yes | no |
+
+## Should work
+
+Same firmware family, and the protocol was checked against their firmware, but nobody has run one.
+
+| Product | Codename | Camera | On-device AI |
+|---|---|---|---|
+| Purobot Crystal Duo | T7 | yes | yes |
+| EverSweet 3 Pro | W5, also W5C and W5N (Bluetooth only) | no | no |
+| EverSweet | W4, also W4X and W4X UVC (Bluetooth only) | no | no |
+| EverSweet Solo 2 | CTW2 (Bluetooth only) | no | no |
+
+## Supported, not tested
+
+Entity definitions exist, but most of them come from [pypetkitapi](https://github.com/Jezza34000/py-petkit-api), a client of PetKit's cloud API, whose field names are not always the device's. Expect the common things to work and the occasional entity to sit at "unknown".
+
+| Product | Codename | Camera | On-device AI |
+|---|---|---|---|
+| Pura X | T3 | no | no |
+| Pura Max | T4 | no | no |
+| YumShare Solo | D4H | yes | no |
+| YumShare Solo 2 | D4H | yes | yes |
+| YumShare Dual-Hopper 2 | D4SH | yes | yes |
+| Fresh Element Solo | D4 | no | no |
+| Feeder D3 / D4s | D3, D4S | no | no |
+| Feeder / Feeder Mini | feeder, feedermini | no | no |
+| Pura Air smart spray | K2, K3 (Bluetooth only) | no | no |
+
+The single-hopper YumShare Solo (D4H) is modelled from the Dual-Hopper's firmware. No D4H has ever reported to the server, so its entities are a best guess until one does.
+
+## Three kinds of hardware
+
+How you connect a device depends on what is inside it, not on whether it is a litter box or a feeder.
+
+| Family | Models | How it reaches MyPetKit |
+|---|---|---|
+| Embedded Linux, with camera | T5, T6, T7, D4H, D4SH (Ingenic MIPS), W7H (ARM) | Bluetooth provisioning only. They insist on HTTPS, so a DNS redirect is not enough. MQTT needs a [patcher](/docs/firmware). |
+| ESP32 | T3, T4, D3, D4, D4S, Feeder, Feeder Mini | Bluetooth provisioning, or a DNS redirect, since they talk plain HTTP. They must reach the server on port 80. |
+| Bluetooth only | W4, W5, CTW2, CTW3, K2, K3 | Through a parent: a mains-powered litter box or feeder that relays for them. |
+
+The Feeder and Feeder Mini have no Bluetooth radio, so only a DNS redirect can reach them. Their signup carries no id and no serial, so a factory-fresh unit may be refused. Nobody has run one.
+
+## Bluetooth-only accessories
+
+A fountain or spray with no Wi-Fi reports through a parent within range. Pair it from the panel of the device that will relay for it. The parent does not discover anything on its own: it asks the cloud what to scan for. That scan number has been read from a real pairing for the W5 and the CTW3 only. For the other models it is borrowed from their product line, so if an accessory never reports, change **Scan type** under Advanced first.
+
+With no parent device at all, MyPetKit cannot reach a fountain. [aavdberg/ha-petkit](https://github.com/aavdberg/ha-petkit) talks to these models over Bluetooth from Home Assistant directly.
+
+## A model that is not listed
+
+Turn on proxy mode (dashboard, Settings). Every request is then forwarded to PetKit as well, so the device keeps behaving normally while everything it says is recorded. That recording is what is needed to add the model. See [Contributing](/docs/contributing).

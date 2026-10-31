@@ -1,0 +1,43 @@
+---
+title: Rules
+description: The invariants a change must keep, and the checks that hold it to them.
+---
+
+These come from `AGENTS.md`, `docs/code-standards.md` and `docs/security/secure-coding-rules.md` in the repository. The full lists are there; these are the ones most changes run into.
+
+## Talking to devices
+
+- **Never 404 a device.** Unhandled endpoints fall through to a catch-all. Firmware reads a 4xx as a server fault and retries forever.
+- **Device input never raises.** Untrusted values go through `utils/coerce`, untrusted path parts through `utils/paths.safe_join`. The bucket listens unauthenticated.
+- **HTTP event codes are per device category.** Code `2` is `err_over` on a litter box and `feed_over` on a D4H. Always pass `device_type` when looking a code up.
+- **A device on MQTT stops polling HTTP.** Never judge liveness on HTTP timestamps alone.
+- **Proxy mode never hands a device an upstream credential, server address or firmware.** Redaction is keyed on content, not on endpoint.
+- **Nothing reaches PetKit on a schedule.** The server asks PetKit only when you press a button, signed as the device.
+- **Every connection to a device goes through `utils/outbound_guard.py`.** Only an IP address on a device network that a registered device reported is dialled.
+
+## Pinned by checks
+
+- **Device-facing output is pinned by the golden check.** `scripts/golden_device_responses.py` replays every device endpoint, MQTT reply, Home Assistant publish and patcher script with time and randomness frozen. A refactor must leave it identical. An approved behaviour change updates `scripts/golden-baseline.sha` in the same PR, with the reason, and that PR is merged with a merge commit so the pinned commit stays on `main`.
+- **The user-plane contract follows the code.** `packages/contracts/openapi.yaml` is maintained by hand. Change a user-plane route and the spec in the same PR, run `scripts/gen-clients.sh`, and commit the regenerated `apps/web/src/api/schema.d.ts` and the iOS copy of the spec.
+- **The test suite is pinned by ID.** Add, remove or rewrite a test and record it in `tests/TEST-LEDGER.md` and `tests/baseline-test-ids.txt`, or `test_collected_ids_match_baseline` fails.
+
+## Time
+
+Local time comes from `utils/clock.py` only, never from the host. `time.localtime`, a naive `datetime.fromtimestamp` or a bare `.astimezone()` anywhere else fails a test. Days are cut at local midnight, never `start + 86400`, because daylight saving makes days 23 or 25 hours long.
+
+## The user plane
+
+- Default deny. Every route declares a risk tier, and every request carries a token, except public static files and signed media links.
+- No secret has a hard-coded default. Assume an attacker has read all of the source.
+- Features never import each other. Shared code goes in `shared/`.
+
+## Code
+
+- Ported protocol code is not reformatted, so it stays diffable against upstream petkit-local. New code in `features/`, `web/` and `shared/` is formatted with ruff and type-checked strictly.
+- Test names describe the scenario. Do not mock the thing under test; fake only the outer boundaries: devices, the PetKit cloud, the Home Assistant broker.
+- No plan IDs, phase numbers or finding codes in code comments, test names or commit messages.
+- Every workflow pins third-party actions to a commit SHA and sets the minimum `permissions:`.
+
+## Deploying to a Home Assistant box
+
+Never deploy an untested Dockerfile. The Supervisor deletes the old image before rebuilding, so a failed build leaves no image, the add-on drops to an error state, and the devices lose their local cloud. Build it first with plain `docker build` on the box.

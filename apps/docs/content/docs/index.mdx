@@ -1,0 +1,34 @@
+---
+title: What MyPetKit is
+description: A local server that answers your PetKit devices in place of the PetKit cloud.
+---
+
+A PetKit litter box, feeder or fountain normally reports to PetKit's servers. MyPetKit is a server you run yourself that answers those devices the way the cloud would. The device keeps working as before, but its visits, photos and video are stored on your machine instead of PetKit's, and it keeps working when your internet connection is down.
+
+On top of that local cloud you get:
+
+- a web dashboard, served by the same server, for devices, schedules, the visit timeline, pets, logs and settings;
+- an iOS app that pairs with the server through a QR code;
+- Home Assistant entities, published over MQTT discovery;
+- optional on-device patches for the camera models, for local live video, two-way talk, SSH and more.
+
+![The MyPetKit dashboard home screen](/screenshots/web-home.webp)
+
+## Where it comes from
+
+MyPetKit is a rebuild of [petkit-local](https://github.com/alex-so-3/petkit-local) (GPL-3.0). The reverse-engineered protocol core, the part that knows what a device expects to hear, is ported from it. MyPetKit adds a login-protected, TLS-only "user plane" with the web dashboard and the iOS app, and ships as one signed container image. `NOTICE.md` and `UPSTREAM.md` in the repository record what came from where.
+
+The project is licensed under GPL-3.0.
+
+<Callout type="warn" title="Your device, your risk">
+Pointing a device at MyPetKit, and above all applying the firmware patchers, is done at your own risk. A patched or misconfigured device can stop working, and it is outside its warranty and outside PetKit's update path.
+</Callout>
+
+## Where to start
+
+<Cards>
+  <Card title="How it works" href="/docs/how-it-works" description="The two planes, the two transports, and why a wrong answer can stall a device." />
+  <Card title="Supported devices" href="/docs/supported-devices" description="Which models have been run against it, and which are still inference." />
+  <Card title="Install" href="/docs/install" description="Home Assistant add-on, Docker on your LAN, or a VPS." />
+  <Card title="Add a device" href="/docs/guides/add-a-device" description="Bluetooth provisioning or DNS redirect." />
+</Cards>

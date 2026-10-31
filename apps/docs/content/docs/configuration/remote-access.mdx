@@ -1,0 +1,70 @@
+---
+title: Remote access
+description: Reach the dashboard and the iOS app from outside your LAN without exposing the device ports.
+---
+
+The device plane (ports 80, 443 and 9000) never goes on the internet in any of these setups. Only the user plane does: the dashboard and the iOS app on `user_port` (8443 by default), which needs the admin password or a paired client token on every request.
+
+## How the iOS app decides to trust the server
+
+- An IP address, or a `.local` or single-label name: the app pins the self-signed certificate it got from the pairing QR code.
+- Any other name (`*.ts.net`, your own domain): iOS demands a certificate the system trusts before the app can check anything, so that name must serve a publicly trusted certificate.
+
+Whichever name the browser uses must also be accepted by the server. IP addresses and `localhost` always are. Add a host name to `user_hosts`.
+
+## Tailscale (recommended)
+
+Install Tailscale on the machine running MyPetKit (for the add-on, use the Tailscale add-on) and on your phone or laptop.
+
+<Tabs items={['By Tailscale IP', 'By MagicDNS name']}>
+<Tab value="By Tailscale IP">
+
+Pair the iOS app with `https://100.x.y.z:8443`. It is an IP address, so the app pins the self-signed certificate exactly as on the LAN. There is nothing else to configure. Browsers show a certificate warning, as they do on the LAN.
+
+</Tab>
+<Tab value="By MagicDNS name">
+
+Enable HTTPS certificates in the Tailscale admin console, then put Tailscale's HTTPS proxy in front of the user plane:
+
+```bash
+tailscale serve --bg --https=443 https+insecure://127.0.0.1:8443
+```
+
+`tailscale serve` gets the `<machine>.<tailnet>.ts.net` certificate and forwards to the user plane. The `https+insecure` hop is local, and the user plane's certificate is self-signed.
+
+Add `<machine>.<tailnet>.ts.net` to `user_hosts`, and set `user_url` to `https://<machine>.<tailnet>.ts.net` so the pairing QR code sends the phone there. Use that address in the browser too.
+
+With the add-on, the Tailscale add-on runs in its own container, so forward to the host's LAN address and the mapped `user_port` instead of `127.0.0.1`.
+
+</Tab>
+</Tabs>
+
+Use `tailscale serve`, not `tailscale funnel`. Funnel publishes the dashboard to the whole internet.
+
+## Cloudflare Tunnel
+
+`cloudflared` makes an outbound connection to Cloudflare, which serves your domain with its own certificate and forwards to the user plane:
+
+```yaml
+# ~/.cloudflared/config.yml
+tunnel: <tunnel id>
+credentials-file: /etc/cloudflared/<tunnel id>.json
+ingress:
+  - hostname: petkit.example.com
+    service: https://127.0.0.1:8443
+    originRequest:
+      noTLSVerify: true   # the user plane's certificate is self-signed
+  - service: http_status:404
+```
+
+Add `petkit.example.com` to `user_hosts`, and set `user_url` to `https://petkit.example.com`.
+
+Cloudflare terminates TLS, so it sees everything that passes: your password, session tokens, camera recordings and live video. Put Cloudflare Access in front if you want a second login. WebRTC does not go through the tunnel because it needs a direct UDP or TCP path; MSE and HLS do.
+
+## The login limit behind any proxy
+
+The failed-login limit counts attempts per client address, and behind a proxy every attempt comes from the proxy. Five wrong passwords from anyone who can reach the proxy lock everyone out of login and pairing for up to 15 minutes. Sessions and paired phones keep working. `tailscale serve` only admits your tailnet, so this matters for a public domain: Cloudflare Tunnel or a VPS.
+
+## Your own domain on a VPS
+
+See [VPS with WireGuard](/docs/install/vps).

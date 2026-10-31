@@ -1,0 +1,82 @@
+---
+title: The patchers
+description: What each patcher changes on the device, what you get, and its known side effects.
+---
+
+Each section below matches a card on the **Patchers** screen. Space figures are what the screen warns about before it knows the model; the real check at apply time uses the measured size of the patched file.
+
+![The Patchers screen](/screenshots/web-patchers.webp)
+
+## MQTT TLS Bypass
+
+The Linux models only trust the PetKit cloud's certificate, so they reject MyPetKit's self-signed broker certificate before a single MQTT byte is exchanged. This patcher lets the device connect to the embedded broker, so commands and events move in real time instead of waiting for the HTTP heartbeat.
+
+What it does: copies `/app/bin/ctrl` to writable storage and patches `mbedtls_x509_crt_verify_with_profile`, the function that checks the server's certificate chain during the TLS handshake, so it returns success. That is 16 bytes on MIPS and 8 on ARM, picked from the binary. The boot wrapper bind-mounts the patched `ctrl` over the original.
+
+Patching this one function is enough. Patching only the later readback, `mbedtls_ssl_get_verify_result`, does not work, because the handshake has already failed before that code is reached.
+
+Needs about 2 MB free: `ctrl` is 1,420,656 bytes on a T5 and 903,148 bytes on a D4SH, and the patch writes one full copy.
+
+While the device holds an MQTT session, the card shows "active (MQTT connected)". A live session is proof the patch took.
+
+## CA Certificate (Bucket TLS)
+
+The device's uploader, `cloud`, checks the bucket server's TLS certificate against `/app/bin/ca.crt`, a Mozilla CA bundle. This patcher appends the server's own certificate to a copy of that bundle and bind-mounts the copy at boot, so uploads to the local bucket succeed. Apply it together with Local Storage.
+
+Needs about 512 KB free: `ca.crt` is 226,168 bytes on a T5 and 11,171 bytes on a D4SH, plus the added certificate.
+
+## Local Storage (Cloud Upload)
+
+Patches the `cloud` binary, the media uploader, in two places:
+
+1. it accepts LAN IP addresses for the upload server (`isCClassIP` returns 0);
+2. it skips `CURLOPT_CONNECT_TO`, so curl uses the upload URL it was given directly.
+
+Together with CA Certificate, this lets the device upload photos and video to MyPetKit over HTTPS.
+
+## Local Camera Streaming
+
+Replaces the Agora P2P video client with `tserver`, a local HTTP video streamer already built into the firmware. Once applied, the bundled go2rtc republishes the feed as RTSP, and the address to give Home Assistant appears on the card and as the **Camera Stream URL** sensor.
+
+What it does: bind-mounts `/app/bin/tserver` over `/app/bin/agora`, so the stock start-up line `./agora &` starts the local streamer. No file of MyPetKit's is written to the device. Removing the patch and rebooting restores Agora exactly.
+
+Side effects:
+
+- PetKit's app can no longer show live video. Use the dashboard, the iOS app or the RTSP address.
+- The firmware watchdog logs "kill agora" and "reboot agora" once a minute, because `tserver` never feeds the watchdog the way Agora did. Measured on a T5 over 16 minutes: the kill never lands, `tserver` keeps the same PID, its memory stays flat and the device does not reboot.
+- The device needs a few seconds between connections, so reopening the stream right after closing it can fail once.
+
+Never give Home Assistant the device's own stream address. See [Home Assistant](/docs/guides/home-assistant#the-camera).
+
+## Two-Way Talk (Intercom)
+
+Adds a local audio sink so the dashboard and the iOS app can talk through the device speaker. PetKit routed talk through Agora, which Local Camera Streaming replaces.
+
+What it does: installs a small shell script once into writable storage, and adds a block to the boot wrapper that runs an `nc` listener on TCP 9010. For each connection, the script feeds a named pipe to the firmware's own `pktool play_aac`, which hands it to the `media` process that owns the speaker. No new binary is installed.
+
+Needs a camera model with a speaker, and is normally used with Local Camera Streaming. Removing it deletes the script and rewrites the wrapper; the next reboot is stock again. Half-duplex: mute listening while you talk.
+
+The listener is unauthenticated and reachable from the whole LAN while applied. It plays audio only, but anyone on the network can push sound to the speaker. Apply it on trusted networks only.
+
+## Persistent SSH Access
+
+Installs Dropbear SSH on port 22 with public-key authentication. Password login is disabled. Paste your public key on the card before applying; it is stored per device and reused when you apply again.
+
+What it does: the boot wrapper starts dropbear before any PetKit process, so SSH comes up even if the stock init fails. It survives reboots, app OTA updates and factory resets, as long as writable app storage is not formatted.
+
+Two static builds are shipped, picked from the ELF header of the device's own `ctrl`:
+
+| Build | Size | For |
+|---|---|---|
+| `dropbear-mipsel` | 165 KB | Ingenic MIPS32r2 little-endian: T5, T6, T7, D4H, D4SH |
+| `dropbear-armv7` | 128 KB | ARMv7-A hard-float: W7H |
+
+Both are static musl builds, UPX-packed, from the same source. The ECDSA host key is generated once at install and kept on writable storage, so the fingerprint does not change across reboots. Accepted client keys are RSA and ECDSA.
+
+If an older `test_case_root` script from a previous SSH method exists, it is renamed to `old_test_case_root` so only one server listens on port 22.
+
+Needs about 256 KB free.
+
+## Camera Pan (T6)
+
+See [Camera Pan (T6)](/docs/firmware/camera-pan-t6).
