@@ -84,7 +84,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("ipa", type=Path)
     parser.add_argument("--repo", required=True, help="owner/name on GitHub")
-    parser.add_argument("--tag", required=True, help="the release tag, e.g. v2.1.0")
+    parser.add_argument("--tag", required=True, help="the release tag, e.g. v0.0.1")
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
     source = build_source(args.ipa, args.repo, args.tag)

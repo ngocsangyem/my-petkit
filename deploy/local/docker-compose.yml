@@ -24,7 +24,7 @@ services:
     # Published by .github/workflows/publish.yml; the same image the add-on
     # pulls, one multi-architecture package (amd64, arm64, armv7).
     #   :latest  the newest release
-    #   :2.1.0   a release you pin
+    #   :0.0.1   a release you pin
     #   :dev     the last commit on main; use `docker compose up -d --pull always`
     # Check its signature before trusting it: docs/deploy.md, "Verify the image".
     image: ghcr.io/ngocsangyem/my-petkit:${MY_PETKIT_TAG:-latest}

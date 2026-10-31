@@ -16,7 +16,7 @@ For reaching the dashboard and the iOS app from outside the LAN, see
 
 | Tag | Meaning |
 |---|---|
-| `2.1.0` (a version) | a release, cut by the `v2.1.0` git tag; the add-on pulls exactly this |
+| `0.0.1` (a version) | a release, cut by the `v0.0.1` git tag; the add-on pulls exactly this |
 | `latest` | the newest stable release (a prerelease or a backport tag does not move it) |
 | `dev` | the last commit on `main`; untested by definition |
 
@@ -32,7 +32,7 @@ Every published image is signed with cosign keyless signing from the
 provenance attestation. Check the signature before you run a new version:
 
 ```sh
-cosign verify ghcr.io/ngocsangyem/my-petkit:2.1.0 \
+cosign verify ghcr.io/ngocsangyem/my-petkit:0.0.1 \
   --certificate-identity-regexp '^https://github.com/ngocsangyem/my-petkit/\.github/workflows/publish\.yml@refs/tags/v' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```
@@ -43,9 +43,9 @@ anywhere else (a fork, another workflow, a laptop) fails this check.
 The SBOM and the provenance:
 
 ```sh
-docker buildx imagetools inspect ghcr.io/ngocsangyem/my-petkit:2.1.0 \
+docker buildx imagetools inspect ghcr.io/ngocsangyem/my-petkit:0.0.1 \
   --format '{{ json (index .SBOM "linux/amd64").SPDX }}' | head
-docker buildx imagetools inspect ghcr.io/ngocsangyem/my-petkit:2.1.0 \
+docker buildx imagetools inspect ghcr.io/ngocsangyem/my-petkit:0.0.1 \
   --format '{{ json (index .Provenance "linux/amd64").SLSA }}' | head
 ```
 

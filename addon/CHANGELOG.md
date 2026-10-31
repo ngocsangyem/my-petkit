@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.0.1 — 2026-10-31
+
+The first release of my-petkit as its own app: an authenticated, TLS-only
+dashboard and a native iOS app on top of the petkit-local protocol core it was
+rebuilt from (2.1.0). The iOS app ships with each release from now on, as an
+IPA and an AltStore / SideStore source.
 
 - **A redesigned web dashboard that matches the iOS app.** A sidebar replaces
   the tabs; devices are drawn with their real litter, food and water levels;
@@ -145,6 +150,12 @@
   `ha_mqtt_host` add-on option always has. The add-on itself is unaffected. If
   you run standalone and relied on an implicit broker on the same host, pass
   `--ha-mqtt-host localhost`.
+
+## petkit-local history
+
+The releases below are petkit-local's, up to the 2.1.0 that my-petkit was
+imported from (see `NOTICE.md`). They are kept for what they record about the
+protocol; my-petkit's own numbering starts again at 0.0.1.
 
 ## 2.1.0 — 2026-08-12
 
