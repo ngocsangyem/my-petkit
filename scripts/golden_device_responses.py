@@ -9,7 +9,7 @@ could affect (`--tz UTC --tz Asia/Saigon`); each TZ is compared with the
 baseline under the same TZ.
 
 Usage:
-  scripts/golden_device_responses.py --against phase-02-baseline [--tz UTC ...]
+  scripts/golden_device_responses.py --against "$(cat scripts/golden-baseline.sha)" [--tz UTC ...]
   scripts/golden_device_responses.py --emit out.json    # working tree only
 
 Exit status 0 when identical, 1 with a unified diff otherwise.

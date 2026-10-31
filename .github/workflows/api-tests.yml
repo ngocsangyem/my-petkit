@@ -29,9 +29,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          # The golden check checks the baseline tag out into a worktree.
+          # The golden check checks the baseline commit out into a worktree.
           fetch-depth: 0
-          fetch-tags: true
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
@@ -48,11 +47,15 @@ jobs:
       - name: pytest
         run: python -m pytest -q
 
-      - name: golden device responses (vs approved-ha-event-payloads)
+      - name: golden device responses (vs the approved baseline)
         # Every byte handed to a device or to Home Assistant must match the
-        # last approved baseline. An approved behaviour change moves the tag
-        # in the same PR, with the reason in the commit.
-        run: python ../../scripts/golden_device_responses.py --against approved-ha-event-payloads --tz UTC --tz Asia/Saigon
+        # last approved baseline: the commit in scripts/golden-baseline.sha.
+        # It is pinned in a tracked file rather than a tag because a tag can
+        # be deleted from the remote, which failed every run. An approved
+        # behaviour change updates the file in the same PR, with the reason in
+        # the commit; the commit it names must end up on main, so merge such a
+        # PR with a merge commit, not a squash.
+        run: python ../../scripts/golden_device_responses.py --against "$(cat ../../scripts/golden-baseline.sha)" --tz UTC --tz Asia/Saigon
 
       - name: golden output does not depend on the host zone
         run: |
