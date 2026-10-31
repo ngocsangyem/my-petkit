@@ -1,0 +1,241 @@
+name: ios-release
+
+# Ships the iOS app (apps/ios) with every `v*` release tag, next to the image
+# that publish.yml pushes for the same tag.
+#
+# Two channels:
+#
+# - ipa: always. An UNSIGNED build packaged as MyPetkit-<version>.ipa and
+#   attached to the GitHub Release with SHA256SUMS, a build provenance
+#   attestation and apps.json, an AltStore / SideStore source. AltStore,
+#   SideStore and Sideloadly re-sign the IPA with the user's own Apple ID, so no
+#   Apple Developer account is needed here. Users add the source
+#   https://github.com/<owner>/<repo>/releases/latest/download/apps.json once
+#   and are offered every later release.
+#
+# - testflight: off until the repository variable TESTFLIGHT_ENABLED is
+#   "true". It needs a paid Apple Developer account, an app record for
+#   dev.mypetkit.app in App Store Connect, an AppIcon in the app, and these
+#   secrets in the `testflight` environment:
+#     APPLE_TEAM_ID            the 10-character Team ID
+#     ASC_KEY_ID               App Store Connect API key id
+#     ASC_ISSUER_ID            App Store Connect API issuer id
+#     ASC_KEY_P8               the .p8 key file's contents (Admin role, so
+#                              Xcode can create the cloud-managed certificate)
+#   Signing is automatic: Xcode fetches the certificate and profile with the
+#   API key, so no .p12 or provisioning profile is stored anywhere.
+#
+# The version is the tag without its `v`, and must match addon/config.yaml,
+# the same rule publish.yml applies to the image. The build number is this
+# workflow's run number, which only grows.
+#
+# Run it by hand (Actions → ios-release → Run workflow) to build the IPA at the
+# version in config.yaml without releasing anything: the files are kept as a
+# workflow artifact for a week, and TestFlight is skipped.
+#
+# Third-party actions are pinned to a commit SHA. To update one, resolve the
+# tag yourself: gh api repos/<owner>/<repo>/commits/<tag> --jq .sha
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # The gate: lint, package tests, app and hosted tests on the Simulator.
+  ios:
+    uses: ./.github/workflows/ios.yml
+
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.v.outputs.tag }}
+      version: ${{ steps.v.outputs.version }}
+      build: ${{ steps.v.outputs.build }}
+      prerelease: ${{ steps.v.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: v
+        run: |
+          set -eu
+          declared=$(sed -n 's/^version: *"\(.*\)"$/\1/p' addon/config.yaml)
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            version="${GITHUB_REF_NAME#v}"
+            if [ "$declared" != "$version" ]; then
+              echo "::error::tag $GITHUB_REF_NAME does not match config.yaml version $declared"
+              exit 1
+            fi
+          else
+            version="$declared"
+          fi
+          if [ "$version" != "${version%%-*}" ]; then prerelease=true; else prerelease=false; fi
+          # CFBundleShortVersionString is at most three dot-separated
+          # integers; 2.2.0-rc1 ships as 2.2.0 with its own build number.
+          {
+            echo "tag=v$version"
+            echo "version=${version%%-*}"
+            echo "build=${GITHUB_RUN_NUMBER}"
+            echo "prerelease=$prerelease"
+          } >> "$GITHUB_OUTPUT"
+
+  ipa:
+    needs: [ios, version]
+    runs-on: macos-26
+    timeout-minutes: 45
+    permissions:
+      contents: write # create the release and upload its assets
+      id-token: write # sign the provenance attestation
+      attestations: write
+    env:
+      TAG: ${{ needs.version.outputs.tag }}
+      VERSION: ${{ needs.version.outputs.version }}
+      BUILD: ${{ needs.version.outputs.build }}
+      PRERELEASE: ${{ needs.version.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Tools
+        run: brew install xcodegen
+
+      - name: Generate the Xcode project
+        working-directory: apps/ios
+        run: xcodegen generate
+
+      - name: Archive (unsigned)
+        working-directory: apps/ios
+        run: >
+          xcodebuild archive
+          -project MyPetkit.xcodeproj -scheme MyPetkit -configuration Release
+          -destination 'generic/platform=iOS'
+          -archivePath "$RUNNER_TEMP/MyPetkit.xcarchive"
+          -skipPackagePluginValidation
+          CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+          MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILD"
+
+      - name: Package the IPA, the AltStore source and checksums
+        run: |
+          set -eu
+          out="$RUNNER_TEMP/dist"
+          stage="$RUNNER_TEMP/stage"
+          mkdir -p "$out" "$stage/Payload"
+          cp -R "$RUNNER_TEMP/MyPetkit.xcarchive/Products/Applications/MyPetkit.app" "$stage/Payload/"
+          ipa="$out/MyPetkit-${TAG#v}.ipa"
+          (cd "$stage" && zip -qry "$ipa" Payload)
+          python3 scripts/ios_altstore_source.py "$ipa" \
+            --repo "$GITHUB_REPOSITORY" --tag "$TAG" --out "$out/apps.json"
+          (cd "$out" && shasum -a 256 ./*.ipa apps.json > SHA256SUMS)
+          cat "$out/SHA256SUMS"
+
+      - name: Keep the files (manual run)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ios-${{ needs.version.outputs.tag }}-${{ needs.version.outputs.build }}
+          path: ${{ runner.temp }}/dist/
+          retention-days: 7
+
+      - if: github.event_name == 'push'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: ${{ runner.temp }}/dist/*.ipa
+
+      - name: Attach to the GitHub Release
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          if ! gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            flags="--verify-tag --generate-notes --title $GITHUB_REF_NAME"
+            if [ "$PRERELEASE" = "true" ]; then flags="$flags --prerelease"; fi
+            # shellcheck disable=SC2086
+            gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" $flags
+          fi
+          gh release upload "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --clobber \
+            "$RUNNER_TEMP"/dist/*.ipa "$RUNNER_TEMP/dist/apps.json" "$RUNNER_TEMP/dist/SHA256SUMS"
+
+  testflight:
+    needs: [ios, version]
+    if: github.event_name == 'push' && vars.TESTFLIGHT_ENABLED == 'true'
+    runs-on: macos-26
+    timeout-minutes: 45
+    environment: testflight
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+      BUILD: ${{ needs.version.outputs.build }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Tools
+        run: brew install xcodegen
+
+      - name: Generate the Xcode project
+        working-directory: apps/ios
+        run: xcodegen generate
+
+      - name: App Store Connect key
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          set -eu
+          umask 077
+          printf '%s\n' "$ASC_KEY_P8" > "$RUNNER_TEMP/AuthKey.p8"
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>${APPLE_TEAM_ID}</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Archive (signed)
+        working-directory: apps/ios
+        run: >
+          xcodebuild archive
+          -project MyPetkit.xcodeproj -scheme MyPetkit -configuration Release
+          -destination 'generic/platform=iOS'
+          -archivePath "$RUNNER_TEMP/MyPetkit.xcarchive"
+          -skipPackagePluginValidation
+          -allowProvisioningUpdates
+          -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8"
+          -authenticationKeyID "$ASC_KEY_ID"
+          -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+          DEVELOPMENT_TEAM="$APPLE_TEAM_ID"
+          MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILD"
+
+      - name: Upload to TestFlight
+        run: >
+          xcodebuild -exportArchive
+          -archivePath "$RUNNER_TEMP/MyPetkit.xcarchive"
+          -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
+          -exportPath "$RUNNER_TEMP/export"
+          -allowProvisioningUpdates
+          -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8"
+          -authenticationKeyID "$ASC_KEY_ID"
+          -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+
+      - name: Remove the key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/AuthKey.p8"

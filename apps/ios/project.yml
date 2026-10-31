@@ -41,6 +41,10 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.mypetkit.app
         INFOPLIST_FILE: MyPetkit/Resources/Info.plist
+        # A release build overrides both from the git tag and the run number
+        # (.github/workflows/ios-release.yml).
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
         TARGETED_DEVICE_FAMILY: "1"
         CODE_SIGN_STYLE: Automatic
   MyPetkitTests:

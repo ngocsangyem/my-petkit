@@ -41,7 +41,7 @@ docs/              architecture, code standards, security rules, design referenc
 - `AGENTS.md`: invariants of the protocol core. Read before changing `events/` or `devices/`.
 - `docs/code-standards.md`, `docs/security/secure-coding-rules.md`: rules every change follows.
 - `docs/design/design-reference.md`: tokens, components and artboards for the web and iOS UI.
-- `docs/deploy.md`, `docs/remote-access.md`: running the image and reaching it from outside.
+- `docs/deploy.md`, `docs/remote-access.md`: running the image, installing the iOS app, and reaching both from outside.
 - `SECURITY.md`: how to report a vulnerability.
 
 ## Licence
