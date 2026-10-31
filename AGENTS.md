@@ -211,11 +211,11 @@ HYPOTHESIS_PROFILE=nightly pytest services/api/tests/fuzz                       
 gitleaks git --config .gitleaks.toml --redact .   # before every push; CI scans full history too
 cd .semgrep && semgrep --test .        # project semgrep rules still catch their fixtures
 scripts/gen-clients.sh                 # regenerate the TS types + iOS spec copy from the contract
-swift build --package-path apps/ios/PetkitKit   # builds the generated Swift client
+swift build --package-path apps/ios/PetkitKit   # builds the generated Swift client (Xcode 26 / Swift 6.2)
 swift test --package-path apps/ios/PetkitKit    # pinning, pairing, error envelope
 cd apps/ios && xcodegen generate && swiftlint lint --strict   # project is generated, not committed
 xcodebuild test -project apps/ios/MyPetkit.xcodeproj -scheme MyPetkit -skipPackagePluginValidation \
-  -destination 'platform=iOS Simulator,name=iPhone 16'   # app + snapshot tests (iOS details: apps/ios/SPIKE.md)
+  -destination 'platform=iOS Simulator,name=iPhone 17'   # app + snapshot tests (iOS details: apps/ios/SPIKE.md)
 ```
 
 ## Repository rules
