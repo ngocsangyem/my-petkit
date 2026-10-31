@@ -38,14 +38,34 @@ export function PhoneDemo() {
       // Longer runway on wide screens so each gesture reads; the stage pins, the heading scrolls away
       const mm = gsap.matchMedia();
       mm.add({ wide: WIDE, narrow: NARROW }, (ctx) => {
+        const narrow = ctx.conditions?.narrow;
+        const phone = q('.lp-phone')[0] as HTMLElement;
+        const steps = q('.lp-demo > div:first-child')[0] as HTMLElement;
+        // While pinned the stage cannot scroll, so on a short phone the screen shrinks until
+        // phone + steps fit under the header (paddings 32, gap 20, bezel 20). Runs before each
+        // refresh measures; mobile address-bar resizes do not trigger one.
+        const fitPhone = () => {
+          const room = window.innerHeight - navOffset() - steps.offsetHeight - 72;
+          phone.style.setProperty('--s', String(gsap.utils.clamp(0.36, 0.56, room / 844)));
+        };
+        if (narrow) {
+          fitPhone();
+          ScrollTrigger.addEventListener('refreshInit', fitPhone);
+        }
         ScrollTrigger.create({
           animation: tl,
           trigger: q('.lp-demo')[0],
           start: () => `top top+=${navOffset()}`,
-          end: ctx.conditions?.wide ? '+=3600' : '+=2800',
+          end: narrow ? '+=2800' : '+=3600',
           pin: true,
+          // Touch scrolling keeps moving for a frame before the pin applies; pre-empting it avoids a jump
+          anticipatePin: 1,
           scrub: 0.8,
         });
+        return () => {
+          ScrollTrigger.removeEventListener('refreshInit', fitPhone);
+          phone.style.removeProperty('--s');
+        };
       });
       return () => mm.revert();
     },
