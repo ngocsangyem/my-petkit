@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.0.2 — 2026-10-31
+
+- **The iOS app is called MyPetKit on the home screen**, and in AltStore and
+  SideStore, instead of the repository name `my-petkit`. Nothing the server
+  does changed.
+- **The image's cosign signatures moved to `ghcr.io/ngocsangyem/my-petkit-signatures`**,
+  so the package page lists release versions only. Set
+  `COSIGN_REPOSITORY` to that path when you run `cosign verify` (see
+  `docs/deploy.md`); 0.0.1 still verifies without it.
+
 ## 0.0.1 — 2026-10-31
 
 The first release of my-petkit as its own app: an authenticated, TLS-only

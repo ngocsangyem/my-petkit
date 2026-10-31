@@ -185,9 +185,10 @@ Two rules about placement that the map does not make obvious:
   hostname, and redirects are not followed. It lives in `utils/` because the protocol core may not
   import `shared/`.
 - **Device-facing output is pinned by the golden check.** `scripts/golden_device_responses.py
-  --against approved-ha-event-payloads` replays every device endpoint, MQTT reply, HA publish and patcher
-  script through the real wiring with time and randomness frozen. A refactor must leave it
-  identical; an approved behaviour change moves the baseline in the same PR, with the reason.
+  --against "$(cat scripts/golden-baseline.sha)"` replays every device endpoint, MQTT reply, HA
+  publish and patcher script through the real wiring with time and randomness frozen. A refactor must leave it
+  identical; an approved behaviour change updates `scripts/golden-baseline.sha` in the same PR, with
+  the reason, and that PR is merged with a merge commit so the pinned commit stays on `main`.
 - **The user-plane contract follows the code.** `packages/contracts/openapi.yaml` is maintained by
   hand; `tests/test_contract_spec_paths_exist.py` fails when an operation is missing from the
   router, its `x-risk-tier` differs from the handler's `@tier`, or a served route is neither in the
@@ -205,7 +206,7 @@ Two rules about placement that the map does not make obvious:
 cd services/api && pytest              # the whole suite, no device or broker needed
 cd services/api && pytest --firmware   # also the patcher tests, if tests/firmware/ is populated
 python ../../scripts/lint-baseline-gate.py ruff ruff ruff-baseline.txt src tests   # from services/api
-python scripts/golden_device_responses.py --against approved-ha-event-payloads                # device bytes unchanged
+python scripts/golden_device_responses.py --against "$(cat scripts/golden-baseline.sha)"     # device bytes unchanged
 python scripts/golden_device_responses.py --against-self --tz UTC --tz Pacific/Kiritimati   # host zone irrelevant
 HYPOTHESIS_PROFILE=nightly pytest services/api/tests/fuzz                            # long fuzz run
 gitleaks git --config .gitleaks.toml --redact .   # before every push; CI scans full history too
