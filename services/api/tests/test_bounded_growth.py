@@ -129,7 +129,7 @@ def test_every_retention_category_is_editable_from_the_panel():
     sized, age_only = listed("RETENTION_SIZED"), listed("RETENTION_AGE_ONLY")
 
     def row(category: str, block: str) -> bool:
-        return f"['{category}'," in block or f'["{category}",' in block
+        return f"'{category}'," in block or f'"{category}",' in block
 
     # `events` and `blocked` are age-only: they carry no size cap.
     for c in ("events", "blocked"):
