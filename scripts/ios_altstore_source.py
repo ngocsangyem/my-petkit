@@ -20,6 +20,12 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
+# The 256px icon, from the default branch so it stays put across releases.
+ICON_URL = (
+    "https://raw.githubusercontent.com/{repo}/main/"
+    "apps/ios/MyPetkit/Resources/app-icon-256.png"
+)
+
 
 def read_info_plist(ipa: Path) -> dict:
     with zipfile.ZipFile(ipa) as z:
@@ -61,6 +67,7 @@ def build_source(ipa: Path, repo: str, tag: str) -> dict:
                 "bundleIdentifier": info["CFBundleIdentifier"],
                 "developerName": repo.split("/")[0],
                 "subtitle": "Your PetKit devices, on your own server.",
+                "iconURL": ICON_URL.format(repo=repo),
                 "localizedDescription": (
                     "The iOS client for a self-hosted my-petkit server: devices, timeline, "
                     "pets, live view and provisioning, with no PetKit cloud account."
