@@ -25,7 +25,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-openapi-runtime", exact: "1.12.2"),
         .package(url: "https://github.com/apple/swift-openapi-urlsession", exact: "1.4.0"),
         .package(url: "https://github.com/apple/swift-http-types", exact: "1.8.0"),
-        .package(url: "https://github.com/stasel/WebRTC", exact: "155.0.0"),
+        .package(url: "https://github.com/stasel/WebRTC", exact: "156.0.0"),
     ],
     targets: [
         .target(
