@@ -5,6 +5,9 @@ PetKit's servers and behaves the same, except that what it records stays with yo
 the internet unplugged, publishes everything to Home Assistant over MQTT, and comes with its own web
 dashboard and iOS app.
 
+**Docs: [my-petkit.vercel.app](https://my-petkit.vercel.app/)**, covering install, configuration,
+everyday use, the firmware patchers and a reference for each device.
+
 my-petkit is a rebuild of [petkit-local](https://github.com/alex-so-3/petkit-local) (GPL-3.0). The
 reverse-engineered protocol core is ported from it; see `NOTICE.md` and `UPSTREAM.md`.
 
@@ -31,11 +34,15 @@ services/api/      Python package `my_petkit`: device protocol core + user-plane
 packages/contracts OpenAPI spec and WebSocket event contract
 apps/web/          React dashboard
 apps/ios/          SwiftUI app and the PetkitKit Swift package
+apps/docs/         documentation site (Fumadocs), published at my-petkit.vercel.app
 deploy/            local and cloud deploy recipes
 docs/              architecture, code standards, security rules, design reference
 ```
 
 ## Documentation
+
+User and contributor docs live at [my-petkit.vercel.app](https://my-petkit.vercel.app/), built from
+`apps/docs`. The files below are the in-repo references for people changing the code.
 
 - `ARCHITECTURE.md`: how a device request travels through the packages.
 - `AGENTS.md`: invariants of the protocol core. Read before changing `events/` or `devices/`.
