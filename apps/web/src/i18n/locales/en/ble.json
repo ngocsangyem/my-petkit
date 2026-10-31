@@ -1,0 +1,7 @@
+{
+  "error": {
+    "NotFoundError": "No device selected — make sure it's in pairing mode.",
+    "SecurityError": "Bluetooth blocked — the page must be HTTPS.",
+    "NotAllowedError": "Permission denied — allow Bluetooth for the browser in your OS settings."
+  }
+}

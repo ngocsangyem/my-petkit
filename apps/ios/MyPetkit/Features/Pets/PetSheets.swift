@@ -15,7 +15,7 @@ struct PetAddSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Add a cat").font(Theme.Font.section).accessibilityAddTraits(.isHeader)
-            LabeledField(label: "Name") {
+            LabeledField(label: L10n.string("Name")) {
                 TextField("Name", text: $name).textInputAutocapitalization(.words).submitLabel(.done)
             }
             if !model.aiDevices.isEmpty {
@@ -24,7 +24,7 @@ struct PetAddSheet: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(model.aiDevices) { device in
-                            Chip(title: device.name.isEmpty ? "Device \(device.id)" : device.name,
+                            Chip(title: device.name.isEmpty ? L10n.string("Device \(device.id)") : device.name,
                                  isSelected: deviceIDs.contains(device.id)) {
                                 if deviceIDs.contains(device.id) {
                                     deviceIDs.remove(device.id)
@@ -65,7 +65,7 @@ struct PetAddSheet: View {
             defer { busy = false }
             do {
                 let ids = deviceIDs.sorted()
-                try await session.call(purpose: "Add \(valid)") { try await model.create(name: valid, deviceIDs: ids) }
+                try await session.call(purpose: L10n.string("Add \(valid)")) { try await model.create(name: valid, deviceIDs: ids) }
                 dismiss()
             } catch {
                 self.error = Loadable<Void>.message(for: error)
@@ -90,8 +90,7 @@ struct PetImportSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Import from PetKit").font(Theme.Font.section).accessibilityAddTraits(.isHeader)
-            WarningPanel(text: "This contacts the PetKit cloud once, signing as the device, to fetch the pets "
-                + "and face photos PetKit holds for it. Nothing is sent on a schedule.")
+            WarningPanel(text: cloudWarning)
             if model.aiDevices.isEmpty {
                 Text("No device here does face recognition, so PetKit holds no pets for it.")
                     .font(Theme.Font.small).foregroundStyle(Theme.Color.muted)
@@ -99,7 +98,7 @@ struct PetImportSheet: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(model.aiDevices) { device in
-                            Chip(title: device.name.isEmpty ? "Device \(device.id)" : device.name,
+                            Chip(title: device.name.isEmpty ? L10n.string("Device \(device.id)") : device.name,
                                  isSelected: deviceID == device.id) { deviceID = device.id }
                         }
                     }
@@ -116,7 +115,7 @@ struct PetImportSheet: View {
             }
             .buttonStyle(.primary)
             .disabled(busy || deviceID == nil)
-            Button(summary == nil ? "Cancel" : "Done") { dismiss() }
+            Button(summary == nil ? L10n.string("Cancel") : L10n.string("Done")) { dismiss() }
                 .font(Theme.Font.button).foregroundStyle(Theme.Color.text)
                 .frame(maxWidth: .infinity, minHeight: Theme.Space.control)
         }
@@ -129,6 +128,11 @@ struct PetImportSheet: View {
         .onAppear { deviceID = deviceID ?? model.aiDevices.first?.id }
     }
 
+    private var cloudWarning: String {
+        L10n.string("This contacts the PetKit cloud once, signing as the device, to fetch the pets and face photos PetKit holds for it.")
+            + " " + L10n.string("Nothing is sent on a schedule.")
+    }
+
     private func run() {
         guard let deviceID else { return }
         busy = true
@@ -137,7 +141,7 @@ struct PetImportSheet: View {
         Task {
             defer { busy = false }
             do {
-                summary = try await session.call(purpose: "Import pets from PetKit") {
+                summary = try await session.call(purpose: L10n.string("Import pets from PetKit")) {
                     try await model.importPets(deviceID: deviceID)
                 }
             } catch {

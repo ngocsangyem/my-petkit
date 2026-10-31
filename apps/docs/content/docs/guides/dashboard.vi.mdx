@@ -1,0 +1,70 @@
+---
+title: Bảng điều khiển
+description: Tham quan các màn hình của bảng điều khiển web.
+---
+
+Bảng điều khiển do chính máy chủ phục vụ, ở gốc của user plane: qua Ingress trong Home Assistant, hoặc ở port 8443. Nó theo cùng thiết kế với ứng dụng iOS, ở cả chế độ sáng và tối. Chọn giao diện tại **Cài đặt → Giao diện** (Settings → Appearance).
+
+## Trang chủ
+
+Trang chủ liệt kê các thiết bị của bạn, được vẽ với mức cát, thức ăn và nước thật của chúng, và đặt lên đầu những gì cần bạn xử lý: thiết bị đã im lặng, vật tư sắp hết, và các yêu cầu tới đám mây bị chặn trong tuần này.
+
+![Trang chủ ở chế độ sáng](/screenshots/web-home.webp)
+
+## Trang của một thiết bị
+
+Mỗi thiết bị có trang riêng. Nội dung hiển thị phụ thuộc vào mẫu: điều khiển, vật tư tiêu hao, lịch cho ăn, âm thanh tùy chỉnh, chế độ xem trực tiếp cho camera, các bản vá của nó, và một khu vực gỡ lỗi với trạng thái đã phân tích, báo cáo trạng thái HTTP gần nhất và lần đăng thuộc tính MQTT gần nhất, các lệnh đang xếp hàng và nhật ký của chính thiết bị.
+
+<Tabs items={['Máy dọn phân', 'Máy cho ăn', 'Máy lọc nước']}>
+<Tab value="Máy dọn phân">![Trang thiết bị của máy dọn phân T6](/screenshots/web-device-t6.webp)</Tab>
+<Tab value="Máy cho ăn">![Trang thiết bị của một máy cho ăn](/screenshots/web-device-feeder.webp)</Tab>
+<Tab value="Máy lọc nước">![Trang thiết bị của một máy lọc nước](/screenshots/web-device-fountain.webp)</Tab>
+</Tabs>
+
+Lịch cho ăn và âm thanh tùy chỉnh có các mục riêng. Âm thanh đã tải lên được cung cấp cho máy cho ăn vào lần tiếp theo nó hỏi danh sách âm thanh.
+
+![Lịch cho ăn](/screenshots/web-schedules.webp)
+
+## Dòng thời gian
+
+Mọi lần ghé, chu trình dọn, bữa ăn và sự kiện khác, có thể lọc theo mèo, thiết bị và loại, cùng ảnh chụp và clip của chúng. Xem [Thú cưng và các lần ghé](/vi/docs/guides/pets-and-visits).
+
+![Dòng thời gian](/screenshots/web-timeline.webp)
+
+## Thú cưng
+
+Các chú mèo của bạn, ảnh tham chiếu của chúng để nhận diện trên thiết bị, và biểu đồ cân nặng cùng số lần ghé của từng chú.
+
+## Thêm thiết bị
+
+Cấp phát qua Bluetooth. Xem [Thêm thiết bị](/vi/docs/guides/add-a-device).
+
+## Nhật ký
+
+Mọi yêu cầu mà thiết bị gửi, trực tiếp, có thể lọc, và tải xuống để đính kèm vào issue.
+
+![Nhật ký trực tiếp](/screenshots/web-logs.webp)
+
+## Trình vá [#patchers]
+
+Các bản vá trên thiết bị cho các mẫu camera Linux. Xem [Firmware và patcher](/vi/docs/firmware).
+
+![Màn hình Trình vá](/screenshots/web-patchers.webp)
+
+## Ghi lưu lượng [#capture]
+
+Các bản thu thập lưu lượng thô, khi bật thu thập trong Cài đặt. Hãy đọc [Bản thu thập chứa bí mật](/vi/docs/configuration/security#captures-contain-secrets) trước khi chia sẻ một bản.
+
+## Cài đặt
+
+| Mục | Có gì trong đó |
+|---|---|
+| Kết nối | Các giá trị chính xác mà thiết bị cần, vân tay chứng chỉ của máy chủ, và chẩn đoán kết nối |
+| Chế độ proxy | Chuyển tiếp tới PetKit, resolver upstream và URL upstream tùy chỉnh |
+| Lớp chặn đám mây và Lần bị chặn | Những gì chế độ proxy từ chối chuyển từ PetKit tới thiết bị, theo quy tắc: lệnh shell, đẩy firmware, đổi thông tin xác thực, tải nhật ký lên, địa chỉ máy chủ, địa chỉ broker, tải media lên, múi giờ |
+| Lưu giữ | Giới hạn dung lượng tính bằng MB và giới hạn tuổi tính bằng ngày cho bản ghi, ảnh chụp, khoảnh khắc nổi bật, clip chuyển động, timelapse, ảnh chất thải, ảnh sức khỏe, nhật ký thiết bị và bộ nhớ đệm ảnh thu nhỏ. Lịch sử sự kiện và các nỗ lực bị chặn chỉ có giới hạn tuổi. |
+| Điện thoại và ứng dụng | Mã ghép nối cho ứng dụng iOS, và các client đã ghép nối |
+| Giao diện | Sáng hoặc tối |
+| Tài khoản | Mật khẩu quản trị |
+
+Thay đổi trong Cài đặt có hiệu lực khi bạn lưu, và không có gì thay đổi cho đến khi bạn lưu.

@@ -1,6 +1,7 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
+import { i18n } from '@/i18n';
 import { mockApi } from '@/test/mock-api';
 import { renderWithProviders } from '@/test/render';
 import { SetupPage } from './setup-page';
@@ -197,6 +198,31 @@ describe('SetupPage', () => {
     await waitFor(() => {
       expect(calls.some(c => new URL(c.url).searchParams.get('reveal') === '1')).toBe(true);
     });
+  });
+
+  it('reads in Vietnamese, the guard dialog and the saved count included', async () => {
+    mockApi({
+      ...routes(info({ proxy_mode: true }), [BLOCKED_ROW]),
+      'POST /api/settings': {
+        body: {
+          ok: true,
+          changed: { proxy_block_ota: false },
+          settings: { ...SETTINGS, proxy_mode: true, proxy_block_ota: false },
+        },
+      },
+    });
+    const user = userEvent.setup();
+    await act(() => i18n.changeLanguage('vi'));
+    renderWithProviders(<SetupPage />);
+    expect(await screen.findByText(/Các lớp chặn đám mây đang bật/)).toBeInTheDocument();
+    expect(screen.getByText(/Chuyển tiếp tới đám mây PetKit đang bật/)).toBeInTheDocument();
+    expect(await screen.findByText('Đẩy firmware')).toBeInTheDocument();
+    expect(screen.getByText(/Đã ghi nhận 1 lần bị chặn/)).toBeInTheDocument();
+    await user.click(screen.getByRole('switch', { name: 'Chặn cập nhật firmware' }));
+    const dialog = screen.getByRole('alertdialog', { name: /Tắt “Chặn cập nhật firmware”/ });
+    await user.click(within(dialog).getByRole('button', { name: 'Tắt' }));
+    await user.click(screen.getByRole('button', { name: 'Lưu thay đổi' }));
+    expect(await screen.findByText('Đã lưu 1 cài đặt.')).toBeInTheDocument();
   });
 
   it(

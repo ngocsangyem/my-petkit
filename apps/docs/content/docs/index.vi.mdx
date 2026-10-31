@@ -1,0 +1,34 @@
+---
+title: MyPetKit là gì
+description: Một máy chủ cục bộ trả lời các thiết bị PetKit của bạn thay cho đám mây PetKit.
+---
+
+Máy dọn phân, máy cho ăn hay máy lọc nước của PetKit thường báo cáo về máy chủ của PetKit. MyPetKit là một máy chủ do bạn tự chạy, trả lời các thiết bị đó giống như đám mây thật. Thiết bị vẫn hoạt động như trước, nhưng các lần ghé, ảnh và video được lưu trên máy của bạn thay vì máy chủ của PetKit, và vẫn chạy được khi mất kết nối internet.
+
+Trên nền đám mây cục bộ đó, bạn có thêm:
+
+- bảng điều khiển web do chính máy chủ này phục vụ, để quản lý thiết bị, lịch, dòng thời gian các lần ghé, thú cưng, nhật ký và cài đặt;
+- ứng dụng iOS ghép nối với máy chủ bằng mã QR;
+- các thực thể Home Assistant, được công bố qua MQTT discovery;
+- các bản vá tùy chọn chạy trên thiết bị cho các mẫu có camera, để xem video trực tiếp cục bộ, đàm thoại hai chiều, SSH và nhiều thứ khác.
+
+![Màn hình chính của bảng điều khiển MyPetKit](/screenshots/web-home.webp)
+
+## Nguồn gốc
+
+MyPetKit là bản viết lại của [petkit-local](https://github.com/alex-so-3/petkit-local) (GPL-3.0). Phần lõi giao thức được dịch ngược, tức phần biết thiết bị mong nghe gì, được chuyển từ dự án đó sang. MyPetKit bổ sung một "user plane" có đăng nhập và chỉ dùng TLS, gồm bảng điều khiển web và ứng dụng iOS, và được phát hành dưới dạng một container image đã ký. `NOTICE.md` và `UPSTREAM.md` trong kho mã ghi lại phần nào đến từ đâu.
+
+Dự án được cấp phép theo GPL-3.0.
+
+<Callout type="warn" title="Thiết bị của bạn, rủi ro của bạn">
+Trỏ thiết bị về MyPetKit, và nhất là áp dụng các firmware patcher, là việc bạn tự chịu rủi ro. Thiết bị đã vá hoặc cấu hình sai có thể ngừng hoạt động, và nằm ngoài bảo hành cũng như ngoài đường cập nhật của PetKit.
+</Callout>
+
+## Bắt đầu từ đâu
+
+<Cards>
+  <Card title="Cách hoạt động" href="/vi/docs/how-it-works" description="Hai plane, hai phương thức truyền, và vì sao một câu trả lời sai có thể làm thiết bị treo." />
+  <Card title="Thiết bị được hỗ trợ" href="/vi/docs/supported-devices" description="Những mẫu nào đã được chạy thử, và những mẫu nào vẫn chỉ là suy đoán." />
+  <Card title="Cài đặt" href="/vi/docs/install" description="Add-on Home Assistant, Docker trong mạng LAN, hoặc VPS." />
+  <Card title="Thêm thiết bị" href="/vi/docs/guides/add-a-device" description="Cấp phát qua Bluetooth hoặc chuyển hướng DNS." />
+</Cards>

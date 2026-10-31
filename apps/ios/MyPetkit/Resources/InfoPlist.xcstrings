@@ -1,0 +1,34 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "NSBluetoothAlwaysUsageDescription" : {
+      "comment" : "Bluetooth permission prompt",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Bluetooth sends a new device your Wi-Fi details and this server's address. Nothing else is sent." } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Bluetooth gửi cho thiết bị mới thông tin Wi-Fi của bạn và địa chỉ của máy chủ này. Không gửi gì khác." } }
+      }
+    },
+    "NSCameraUsageDescription" : {
+      "comment" : "Camera permission prompt",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The camera reads the pairing code on your MyPetKit dashboard." } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Camera dùng để đọc mã ghép nối trên bảng điều khiển MyPetKit của bạn." } }
+      }
+    },
+    "NSLocalNetworkUsageDescription" : {
+      "comment" : "Local network permission prompt",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The app talks to your MyPetKit server and streams camera video from devices on your home network." } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Ứng dụng kết nối với máy chủ MyPetKit của bạn và phát video camera từ các thiết bị trong mạng gia đình." } }
+      }
+    },
+    "NSMicrophoneUsageDescription" : {
+      "comment" : "Microphone permission prompt",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The microphone is used only while you hold Talk on a camera's live view, to speak through the device." } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Micro chỉ được dùng khi bạn giữ nút Nói trong màn hình trực tiếp của camera, để nói qua thiết bị." } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

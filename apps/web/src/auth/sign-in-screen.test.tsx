@@ -65,4 +65,14 @@ describe('SignInScreen', () => {
       setup_token: 'code-from-log',
     });
   });
+
+  it('switches the language from the foot of the card and keeps the choice', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<SignInScreen />);
+    await user.click(screen.getByRole('button', { name: 'Tiếng Việt' }));
+    expect(await screen.findByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Ngôn ngữ' })).toBeInTheDocument();
+    expect(localStorage.getItem('mp.language')).toBe('"vi"');
+    expect(document.documentElement.lang).toBe('vi');
+  });
 });

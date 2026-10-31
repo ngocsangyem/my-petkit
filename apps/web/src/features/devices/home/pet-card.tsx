@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { serverUrl } from '@/shared/api/base-path';
 import { Card, Icon } from '@/shared/ui';
@@ -36,11 +37,15 @@ interface PetCardProps {
 
 /** A cat on Home: its photo, name and weight, and today's visits; opens Pets. */
 export function PetCard({ pet, day }: PetCardProps) {
+  const { t } = useTranslation('devices');
   const face = pet.faces[0];
   const weight = weightText(pet.weight_g);
-  const visits = day
-    ? `${day.visits} ${day.visits === 1 ? 'visit' : 'visits'}${day.last ? ` · last ${day.last}` : ''}`
-    : null;
+  let visits: string | null = null;
+  if (day) {
+    visits = day.last
+      ? t('petCard.visitsLast', { count: day.visits, clock: day.last })
+      : t('petCard.visits', { count: day.visits });
+  }
   return (
     <Card as="li" padding="none" className="list-none">
       <Link

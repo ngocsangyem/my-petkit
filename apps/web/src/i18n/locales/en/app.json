@@ -1,0 +1,48 @@
+{
+  "nav": {
+    "home": "Home",
+    "timeline": "Timeline",
+    "pets": "Pets",
+    "provision": "Add a device",
+    "log": "Logs",
+    "setup": "Settings",
+    "capture": "Capture",
+    "patchers": "Patchers",
+    "groupHome": "Home",
+    "groupServer": "Server",
+    "groupAdvanced": "Advanced · needs step-up"
+  },
+  "shell": {
+    "skipToContent": "Skip to content",
+    "mainMenu": "Main menu",
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "serverLine": "Home server · v{{version}}",
+    "notEncrypted": "Not encrypted",
+    "unreachableTitle": "Can't reach your server",
+    "unreachableBody": "The server is not answering. Retrying; nothing on this page is lost."
+  },
+  "outdated": {
+    "title": "This page is out of date",
+    "routeBody": "The server has a newer version of the app. Reload to open this screen.",
+    "bannerBody": "The server has a newer version. Reload to get the matching dashboard."
+  },
+  "settings": {
+    "appearance": {
+      "title": "Appearance",
+      "note": "Saved in this browser only."
+    },
+    "language": {
+      "hint": "English is the default",
+      "note": "Saved in this browser only. Event names, device logs and server messages stay in English."
+    },
+    "account": {
+      "label": "Account",
+      "signedIn": "Signed in to this server",
+      "changePassword": "Change the password with <code>{{command}}</code>",
+      "signOut": "Sign out",
+      "signOutFailed": "Could not sign out. The server did not answer."
+    }
+  }
+}

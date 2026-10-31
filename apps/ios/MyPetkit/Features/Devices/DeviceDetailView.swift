@@ -85,7 +85,7 @@ struct DeviceDetailView: View {
 
     private func topBar(now: Date) -> some View {
         HStack {
-            IconButton(systemImage: "chevron.left", label: "Back") { dismiss() }
+            IconButton(systemImage: "chevron.left", label: L10n.string("Back")) { dismiss() }
             Spacer()
             if let device = model.device.value {
                 HStack(spacing: 0) {
@@ -103,9 +103,9 @@ struct DeviceDetailView: View {
         guard let last = DeviceFacts.lastReport(device) else { return nil }
         if !device.online {
             let zone = DeviceFacts.zone(device.timezoneInfo)
-            return "no report since \(DeviceFindings.since(last, zone: zone, now: now))"
+            return L10n.string("no report since \(DeviceFindings.since(last, zone: zone, now: now))")
         }
-        return "\(DeviceFindings.duration(now.timeIntervalSince(last))) ago"
+        return L10n.string("\(DeviceFindings.duration(now.timeIntervalSince(last))) ago")
     }
 
     @ViewBuilder
@@ -144,7 +144,7 @@ struct DeviceDetailView: View {
                                 askEntity: { sheet = .confirm(entityConfirmation(device, $0, $1)) },
                                 confirm: { sheet = .confirm($0) },
                                 pickEntity: { sheet = .pickNumber($0) })
-        EntityControlsCard(title: "Settings", entities: EntityGroups(device).controls, enabled: device.online,
+        EntityControlsCard(title: L10n.string("Settings"), entities: EntityGroups(device).controls, enabled: device.online,
                            ask: { sheet = .confirm(entityConfirmation(device, $0, $1)) })
         if device.supportsAi {
             AICard(enabled: model.aiEnabled, entities: EntityGroups(device).aiControls, deviceOnline: device.online,
@@ -201,19 +201,19 @@ struct DeviceDetailView: View {
     private var route: String {
         guard let device = model.device.value else { return "" }
         return device.mqttConnected
-            ? "It is on MQTT, so it runs now."
-            : "It is not on MQTT, so it waits for its next heartbeat, about 10 seconds."
+            ? L10n.string("It is on MQTT, so it runs now.")
+            : L10n.string("It is not on MQTT, so it waits for its next heartbeat, about 10 seconds.")
     }
 
     private var noun: String {
-        model.device.value.map { DeviceFamily(deviceType: $0.type).noun } ?? "device"
+        model.device.value.map { DeviceFamily(deviceType: $0.type).noun } ?? L10n.string("device")
     }
 
     private func actionConfirmation(_ action: DeviceAction) -> CommandConfirmation {
-        let undo = action.destructive ? " The device acts on it at once and it cannot be called back." : ""
+        let undo = action.destructive ? L10n.string(" The device acts on it at once and it cannot be called back.") : ""
         return CommandConfirmation(
-            question: "\(action.name) on the \(noun)?",
-            detail: "This sends \u{201C}\(action.name)\u{201D} to the \(noun). \(route)\(undo)",
+            question: L10n.string("\(action.name) on the \(noun)?"),
+            detail: L10n.string("This sends \u{201C}\(action.name)\u{201D} to the \(noun). \(route)\(undo)"),
             confirmTitle: action.name
         ) { [model, session] in
             try await model.run(action, session: session)
@@ -223,7 +223,7 @@ struct DeviceDetailView: View {
     private func entityConfirmation(_ device: DeviceRecord, _ entity: DeviceEntity, _ value: EntityWrite) -> CommandConfirmation {
         CommandConfirmation(
             question: value.question(entity),
-            detail: "This changes the setting on the \(noun). \(route)",
+            detail: L10n.string("This changes the setting on the \(noun). \(route)"),
             confirmTitle: value.confirmTitle
         ) { [model, session] in
             try await model.set(entity, to: value.wire, session: session)
@@ -231,11 +231,11 @@ struct DeviceDetailView: View {
     }
 
     private func timezoneConfirmation(_ offset: Double?) -> CommandConfirmation {
-        let target = offset.map(DeviceFacts.offsetLabel) ?? "automatic"
+        let target = offset.map(DeviceFacts.offsetLabel) ?? L10n.string("automatic")
         return CommandConfirmation(
-            question: "Set the \(noun)'s timezone to \(target)?",
-            detail: "Its days, schedules and video timestamps move to this zone. \(route)",
-            confirmTitle: "Set timezone"
+            question: L10n.string("Set the \(noun)'s timezone to \(target)?"),
+            detail: L10n.string("Its days, schedules and video timestamps move to this zone. \(route)"),
+            confirmTitle: L10n.string("Set timezone")
         ) { [model, session] in
             try await model.setTimezone(offset, session: session)
         }

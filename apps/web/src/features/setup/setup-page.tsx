@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { errorMessage } from '@/shared/api/errors';
 import { useHubEvents } from '@/shared/ws/use-event-stream';
 import { ErrorBlock, PageHeader, Pill, Skeleton } from '@/shared/ui';
@@ -14,27 +15,29 @@ import { BLOCKED_LIMIT } from './retention-and-blocked-model';
 import { BLOCKING_GUARDS, type ServerInfo } from './setup-model';
 import { useSettingsDraft } from './use-settings-draft';
 
-const TITLE = 'Settings';
 const COLUMNS = 'grid grid-cols-1 items-start gap-5 min-[901px]:grid-cols-2';
 const COLUMN = 'flex min-w-0 flex-col gap-5';
 
 /** "Cloud guards are on. Proxying to PetKit's cloud is off." from the saved settings. */
 function Finding({ info, blocked }: { info: ServerInfo; blocked: number | undefined }) {
+  const { t } = useTranslation('setup');
   const off = BLOCKING_GUARDS.filter(k => !info.settings[k]).length;
+  const many = blocked !== undefined && blocked >= BLOCKED_LIMIT;
   return (
     <>
       {off === 0
-        ? 'Cloud guards are on. '
-        : `${off} of ${BLOCKING_GUARDS.length} cloud guards are off. `}
-      <span className="font-medium">
-        Proxying to PetKit’s cloud is {info.settings.proxy_mode ? 'on' : 'off'}
-      </span>
-      {'. '}
+        ? t('finding.guardsOn')
+        : t('finding.guardsOff', { off, total: BLOCKING_GUARDS.length })}{' '}
+      <Trans
+        t={t}
+        i18nKey={info.settings.proxy_mode ? 'finding.proxyOn' : 'finding.proxyOff'}
+        components={{ b: <span className="font-medium" /> }}
+      />{' '}
       {blocked !== undefined &&
         blocked > 0 &&
-        `${blocked >= BLOCKED_LIMIT ? `${BLOCKED_LIMIT} or more` : blocked} blocked ${blocked === 1 ? 'attempt is' : 'attempts are'} on record. `}
-      {info.settings.capture && 'Traffic is being saved to disk.'}
-      {!info.settings_writable && ' Settings are read-only in this mode.'}
+        `${many ? t('finding.blockedMany', { count: BLOCKED_LIMIT }) : t('finding.blocked', { count: blocked })} `}
+      {info.settings.capture && `${t('finding.capture')} `}
+      {!info.settings_writable && t('finding.readOnly')}
     </>
   );
 }
@@ -51,14 +54,15 @@ export interface SetupPageSlots {
 
 /** The server card, its settings and guards, and what this server keeps. */
 function ServerColumns({ info, slots }: { info: ServerInfo; slots: SetupPageSlots }) {
+  const { t } = useTranslation('setup');
   // The same cache entry the blocked table reads: no second request.
   const blocked = useBlocked(false).data?.records.length;
   const form = useSettingsDraft(info);
   return (
     <>
       <PageHeader
-        title={TITLE}
-        badge={info.settings_writable ? undefined : <Pill tone="warning">Read-only</Pill>}
+        title={t('title')}
+        badge={info.settings_writable ? undefined : <Pill tone="warning">{t('readOnly')}</Pill>}
         finding={<Finding info={info} blocked={blocked} />}
         actions={<SettingsSaveActions form={form} />}
       />
@@ -88,6 +92,7 @@ function ServerColumns({ info, slots }: { info: ServerInfo; slots: SetupPageSlot
  * the right column still renders, so pairing and Sign out stay within reach.
  */
 export function SetupPage(slots: SetupPageSlots) {
+  const { t } = useTranslation('setup');
   const info = useSetupInfo();
   const client = useQueryClient();
 
@@ -101,7 +106,7 @@ export function SetupPage(slots: SetupPageSlots) {
   return (
     <>
       <PageHeader
-        title={TITLE}
+        title={t('title')}
         finding={info.isPending ? <Skeleton width={420} height={20} /> : undefined}
       />
       <div className={COLUMNS}>
@@ -110,7 +115,7 @@ export function SetupPage(slots: SetupPageSlots) {
             <Skeleton height={320} />
           ) : (
             <ErrorBlock
-              message={`The server's settings could not be loaded. ${errorMessage(info.error)}`}
+              message={t('loadFailed', { error: errorMessage(info.error) })}
               onRetry={() => void info.refetch()}
               retrying={info.isFetching}
             />

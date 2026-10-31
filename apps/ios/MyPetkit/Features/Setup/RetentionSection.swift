@@ -9,7 +9,7 @@ struct RetentionSection: View {
     @Binding var editing: RetentionKind?
 
     var body: some View {
-        SectionHeader(title: "Keep") {
+        SectionHeader(title: L10n.string("Keep")) {
             if let bytes = model.deviceLogBytes {
                 Text("Device logs use \(ByteSize.format(bytes))").font(Theme.Font.small).monospacedDigit()
                     .foregroundStyle(Theme.Color.muted)
@@ -56,11 +56,12 @@ struct RetentionEditSheet: View {
             Text("The oldest go first when either cap is reached. Leave a field empty for no cap.")
                 .font(Theme.Font.body).foregroundStyle(Theme.Color.lede)
                 .fixedSize(horizontal: false, vertical: true)
-            LabeledField(label: "Days", footnote: "Default \(RetentionRules.daysText(kind.defaultDays))") {
+            LabeledField(label: L10n.string("Days"), footnote: L10n.string("Default \(RetentionRules.daysText(kind.defaultDays))")) {
                 TextField("No limit", text: $days).keyboardType(.decimalPad).monospacedDigit()
             }
             if let defaultMegabytes = kind.defaultMegabytes {
-                LabeledField(label: "Size in MB", footnote: "Default \(ByteSize.format(megabytes: defaultMegabytes))") {
+                LabeledField(label: L10n.string("Size in MB"),
+                             footnote: L10n.string("Default \(ByteSize.format(megabytes: defaultMegabytes))")) {
                     TextField("No limit", text: $megabytes).keyboardType(.decimalPad).monospacedDigit()
                 }
             }
@@ -92,11 +93,11 @@ struct RetentionEditSheet: View {
 
     private func submit() async {
         guard let dayCap = RetentionRules.parseCap(days) else {
-            error = "Days must be a positive number, or empty for no limit."
+            error = L10n.string("Days must be a positive number, or empty for no limit.")
             return
         }
         guard let sizeCap = kind.isSized ? RetentionRules.parseCap(megabytes) : .some(nil) else {
-            error = "The size must be a positive number of megabytes, or empty for no limit."
+            error = L10n.string("The size must be a positive number of megabytes, or empty for no limit.")
             return
         }
         busy = true
@@ -130,7 +131,7 @@ struct TextSettingSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text(setting.title).font(Theme.Font.section).accessibilityAddTraits(.isHeader)
-            LabeledField(label: "Value", footnote: setting.footnote) {
+            LabeledField(label: L10n.string("Value"), footnote: setting.footnote) {
                 TextField("Empty", text: $text)
                     .font(Theme.Font.mono)
                     .textInputAutocapitalization(.never)
@@ -155,9 +156,9 @@ struct TextSettingSheet: View {
     private func submit() {
         switch setting {
         case .dns where !SetupRules.isValidDNS(text):
-            error = "The resolver must be an IPv4 address, optionally with a port."
+            error = L10n.string("The resolver must be an IPv4 address, optionally with a port.")
         case .upstream where !SetupRules.isValidUpstream(text, presets: presets):
-            error = "The upstream must be a region preset or an http(s) URL."
+            error = L10n.string("The upstream must be a region preset or an http(s) URL.")
         default:
             done(text)
             dismiss()

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Chip, PetAvatar } from '@/shared/ui';
 import type { TimelineDevice, TimelinePet } from '../api';
 import type { TimelineCounts } from '../timeline-model';
@@ -52,6 +53,7 @@ export function TimelineFilterChips({
   device,
   onDevice,
 }: TimelineFilterChipsProps) {
+  const { t } = useTranslation('timeline');
   const everything = view === 'all' && pet === '' && device === '';
   // Two devices of one model would read alike; their id tells them apart.
   const duplicate = (name: string) => devices.filter(d => d.name === name).length > 1;
@@ -65,10 +67,10 @@ export function TimelineFilterChips({
           onDevice('');
         }}
       >
-        All <Count value={counts ? counts.all : null} />
+        {t('filter.all')} <Count value={counts ? counts.all : null} />
       </Chip>
       {pets.length > 0 && (
-        <Group label="Filter by cat">
+        <Group label={t('filter.byCat')}>
           {pets.map(p => {
             const id = String(p.id);
             return (
@@ -88,7 +90,7 @@ export function TimelineFilterChips({
         </Group>
       )}
       {devices.length > 0 && (
-        <Group label="Filter by device">
+        <Group label={t('filter.byDevice')}>
           {devices.map(d => {
             const id = String(d.id);
             return (
@@ -106,7 +108,7 @@ export function TimelineFilterChips({
           })}
         </Group>
       )}
-      <Group label="Filter by kind">
+      <Group label={t('filter.byKind')}>
         {kindChips(counts, unrecognised, view).map(c => (
           <Chip
             key={c.key}

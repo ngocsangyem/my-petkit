@@ -1,12 +1,16 @@
 import type { components } from '@/api/schema';
+import { i18n } from '@/i18n';
 import { formatEntityValue } from '@/shared/format/format';
 import type { DeviceStatus } from '@/shared/ui';
 import {
   CONSUMABLES,
   CONSUMABLE_WARN_DAYS,
+  type ConsumableKey,
   type DeviceFamily,
   PROBLEM_FLAGS,
+  consumableLabel,
   deviceFamily,
+  problemFlagText,
 } from './device-family';
 import { type DeviceZone, localClock, localDateKey } from './device-zone';
 import { binaryOn, entityLike, findEntity, numericValue } from './entity-sections';
@@ -20,12 +24,12 @@ type Accessory = components['schemas']['BleAccessory'];
 export function deviceStatus(d: Summary | Detail): { status: DeviceStatus; label: string } {
   if (!d.online) {
     return lastReport(d) === null
-      ? { status: 'unknown', label: 'Unknown' }
-      : { status: 'offline', label: 'Offline' };
+      ? { status: 'unknown', label: i18n.t('devices:status.unknown') }
+      : { status: 'offline', label: i18n.t('devices:status.offline') };
   }
   return d.mqtt_connected
-    ? { status: 'online', label: 'Online · MQTT' }
-    : { status: 'polling', label: 'Polling · heartbeat' };
+    ? { status: 'online', label: i18n.t('devices:status.onlineMqtt') }
+    : { status: 'polling', label: i18n.t('devices:status.polling') };
 }
 
 /**
@@ -34,11 +38,13 @@ export function deviceStatus(d: Summary | Detail): { status: DeviceStatus; label
  * idle, it is unaddressable, so the parent's state decides.
  */
 export function accessoryStatus(a: Accessory): { status: DeviceStatus; label: string } {
-  if (!a.link_with || !a.parent_name) return { status: 'unknown', label: 'No parent' };
-  if (!a.parent_online) return { status: 'offline', label: 'Offline' };
+  if (!a.link_with || !a.parent_name) {
+    return { status: 'unknown', label: i18n.t('devices:status.noParent') };
+  }
+  if (!a.parent_online) return { status: 'offline', label: i18n.t('devices:status.offline') };
   return a.last_seen
-    ? { status: 'online', label: 'Online · Bluetooth' }
-    : { status: 'unknown', label: 'Never reported' };
+    ? { status: 'online', label: i18n.t('devices:status.onlineBluetooth') }
+    : { status: 'unknown', label: i18n.t('devices:status.neverReported') };
 }
 
 /** One "needs you" fact, coloured by how bad it is. */
@@ -47,27 +53,34 @@ export interface Attention {
   tone: 'negative' | 'warning';
 }
 
-/** "since 06:10" today, else "since 2026-10-27", in the device's zone (or ISO date). */
-function sinceText(at: number, zone: DeviceZone | null, nowSeconds: number): string {
-  if (!zone) return `since ${new Date(at * 1000).toISOString().slice(0, 10)}`;
+/** "06:10" today, else "2026-10-27", in the device's zone (or the ISO date without one). */
+function sinceWhen(at: number, zone: DeviceZone | null, nowSeconds: number): string {
+  if (!zone) return new Date(at * 1000).toISOString().slice(0, 10);
   return localDateKey(at, zone) === localDateKey(nowSeconds, zone)
-    ? `since ${localClock(at, zone)}`
-    : `since ${localDateKey(at, zone)}`;
+    ? localClock(at, zone)
+    : localDateKey(at, zone);
 }
 
 /** Days-left consumables that are running low, worst first. */
-export function lowConsumables(detail: Detail): { label: string; days: number }[] {
-  const out: { label: string; days: number }[] = [];
-  for (const c of CONSUMABLES) {
-    const days = numericValue(findEntity(detail.entities, c.key));
-    if (days !== null && days <= CONSUMABLE_WARN_DAYS) out.push({ label: c.label, days });
+export function lowConsumables(
+  detail: Detail,
+): { key: ConsumableKey; label: string; days: number }[] {
+  const out: { key: ConsumableKey; label: string; days: number }[] = [];
+  for (const key of CONSUMABLES) {
+    const days = numericValue(findEntity(detail.entities, key));
+    if (days !== null && days <= CONSUMABLE_WARN_DAYS) {
+      out.push({ key, label: consumableLabel(key), days });
+    }
   }
   return out.sort((a, b) => a.days - b.days);
 }
 
-export function consumableText(label: string, days: number): string {
-  if (days <= 0) return `${label} used up`;
-  return `${label} in ${days} ${days === 1 ? 'day' : 'days'}`;
+/** "Filter in 3 days" (or "… runs out in 3 days" with `runsOut`), "Filter used up". */
+export function consumableText(label: string, days: number, runsOut = false): string {
+  if (days <= 0) return i18n.t('devices:consumable.usedUp', { label });
+  return runsOut
+    ? i18n.t('devices:consumable.runsOutIn', { label, count: days })
+    : i18n.t('devices:consumable.inDays', { label, count: days });
 }
 
 /**
@@ -82,7 +95,10 @@ export function problemFor(
 ): Attention | null {
   const last = lastReport(d);
   if (!d.online && last !== null) {
-    return { text: `No report ${sinceText(last, zone, nowSeconds)}`, tone: 'negative' };
+    return {
+      text: i18n.t('devices:problem.noReportSince', { when: sinceWhen(last, zone, nowSeconds) }),
+      tone: 'negative',
+    };
   }
   if (!detail) return null;
   const error = findEntity(detail.entities, 'error');
@@ -90,8 +106,9 @@ export function problemFor(
     return { text: error.value, tone: 'negative' };
   }
   for (const flag of PROBLEM_FLAGS) {
-    if (binaryOn(findEntity(detail.entities, flag.key)))
-      return { text: flag.text, tone: 'warning' };
+    if (binaryOn(findEntity(detail.entities, flag))) {
+      return { text: problemFlagText(flag), tone: 'warning' };
+    }
   }
   return null;
 }
@@ -117,7 +134,7 @@ export function nowText(
 ): string | null {
   if (!detail) return null;
   const family: DeviceFamily = deviceFamily(detail.type);
-  if (family === 'feeder' && nextMeal) return `Next meal ${nextMeal}`;
+  if (family === 'feeder' && nextMeal) return i18n.t('devices:now.nextMeal', { clock: nextMeal });
   const status = findEntity(detail.entities, 'device_status');
   const text =
     status && status.value !== null && status.value !== undefined
@@ -127,8 +144,10 @@ export function nowText(
     const raw = findEntity(detail.entities, 'last_clean')?.value;
     const cleaned = typeof raw === 'number' || typeof raw === 'string' ? epochSeconds(raw) : null;
     if (cleaned !== null) {
-      const at = `cleaned ${localClock(cleaned, zone)}`;
-      return text ? `${capitalise(text)}, ${at}` : capitalise(at);
+      const clock = localClock(cleaned, zone);
+      return text
+        ? i18n.t('devices:now.statusCleaned', { status: capitalise(text), clock })
+        : i18n.t('devices:now.cleaned', { clock });
     }
   }
   return text ? capitalise(text) : null;

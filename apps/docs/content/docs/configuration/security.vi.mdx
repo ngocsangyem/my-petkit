@@ -1,0 +1,38 @@
+---
+title: Bảo mật
+description: Máy chủ bảo vệ những gì, không bảo vệ được những gì, và cách báo cáo lỗ hổng.
+---
+
+Không thứ gì trong MyPetKit dựa vào sự che giấu. Mọi bí mật (khóa ký phiên, khóa URL có chữ ký, chứng chỉ TLS) đều được tạo riêng cho mỗi bản cài, và không có giá trị mặc định nào được viết cứng.
+
+## Hai plane
+
+| Plane | Ai nói chuyện với nó | Mức phơi bày | Quy tắc |
+|---|---|---|---|
+| Device plane: device HTTP API, media bucket, MQTT broker | Firmware PetKit trong mạng LAN của bạn | Chỉ LAN hoặc VPN. Không bao giờ ra internet. | Không xác thực ở nơi firmware không có thông tin xác thực để đưa ra. Bị giới hạn bởi việc bind interface, giới hạn kích thước, kiểm tra đường dẫn, và các parser không bao giờ ném lỗi. |
+| User plane: API bảng điều khiển, ứng dụng web, ứng dụng iOS | Bạn | LAN, VPN, hoặc internet trong cách thiết lập VPS | Mặc định từ chối. Mọi route khai báo một tầng và cần token, trừ tệp tĩnh công khai và liên kết media có chữ ký. TLS ở mọi chế độ. |
+
+## Những gì vẫn mở trên device plane
+
+Các rủi ro này tồn tại có chủ đích, và đó là lý do device plane phải nằm trên mạng do bạn kiểm soát:
+
+- Device HTTP API không có xác thực. Firmware không đưa ra thông tin xác thực nào trước khi được đăng ký, nên bất kỳ thứ gì trong LAN đều có thể gọi các endpoint của thiết bị, báo trạng thái cho một device id, và tải lên bucket.
+- Chữ ký `X-Device` không được xác minh. Việc kiểm tra sẽ khóa ra ngoài bất kỳ thiết bị nào mà đầu vào ký được máy chủ tái tạo chưa hoàn hảo, và thiết bị không nhận được câu trả lời hoặc nhận 4xx sẽ thử lại mãi.
+- `dev_signup` mở, vì thiết bị mới xuất xưởng không có gì để xác thực. Bất kỳ ai trong LAN đưa ra id của một thiết bị đã đăng ký (hoặc MAC của nó, với thiết bị chưa từng có id) sẽ nhận lại danh tính và secret ký của thiết bị đó.
+- Ở chế độ proxy, kết nối tới MQTT broker Aliyun của PetKit được mã hóa nhưng không được xác thực. Chuỗi chứng chỉ kết thúc ở một root Aliyun riêng không bao giờ được gửi và không có trong kho công khai nào, và thiết bị cũng không xác minh nó. Cập nhật firmware vẫn bị chặn và việc che dữ liệu vẫn được áp dụng.
+
+Những gì đã đóng: listener MQTT thuần bind vào loopback trừ khi bạn đặt `mqtt_plain_expose`; một MQTT client không có id dạng thiết bị chỉ được chấp nhận từ loopback; máy chủ chỉ gọi tới thiết bị ở địa chỉ riêng, ULA hoặc WireGuard mà một thiết bị đã đăng ký báo về; chế độ proxy chỉ chuyển tiếp tới các host của PetKit và Aliyun và xác minh chứng chỉ HTTPS của PetKit; ffmpeg chỉ đọc tệp cục bộ và pipe.
+
+## Đăng nhập
+
+- Khi chưa có mật khẩu quản trị, nhật ký in ra một token thiết lập dùng một lần, có hiệu lực 30 phút.
+- Các hành động rủi ro yêu cầu nhập lại mật khẩu, và mật khẩu khi đó có hiệu lực 5 phút: patcher, lệnh thiết bị thô, cài đặt proxy và thu thập, tải bản thu thập và nhật ký thiết bị, hiện payload bị chặn, và ghép nối client mới. Bảng điều khiển gọi bước này là **Xác nhận lại** (Step-up).
+- Chứng chỉ trên 8443 là tự ký. `/api/info` và nhật ký hiển thị vân tay SHA-256 của nó; hãy so sánh trước khi chấp nhận cảnh báo của trình duyệt. Ứng dụng iOS ghim nó qua mã QR ghép nối, nên nó không bao giờ được xoay vòng tự động. Để chủ động xoay vòng, hãy xóa `/data/certs/user.*` và ghép nối lại.
+
+## Bản thu thập chứa bí mật [#captures-contain-secrets]
+
+Bản thu thập lưu lượng là bản ghi nguyên văn mọi điều thiết bị đã nói và được nói. Nó có thể chứa SSID Wi-Fi, địa chỉ LAN, số sê-ri thiết bị và secret ký của nó. Khi bật chế độ proxy, `proxy_http.jsonl` và `proxy_mqtt.jsonl` còn mang toàn bộ trao đổi với PetKit, gồm cả thông tin đăng nhập tài khoản của bạn. Hãy đọc bản thu thập trước khi đính kèm ở bất cứ đâu, và chỉ đính kèm phần câu hỏi cần.
+
+## Báo cáo lỗ hổng [#reporting-a-vulnerability]
+
+Hãy báo cáo riêng tư qua [GitHub security advisory](https://github.com/ngocsangyem/my-petkit/security/advisories/new). Không mở issue công khai cho bất kỳ điều gì khai thác được. Phản hồi đầu tiên đến trong vòng 7 ngày. Bản sửa được phát triển trong advisory riêng tư, phát hành dưới dạng phiên bản vá, và chỉ sau đó mới công bố.

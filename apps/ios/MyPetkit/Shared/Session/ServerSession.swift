@@ -48,7 +48,7 @@ final class ServerSession {
     /// Runs `operation`; when the server answers `step_up_required`, asks for
     /// the password once and retries. A refused token flips `tokenRevoked`.
     func call<T: Sendable>(
-        purpose: String = "Continue",
+        purpose: String = L10n.string("Continue"),
         _ operation: @escaping @MainActor () async throws -> T
     ) async throws -> T {
         do {

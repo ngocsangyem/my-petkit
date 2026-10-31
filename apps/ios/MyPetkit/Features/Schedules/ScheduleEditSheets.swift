@@ -12,8 +12,8 @@ struct RangeFormFields: View {
                 .tint(Theme.Color.text)
             if !form.isAllDay {
                 HStack(spacing: 10) {
-                    ClockField(label: "From", text: $form.start, allowsEndOfDay: true)
-                    ClockField(label: "To", text: $form.end, allowsEndOfDay: true)
+                    ClockField(label: L10n.string("From"), text: $form.start, allowsEndOfDay: true)
+                    ClockField(label: L10n.string("To"), text: $form.end, allowsEndOfDay: true)
                 }
                 if case .success(let range) = form.validated(), range.crossesMidnight {
                     Text("Ends the next day.").font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted)
@@ -31,7 +31,7 @@ struct RangeEditSheet: View {
     let onRemove: () -> Void
 
     var body: some View {
-        ScheduleSheetFrame(title: isNew ? "Add a period" : "Edit period", problem: problem,
+        ScheduleSheetFrame(title: isNew ? L10n.string("Add a period") : L10n.string("Edit period"), problem: problem,
                            onRemove: isNew ? nil : onRemove, onDone: done) {
             RangeFormFields(form: $form)
         }
@@ -56,7 +56,7 @@ struct WeeklyEditSheet: View {
     let onRemove: () -> Void
 
     var body: some View {
-        ScheduleSheetFrame(title: isNew ? "Add an entry" : "Edit entry", problem: problem,
+        ScheduleSheetFrame(title: isNew ? L10n.string("Add an entry") : L10n.string("Edit entry"), problem: problem,
                            onRemove: isNew ? nil : onRemove, onDone: done) {
             Toggle("On", isOn: $form.enabled).font(Theme.Font.body).tint(Theme.Color.text)
             WeekdayPicker(days: $form.days)
@@ -102,9 +102,9 @@ struct PointEditSheet: View {
     let onRemove: () -> Void
 
     var body: some View {
-        ScheduleSheetFrame(title: isNew ? "Add a time: \(sectionName)" : sectionName, problem: problem,
+        ScheduleSheetFrame(title: isNew ? L10n.string("Add a time: \(sectionName)") : sectionName, problem: problem,
                            onRemove: isNew ? nil : onRemove, onDone: done) {
-            ClockField(label: "Time", text: $form.time)
+            ClockField(label: L10n.string("Time"), text: $form.time)
             WeekdayPicker(days: $form.days)
         }
     }
@@ -128,14 +128,14 @@ struct MealEditSheet: View {
     let onRemove: () -> Void
 
     var body: some View {
-        ScheduleSheetFrame(title: isNew ? "Add a meal" : "Edit meal", problem: problem,
+        ScheduleSheetFrame(title: isNew ? L10n.string("Add a meal") : L10n.string("Edit meal"), problem: problem,
                            onRemove: isNew ? nil : onRemove, onDone: done) {
-            ClockField(label: "Time on the feeder's clock", text: $form.time)
+            ClockField(label: L10n.string("Time on the feeder's clock"), text: $form.time)
             HStack(alignment: .top, spacing: 10) {
-                PortionField(label: form.dual ? "Hopper 1 portions" : "Portions", text: $form.hopper1,
+                PortionField(label: form.dual ? L10n.string("Hopper 1 portions") : L10n.string("Portions"), text: $form.hopper1,
                              max: PortionRules.scheduleMax)
                 if form.dual {
-                    PortionField(label: "Hopper 2 portions", text: $form.hopper2, max: PortionRules.scheduleMax)
+                    PortionField(label: L10n.string("Hopper 2 portions"), text: $form.hopper2, max: PortionRules.scheduleMax)
                 }
             }
         }

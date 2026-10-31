@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Button, buttonClassName, Icon, PageHeader, Panel } from '@/shared/ui';
 import { type BleAccessory, type DeviceDetail, type PetWithFaces, deviceKeys } from '../api';
@@ -11,9 +12,9 @@ import {
 } from '../components/control-sections';
 import { LogUploadSection, TimezoneSection } from '../components/device-config-sections';
 import { ConsumablesCard } from '../components/model-block';
-import { SoundsRow } from '../components/sounds-section';
+import { SoundsRow } from '../components/sounds-row';
 import type { OpenState, SetOpen } from '../hooks/use-open-state';
-import { FAMILY_NOUN, deviceFamily } from '../lib/device-family';
+import { deviceFamily, familyNoun } from '../lib/device-family';
 import { hasSchedulesView, useDeviceLinks } from '../lib/device-view';
 import { deviceZone, localClock } from '../lib/device-zone';
 import { groupDeviceEntities } from '../lib/entity-sections';
@@ -47,15 +48,14 @@ interface DevicePageProps {
  */
 export function DevicePage(props: DevicePageProps) {
   const { device: d, accessories, pets, visitsToday, isOpen, setOpen, nowSeconds } = props;
+  const { t } = useTranslation('devices');
   const links = useDeviceLinks();
   const family = deviceFamily(d.type);
   const zone = deviceZone(d.timezoneInfo);
-  const noun = FAMILY_NOUN[family].toLowerCase();
+  const noun = familyNoun(family).toLowerCase();
   const runner = useCommands({
     target: noun,
-    route: d.mqtt_connected
-      ? 'It has a live MQTT session, so it runs now.'
-      : 'It is not on MQTT, so it waits for its next HTTP heartbeat, about 10 seconds.',
+    route: d.mqtt_connected ? t('page.routeMqtt') : t('page.routeHeartbeat'),
     refresh: [deviceKeys.detail(d.id), deviceKeys.list],
   });
   const all: Command[] = d.actions.map(a => ({
@@ -83,25 +83,25 @@ export function DevicePage(props: DevicePageProps) {
       {offline && (
         <Link className={buttonClassName('secondary')} to="/log">
           <Icon name="log" size={16} />
-          Open its log
+          {t('page.openLog')}
         </Link>
       )}
       {family === 'feeder' && hasSchedulesView(d) && (
         <Link className={buttonClassName('secondary')} to={links.device(`d${d.id}`, 'schedules')}>
           <Icon name="calendar" size={16} />
-          Schedule
+          {t('page.schedule')}
         </Link>
       )}
       {hasCamera && (
         <Link className={buttonClassName('secondary')} to={links.device(`d${d.id}`, 'live')}>
           <Icon name="video" size={16} />
-          Live view
+          {t('liveView')}
         </Link>
       )}
       {force.offered ? (
         <Button variant="primary" disabled={force.busy} onClick={force.start}>
           <Icon name="clean" size={16} />
-          Continue cleaning
+          {t('page.continueCleaning')}
         </Button>
       ) : (
         family === 'litter' &&
@@ -127,7 +127,7 @@ export function DevicePage(props: DevicePageProps) {
     <>
       <PageHeader
         title={d.name}
-        back={{ to: links.home, label: 'Home' }}
+        back={{ to: links.home, label: t('home.title') }}
         status={deviceStatusWord(d, zone, nowSeconds)}
         finding={deviceFinding(d, zone, nowSeconds, paused)}
         actions={actions}
@@ -144,39 +144,28 @@ export function DevicePage(props: DevicePageProps) {
               runner={runner}
               figuresNote={
                 !d.online && last !== null && zone
-                  ? `Values from the last report at ${localClock(last, zone)}.`
+                  ? t('page.valuesFrom', { clock: localClock(last, zone) })
                   : undefined
               }
-              commandsNote={
-                offline
-                  ? `Each command asks before it runs, then waits until the ${noun} reports again.`
-                  : undefined
-              }
+              commandsNote={offline ? t('page.commandsOffline', { noun }) : undefined}
             />
           )}
           {unrecognised && (
             <Panel className="text-sm text-muted-foreground">
-              This device type ({d.type.toUpperCase()}) is not recognised, so no Home Assistant
-              entities are defined for it. It still connects, appears here and its traffic is
-              logged; raw commands are under Entities and raw command.
+              {t('page.unrecognised', { type: d.type.toUpperCase() })}
             </Panel>
           )}
           {family === 'feeder' && (
             <FeederTodayCard device={d} zone={zone} nowSeconds={nowSeconds} />
           )}
-          {hasCamera && (
-            <LiveLinkCard
-              deviceKey={`d${d.id}`}
-              caption="Camera stream · WebRTC, MSE or HLS, also in Home Assistant"
-            />
-          )}
+          {hasCamera && <LiveLinkCard deviceKey={`d${d.id}`} caption={t('page.liveCaption')} />}
           <ConsumablesCard device={d} />
           <BleSection device={d} accessories={accessories} />
         </div>
         <div className="flex min-w-0 flex-col gap-5">
           {family === 'feeder' && <FeederFiguresCard device={d} />}
           <AutomationCard device={d} litter={family === 'litter'} force={force} />
-          <EntityControlsSection device={d} title="Settings" entities={groups.controls}>
+          <EntityControlsSection device={d} title={t('settings')} entities={groups.controls}>
             {d.is_camera && d.is_feeder && <SoundsRow deviceId={d.id} deviceNoun={noun} />}
             {pan.length > 0 && <CameraPanRow commands={pan} runner={runner} />}
           </EntityControlsSection>
@@ -184,8 +173,8 @@ export function DevicePage(props: DevicePageProps) {
           <CapabilitiesSection device={d} />
           <EntityControlsSection
             device={d}
-            title="Times of day"
-            description="A single time each, in the device's own day."
+            title={t('page.timesOfDay')}
+            description={t('page.timesOfDayHint')}
             entities={times}
           />
           <TimezoneSection device={d} />

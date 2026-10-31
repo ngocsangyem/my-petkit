@@ -36,10 +36,12 @@ struct DeviceToday {
     }
 
     static func title(_ session: TimelineSessionRecord) -> String {
-        let pet = session.petName ?? "A cat"
-        if session.isVisit { return session.eventKind == "drinking" ? "\(pet) drank" : "\(pet) visited" }
-        if session.eventKind == "feeding" { return "Fed" }
-        return session.label ?? session.eventKind?.capitalized ?? "Event"
+        let pet = session.petName ?? L10n.string("A cat")
+        if session.isVisit {
+            return session.eventKind == "drinking" ? L10n.string("\(pet) drank") : L10n.string("\(pet) visited")
+        }
+        if session.eventKind == "feeding" { return L10n.string("Fed") }
+        return session.label ?? session.eventKind?.capitalized ?? L10n.string("Event")
     }
 
     /// Whether a planned meal was fed: a feeding within an hour after its time
@@ -63,7 +65,7 @@ struct DeviceTodayCard: View {
     static let rowLimit = 6
 
     var body: some View {
-        SectionHeader(title: "Today") {
+        SectionHeader(title: L10n.string("Today")) {
             if !device.schedules.isEmpty {
                 NavigationLink("Schedule") { SchedulesView(deviceID: String(device.id)) }
                     .font(Theme.Font.control.weight(.semibold)).foregroundStyle(Theme.Color.accent)
@@ -116,12 +118,12 @@ struct DeviceTodayCard: View {
                         .frame(width: 56, alignment: .leading)
                     Text(meal.portionsText(dual: dual)).font(Theme.Font.body).frame(maxWidth: .infinity, alignment: .leading)
                     if today.fed(meal) {
-                        Pill(text: "Fed", tone: .positive)
+                        Pill(text: L10n.string("Fed"), tone: .positive)
                     } else if meal == next {
                         Text("In \(DeviceFindings.duration((meal.minute - nowMinute) * 60))")
                             .font(Theme.Font.smallMedium).monospacedDigit().foregroundStyle(Theme.Color.accent)
                     } else {
-                        Text(meal.minute > nowMinute ? "Planned" : "No feed recorded")
+                        Text(meal.minute > nowMinute ? L10n.string("Planned") : L10n.string("No feed recorded"))
                             .font(Theme.Font.small).foregroundStyle(Theme.Color.muted)
                     }
                 }
@@ -137,7 +139,7 @@ struct ConsumablesCard: View {
 
     var body: some View {
         if !rows.isEmpty {
-            SectionHeader("Consumables")
+            SectionHeader(L10n.string("Consumables"))
             Card {
                 ForEach(rows) { row in
                     VStack(alignment: .leading, spacing: 6) {
@@ -167,7 +169,7 @@ struct AICard: View {
     let retry: () -> Void
 
     var body: some View {
-        SectionHeader("On-device AI")
+        SectionHeader(L10n.string("On-device AI"))
         Card(padding: 0) {
             VStack(spacing: 0) {
                 LoadableBlock(state: enabled, loadingHeight: 36, retry: retry) { on in
@@ -199,7 +201,7 @@ struct CapabilitiesCard: View {
     let retry: () -> Void
 
     var body: some View {
-        SectionHeader("Media uploads")
+        SectionHeader(L10n.string("Media uploads"))
         Card(padding: 0) {
             LoadableBlock(state: capabilities, loadingHeight: 120, retry: retry) { flags in
                 VStack(spacing: 0) {

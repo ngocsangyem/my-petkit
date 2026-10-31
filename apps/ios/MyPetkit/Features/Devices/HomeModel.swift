@@ -85,7 +85,7 @@ final class HomeModel {
         do {
             sessions = .loaded(try await api.recentSessions())
         } catch {
-            sessions = .failed("Could not load today's visits. \(Loadable<Void>.message(for: error))")
+            sessions = .failed(L10n.string("Could not load today's visits. \(Loadable<Void>.message(for: error))"))
         }
     }
 

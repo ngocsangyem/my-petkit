@@ -1,5 +1,7 @@
 import { Children, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { components } from '@/api/schema';
+import { i18n } from '@/i18n';
 import { SettingsRow, SettingsSection, Switch } from '@/shared/ui';
 import { type DeviceDetail, type PetWithFaces, deviceKeys } from '../api';
 import { setAi, setCapability, setEntity } from '../api-calls';
@@ -47,27 +49,25 @@ export function EntityControlsSection({
   );
 }
 
-const CAP_LABELS: Readonly<Record<CapabilityFlag, string>> = {
-  fullVideo: 'Recordings',
-  eventImage: 'Snapshots',
-  highLight: 'Highlights',
-  dynamicVideo: 'Motion clips',
-};
+const CAP_FLAGS: readonly CapabilityFlag[] = [
+  'fullVideo',
+  'eventImage',
+  'highLight',
+  'dynamicVideo',
+];
 
 /** Media upload switches: the device stops sending that type at the source. */
 export function CapabilitiesSection({ device }: { device: DeviceDetail }) {
+  const { t } = useTranslation('devices');
   const call = useDeviceCall();
   if (!device.is_camera || !device.capInfo) return null;
   const caps = device.capInfo.capabilities;
   return (
-    <SettingsSection
-      title="Media capabilities"
-      description="Turns an upload off at the source: nothing to prune and no bandwidth spent. Takes effect on the device's next upload-credential poll."
-    >
-      {(Object.keys(CAP_LABELS) as CapabilityFlag[]).map(flag => (
+    <SettingsSection title={t('capabilities.title')} description={t('capabilities.description')}>
+      {CAP_FLAGS.map(flag => (
         <SettingsRow
           key={flag}
-          label={CAP_LABELS[flag]}
+          label={t(`capabilities.${flag}`)}
           control={props => (
             <Switch
               {...props}
@@ -94,14 +94,20 @@ function facesVerdict(device: DeviceDetail, pets: readonly PetWithFaces[]): stri
   const cached = device.state?.discernPic;
   if (!Array.isArray(cached)) return null;
   if (!cached.length) {
-    return 'No mugshots cached on the device yet. It re-reads them at boot and about once an hour; a reboot forces it.';
+    return i18n.t('devices:faces.none');
   }
   const ours = new Set(pets.flatMap(p => p.faces.map(f => String(f.id))));
   const foreign = cached.filter(id => !ours.has(String(id)));
-  const head = `Cached on the device: ${cached.length} ${cached.length === 1 ? 'mugshot' : 'mugshots'} (${cached.map(String).join(', ')})`;
-  if (!ours.size) return `${head}.`;
-  if (!foreign.length) return `${head}: yours, so the device is matching against your mugshots.`;
-  return `${head}: not yours. It is still using photos from PetKit's cloud, which proxy mode hands it. Turn proxy off and reboot the device to switch it to your ${ours.size} ${ours.size === 1 ? 'mugshot' : 'mugshots'}.`;
+  const head = i18n.t('devices:faces.head', {
+    count: cached.length,
+    ids: cached.map(String).join(', '),
+  });
+  if (!ours.size) return i18n.t('devices:faces.unknown', { head });
+  if (!foreign.length) return i18n.t('devices:faces.ours', { head });
+  return i18n.t('devices:faces.foreign', {
+    head,
+    yours: i18n.t('devices:faces.mugshots', { count: ours.size }),
+  });
 }
 
 /** On-device AI: recognition on/off, what the camera watches for, and the face readback. */
@@ -114,17 +120,15 @@ export function AiSection({
   entities: readonly DeviceEntity[];
   pets: readonly PetWithFaces[];
 }) {
+  const { t } = useTranslation('devices');
   const call = useDeviceCall();
   if (!device.supports_ai) return null;
   const enabled = device.aiInfo?.ai_enabled ?? true;
   const verdict = facesVerdict(device, pets);
   return (
-    <SettingsSection
-      title="On-device AI"
-      description="What this device's camera watches and listens for."
-    >
+    <SettingsSection title={t('ai.title')} description={t('ai.description')}>
       <SettingsRow
-        label="Recognise pets"
+        label={t('ai.recognisePets')}
         control={props => (
           <Switch
             {...props}

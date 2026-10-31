@@ -20,8 +20,8 @@ enum PetEditError: LocalizedError, Equatable {
 
     var errorDescription: String? {
         switch self {
-        case .missingName: "A cat needs a name."
-        case .weightOutOfRange: "Enter a registered weight from 0.20 to 20.00 kg."
+        case .missingName: L10n.string("A cat needs a name.")
+        case .weightOutOfRange: L10n.string("Enter a registered weight from 0.20 to 20.00 kg.")
         }
     }
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { copyText } from '@/shared/format/copy-text';
 import { Button } from '@/shared/ui';
 
@@ -9,6 +10,7 @@ function urlsOf(streams: Record<string, unknown>): [string, string][] {
 }
 
 function CopyRow({ label, url }: { label: string; url: string }) {
+  const { t } = useTranslation('devices');
   const [said, setSaid] = useState<string | null>(null);
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 min-[901px]:grid-cols-[120px_minmax(0,1fr)_auto_auto]">
@@ -18,14 +20,14 @@ function CopyRow({ label, url }: { label: string; url: string }) {
       <code className="overflow-x-auto font-mono text-sm whitespace-nowrap">{url}</code>
       <Button
         size="small"
-        aria-label={`Copy ${label} URL`}
+        aria-label={t('stream.copyLabel', { label })}
         onClick={() => {
           void copyText(url).then(ok => {
-            setSaid(ok ? 'Copied' : 'Could not copy; select the address instead');
+            setSaid(ok ? t('stream.copied') : t('stream.copyFailed'));
           });
         }}
       >
-        Copy
+        {t('stream.copy')}
       </Button>
       <span className="text-muted-foreground" role="status">
         {said ?? ''}
@@ -46,32 +48,24 @@ export function StreamUrls({
   streams: Record<string, unknown>;
   hasIp: boolean;
 }) {
+  const { t } = useTranslation('devices');
   const urls = urlsOf(streams);
   const rtsp = urls.find(([k]) => k === 'rtsp');
   const direct = urls.filter(([k]) => k !== 'rtsp');
   if (!urls.length) {
     return (
       <p className="text-sm text-muted-foreground">
-        No live stream. The device is checked for one every few minutes, and it answers once Local
-        Camera Streaming is applied on the Patchers screen
-        {hasIp ? '' : ', and it has not reported an IP yet either'}.
+        {hasIp ? t('stream.none') : t('stream.noneNoIp')}
       </p>
     );
   }
   return (
     <div className="flex min-w-0 flex-col gap-2.5">
-      {rtsp && <CopyRow label="Camera stream" url={rtsp[1]} />}
-      {rtsp && (
-        <p className="text-sm text-muted-foreground">
-          Give this one to Home Assistant as a Generic Camera. This app’s go2rtc stands between it
-          and the device.
-        </p>
-      )}
+      {rtsp && <CopyRow label={t('stream.camera')} url={rtsp[1]} />}
+      {rtsp && <p className="text-sm text-muted-foreground">{t('stream.rtspNote')}</p>}
       {direct.length > 0 && (
         <>
-          <p className="text-sm text-muted-foreground">
-            Straight from the device (VLC, ffmpeg; not Home Assistant):
-          </p>
+          <p className="text-sm text-muted-foreground">{t('stream.direct')}</p>
           {direct.map(([k, url]) => (
             <CopyRow key={k} label={k} url={url} />
           ))}

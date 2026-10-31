@@ -56,9 +56,9 @@ enum ScheduleClock {
     static func format(durationMinutes: Int) -> String {
         let hours = durationMinutes / 60, minutes = durationMinutes % 60
         switch (hours, minutes) {
-        case (0, _): return "\(minutes) m"
-        case (_, 0): return "\(hours) h"
-        default: return "\(hours) h \(minutes) m"
+        case (0, _): return L10n.string("\(minutes) m")
+        case (_, 0): return L10n.string("\(hours) h")
+        default: return L10n.string("\(hours) h \(minutes) m")
         }
     }
 }
@@ -99,7 +99,7 @@ struct DeviceClock: Equatable, Sendable {
 
     /// A unix moment as the device's own "Thu 13 Aug, 17:05".
     func formatMoment(_ unixSeconds: Double) -> String {
-        var style = Date.FormatStyle(date: .omitted, time: .omitted, locale: Locale(identifier: "en_GB"),
+        var style = Date.FormatStyle(date: .omitted, time: .omitted, locale: L10n.deviceClockLocale,
                                      calendar: calendar, timeZone: timeZone)
         style = style.weekday(.abbreviated).day().month(.abbreviated).hour(.twoDigits(amPM: .omitted)).minute()
         return Date(timeIntervalSince1970: unixSeconds).formatted(style)

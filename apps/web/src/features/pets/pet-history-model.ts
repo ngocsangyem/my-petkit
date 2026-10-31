@@ -2,6 +2,7 @@
 // (its visits and its weighed reading), and the trend the weight chart draws. The days come from
 // the timeline's own day route, narrowed to the pet; nothing here touches the network.
 import type { components } from '@/api/schema';
+import { currentLocale, i18n } from '@/i18n';
 import { shiftDay } from '@/shared/format/local-day';
 
 export type HistoryDay = components['schemas']['TimelineDay'];
@@ -68,7 +69,11 @@ export function weightTrendText(
   if (!first || !last || points.length < 2) return null;
   const delta = (last.grams - first.grams) / 1000;
   const sign = delta > 0 ? '+' : delta < 0 ? '−' : '±';
-  return `${sign}${Math.abs(delta).toFixed(2)} kg over ${String(range)} days`;
+  return i18n.t('pets:history.trend', {
+    sign,
+    delta: Math.abs(delta).toFixed(2),
+    days: range,
+  });
 }
 
 /** The chart's vertical span in grams: the readings with a margin, never narrower than 100 g. */
@@ -92,7 +97,7 @@ export function shortDate(date: string): string {
   const d = new Date(`${date}T00:00:00Z`);
   return Number.isNaN(d.getTime())
     ? date
-    : d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    : d.toLocaleDateString(currentLocale(), { day: 'numeric', month: 'short', timeZone: 'UTC' });
 }
 
 /** "W", the one-letter weekday under a bar. */
@@ -100,5 +105,5 @@ export function weekdayLetter(date: string): string {
   const d = new Date(`${date}T00:00:00Z`);
   return Number.isNaN(d.getTime())
     ? ''
-    : d.toLocaleDateString(undefined, { weekday: 'narrow', timeZone: 'UTC' });
+    : d.toLocaleDateString(currentLocale(), { weekday: 'narrow', timeZone: 'UTC' });
 }

@@ -33,16 +33,16 @@ export const WHEEL_STEP = 1.12;
  * rule is a passport-photo joke kept from the old panel; nothing detects
  * eyewear and nothing should.
  */
-export const FACE_RULES: readonly { ok: boolean; text: string }[] = [
-  { ok: true, text: 'Front view, both eyes visible, looking at the camera' },
-  { ok: true, text: 'The whole head in frame, evenly lit' },
-  { ok: false, text: 'No side or three-quarter views' },
-  { ok: false, text: 'No night-vision or infrared shots' },
-  { ok: false, text: 'No backlighting: the face must not be in shadow' },
-  { ok: false, text: 'Nothing covering the face' },
-  { ok: false, text: 'One cat per photo' },
-  { ok: false, text: 'No glasses, and all facial jewellery must be removed' },
-];
+export const FACE_RULES = [
+  { ok: true, key: 'front' },
+  { ok: true, key: 'wholeHead' },
+  { ok: false, key: 'noSide' },
+  { ok: false, key: 'noInfrared' },
+  { ok: false, key: 'noBacklight' },
+  { ok: false, key: 'uncovered' },
+  { ok: false, key: 'oneCat' },
+  { ok: false, key: 'noGlasses' },
+] as const;
 
 /** Where the photo sits under the frame, in stage pixels. */
 export interface CropView {

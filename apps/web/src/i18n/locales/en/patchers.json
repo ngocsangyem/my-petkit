@@ -1,0 +1,53 @@
+{
+  "title": "Patchers",
+  "finding": "Root changes on the device itself",
+  "findingApplied_one": "Root changes on the device itself · {{applied}} of {{count}} patch applied",
+  "findingApplied_other": "Root changes on the device itself · {{applied}} of {{count}} patches applied",
+  "device": "Device",
+  "devicesFailed": "Devices could not be loaded. {{error}}",
+  "noDevices": "No devices connected. Connect a device first, then come back to patch it.",
+  "statusFailed": "Patch status could not be read. {{error}}",
+  "unsupported": "Patchers are only available for the Linux models (T5, T6, T7, D4H, D4SH, W7H). This device uses a different platform.",
+  "patchesOfDevice": "Patches of this device",
+  "reachesAt": "The server reaches this device at <ip>{{ip}}</ip>.",
+  "ipUnknown": "Device IP unknown: wait for a state report before patching.",
+  "pick": "Pick a patch to read what it changes and how to undo it, then apply or remove it.",
+  "risk": "Each patch runs shell commands on the device as root, at your own risk: it can brick the device and leaves it outside its warranty. Patches live only on the writable /system partition; the read-only /app partition is never modified.",
+  "status": {
+    "active": "Active · MQTT connected",
+    "applied": "Applied",
+    "notApplied": "Not applied",
+    "running": "Running…"
+  },
+  "blocker": {
+    "greyed": "The device already holds an MQTT session, which proves this patch is in place.",
+    "noIp": "Device IP unknown. Wait for the device to send a state report before patching."
+  },
+  "list": {
+    "label": "Patches",
+    "apply": "Apply {{name}}…",
+    "remove": "Remove {{name}}…"
+  },
+  "action": {
+    "starting": "Starting…",
+    "removing": "Removing…",
+    "applyTitle": "Apply {{name}} to {{device}}?",
+    "removeTitle": "Remove {{name}} from {{device}}?",
+    "howToUndo": "How to undo",
+    "undoApply": "Remove undoes it: the files are deleted from /system and the device reboots without the patch.",
+    "undoRemove": "The device reboots without this patch. Other patches stay active; with none left it boots stock firmware.",
+    "space": "Space on the box",
+    "spaceBody": "Needs about {{size}} free. Free space is checked on the device before anything is written; the exact need is measured then and is usually smaller.",
+    "sshKey": "SSH public key",
+    "sshKeyHint": "Root SSH on port 22 accepts this key only: ssh-ed25519, ssh-rsa or ecdsa-sha2.",
+    "progress": "Progress",
+    "accepted": "Accepted. Progress comes from the server over the live connection; a run takes minutes.",
+    "apply": "Apply {{name}}",
+    "remove": "Remove {{name}}",
+    "removeInstead": "Remove instead",
+    "applyAgain": "Apply again",
+    "stepUp": "Asks for your password, then shows progress here step by step.",
+    "notApplied": "Not applied: {{error}}",
+    "notRemoved": "Not removed: {{error}}"
+  }
+}

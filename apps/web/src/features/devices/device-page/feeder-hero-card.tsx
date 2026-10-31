@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button, Card, Stepper } from '@/shared/ui';
 import { type DeviceDetail, deviceKeys } from '../api';
 import { setEntity } from '../api-calls';
@@ -13,8 +14,8 @@ import { HeroArt } from './hero-card';
 export const FEED_KEYS = ['feed', 'feed_hopper_1', 'feed_hopper_2', 'cancel_manual_feed'];
 
 const PORTIONS = [
-  { key: 'hopper1_portions', label: 'Hopper 1' },
-  { key: 'hopper2_portions', label: 'Hopper 2' },
+  { key: 'hopper1_portions', hopper: 1 },
+  { key: 'hopper2_portions', hopper: 2 },
 ] as const;
 
 interface FeederHeroCardProps {
@@ -29,6 +30,7 @@ interface FeederHeroCardProps {
  * (each step is one write, as the setting's field does); every feed asks before it runs.
  */
 export function FeederHeroCard({ device, commands, runner }: FeederHeroCardProps) {
+  const { t } = useTranslation('devices');
   const call = useDeviceCall();
   const feed = commands.filter(c => FEED_KEYS.includes(c.key));
   const rest = commands.filter(c => !FEED_KEYS.includes(c.key));
@@ -36,12 +38,13 @@ export function FeederHeroCard({ device, commands, runner }: FeederHeroCardProps
   const low = binaryOn(findEntity(device.entities, 'food_low'));
   const portions = PORTIONS.flatMap(p => {
     const e = findEntity(device.entities, p.key);
-    return e ? [{ ...p, entity: e, value: numericValue(e) }] : [];
+    const label = t('feeder.hopper', { n: p.hopper });
+    return e ? [{ ...p, label, entity: e, value: numericValue(e) }] : [];
   });
   return (
     <Card
       as="section"
-      aria-label={`${device.name} at a glance`}
+      aria-label={t('atAGlance', { name: device.name })}
       padding="none"
       className="flex flex-col gap-4 px-2 pt-2 pb-5"
     >
@@ -49,24 +52,24 @@ export function FeederHeroCard({ device, commands, runner }: FeederHeroCardProps
         <HeroArt device={device}>
           <span className="text-sm">
             {low === null ? (
-              <span className="text-muted-foreground">Food level not reported</span>
+              <span className="text-muted-foreground">{t('feeder.levelUnknown')}</span>
             ) : low ? (
-              <span className="font-medium text-warning">Food is low</span>
+              <span className="font-medium text-warning">{t('feeder.low')}</span>
             ) : (
-              'Food in the hopper'
+              t('feeder.hasFood')
             )}
           </span>
         </HeroArt>
-        <section aria-label="Feed now" className="flex min-w-0 flex-col gap-3 px-3 pt-2">
-          <h2>Feed now</h2>
+        <section aria-label={t('feeder.feedNow')} className="flex min-w-0 flex-col gap-3 px-3 pt-2">
+          <h2>{t('feeder.feedNow')}</h2>
           {portions.map(p => (
             <div key={p.key} className="flex items-center gap-3">
               <span className="flex min-w-0 flex-1 flex-col">
                 <span>{p.label}</span>
-                <span className="text-xs text-muted-foreground">Portions a feed dispenses</span>
+                <span className="text-xs text-muted-foreground">{t('feeder.portionsHint')}</span>
               </span>
               <Stepper
-                label={`${p.label} portions`}
+                label={t('feeder.portionsLabel', { label: p.label })}
                 value={p.value}
                 min={p.entity.min ?? 0}
                 max={p.entity.max ?? undefined}
@@ -95,7 +98,7 @@ export function FeederHeroCard({ device, commands, runner }: FeederHeroCardProps
               {main.name}
             </Button>
           ) : (
-            <p className="text-sm text-muted-foreground">This feeder takes no feed command.</p>
+            <p className="text-sm text-muted-foreground">{t('feeder.noFeed')}</p>
           )}
           {others.length > 0 && (
             <div className="flex flex-wrap justify-center gap-2">
@@ -113,9 +116,7 @@ export function FeederHeroCard({ device, commands, runner }: FeederHeroCardProps
               ))}
             </div>
           )}
-          <p className="text-center text-xs text-muted-foreground">
-            Asks before it runs. A running meal can be cancelled.
-          </p>
+          <p className="text-center text-xs text-muted-foreground">{t('feeder.asks')}</p>
         </section>
       </div>
       <div className="px-3">
@@ -130,11 +131,12 @@ export function FeederHeroCard({ device, commands, runner }: FeederHeroCardProps
  * hero card; they head the right column instead. Nothing renders for a model that reports none.
  */
 export function FeederFiguresCard({ device }: { device: DeviceDetail }) {
+  const { t } = useTranslation('devices');
   const cells = figureCells(device, null);
   if (!cells.length) return null;
   return (
     <Card padding="none" className="p-2">
-      <FigureSplit label={`${device.name} figures`} cells={cells} />
+      <FigureSplit label={t('figuresLabel', { name: device.name })} cells={cells} />
     </Card>
   );
 }

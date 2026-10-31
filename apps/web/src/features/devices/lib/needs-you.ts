@@ -1,4 +1,5 @@
 import type { components } from '@/api/schema';
+import { i18n } from '@/i18n';
 import type { DeviceRow } from '../hooks/use-overview';
 import { consumableText, lowConsumables, problemFor } from './device-status';
 import type { DeviceZone } from './device-zone';
@@ -50,7 +51,7 @@ export function needsYou({
       out.push({
         id: `${row.key}:silent`,
         row,
-        title: `${d.name} is not reporting`,
+        title: i18n.t('devices:needsYou.notReporting', { name: d.name }),
         detail: problem.text,
         tone: 'negative',
       });
@@ -65,9 +66,9 @@ export function needsYou({
     }
     for (const c of detail ? lowConsumables(detail) : []) {
       out.push({
-        id: `${row.key}:${c.label}`,
+        id: `${row.key}:${c.key}`,
         row,
-        title: consumableText(c.label, c.days).replace(/ in (\d)/, ' runs out in $1'),
+        title: consumableText(c.label, c.days, true),
         detail: d.name,
         tone: 'warning',
       });

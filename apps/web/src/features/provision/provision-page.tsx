@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { detectedOffsetHours, timezoneOptions } from '@/ble/provisioning-payload';
 import { errorMessage } from '@/shared/api/errors';
 import { Button, Card, Icon, PageHeader } from '@/shared/ui';
@@ -13,6 +14,7 @@ import { useProvisionSession } from './hooks/use-provision-session';
 
 /** Provisioning over Web Bluetooth: Wi-Fi, this server's address and the time zone. */
 export function ProvisionPage() {
+  const { t } = useTranslation('provision');
   const block = useBluetoothEnvironment();
   const info = useServerInfo();
   const session = useProvisionSession();
@@ -49,8 +51,8 @@ export function ProvisionPage() {
   return (
     <>
       <PageHeader
-        title="Add a device"
-        finding="Sends Wi-Fi, this server’s address and the time zone over Bluetooth. Your browser talks to the device; the server never sees the Wi-Fi password, and no PetKit app is involved."
+        title={t('title')}
+        finding={t('finding')}
         actions={<ProvisionProgressPill {...progress} />}
       />
       {block && (
@@ -61,12 +63,12 @@ export function ProvisionPage() {
       <div className="grid grid-cols-1 items-start gap-5 min-[901px]:grid-cols-2">
         <Card as="section" aria-labelledby="provision-device" className="flex flex-col gap-3.5">
           <div className="flex flex-col gap-0.5">
-            <span className="text-sm text-muted-foreground">New device</span>
+            <span className="text-sm text-muted-foreground">{t('newDevice')}</span>
             <h2
               id="provision-device"
               className={chosen ? 'font-mono text-base wrap-anywhere' : undefined}
             >
-              {chosen ? chosen.name : 'None chosen yet'}
+              {chosen ? chosen.name : t('noneChosen')}
             </h2>
           </div>
           <ProvisionSteps {...progress} />
@@ -85,11 +87,11 @@ export function ProvisionPage() {
                 void session.findDevice();
               }}
             >
-              Find device
+              {t('findDevice')}
             </Button>
           </div>
         </Card>
-        <Card as="section" aria-label="Network and server">
+        <Card as="section" aria-label={t('networkAndServer')}>
           <ProvisionForm
             values={values}
             onChange={patch => {
@@ -113,10 +115,7 @@ export function ProvisionPage() {
       </div>
       <Card className="flex items-start gap-2.5 py-3.5 text-lede">
         <Icon name="provision" size={18} className="mt-0.5 flex-none text-muted-foreground" />
-        <p>
-          Web Bluetooth needs Chrome or Edge on desktop or Android, and a secure context: a page
-          with a trusted certificate. On an iPhone, use the MyPetKit app.
-        </p>
+        <p>{t('browserNote')}</p>
       </Card>
     </>
   );

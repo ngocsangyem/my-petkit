@@ -33,16 +33,16 @@ private struct PetsScreen: View {
 
     var body: some View {
         ScreenScroll {
-            ScreenHeader(title: "Pets") {
-                IconButton(systemImage: "plus", label: "Add a cat") { showsAdd = true }
+            ScreenHeader(title: L10n.string("Pets")) {
+                IconButton(systemImage: "plus", label: L10n.string("Add a cat")) { showsAdd = true }
             }
         } content: {
             LoadableBlock(state: model.pets, loadingHeight: 230, retry: retryPets) { pets in
                 if pets.isEmpty {
                     Card {
-                        EmptyBlock(title: "No cats yet",
-                                   message: "Add a cat, or import the ones PetKit already recognises.",
-                                   actionTitle: "Add a cat") { showsAdd = true }
+                        EmptyBlock(title: L10n.string("No cats yet"),
+                                   message: L10n.string("Add a cat, or import the ones PetKit already recognises."),
+                                   actionTitle: L10n.string("Add a cat")) { showsAdd = true }
                             .padding(.vertical, 24)
                     }
                 } else if let pet = model.selected {
@@ -66,7 +66,7 @@ private struct PetsScreen: View {
         .sheet(isPresented: $showsImport) { PetImportSheet(model: model) }
         .petFaceAdder(isChoosing: $choosingFace, petName: model.selected?.name ?? "") { jpeg in
             guard let pet = model.selected else { return }
-            try await session.call(purpose: "Add a face photo") { try await model.addFace(to: pet, jpeg: jpeg) }
+            try await session.call(purpose: L10n.string("Add a face photo")) { try await model.addFace(to: pet, jpeg: jpeg) }
         }
         .confirmationDialog("Delete this face photo?", isPresented: isPresent($faceToDelete),
                             titleVisibility: .visible) {
@@ -75,7 +75,7 @@ private struct PetsScreen: View {
             Text("The devices stop matching against it the next time they fetch.")
         }
         .confirmationDialog(bindQuestion, isPresented: isPresent($refToBind), titleVisibility: .visible) {
-            Button("Bind to \(model.selected?.name ?? "this cat")") { bind() }
+            Button(L10n.string("Bind to \(model.selected?.name ?? L10n.string("this cat"))")) { bind() }
         } message: {
             Text("Past visits carrying this ref are named at once, and future ones too.")
         }
@@ -130,13 +130,13 @@ private struct PetsScreen: View {
                 NavigationLink {
                     PetEditView(model: model, petID: pet.id)
                 } label: {
-                    SettingsRow(title: "Edit \(pet.name)")
+                    SettingsRow(title: L10n.string("Edit \(pet.name)"))
                 }
                 .buttonStyle(.plain)
                 RowRule()
             }
             Button { showsImport = true } label: {
-                SettingsRow(title: "Import pets from PetKit")
+                SettingsRow(title: L10n.string("Import pets from PetKit"))
             }
             .buttonStyle(.plain)
         }
@@ -150,8 +150,8 @@ private struct PetsScreen: View {
     }
 
     private var bindQuestion: String {
-        guard let ref = refToBind else { return "Bind this ref?" }
-        return "Bind ref \(String(ref.ref)) to \(model.selected?.name ?? "this cat")?"
+        guard let ref = refToBind else { return L10n.string("Bind this ref?") }
+        return L10n.string("Bind ref \(String(ref.ref)) to \(model.selected?.name ?? L10n.string("this cat"))?")
     }
 
     private func isPresent<Value>(_ binding: Binding<Value?>) -> Binding<Bool> {
@@ -162,7 +162,7 @@ private struct PetsScreen: View {
         guard let pet = model.selected, let face = faceToDelete else { return }
         Task {
             do {
-                try await session.call(purpose: "Delete a face photo") { try await model.deleteFace(face, of: pet) }
+                try await session.call(purpose: L10n.string("Delete a face photo")) { try await model.deleteFace(face, of: pet) }
             } catch {
                 actionError = Loadable<Void>.message(for: error)
             }
@@ -173,7 +173,7 @@ private struct PetsScreen: View {
         guard let pet = model.selected, let ref = refToBind else { return }
         Task {
             do {
-                try await session.call(purpose: "Bind a ref to \(pet.name)") { try await model.bind(ref, to: pet) }
+                try await session.call(purpose: L10n.string("Bind a ref to \(pet.name)")) { try await model.bind(ref, to: pet) }
             } catch {
                 actionError = Loadable<Void>.message(for: error)
             }

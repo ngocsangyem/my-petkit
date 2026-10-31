@@ -22,13 +22,13 @@ enum Loadable<Value> {
             switch url.code {
             case .notConnectedToInternet, .cannotConnectToHost, .timedOut, .networkConnectionLost,
                  .cannotFindHost:
-                return "The server did not answer."
+                return L10n.string("The server did not answer.")
             case .cancelled, .secureConnectionFailed, .serverCertificateUntrusted:
-                return "The server's certificate is not the one this phone paired with."
+                return L10n.string("The server's certificate is not the one this phone paired with.")
             default: break
             }
         }
-        return "Something went wrong. Try again."
+        return L10n.string("Something went wrong. Try again.")
     }
 }
 

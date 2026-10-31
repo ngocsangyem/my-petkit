@@ -1,9 +1,10 @@
 import { cn } from 'cn';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button, Select, SettingsRow, Switch } from '@/shared/ui';
 import { Input } from '@/shared/ui/shadcn/input';
 import { usePendingEdit } from '../hooks/pending-edits';
-import { type AnyEntity, ENTITY_HELP, optionValues } from '../lib/entity-sections';
+import { type AnyEntity, entityHelp, optionValues } from '../lib/entity-sections';
 import { dirtyClass } from './panel-parts';
 
 interface EntityControlProps {
@@ -47,7 +48,9 @@ function rangeText(e: AnyEntity): string {
 
 /** One switch, number, select or time control, bound to a device or accessory entity. */
 export function EntityControl({ entity: e, owner, onSet, disabled }: EntityControlProps) {
-  const help = ENTITY_HELP[e.key];
+  // Subscribes so the help text follows a language change.
+  useTranslation('devices');
+  const help = entityHelp(e.key);
   if (e.component === 'switch')
     return <SwitchControl entity={e} onSet={onSet} disabled={disabled} help={help} />;
   if (e.component === 'number' || e.component === 'time') {
@@ -91,6 +94,7 @@ function TypedControl({
   disabled,
   help,
 }: ControlProps & { owner: string }) {
+  const { t } = useTranslation('devices');
   const isTime = e.component === 'time';
   const deviceValue = isTime ? secondsToClock(e.value) : scalarText(e.value);
   const [pending, setPending] = usePendingEdit(`${owner}:${e.key}`, deviceValue);
@@ -101,19 +105,19 @@ function TypedControl({
   const submit = () => {
     if (isTime) {
       if (!shown) {
-        setProblem('Pick a time first');
+        setProblem(t('entity.pickTime'));
         return;
       }
     } else {
       const v = Number(shown);
       if (shown.trim() === '' || !Number.isFinite(v)) {
-        setProblem('Enter a number');
+        setProblem(t('entity.enterNumber'));
         return;
       }
       // Refused rather than clamped: a silently different number is worse than
       // being told no. The server refuses it too; the panel is not the only way in.
       if ((e.min !== null && v < e.min) || (e.max !== null && v > e.max)) {
-        setProblem(`Must be between ${e.min ?? '…'} and ${e.max ?? '…'}`);
+        setProblem(t('entity.outOfRange', { min: e.min ?? '…', max: e.max ?? '…' }));
         return;
       }
     }
@@ -129,7 +133,12 @@ function TypedControl({
       label={e.name}
       kind="field"
       description={
-        [range && `Range ${range}`, help, pending !== undefined && 'Not sent yet', problem]
+        [
+          range && t('entity.range', { range }),
+          help,
+          pending !== undefined && t('notSentYet'),
+          problem,
+        ]
           .filter(Boolean)
           .join(' · ') || undefined
       }
@@ -151,8 +160,13 @@ function TypedControl({
               if (ev.key === 'Enter') submit();
             }}
           />
-          <Button size="small" onClick={submit} disabled={disabled} aria-label={`Set ${e.name}`}>
-            Set
+          <Button
+            size="small"
+            onClick={submit}
+            disabled={disabled}
+            aria-label={t('entity.setLabel', { name: e.name })}
+          >
+            {t('set')}
           </Button>
         </span>
       )}
@@ -161,13 +175,14 @@ function TypedControl({
 }
 
 function SelectControl({ entity: e, onSet, disabled, help }: ControlProps) {
+  const { t } = useTranslation('devices');
   const labels = (e.options ?? []).map(o => (typeof o === 'string' ? o : JSON.stringify(o)));
   // A device value maps to an option through option_values, or by bare index
   // when the entity declares none (the server's HA template does the same).
   const values = optionValues(e)?.length ? (optionValues(e) ?? []) : labels.map((_, i) => i);
   const selected = values.findIndex(v => String(v) === String(e.value));
   const options = labels.map((label, i) => ({ value: String(i), label }));
-  if (selected < 0) options.unshift({ value: '', label: 'Not reported' });
+  if (selected < 0) options.unshift({ value: '', label: t('notReported') });
   return (
     <SettingsRow
       label={e.name}

@@ -14,7 +14,7 @@ struct ProvisionLogSheet: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.Space.gap) {
                 HStack {
-                    IconButton(systemImage: "xmark", label: "Close") { dismiss() }
+                    IconButton(systemImage: "xmark", label: L10n.string("Close")) { dismiss() }
                     Spacer()
                     ShareLink("Share", item: Self.export(log, deviceName: deviceName))
                         .font(Theme.Font.smallMedium).tint(Theme.Color.accent)
@@ -29,7 +29,7 @@ struct ProvisionLogSheet: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
-                SectionHeader("Bluetooth log")
+                SectionHeader(L10n.string("Bluetooth log"))
                 Card {
                     if log.lines.isEmpty {
                         Text("Nothing yet. The log fills in once you send to a device.")
@@ -53,12 +53,14 @@ struct ProvisionLogSheet: View {
         .presentationCornerRadius(Theme.Radius.sheetTop)
     }
 
-    static let tips = [
-        "Put the device in pairing mode again: most models leave it after a few minutes.",
-        "Use a 2.4 GHz network. The devices cannot see 5 GHz ones.",
-        "Keep the phone within a few metres of the device until it says it reached the server.",
-        "ESP32 models (T4, D4) need the server on port 80 over plain http.",
-    ]
+    static var tips: [String] {
+        [
+            L10n.string("Put the device in pairing mode again: most models leave it after a few minutes."),
+            L10n.string("Use a 2.4 GHz network. The devices cannot see 5 GHz ones."),
+            L10n.string("Keep the phone within a few metres of the device until it says it reached the server."),
+            L10n.string("ESP32 models (T4, D4) need the server on port 80 over plain http."),
+        ]
+    }
 
     /// The text the share sheet sends.
     static func export(_ log: DiagnosticLog, deviceName: String?) -> String {

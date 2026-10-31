@@ -1,4 +1,5 @@
 import type { components } from '@/api/schema';
+import { i18n } from '@/i18n';
 import { formatMinute } from '@/shared/ui';
 import { type DeviceZone, zoneParts } from './device-zone';
 
@@ -55,6 +56,6 @@ export function nextMealClock(meals: readonly PlannedMeal[], nowMinute: number):
 
 /** "2 portions" / "2 + 1 portions" for a meal. */
 export function portionsText(meal: PlannedMeal, dual: boolean): string {
-  if (dual) return `${meal.a1} + ${meal.a2} portions`;
-  return `${meal.a1} ${meal.a1 === 1 ? 'portion' : 'portions'}`;
+  if (dual) return i18n.t('devices:meal.dualPortions', { a1: meal.a1, a2: meal.a2 });
+  return i18n.t('devices:meal.portions', { count: meal.a1 });
 }

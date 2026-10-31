@@ -1,6 +1,8 @@
+import { useTranslation } from 'react-i18next';
+import { i18n } from '@/i18n';
 import { Button, Icon, PageHeader } from '@/shared/ui';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/shadcn/tooltip';
-import { listNames, petStatus, plural, type DeviceDetail, type Pet } from '../pet-model';
+import { listNames, petStatus, type DeviceDetail, type Pet } from '../pet-model';
 
 interface PetsHeadingProps {
   pets: readonly Pet[] | null;
@@ -27,17 +29,17 @@ export function findingLine(
   const waiting = statuses.filter(x => x.s.waiting).map(x => x.name);
   const parts: string[] = [];
   if (loaded.length) {
-    parts.push(`${listNames(loaded)} ${loaded.length === 1 ? 'is' : 'are'} recognised.`);
+    parts.push(
+      i18n.t('pets:heading.recognised', { names: listNames(loaded), count: loaded.length }),
+    );
   }
   if (waiting.length) {
     parts.push(
-      `${listNames(waiting)} ${waiting.length === 1 ? 'is' : 'are'} still waiting for the device to fetch the photos.`,
+      i18n.t('pets:heading.waiting', { names: listNames(waiting), count: waiting.length }),
     );
   }
   if (unboundCount) {
-    parts.push(
-      `${plural(unboundCount, 'reported identity', 'reported identities')} ${unboundCount === 1 ? 'has' : 'have'} no pet yet.`,
-    );
+    parts.push(i18n.t('pets:heading.unbound', { count: unboundCount }));
   }
   return parts.join(' ');
 }
@@ -52,20 +54,21 @@ export function PetsHeading({
   onImport,
   onAdd,
 }: PetsHeadingProps) {
+  const { t } = useTranslation('pets');
   const add = (
     <Button variant="primary" onClick={onAdd} disabled={addBlocked !== null}>
       <Icon name="plus" size={16} strokeWidth={2} />
-      Add a pet
+      {t('heading.addPet')}
     </Button>
   );
   const finding = pets
-    ? [`${plural(pets.length, 'pet')}.`, findingLine(pets, aiDetails, unboundCount)]
+    ? [t('heading.pets', { count: pets.length }), findingLine(pets, aiDetails, unboundCount)]
         .filter(Boolean)
         .join(' ')
     : '';
   return (
     <PageHeader
-      title="Pets"
+      title={t('title')}
       finding={finding || undefined}
       actions={
         canImport || canAdd ? (
@@ -73,7 +76,7 @@ export function PetsHeading({
             {canImport && (
               <Button onClick={onImport}>
                 <Icon name="cloud" size={16} />
-                Import from PetKit account
+                {t('heading.import')}
               </Button>
             )}
             {canAdd &&

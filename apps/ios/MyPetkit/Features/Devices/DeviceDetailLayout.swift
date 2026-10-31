@@ -80,10 +80,10 @@ struct CommandLayout: Equatable {
 enum DeliveryText {
     static func command(_ delivered: String) -> String {
         switch delivered {
-        case "mqtt": "Sent over MQTT"
-        case "local": "Saved"
-        case "heartbeat-queue": "Queued for the next heartbeat, about 10 s"
-        default: "Sent"
+        case "mqtt": L10n.string("Sent over MQTT")
+        case "local": L10n.string("Saved")
+        case "heartbeat-queue": L10n.string("Queued for the next heartbeat, about 10 s")
+        default: L10n.string("Sent")
         }
     }
 }
@@ -104,10 +104,13 @@ struct EntityGroups: Equatable {
     static let automationKeys = ["auto_work", "cleaning_delay"]
     /// The artboard's words for the automation rows; the entity keys, names in
     /// confirmations and written values stay the server's.
-    static let automationLabels: [String: EntityLabel] = [
-        "auto_work": EntityLabel(title: "Auto clean after a visit", footnote: "Starts once the cat has left the box."),
-        "cleaning_delay": EntityLabel(title: "Clean delay", opensPicker: true),
-    ]
+    static var automationLabels: [String: EntityLabel] {
+        [
+            "auto_work": EntityLabel(title: L10n.string("Auto clean after a visit"),
+                                     footnote: L10n.string("Starts once the cat has left the box.")),
+            "cleaning_delay": EntityLabel(title: L10n.string("Clean delay"), opensPicker: true),
+        ]
+    }
 
     init(_ device: DeviceRecord) {
         // Capability switches have their own block, and AI detections live in
@@ -139,19 +142,23 @@ enum DeviceFigures {
         var unit: String?
     }
 
-    private static let specs: [DeviceFamily: [Spec]] = [
-        .litter: [Spec(key: "package_count", label: "Bags left"),
-                  Spec(key: "litter_percent", label: "Litter level", unit: "%"),
-                  Spec(key: "waste_bin", label: "Waste bin", binary: ("Not full", "Full"))],
-        .feeder: [Spec(key: "food_in_bowl", label: "In the bowl", unit: "g"),
-                  Spec(key: "amount_eaten", label: "Eaten today", unit: "g"),
-                  Spec(key: "total_dispensed", label: "Fed today", unit: "g"),
-                  Spec(key: "food_low", label: "Hopper", binary: ("Has food", "Low"))],
-        .fountain: [Spec(key: "filter_percent", label: "Filter", unit: "%"),
-                    Spec(key: "drink_times", label: "Drinks today"),
-                    Spec(key: "temperature", label: "Water", unit: "°C"),
-                    Spec(key: "water_lack", label: "Water level", binary: ("OK", "Low"))],
-    ]
+    private static var specs: [DeviceFamily: [Spec]] {
+        [
+            .litter: [Spec(key: "package_count", label: L10n.string("Bags left")),
+                      Spec(key: "litter_percent", label: L10n.string("Litter level"), unit: "%"),
+                      Spec(key: "waste_bin", label: L10n.string("Waste bin"),
+                           binary: (L10n.string("Not full"), L10n.string("Full")))],
+            .feeder: [Spec(key: "food_in_bowl", label: L10n.string("In the bowl"), unit: "g"),
+                      Spec(key: "amount_eaten", label: L10n.string("Eaten today"), unit: "g"),
+                      Spec(key: "total_dispensed", label: L10n.string("Fed today"), unit: "g"),
+                      Spec(key: "food_low", label: L10n.string("Hopper"), binary: (L10n.string("Has food"), L10n.string("Low")))],
+            .fountain: [Spec(key: "filter_percent", label: L10n.string("Filter"), unit: "%"),
+                        Spec(key: "drink_times", label: L10n.string("Drinks today")),
+                        Spec(key: "temperature", label: L10n.string("Water"), unit: "°C"),
+                        Spec(key: "water_lack", label: L10n.string("Water level"),
+                             binary: (L10n.string("OK"), L10n.string("Low")))],
+        ]
+    }
 
     /// `visitsToday` is counted from the timeline, for a litter box.
     static func figures(_ device: DeviceRecord, visitsToday: Int?) -> [Figure] {
@@ -165,7 +172,7 @@ enum DeviceFigures {
             return Figure(label: spec.label, value: value, unit: value == nil ? nil : (spec.unit ?? entity.unit))
         }
         if family == .litter, let visitsToday {
-            figures.insert(Figure(label: "Visits today", value: String(visitsToday)), at: min(2, figures.count))
+            figures.insert(Figure(label: L10n.string("Visits today"), value: String(visitsToday)), at: min(2, figures.count))
         }
         return Array(figures.prefix(4))
     }

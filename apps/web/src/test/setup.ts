@@ -1,6 +1,9 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
+import { DEFAULT_LANGUAGE, i18n } from '@/i18n';
+
+// Tests read English, the default; a test that switches language is undone below.
 
 // jsdom lacks a few browser APIs Base UI popups (dialog, sheet, menu, tooltip,
 // collapsible) call while they measure, animate or position themselves. Each
@@ -82,4 +85,5 @@ afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
   localStorage.clear();
+  return i18n.changeLanguage(DEFAULT_LANGUAGE);
 });

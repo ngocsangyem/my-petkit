@@ -1,6 +1,7 @@
 // Pure rules of the Timeline screen, ported from the legacy panel's
 // timeline.js and media.js. Nothing here touches the DOM or the network.
 import type { components } from '@/api/schema';
+import { currentLocale, i18n } from '@/i18n';
 
 export type TimelineDay = components['schemas']['TimelineDay'];
 export type TimelineSession = components['schemas']['TimelineSession'];
@@ -18,20 +19,30 @@ export function isDateString(value: string): boolean {
  * light to be any registered cat: "All" and "Toileting" never show them, so this chip is where
  * they are found (a light visit that raised a health alert or fault also shows under that chip).
  */
-export const FILTERS: readonly { key: FilterKey; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'pet', label: 'Pet' },
-  { key: 'toileting', label: 'Toileting' },
-  { key: 'feeding', label: 'Feeding' },
-  { key: 'drinking', label: 'Drinking' },
-  { key: 'cleaning', label: 'Cleaning' },
-  { key: 'health_alert', label: 'Health alert' },
-  { key: 'fault', label: 'Faults' },
-  { key: 'passing', label: 'Light visits' },
+const FILTER_KEYS: readonly FilterKey[] = [
+  'all',
+  'pet',
+  'toileting',
+  'feeding',
+  'drinking',
+  'cleaning',
+  'health_alert',
+  'fault',
+  'passing',
 ];
 
+/** A chip's words in the active language. */
+export function filterLabel(key: FilterKey | 'unrecognised'): string {
+  return i18n.t(`timeline:filter.${key}`);
+}
+
+/** The chips with their words, read in the active language on every call. */
+export function filters(): readonly { key: FilterKey; label: string }[] {
+  return FILTER_KEYS.map(key => ({ key, label: filterLabel(key) }));
+}
+
 export function isFilterKey(value: unknown): value is FilterKey {
-  return FILTERS.some(f => f.key === value);
+  return FILTER_KEYS.some(k => k === value);
 }
 
 /**
@@ -43,39 +54,45 @@ export function visibleFilters(
   counts: TimelineCounts | undefined,
   selected: FilterKey,
 ): readonly { key: FilterKey; label: string }[] {
-  return FILTERS.filter(f => f.key === 'all' || f.key === selected || (counts?.[f.key] ?? 0) > 0);
+  return filters().filter(f => f.key === 'all' || f.key === selected || (counts?.[f.key] ?? 0) > 0);
 }
 
 /** Keyed by `event_kind`, not `kind`: the tag is the thing the card is about. */
-const KIND_TAG = new Map<string, string>(
-  Object.entries({
-    toilet_visit: 'Toilet visit',
-    pet: 'Appeared',
-    motion: 'Motion',
-    cleaning: 'Cleaning',
-    error: 'Alert',
-    feeding: 'Feeding',
-    drinking: 'Drinking',
-    system: 'System',
-  }),
-);
+const KIND_TAGS = [
+  'toilet_visit',
+  'pet',
+  'motion',
+  'cleaning',
+  'error',
+  'feeding',
+  'drinking',
+  'system',
+] as const;
+type KindTag = (typeof KIND_TAGS)[number];
 
+function isKindTag(value: string): value is KindTag {
+  return (KIND_TAGS as readonly string[]).includes(value);
+}
+
+/** A known kind in the active language; a kind the client does not know reads as it came. */
 export function kindTag(eventKind: string | null): string {
   const k = eventKind ?? 'event';
-  return KIND_TAG.get(k) ?? k.replace(/_/g, ' ');
+  return isKindTag(k) ? i18n.t(`timeline:kind.${k}`) : k.replace(/_/g, ' ');
 }
 
 /** The headline of a session, as text. */
 export function sessionSentence(s: TimelineSession): string {
   if (s.kind === 'visit') {
-    return s.pet_name ? `${s.pet_name} used the litter box` : 'Litter-box visit';
+    return s.pet_name
+      ? i18n.t('timeline:session.visitBy', { name: s.pet_name })
+      : i18n.t('timeline:session.visit');
   }
   return s.label || kindTag(s.event_kind);
 }
 
 export function subEventLabel(e: TimelineSubEvent): string {
   if (e.label) return e.label;
-  return e.event_type === null ? 'Event' : String(e.event_type);
+  return e.event_type === null ? i18n.t('timeline:session.event') : String(e.event_type);
 }
 
 /** "45 s", "1 min 55 s"; `null` when the duration is unknown. */
@@ -102,24 +119,24 @@ export function splitFact(bit: string): { label: string; value: string | null } 
   return m?.[1] && m[2] ? { label: m[1], value: m[2] } : { label: bit, value: null };
 }
 
-/** Time in the reader's zone, as the legacy panel rendered every row. */
+/** Time in the reader's zone and the active language's clock. */
 export function clockTime(ts: number | null, withSeconds = false): string | null {
   if (ts === null || !Number.isFinite(ts) || ts <= 0) return null;
-  return new Date(ts * 1000).toLocaleTimeString(undefined, {
+  return new Date(ts * 1000).toLocaleTimeString(currentLocale(), {
     hour: '2-digit',
     minute: '2-digit',
     ...(withSeconds ? { second: '2-digit' } : {}),
   });
 }
 
-/** Whether the reader's locale renders 12-hour times, which need a wider time column. */
+/** Whether the active locale renders 12-hour times, which need a wider time column. */
 export function usesTwelveHourClock(): boolean {
   try {
     return Boolean(
-      new Intl.DateTimeFormat(undefined, { timeStyle: 'medium' }).resolvedOptions().hour12,
+      new Intl.DateTimeFormat(currentLocale(), { timeStyle: 'medium' }).resolvedOptions().hour12,
     );
   } catch {
-    return /[AaPp]\.?[Mm]/.test(new Date(2020, 0, 1, 13, 0, 0).toLocaleTimeString());
+    return /[AaPp]\.?[Mm]/.test(new Date(2020, 0, 1, 13, 0, 0).toLocaleTimeString(currentLocale()));
   }
 }
 
@@ -138,6 +155,7 @@ export function hasMedia(m: MediaSlots | null | undefined): m is MediaSlots {
 }
 
 export interface VideoSource {
+  /** Which source this is; also the key of its translated name. */
   label: 'Clip' | 'Timelapse' | 'Playback';
   path: string;
 }
@@ -164,8 +182,8 @@ export function stillGroups(s: TimelineSession): { title: string; paths: string[
   const all = [s.media, ...s.sub_events.map(e => e.media)].filter(hasMedia);
   const unique = (paths: string[]) => [...new Set(paths)];
   const groups = [
-    { title: 'Check waste', paths: unique(all.flatMap(m => m.waste)) },
-    { title: 'Health', paths: unique(all.flatMap(m => m.health)) },
+    { title: i18n.t('timeline:stills.checkWaste'), paths: unique(all.flatMap(m => m.waste)) },
+    { title: i18n.t('timeline:stills.health'), paths: unique(all.flatMap(m => m.health)) },
   ];
   return groups.filter(g => g.paths.length > 0);
 }

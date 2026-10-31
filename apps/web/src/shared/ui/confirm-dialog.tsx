@@ -1,4 +1,5 @@
 import { useRef, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from './button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from './shadcn/dialog';
 
@@ -11,6 +12,7 @@ export interface ConfirmDialogProps {
   children: ReactNode;
   /** Verb for the near-black confirm button, e.g. "Clean now". */
   confirmLabel: string;
+  /** Defaults to "Cancel" in the active language. */
   cancelLabel?: string;
   onConfirm: () => void;
   /** Called by Cancel, Escape and a click on the backdrop. */
@@ -37,7 +39,7 @@ export function ConfirmDialog({
   title,
   children,
   confirmLabel,
-  cancelLabel = 'Cancel',
+  cancelLabel,
   onConfirm,
   onCancel,
   busy = false,
@@ -45,6 +47,7 @@ export function ConfirmDialog({
   confirmVariant = 'primary',
   footnote,
 }: ConfirmDialogProps) {
+  const { t } = useTranslation('common');
   const cancelRef = useRef<HTMLButtonElement>(null);
   return (
     <Dialog
@@ -68,7 +71,7 @@ export function ConfirmDialog({
         </div>
         <div className="flex flex-wrap justify-end gap-2">
           <Button ref={cancelRef} variant="secondary" onClick={onCancel} disabled={busy}>
-            {cancelLabel}
+            {cancelLabel ?? t('cancel')}
           </Button>
           <Button variant={confirmVariant} onClick={onConfirm} disabled={busy || confirmDisabled}>
             {confirmLabel}

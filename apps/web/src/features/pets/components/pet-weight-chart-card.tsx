@@ -1,4 +1,5 @@
 import { useId, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, Segmented, Skeleton } from '@/shared/ui';
 import {
   shortDate,
@@ -9,11 +10,6 @@ import {
   type WeightRange,
 } from '../pet-history-model';
 import { gramsToKgText } from '../pet-weight-model';
-
-const RANGES = [
-  { id: '7', label: '1W' },
-  { id: '14', label: '2W' },
-] as const;
 
 /** The plotted area in viewBox units; the SVG is stretched to the card, so text is never in it. */
 const W = 600;
@@ -113,7 +109,12 @@ export function PetWeightChartCard({
   registeredG,
   isPending,
 }: PetWeightChartCardProps) {
+  const { t } = useTranslation('pets');
   const [range, setRange] = useState<WeightRange>(14);
+  const ranges = [
+    { id: '7', label: t('chart.week') },
+    { id: '14', label: t('chart.twoWeeks') },
+  ] as const;
   const headingId = useId();
   const points = weightPoints(days, range);
   const figure = points.at(-1)?.grams ?? registeredG;
@@ -127,7 +128,7 @@ export function PetWeightChartCard({
   } else if (!points.length) {
     chart = (
       <p className="flex h-40 items-center justify-center rounded-md bg-raised px-4 text-center text-sm text-muted-foreground">
-        No weighed visits by {name} in this span.
+        {t('chart.noWeighed', { name })}
       </p>
     );
   } else {
@@ -135,9 +136,11 @@ export function PetWeightChartCard({
       <WeightLine
         points={points}
         span={shown.map(d => d.date)}
-        label={`${name}'s weight over ${String(range)} days, ${points
-          .map(p => `${shortDate(p.date)} ${gramsToKgText(p.grams)} kg`)
-          .join(', ')}`}
+        label={t('chart.label', {
+          name,
+          days: range,
+          list: points.map(p => `${shortDate(p.date)} ${gramsToKgText(p.grams)} kg`).join(', '),
+        })}
       />
     );
   }
@@ -147,20 +150,20 @@ export function PetWeightChartCard({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex flex-col">
           <span id={headingId} className="text-sm text-muted-foreground">
-            Weight
+            {t('chart.title')}
           </span>
           <span className="tabular-nums">
             <b className="text-3xl font-medium">{figure === null ? '—' : gramsToKgText(figure)}</b>
             <span className="ml-0.5 text-md text-muted-foreground">kg</span>
           </span>
           <span className="text-sm text-muted-foreground">
-            {trend ?? (points.length ? 'One weighed day so far' : 'Registered weight')}
+            {trend ?? (points.length ? t('chart.oneDay') : t('chart.registered'))}
           </span>
         </div>
         <div className="w-50">
           <Segmented
-            label="Weight span"
-            options={RANGES}
+            label={t('chart.span')}
+            options={ranges}
             value={String(range) as '7' | '14'}
             onChange={id => {
               setRange(Number(id) as WeightRange);

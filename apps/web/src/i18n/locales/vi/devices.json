@@ -1,0 +1,759 @@
+{
+  "pair": {
+    "enterMac": "Nhập địa chỉ Bluetooth",
+    "type": "Loại",
+    "typeLabel": "Loại phụ kiện",
+    "mac": "Địa chỉ Bluetooth (MAC)",
+    "secret": "Mã ghép nối",
+    "secretHint": "Tám byte phụ kiện giữ cho đến khi khôi phục cài đặt gốc. Phụ kiện đã thiết lập trong ứng dụng PetKit cần đúng mã đó; phụ kiện mới xuất xưởng chấp nhận tám byte 0.",
+    "secretPlaceholder": "lấy từ phụ kiện",
+    "name": "Đặt tên (không bắt buộc)",
+    "namePlaceholder": "số sê-ri hoặc một nhãn",
+    "advanced": "Nâng cao",
+    "identifier": "Mã định danh",
+    "identifierHint": "Dùng làm id thiết bị trong Home Assistant. Để trống trừ khi bạn muốn dùng id mà ứng dụng PetKit đã cấp.",
+    "identifierPlaceholder": "tự chọn cho bạn",
+    "interval": "Chu kỳ thăm dò (giây)",
+    "intervalHint": "Tần suất thiết bị chuyển tiếp mở phiên Bluetooth để đọc phụ kiện.",
+    "scanType": "Kiểu quét",
+    "scanTypeHint": "14 là giá trị duy nhất đọc được từ một lần ghép nối thật (một máy W5). Nếu phụ kiện không bao giờ báo cáo, hãy thử số khác ở đây.",
+    "scanTypePlaceholder": "mặc định",
+    "submit": "Ghép nối phụ kiện"
+  },
+  "ble": {
+    "unpairTitle": "Hủy ghép nối {{name}}?",
+    "unpairTitleAccessory": "Hủy ghép nối phụ kiện?",
+    "unpair": "Hủy ghép nối",
+    "unpairBody": "Thiết bị chuyển tiếp sẽ ngừng đọc phụ kiện này. Các entity của nó trong Home Assistant vẫn còn cho đến khi bạn xóa thiết bị ở đó.",
+    "pairTitle": "Ghép nối phụ kiện",
+    "pairDescription": "Phụ kiện liên lạc với máy chủ qua <b>{{name}}</b>, thiết bị này phải luôn bật và ở gần.",
+    "importing": "Đang hỏi PetKit…",
+    "import": "Nhập từ PetKit",
+    "importNote": "Hỏi PetKit một lần, với danh nghĩa {{name}}, xem thiết bị sở hữu những phụ kiện nào, rồi chép địa chỉ Bluetooth và mã ghép nối của từng phụ kiện về. Không gửi gì tới PetKit cho đến khi bạn bấm nút.",
+    "title": "Phụ kiện Bluetooth",
+    "pair": "Ghép nối",
+    "pairedLabel": "Phụ kiện đã ghép nối",
+    "nothingPaired": "Chưa ghép nối phụ kiện nào.",
+    "relayedBy": "{{type}} · chuyển tiếp qua thiết bị này · <mono>{{mac}}</mono>",
+    "noReportYet": "Chưa có báo cáo",
+    "openLabel": "Mở {{name}}",
+    "open": "Mở"
+  },
+  "entity": {
+    "pickTime": "Hãy chọn giờ trước",
+    "enterNumber": "Nhập một số",
+    "outOfRange": "Phải trong khoảng {{min}} đến {{max}}",
+    "range": "Khoảng {{range}}",
+    "setLabel": "Đặt {{name}}"
+  },
+  "entityTable": {
+    "entity": "Entity",
+    "value": "Giá trị",
+    "component": "Thành phần",
+    "readsFrom": "Đọc từ",
+    "empty": "Chưa có báo cáo nào.",
+    "showAll_one": "Hiện mọi entity ({{count}})",
+    "showAll_other": "Hiện mọi entity ({{count}})"
+  },
+  "figure": {
+    "visitsToday": "Lượt vào hôm nay",
+    "bagsLeft": "Túi còn lại",
+    "litterLevel": "Mức cát",
+    "wasteBin": "Thùng chứa phân",
+    "notFull": "Chưa đầy",
+    "full": "Đầy",
+    "inBowl": "Trong bát",
+    "eatenToday": "Đã ăn hôm nay",
+    "fedToday": "Đã cho ăn hôm nay",
+    "hopper": "Khay chứa",
+    "hasFood": "Còn hạt",
+    "low": "Sắp hết",
+    "water": "Nước",
+    "filter": "Lõi lọc",
+    "drinksToday": "Lượt uống hôm nay",
+    "waterLevel": "Mức nước",
+    "ok": "Ổn"
+  },
+  "consumables": {
+    "title": "Vật tư tiêu hao",
+    "usedUp": "Đã hết",
+    "days_one": "{{count}} ngày",
+    "days_other": "{{count}} ngày",
+    "remaining": "{{label}} còn lại",
+    "filterLeft": "Lõi lọc còn",
+    "filterRemaining": "Lõi lọc còn lại"
+  },
+  "needsYou": {
+    "title": "Cần bạn xử lý",
+    "nothing": "Hiện không có gì cần bạn xử lý",
+    "blocked_one": "Tuần này đã chặn {{count}} lần kết nối đám mây",
+    "blocked_other": "Tuần này đã chặn {{count}} lần kết nối đám mây",
+    "noneBlocked": "Tuần này không chặn lần kết nối đám mây nào",
+    "cloudGuards": "Lớp chặn đám mây · trong Cài đặt",
+    "notReporting": "{{name}} không gửi báo cáo"
+  },
+  "raw": {
+    "example": {
+      "changeSetting": "Đổi một cài đặt",
+      "startAction": "Bắt đầu một thao tác",
+      "resetN60": "Đặt lại khử mùi N60"
+    },
+    "invalidJson": "JSON không hợp lệ — chưa gửi",
+    "needsObject": "Hãy gửi một object có suffix và payload",
+    "note": "Gửi nguyên văn, không thêm gì. Gửi qua MQTT nếu thiết bị có phiên kết nối, nếu không thì xếp hàng chờ heartbeat. Cần xác nhận lại.",
+    "label": "JSON lệnh thô",
+    "send": "Gửi lệnh thô",
+    "loadExample": "Nạp ví dụ:",
+    "entityJson": "JSON của {{name}}",
+    "save": "Lưu {{name}}"
+  },
+  "remove": {
+    "button": "Gỡ thiết bị",
+    "title": "Xóa {{label}}?",
+    "confirm": "Xóa thiết bị",
+    "body": "Thao tác này xóa vĩnh viễn thiết bị khỏi danh sách đăng ký và gỡ mọi entity của nó trong Home Assistant. Sự kiện và media vẫn được giữ. Thiết bị còn đang chạy sẽ tự đăng ký lại."
+  },
+  "stream": {
+    "copyLabel": "Sao chép URL {{label}}",
+    "copied": "Đã sao chép",
+    "copyFailed": "Không sao chép được; hãy tự chọn địa chỉ",
+    "copy": "Sao chép",
+    "none": "Không có luồng trực tiếp. Thiết bị được kiểm tra vài phút một lần và sẽ phản hồi khi Local Camera Streaming được áp dụng ở màn hình Trình vá.",
+    "noneNoIp": "Không có luồng trực tiếp. Thiết bị được kiểm tra vài phút một lần và sẽ phản hồi khi Local Camera Streaming được áp dụng ở màn hình Trình vá; thiết bị cũng chưa báo địa chỉ IP.",
+    "camera": "Luồng camera",
+    "rtspNote": "Dùng địa chỉ này cho Home Assistant dưới dạng Generic Camera. go2rtc của ứng dụng này đứng giữa Home Assistant và thiết bị.",
+    "direct": "Lấy thẳng từ thiết bị (VLC, ffmpeg; không dùng cho Home Assistant):"
+  },
+  "sounds": {
+    "title": "Âm thanh",
+    "custom": "Âm thanh tùy chỉnh",
+    "description": "Âm thanh tùy chỉnh mà {{noun}} có thể phát, lưu trên máy chủ này.",
+    "tooLarge": "{{name}} lớn hơn 2 MB",
+    "tooMany": "Mỗi thiết bị chứa tối đa {{max}} âm thanh; hãy xóa bớt một cái trước",
+    "loadFailed": "Không tải được danh sách âm thanh: {{error}}",
+    "empty": "Chưa tải lên âm thanh tùy chỉnh nào.",
+    "fallbackName": "Âm thanh {{id}}",
+    "play": "Phát",
+    "select": "Chọn",
+    "delete": "Xóa",
+    "upload": "Tải lên âm thanh",
+    "note": "Tối đa {{max}} tệp (đã lưu {{stored}}), mỗi tệp 2 MB. Phát sẽ gửi âm thanh tới thiết bị một lần để bạn nghe ở đó; Chọn đặt nó làm âm thanh thiết bị dùng.",
+    "deleteTitle": "Xóa âm thanh này?",
+    "deleteBody": "“{{name}}” sẽ bị xóa khỏi máy chủ này và khỏi danh sách của thiết bị.",
+    "thisSound": "Âm thanh này"
+  },
+  "set": "Đặt",
+  "notSentYet": "Chưa gửi",
+  "notReported": "Chưa báo cáo",
+  "commands": {
+    "last": "Lệnh gần nhất: {{name}} · {{result}}",
+    "confirmTitle": "{{name}} trên {{target}}?",
+    "send": "Gửi",
+    "confirmBody": "Lệnh “{{name}}” sẽ được gửi tới {{target}}. {{route}}",
+    "destructiveNote": "Thiết bị thực hiện ngay và không thể thu hồi.",
+    "label": "Lệnh",
+    "cannotUndo": "Không thể hoàn tác",
+    "note": "Mỗi lệnh đều hỏi lại trước khi chạy."
+  },
+  "capabilities": {
+    "title": "Khả năng media",
+    "description": "Tắt việc tải lên ngay từ thiết bị: không phải dọn dữ liệu và không tốn băng thông. Có hiệu lực ở lần thiết bị xin thông tin tải lên kế tiếp.",
+    "fullVideo": "Bản ghi hình",
+    "eventImage": "Ảnh chụp",
+    "highLight": "Khoảnh khắc nổi bật",
+    "dynamicVideo": "Clip chuyển động"
+  },
+  "faces": {
+    "none": "Thiết bị chưa lưu ảnh nhận diện nào. Thiết bị đọc lại ảnh khi khởi động và khoảng mỗi giờ một lần; khởi động lại sẽ buộc đọc ngay.",
+    "head_one": "Đã lưu trên thiết bị: {{count}} ảnh nhận diện ({{ids}})",
+    "head_other": "Đã lưu trên thiết bị: {{count}} ảnh nhận diện ({{ids}})",
+    "unknown": "{{head}}.",
+    "ours": "{{head}}: là ảnh của bạn, nên thiết bị đang nhận diện theo ảnh của bạn.",
+    "foreign": "{{head}}: không phải ảnh của bạn. Thiết bị vẫn dùng ảnh từ đám mây PetKit, do chế độ proxy cung cấp. Hãy tắt proxy và khởi động lại thiết bị để chuyển sang {{yours}} của bạn.",
+    "mugshots_one": "{{count}} ảnh nhận diện",
+    "mugshots_other": "{{count}} ảnh nhận diện"
+  },
+  "ai": {
+    "title": "AI trên thiết bị",
+    "description": "Những gì camera của thiết bị này quan sát và lắng nghe.",
+    "recognisePets": "Nhận diện thú cưng"
+  },
+  "timezone": {
+    "source": {
+      "override": "giá trị ghi đè này",
+      "locale": "tên múi giờ thiết bị báo",
+      "device": "độ lệch thiết bị báo",
+      "server": "đồng hồ của máy chủ này"
+    },
+    "outOfRange": "Phải trong khoảng -12 đến 14 giờ",
+    "effective": "Đang dùng UTC{{offset}}, theo {{source}}",
+    "reported": "thiết bị báo {{value}}",
+    "title": "Múi giờ",
+    "offset": "Độ lệch so với UTC",
+    "hint": "Số giờ, từ -12 đến 14, bước 15 phút. Để trống để tự động.",
+    "hintPending": "Số giờ, từ -12 đến 14, bước 15 phút. Để trống để tự động. Chưa gửi.",
+    "auto": "tự động",
+    "setLabel": "Đặt độ lệch múi giờ"
+  },
+  "logs": {
+    "title": "Thu thập nhật ký gỡ lỗi",
+    "description": "Góc nhìn riêng của firmware về những gì nó đang làm, trong màn hình <log>Nhật ký</log>.",
+    "cannotCollect": "Hiện không thu thập được: {{reason}}.",
+    "collect": "Thu thập nhật ký gỡ lỗi"
+  },
+  "facts": {
+    "serial": "Số sê-ri",
+    "mac": "MAC",
+    "firmware": "Firmware",
+    "lastHeartbeat": "Heartbeat gần nhất",
+    "lastState": "Trạng thái gần nhất",
+    "lastMqtt": "MQTT gần nhất",
+    "queued": "Lệnh đang chờ",
+    "messages": "Tin nhắn HTTP / MQTT",
+    "productKey": "Product key",
+    "deviceName": "Tên thiết bị"
+  },
+  "today": {
+    "title": "Hôm nay",
+    "visits_one": "{{count}} lượt vào máy dọn phân",
+    "visits_other": "{{count}} lượt vào máy dọn phân",
+    "fedGrams": "đã cho ăn {{grams}} g",
+    "noZone": "Chưa có thiết bị nào báo múi giờ của mình.",
+    "noLanes": "Chưa có thú cưng, máy cho ăn hay máy lọc nước nào để hiển thị.",
+    "stripLabel": "Hôm nay ở nhà, {{aside}}",
+    "openTimeline": "Mở dòng thời gian"
+  },
+  "delivery": {
+    "saved": "Đã lưu",
+    "action": {
+      "mqtt": "Đã gửi qua MQTT",
+      "queued": "Đã xếp hàng — gửi ở nhịp heartbeat kế tiếp (khoảng 10 giây)"
+    },
+    "entity": {
+      "mqtt": "Đã cập nhật qua MQTT",
+      "ble": "Đã gửi qua Bluetooth",
+      "queued": "Đã xếp hàng chờ nhịp heartbeat kế tiếp"
+    },
+    "timezone": {
+      "mqtt": "Đã gửi tới thiết bị",
+      "queued": "Đã lưu — áp dụng ở lần thiết bị liên lạc tới"
+    },
+    "logReason": {
+      "noLogRoot": "chưa cấu hình thư mục nhật ký",
+      "noBucketEndpoint": "ứng dụng chưa có địa chỉ bucket nên không có nơi nào để chỉ thiết bị gửi tới",
+      "authorityNotSplittable": "không tách được địa chỉ bucket thành tên máy mà thiết bị dựng lại được; cần một tên có dấu chấm hoặc một IP"
+    }
+  },
+  "family": {
+    "litter": "Máy dọn phân",
+    "feeder": "Máy cho ăn",
+    "fountain": "Máy lọc nước",
+    "purifier": "Máy lọc không khí",
+    "other": "Thiết bị"
+  },
+  "consumable": {
+    "n60_spray_days": "Khử mùi N60",
+    "n50_durability": "Khử mùi N50",
+    "desiccant_days": "Gói hút ẩm",
+    "filter_days": "Lõi lọc",
+    "usedUp": "{{label}} đã hết",
+    "inDays_one": "{{label}} còn {{count}} ngày",
+    "inDays_other": "{{label}} còn {{count}} ngày",
+    "runsOutIn_one": "{{label}} hết sau {{count}} ngày",
+    "runsOutIn_other": "{{label}} hết sau {{count}} ngày"
+  },
+  "problem": {
+    "waste_bin": "Thùng chứa phân đầy",
+    "food_low": "Sắp hết hạt",
+    "water_lack": "Sắp hết nước",
+    "replace_filter": "Cần thay lõi lọc",
+    "noReportSince": "Không có báo cáo từ {{when}}"
+  },
+  "status": {
+    "unknown": "Không rõ",
+    "offline": "Ngoại tuyến",
+    "onlineMqtt": "Trực tuyến · MQTT",
+    "polling": "Thăm dò · heartbeat",
+    "noParent": "Chưa có thiết bị chủ",
+    "onlineBluetooth": "Trực tuyến · Bluetooth",
+    "neverReported": "Chưa từng báo cáo"
+  },
+  "now": {
+    "nextMeal": "Bữa kế tiếp {{clock}}",
+    "statusCleaned": "{{status}}, đã dọn lúc {{clock}}",
+    "cleaned": "Đã dọn lúc {{clock}}"
+  },
+  "meal": {
+    "dualPortions": "{{a1}} + {{a2}} phần",
+    "portions_one": "{{count}} phần",
+    "portions_other": "{{count}} phần"
+  },
+  "strip": {
+    "reporting": "Đang báo cáo",
+    "noReportToday": "Hôm nay chưa có báo cáo",
+    "reportingUntil": "Báo cáo đến {{clock}}",
+    "unrecognised": "Chưa nhận diện",
+    "fed": "{{clock}} · đã cho ăn",
+    "planned": "{{clock}} · dự kiến {{portions}}"
+  },
+  "entityHelp": {
+    "yowlingDetection": "Lắng nghe tiếng kêu khi mèo đang trong máy và ghi lại lúc nghe thấy. PetKit coi việc kêu nhiều lần là dấu hiệu mèo có thể khó chịu. Đang thử nghiệm (beta) trong ứng dụng PetKit.",
+    "phDetection": "Đọc màu của loại cát chỉ thị pH riêng của PetKit qua camera. Với cát thường thì không đo được gì. Đang thử nghiệm (beta) trong ứng dụng PetKit.",
+    "vomitDetection": "Theo dõi hiện tượng nôn. Kết quả phát hiện có danh sách vomit_info, danh sách này luôn trống khi tắt tính năng."
+  },
+  "force": {
+    "check": {
+      "noPet": "Không có thú cưng trong máy",
+      "noVisit": "Không có lượt vào đang diễn ra",
+      "lidClosed": "Nắp đóng, không có lỗi"
+    },
+    "sent": "Tiếp tục dọn · {{result}}",
+    "confirmTitle": "Tiếp tục dọn ngay?",
+    "notNow": "Để sau",
+    "footnote": "Sẽ hỏi mật khẩu trước. Bị từ chối khi có mèo bên trong hoặc nắp đang mở.",
+    "body": "Lồng xoay sẽ quay lại. Máy đã tạm dừng vì thấy có mèo gần cửa.",
+    "checked": "(đạt)",
+    "notMet": "(chưa đạt)",
+    "risk": "Hãy nhìn máy trước khi tiếp tục. Nếu mèo bước vào, máy sẽ tự dừng lại; ứng dụng này không bao giờ bỏ qua cơ chế đó.",
+    "label": "Buộc tiếp tục",
+    "paused": "Tạm dừng",
+    "pausedWhy": "Máy đã dừng vì thấy có mèo gần cửa.",
+    "notOffered": "Tạm dừng. Chưa thể buộc tiếp tục: {{reasons}}",
+    "readFailed": "Không đọc được thông tin buộc tiếp tục và tự đóng túi. {{error}}"
+  },
+  "autoPack": {
+    "title": "Tự đóng túi",
+    "experimental": "Thử nghiệm",
+    "intro": "Máy tự đóng và hàn kín túi rác khi quy tắc yêu cầu. Máy chủ sẽ tắt quy tắc sau một lỗi đóng túi hoặc hai lần đóng túi không phản hồi, và không bao giờ tự bật lại.",
+    "switchLabel": "Tự động đóng túi",
+    "turnedOff": "Đã tắt tự đóng túi",
+    "turnedOn": "Đã bật tự đóng túi",
+    "saved": "Đã lưu quy tắc tự đóng túi",
+    "save": "Lưu quy tắc",
+    "discard": "Bỏ thay đổi",
+    "notSaved": "Chưa lưu: {{error}}",
+    "confirmTitle": "Bật tự đóng túi?",
+    "turnOn": "Bật",
+    "advice": "Lời khuyên của chính PetKit khi tự động đóng túi: nên có người ở gần khi máy đóng túi, và lấy túi ra sớm.",
+    "countedFrom": "Số lần dọn được tính từ lúc bật.",
+    "trigger": {
+      "after_cleanings": "Sau một số lần dọn",
+      "bin_full": "Khi thùng đầy",
+      "daily_at": "Hằng ngày vào giờ cố định"
+    },
+    "heldBack": {
+      "not_due": "chưa đến lúc",
+      "quiet_hours": "đang trong giờ yên tĩnh",
+      "cooldown": "đang chờ một chút sau lần thử trước",
+      "not_delivered": "không gửi được lệnh đóng túi lần trước",
+      "state_stale": "máy chưa gửi báo cáo trạng thái trong 2 phút qua",
+      "presence_unknown": "máy chưa cho biết có thú cưng bên trong hay không",
+      "device_offline": "không nhận được tín hiệu từ máy trong 90 giây qua",
+      "not_on_mqtt": "máy không kết nối qua MQTT",
+      "pet_in_box": "máy báo có thú cưng bên trong",
+      "visit_open": "có thú cưng vào trong 10 phút qua và chưa ra",
+      "pet_nearby": "có thú cưng ở gần máy trong 2 phút qua",
+      "device_fault": "máy báo lỗi",
+      "device_busy": "máy đang chạy một chu trình",
+      "no_bags": "máy báo hết túi hoặc chưa báo số túi",
+      "history_unavailable": "không đọc được lịch sử lượt vào"
+    },
+    "disabled": {
+      "noResponse": "máy không phản hồi hai lần đóng túi liên tiếp",
+      "packError": "máy báo lỗi đóng túi: {{detail}}",
+      "noDetail": "không có chi tiết"
+    },
+    "status": {
+      "turnedOff": "Máy chủ đã tắt vì {{reason}}",
+      "pending": "Đã gửi lệnh đóng túi lúc {{at}}, đang chờ máy",
+      "awaitingBinClear": "Đang chờ đổ thùng trước khi đếm lại",
+      "heldBack": "Đang hoãn: {{reason}}",
+      "lastPacked": "Lần đóng túi gần nhất {{at}}",
+      "notYet": "Quy tắc này chưa đóng túi lần nào",
+      "noAnswer": "lần đóng túi gần nhất không có phản hồi"
+    },
+    "summary": {
+      "afterCleanings_one": "sau mỗi {{count}} lần dọn",
+      "afterCleanings_other": "sau mỗi {{count}} lần dọn",
+      "binFull": "mỗi khi thùng báo đầy",
+      "dailyAt": "hằng ngày lúc {{at}}, theo múi giờ của thiết bị",
+      "plain": "Máy tự đóng và hàn kín túi rác {{when}}.",
+      "withQuiet": "Máy tự đóng và hàn kín túi rác {{when}}, không bao giờ trong khoảng {{start}} đến {{end}}."
+    },
+    "fields": {
+      "pack": "Đóng túi",
+      "after": "Sau",
+      "cleanings": "lần dọn",
+      "cleaningsHint": "Từ {{min}} đến {{max}}, tính từ lần đóng túi gần nhất hoặc từ lúc bật quy tắc.",
+      "at": "Lúc",
+      "atHint": "Theo múi giờ của chính thiết bị.",
+      "quietHours": "Giờ yên tĩnh",
+      "from": "Từ",
+      "to": "đến",
+      "quietHint": "Không tự đóng túi trong khoảng này. Giờ kết thúc sớm hơn giờ bắt đầu nghĩa là kéo qua nửa đêm."
+    }
+  },
+  "live": {
+    "mode": {
+      "webrtc": "WebRTC: độ trễ thấp nhất, lấy thẳng từ máy chủ.",
+      "mse": "MSE: trễ khoảng một giây, dùng cùng kết nối với trang này.",
+      "hls": "HLS: chạy được ở mọi nơi, trễ vài giây."
+    },
+    "reason": {
+      "notACamera": "Thiết bị này không có camera.",
+      "deviceUnreachable": "Camera chưa báo địa chỉ mạng nên chưa kết nối tới được.",
+      "noStream": "Camera chưa có luồng trực tiếp. Hãy áp dụng Local Camera Streaming ở màn hình Trình vá.",
+      "sidecarDown": "Bộ chuyển tiếp video (go2rtc) không chạy trên máy chủ. Hãy khởi động lại add-on.",
+      "unknown": "Hiện không xem trực tiếp được."
+    },
+    "fail": {
+      "hlsUnsupported": "Trình duyệt này không phát được HLS.",
+      "hlsStopped": "Luồng HLS đã dừng và không phục hồi. Bấm Xem để thử lại.",
+      "decodeDetail": "Không giải mã được video trực tiếp: {{detail}}",
+      "decode": "Không giải mã được video trực tiếp.",
+      "refused": "Luồng trực tiếp từ chối kết nối.",
+      "format": "Trình duyệt này không phát được định dạng của luồng ({{format}}).",
+      "mseUnsupported": "Trình duyệt này không phát được MSE. Hãy chọn HLS.",
+      "noCodecs": "Trình duyệt này không phát được codec nào mà luồng cung cấp. Hãy chọn HLS.",
+      "closed": "Luồng trực tiếp đã đóng. Bấm Xem để bắt đầu lại.",
+      "socket": "Không mở được kết nối luồng trực tiếp.",
+      "webrtcUnsupported": "Trình duyệt này không phát được WebRTC.",
+      "webrtcDropped": "Kết nối WebRTC bị ngắt. Hãy kiểm tra thiết bị này có kết nối được tới máy chủ không.",
+      "noOffer": "Không tạo được WebRTC offer cục bộ.",
+      "webrtcUnavailable": "Máy chủ này chưa thiết lập WebRTC."
+    },
+    "fallback": "{{message}} Chuyển sang dùng {{mode}}.",
+    "frame": {
+      "playing": "Trực tiếp qua {{mode}}",
+      "connecting": "Đang kết nối qua {{mode}}…",
+      "idle": "Chưa phát",
+      "videoLabel": "Video trực tiếp từ {{name}}",
+      "live": "Trực tiếp",
+      "fullScreen": "Toàn màn hình",
+      "sound": "Âm thanh",
+      "stop": "Dừng"
+    },
+    "watch": "Xem",
+    "page": {
+      "lastClip": "Clip gần nhất <code>{{path}}</code>",
+      "entities": "Entity: {{keys}}.",
+      "clipsOnTimeline": "Các clip nằm trong Dòng thời gian",
+      "talk": "Đàm thoại",
+      "talkNote": "Giữ để nói có trong ứng dụng iPhone. Bảng điều khiển web chỉ phát hình và âm thanh.",
+      "panNote": "Máy tự xoay camera bằng cơ cấu riêng. Giữa đưa camera về vị trí chính giữa. Mỗi lần xoay đều hỏi lại trước khi chạy.",
+      "noCamera": "Thiết bị này không có camera để xem."
+    },
+    "stream": "Luồng phát",
+    "nothingUntilWatch": "Không kết nối gì cho đến khi bạn bấm Xem.",
+    "checkFailed": "Không kiểm tra được luồng trực tiếp: {{error}}",
+    "modeLabel": "Chế độ xem trực tiếp"
+  },
+  "overview": {
+    "relayedBy": "{{type}} · chuyển tiếp qua {{parent}}",
+    "noParent": "Không có thiết bị chủ nào chuyển tiếp"
+  },
+  "result": {
+    "sentVia": "Đã gửi qua {{transport}}",
+    "polled": "Đã yêu cầu thiết bị chuyển tiếp đọc số liệu",
+    "paired": "Đã ghép nối — thiết bị sẽ nhận ở lần thăm dò kế tiếp",
+    "imported_one": "Đã nhập {{count}} phụ kiện",
+    "imported_other": "Đã nhập {{count}} phụ kiện",
+    "nothingToImport": "Không có gì mới để nhập",
+    "skipped_one": "{{head}} — bỏ qua {{count}}: {{outcomes}}",
+    "skipped_other": "{{head}} — bỏ qua {{count}}: {{outcomes}}",
+    "unpairedNote": "Đã hủy ghép nối. {{note}}",
+    "unpaired": "Đã hủy ghép nối",
+    "removed": "Đã gỡ thiết bị",
+    "capabilitySaved": "Đã lưu — có hiệu lực ở lần thiết bị xin thông tin tải lên kế tiếp",
+    "uploaded": "Đã tải lên",
+    "playing": "Đang phát",
+    "selected": "Đã chọn",
+    "deleted": "Đã xóa"
+  },
+  "page": {
+    "loadDevicesFailed": "Không tải được danh sách thiết bị: {{error}}",
+    "loadTodayFailed": "Không tải được dữ liệu hôm nay: {{error}}",
+    "loadBleFailed": "Không tải được phụ kiện Bluetooth: {{error}}",
+    "routeMqtt": "Thiết bị đang có phiên MQTT nên lệnh chạy ngay.",
+    "routeHeartbeat": "Thiết bị không kết nối MQTT nên lệnh chờ nhịp heartbeat HTTP kế tiếp, khoảng 10 giây.",
+    "openLog": "Mở nhật ký",
+    "schedule": "Lịch",
+    "continueCleaning": "Tiếp tục dọn",
+    "valuesFrom": "Giá trị từ lần báo cáo gần nhất lúc {{clock}}.",
+    "commandsOffline": "Mỗi lệnh đều hỏi lại trước khi chạy, rồi chờ đến khi {{noun}} báo cáo lại.",
+    "unrecognised": "Không nhận diện được loại thiết bị này ({{type}}), nên không có entity Home Assistant nào cho nó. Thiết bị vẫn kết nối, hiện ở đây và lưu lượng vẫn được ghi lại; lệnh thô nằm trong mục Entity và lệnh thô.",
+    "liveCaption": "Luồng camera · WebRTC, MSE hoặc HLS, có cả trong Home Assistant",
+    "timesOfDay": "Giờ trong ngày",
+    "timesOfDayHint": "Mỗi mục một mốc giờ, theo ngày của chính thiết bị."
+  },
+  "empty": {
+    "finding": "Chưa có thiết bị nào.",
+    "title": "Thêm thiết bị đầu tiên",
+    "body": "Để máy tính này gần máy dọn phân, máy cho ăn hoặc máy lọc nước: Wi-Fi và địa chỉ của máy chủ này sẽ được gửi qua Bluetooth. Thiết bị đang chạy thì có thể trỏ thẳng tới địa chỉ của máy chủ này."
+  },
+  "never": "chưa bao giờ",
+  "settings": "Cài đặt",
+  "liveView": "Xem trực tiếp",
+  "stateTitle": "Trạng thái",
+  "stateLabel": "Trạng thái của {{name}}",
+  "atAGlance": "Tổng quan {{name}}",
+  "figuresLabel": "Số liệu của {{name}}",
+  "rawStateJson": "JSON trạng thái đã phân tích",
+  "parsedState": "Trạng thái đã phân tích",
+  "card": {
+    "pill": {
+      "online": "Trực tuyến",
+      "polling": "Thăm dò",
+      "offline": "Ngoại tuyến",
+      "unknown": "Không rõ"
+    },
+    "heartbeat": "Heartbeat · {{ago}}",
+    "lastReport": "Báo cáo gần nhất {{ago}}",
+    "neverReported": "chưa từng báo cáo",
+    "via": "Qua {{parent}} · {{ago}}"
+  },
+  "home": {
+    "title": "Trang chủ",
+    "allFine": "Mọi thứ đều ổn.",
+    "lead": "{{title}}.",
+    "leadWithDetail": "{{title}} ({{detail}}).",
+    "restFine": "Mọi thứ khác đều ổn.",
+    "more_one": "Còn {{count}} việc cần bạn xử lý bên dưới.",
+    "more_other": "Còn {{count}} việc cần bạn xử lý bên dưới.",
+    "timeline": "Dòng thời gian",
+    "addDevice": "Thêm thiết bị",
+    "catsAndAttention": "Mèo và việc cần xử lý",
+    "cats": "Mèo",
+    "devices": "Thiết bị",
+    "reporting": "{{total}} · {{reporting}} đang báo cáo"
+  },
+  "petCard": {
+    "visits_one": "{{count}} lượt",
+    "visits_other": "{{count}} lượt",
+    "visitsLast_one": "{{count}} lượt · gần nhất {{clock}}",
+    "visitsLast_other": "{{count}} lượt · gần nhất {{clock}}"
+  },
+  "accessory": {
+    "route": "Lệnh đi qua Bluetooth thông qua thiết bị chủ, thiết bị này phải đang kết nối MQTT.",
+    "relayedBy": "Được chuyển tiếp qua Bluetooth bởi <link>{{parent}}</link>.",
+    "noRelay": "Không có thiết bị nào chuyển tiếp cho phụ kiện này.",
+    "factsLabel": "Thông tin {{name}}",
+    "lastReading": "Lần đọc gần nhất",
+    "neverRead": "Chưa bao giờ",
+    "interval": "Chu kỳ thăm dò",
+    "notSet": "Chưa đặt",
+    "readNote": "Đọc ngay yêu cầu thiết bị chuyển tiếp mở phiên Bluetooth; nếu không, việc này diễn ra theo hẹn giờ, chậm nhất một chu kỳ thăm dò. Mỗi lệnh đều hỏi lại trước khi chạy.",
+    "readNow": "Đọc ngay",
+    "scanGuess": "Kiểu quét cho mẫu này chỉ là phỏng đoán. Chưa ai ghi lại được một lần ghép nối {{type}} thật mang giá trị gì, nên {{scan}} được mượn từ dòng sản phẩm cùng loại. Nếu phụ kiện không bao giờ báo cáo, hãy hủy ghép nối rồi ghép lại với kiểu quét khác trong mục Nâng cao, và vui lòng cho biết giá trị nào hoạt động.",
+    "nothingYet": "Chưa có báo cáo nào. Phụ kiện chỉ lên tiếng khi thiết bị chủ được yêu cầu mở phiên Bluetooth tới nó.",
+    "settingsNote": "Cài đặt được gửi thành một khối, nên muốn thay đổi cần có một lần đọc trước; khi phụ kiện chưa báo cáo, lệnh ghi sẽ bị từ chối thay vì đoán giá trị.",
+    "tools": "Công cụ phụ kiện",
+    "mac": "Địa chỉ Bluetooth",
+    "id": "ID phụ kiện",
+    "unpair": "Hủy ghép nối phụ kiện"
+  },
+  "automation": {
+    "title": "Tự động hóa",
+    "schedules": "Lịch",
+    "oneOffFeeds": "Bữa ăn một lần"
+  },
+  "pan": {
+    "camera": "Camera",
+    "left": "Trái",
+    "home": "Giữa",
+    "right": "Phải"
+  },
+  "headline": {
+    "online": "Trực tuyến · MQTT · {{ago}}",
+    "polling": "Thăm dò · heartbeat {{ago}}",
+    "offline": "Ngoại tuyến · không có báo cáo từ {{since}}",
+    "paused": "Tạm dừng khi đang dọn.",
+    "pausedWhy": "Máy thấy có mèo gần cửa.",
+    "silent": "Mất liên lạc {{span}}.",
+    "silentHint": "Hãy kiểm tra nguồn điện và kết nối Wi-Fi.",
+    "sentence": "{{text}}.",
+    "nextMeal": "Bữa kế tiếp lúc {{clock}}.",
+    "noMoreMeals": "Hôm nay không còn bữa nào.",
+    "fedToday": "Hôm nay đã cho ăn {{grams}} g."
+  },
+  "links": {
+    "tools": "Công cụ thiết bị",
+    "patches": "Bản vá thiết bị",
+    "stepUp": "Xác nhận lại",
+    "deviceId": "ID thiết bị",
+    "copyId": "Sao chép ID thiết bị",
+    "copyFailed": "Không sao chép được",
+    "logs": "Nhật ký",
+    "logsHint": "Nhật ký máy chủ và thiết bị",
+    "forDebugging": "Để gỡ lỗi"
+  },
+  "screen": {
+    "goneTitle": "Thiết bị này không còn ở đây",
+    "backHome": "Về Trang chủ",
+    "goneBody": "Thiết bị đã bị gỡ, hoặc đường dẫn trỏ tới thiết bị mà máy chủ này chưa từng đăng ký.",
+    "loadFailed": "Không tải được thiết bị này: {{error}}"
+  },
+  "feeder": {
+    "hopper": "Khay {{n}}",
+    "levelUnknown": "Chưa báo mức hạt",
+    "low": "Sắp hết hạt",
+    "hasFood": "Khay còn hạt",
+    "feedNow": "Cho ăn ngay",
+    "portionsHint": "Số phần mỗi lần cho ăn",
+    "portionsLabel": "Số phần {{label}}",
+    "noFeed": "Máy cho ăn này không nhận lệnh cho ăn.",
+    "asks": "Hỏi lại trước khi chạy. Có thể hủy bữa đang chạy."
+  },
+  "feederToday": {
+    "editSchedule": "Sửa lịch",
+    "noZone": "Máy cho ăn chưa báo múi giờ của mình.",
+    "none": "Hôm nay không có bữa nào.",
+    "label": "Các bữa hôm nay",
+    "inSpan": "Sau {{span}}",
+    "past": "Đã qua",
+    "planned": "Dự kiến"
+  },
+  "hero": {
+    "firmware": "· firmware <mono>{{firmware}}</mono>",
+    "noFigures": "Mẫu này không công bố số liệu nào."
+  },
+  "rawCard": {
+    "title": "Entity và lệnh thô",
+    "aside": "Những gì thiết bị đang báo cáo",
+    "unrouted": "Chưa hiển thị ở trên",
+    "unroutedNote": "Các entity này được gửi tới Home Assistant nhưng màn hình này chưa có khối nào cho chúng. Vui lòng báo lại.",
+    "unroutedLabel": "Entity chưa có khối",
+    "key": "Khóa",
+    "schedulesJson": "Lịch dưới dạng JSON thô",
+    "diagnostics": "Chẩn đoán và payload thô",
+    "lastState": "Báo cáo trạng thái HTTP gần nhất",
+    "lastProperty": "Bản tin thuộc tính MQTT gần nhất",
+    "connection": "Kết nối MQTT",
+    "noneYet": "chưa có",
+    "noConnect": "chưa thấy kết nối MQTT; thiết bị đang dùng heartbeat HTTP",
+    "advanced": "Nâng cao: gửi lệnh thô",
+    "patchers": "Các thay đổi firmware cho thiết bị này nằm ở màn hình <link>TrÃ¬nh vÃ¡</link>."
+  },
+  "weekday": {
+    "Sun": "CN",
+    "Mon": "T2",
+    "Tue": "T3",
+    "Wed": "T4",
+    "Thu": "T5",
+    "Fri": "T6",
+    "Sat": "T7"
+  },
+  "schedules": {
+    "invalid": {
+      "periodOutside": "Có khoảng thời gian nằm ngoài phạm vi trong ngày.",
+      "entryDays": "Hãy chọn ít nhất một ngày cho mỗi mục.",
+      "timeDays": "Hãy chọn ít nhất một ngày cho mỗi mốc giờ.",
+      "timeOutside": "Có mốc giờ nằm ngoài phạm vi trong ngày.",
+      "mealDays": "Hãy chọn ít nhất một ngày cho mỗi nhóm bữa ăn.",
+      "mealOutside": "Có giờ ăn nằm ngoài phạm vi trong ngày.",
+      "portions": "Số phần phải là số nguyên từ 0 đến 255."
+    },
+    "unsaved": "{{name}} (chưa lưu)",
+    "note": "Thiết bị chạy các lịch này theo đồng hồ và múi giờ của chính nó. Không có gì được đặt sẵn: lịch trống không giới hạn thiết bị. Khoảng thời gian kết thúc trước khi bắt đầu sẽ kéo qua nửa đêm, đúng như cách ứng dụng PetKit ghi giờ yên tĩnh.",
+    "nextMeal": "Bữa kế tiếp lúc {{clock}}, sau {{span}}.",
+    "feedingTitle": "Lịch cho ăn",
+    "gFedToday": "g đã cho ăn hôm nay",
+    "gEaten": "đã ăn {{grams}} g",
+    "eatenOfFed": "Lượng đã ăn so với lượng đã cho hôm nay",
+    "zoneNote": "Giờ theo múi giờ của chính thiết bị, {{zone}}."
+  },
+  "deferred": {
+    "pickDateTime": "Hãy chọn ngày và giờ.",
+    "scheduled": "Đã lên lịch cho ăn.",
+    "formLabel": "Lên lịch một bữa ăn một lần",
+    "date": "Ngày",
+    "time": "Giờ",
+    "portions": "Số phần",
+    "scheduling": "Đang lên lịch…",
+    "schedule": "Lên lịch cho ăn",
+    "notScheduled": "Chưa lên lịch: {{error}}",
+    "loadFailed": "Không tải được các bữa ăn một lần: {{error}}",
+    "title": "Bữa ăn hẹn giờ",
+    "aside": "Gửi khi máy cho ăn thăm dò lần tới",
+    "dualPortions": "Khay 1: {{a1}}, Khay 2: {{a2}}",
+    "singlePortions": "Số phần: {{a1}}",
+    "waiting": "Đang chờ",
+    "empty": "Chưa có bữa ăn một lần nào.",
+    "notRemoved": "Chưa xóa được: {{error}}",
+    "note": "Ngày và giờ theo đồng hồ của chính máy cho ăn ({{zone}}). Máy cho ăn nhận bữa ăn ở lần liên lạc kế tiếp."
+  },
+  "feedEditor": {
+    "everyDay": "Hằng ngày",
+    "weekdays": "Ngày thường",
+    "noDays": "Không ngày nào",
+    "dualPortions": "Khay 1 × {{a1}} · Khay 2 × {{a2}}",
+    "addDays": "Thêm nhóm ngày",
+    "empty": "Chưa có bữa ăn nào. Máy cho ăn chỉ nhả hạt khi bạn bấm Cho ăn.",
+    "set": "Nhóm bữa {{n}}",
+    "removeSet": "Xóa nhóm bữa {{n}}",
+    "setDays": "Các ngày của nhóm bữa {{n}}",
+    "editMeal": "Sửa bữa {{meal}} của nhóm {{set}}",
+    "edit": "Sửa",
+    "noMeals": "Không có bữa nào vào những ngày này.",
+    "addMealTo": "Thêm bữa vào nhóm {{n}}",
+    "addMeal": "Thêm bữa",
+    "mealName": "Bữa {{meal}} của nhóm {{set}}"
+  },
+  "mealSheet": {
+    "title": "Sửa bữa ăn",
+    "repeatsEveryDay": "{{name}}. Lặp lại hằng ngày, theo các ngày của nhóm.",
+    "repeatsOn": "{{name}}. Lặp lại vào {{days}}, theo các ngày của nhóm.",
+    "timeLabel": "Giờ của {{name}}",
+    "done": "Xong",
+    "delete": "Xóa bữa ăn",
+    "kept": "Các thay đổi được giữ trong lịch này cho đến khi bạn lưu."
+  },
+  "points": {
+    "cleaning": {
+      "title": "Dọn theo lịch",
+      "job": "dọn theo lịch"
+    },
+    "deodorizing": {
+      "title": "Khử mùi định kỳ",
+      "job": "khử mùi định kỳ"
+    },
+    "other": {
+      "title": "Khác",
+      "job": "khác"
+    },
+    "timeLabel": "{{name}} giờ {{n}}",
+    "daysLabel": "Các ngày của mốc {{job}} {{n}}",
+    "type": "loại {{type}}",
+    "removeLabel": "Xóa mốc {{job}} {{n}}",
+    "empty": "Chưa đặt mốc giờ nào.",
+    "addLabel": "Thêm mốc {{job}}",
+    "add": "Thêm mốc giờ"
+  },
+  "ranges": {
+    "empty": "Chưa đặt. Không có gì ở đây giới hạn thiết bị; thêm một khoảng thời gian để thay đổi.",
+    "period": "khoảng {{n}}",
+    "periodIn": "{{entry}}, khoảng {{n}}",
+    "add": "Thêm khoảng thời gian",
+    "allDay": "Cả ngày",
+    "start": "Bắt đầu {{name}}",
+    "end": "Kết thúc {{name}}",
+    "nextDay": "hôm sau",
+    "pickTimesFor": "Chọn giờ cho {{name}}",
+    "makeAllDay": "Đặt cả ngày: {{name}}",
+    "pickTimes": "Chọn giờ",
+    "remove": "Xóa {{name}}"
+  },
+  "scheduleEditor": {
+    "savedSent": "Đã lưu và gửi tới thiết bị.",
+    "savedQueued": "Đã lưu. Thiết bị sẽ nhận ở lần thăm dò kế tiếp.",
+    "saving": "Đang lưu…",
+    "discard": "Bỏ"
+  },
+  "weekly": {
+    "add": "Thêm mục",
+    "enabled": "Bật",
+    "days": "Các ngày của mục {{n}}",
+    "remove": "Xóa mục {{n}}",
+    "entry": "Mục {{n}}"
+  }
+}

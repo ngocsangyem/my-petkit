@@ -9,14 +9,14 @@ struct BlockedAttemptsView: View {
 
     var body: some View {
         ScreenScroll {
-            PushedScreenHeader(title: "Blocked attempts",
-                               lede: "Recorded only while proxy mode forwards to PetKit's cloud.")
+            PushedScreenHeader(title: L10n.string("Blocked attempts"),
+                               lede: L10n.string("Recorded only while proxy mode forwards to PetKit's cloud."))
         } content: {
             LoadableBlock(state: model.blocked, retry: { Task { await model.loadBlocked() } }, content: { records in
                 if records.isEmpty {
                     Card {
-                        EmptyBlock(title: "Nothing blocked",
-                                   message: "The guards have not had to refuse anything the cloud sent.")
+                        EmptyBlock(title: L10n.string("Nothing blocked"),
+                                   message: L10n.string("The guards have not had to refuse anything the cloud sent."))
                     }
                 } else {
                     RowsCard {
@@ -38,7 +38,7 @@ struct BlockedAttemptsView: View {
             HStack(alignment: .firstTextBaseline) {
                 Text(SetupRules.ruleLabel(record.kind)).font(Theme.Font.bodyMedium).foregroundStyle(Theme.Color.text)
                 Spacer(minLength: 8)
-                Text(Date(timeIntervalSince1970: record.createdAt).formatted(.relative(presentation: .named)))
+                Text(Date(timeIntervalSince1970: record.createdAt).formatted(.relative(presentation: .named).locale(L10n.locale)))
                     .font(Theme.Font.small).foregroundStyle(Theme.Color.muted)
             }
             Text(metaLine(record)).font(Theme.Font.mono).foregroundStyle(Theme.Color.muted).lineLimit(2)

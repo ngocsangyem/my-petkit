@@ -46,7 +46,7 @@ enum PetWeightRules {
     /// The match is refused when another cat sits within twice the
     /// tolerance, so the sentence prints that real number.
     static func matchSentence(toleranceG: Int) -> String {
-        "Only when no other cat is within \(toleranceG * 2) g."
+        L10n.string("Only when no other cat is within \(toleranceG * 2) g.")
     }
 
     /// "updated 13:58" on the day it changed, "updated 28 Oct" before.
@@ -58,9 +58,9 @@ enum PetWeightRules {
         let formatter = DateFormatter()
         formatter.calendar = calendar
         formatter.timeZone = zone
-        formatter.locale = Locale(identifier: "en_GB")
+        formatter.locale = L10n.deviceClockLocale
         formatter.dateFormat = calendar.isDate(date, inSameDayAs: now) ? "HH:mm" : "d MMM"
-        return "updated " + formatter.string(from: date)
+        return L10n.string("updated \(formatter.string(from: date))")
     }
 
     /// How many cats a device would hold with `pet` on it or off it.
@@ -71,7 +71,8 @@ enum PetWeightRules {
 
     /// "2 of 15 cats on this box".
     static func capacityLine(_ count: Int, onThisBox: Bool = true) -> String {
-        "\(count) of \(maxPetsPerDevice) cats" + (onThisBox ? " on this box" : "")
+        onThisBox ? L10n.string("\(count) of \(maxPetsPerDevice) cats on this box")
+            : L10n.string("\(count) of \(maxPetsPerDevice) cats")
     }
 
     /// The sentence for a refused save: a full box is named, everything else
@@ -80,10 +81,10 @@ enum PetWeightRules {
         guard let api = APIError.from(error), api.code == "too_many_pets" else {
             return Loadable<Void>.message(for: error)
         }
-        let names = addedDevices.map { $0.name.isEmpty ? "Device \($0.id)" : $0.name }
+        let names = addedDevices.map { $0.name.isEmpty ? L10n.string("Device \($0.id)") : $0.name }
         guard !names.isEmpty else { return api.message }
         let list = names.joined(separator: ", ")
-        return "A box recognises up to \(maxPetsPerDevice) cats, and \(list) already has that many. "
-            + "Turn it off for another cat first."
+        return L10n.string("A box recognises up to \(maxPetsPerDevice) cats, and \(list) already has that many.")
+            + " " + L10n.string("Turn it off for another cat first.")
     }
 }

@@ -125,7 +125,7 @@ struct TimelineLatestCard: View {
                 }
                 .accessibilityLabel("Play the video")
             } else if TimelineFormat.isAssembling(entry.media) {
-                TimelinePhotoLabel(text: "Assembling video…")
+                TimelinePhotoLabel(text: L10n.string("Assembling video…"))
             }
         }
         .overlay(alignment: .bottomTrailing) {
@@ -211,7 +211,7 @@ struct TimelineRow: View {
                     .clipShape(RoundedRectangle(cornerRadius: 10))
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(playable.isEmpty ? "Open the event" : "Play the video")
+            .accessibilityLabel(playable.isEmpty ? L10n.string("Open the event") : L10n.string("Play the video"))
         }
     }
 }

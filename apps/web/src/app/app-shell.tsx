@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Icon } from '@/shared/ui/icons';
 import { Sheet, SheetClose, SheetContent, SheetTrigger } from '@/shared/ui/shadcn/sheet';
 import { Sidebar, SidebarInset, SidebarProvider } from '@/shared/ui/shadcn/sidebar';
@@ -36,6 +37,7 @@ const PHONE_BUTTON =
  */
 export function AppShell(props: AppShellProps) {
   const { navGroups, serverLine, account, liveState, serverLabel, badge, children } = props;
+  const { t } = useTranslation('app');
   const [menuOpen, setMenuOpen] = useState(false);
   const close = () => {
     setMenuOpen(false);
@@ -56,11 +58,11 @@ export function AppShell(props: AppShellProps) {
         className="absolute top-2 left-2 z-[200] -translate-y-[200%] rounded-full bg-background px-3 py-1.5 text-foreground focus:translate-y-0"
         href="#main"
       >
-        Skip to content
+        {t('shell.skipToContent')}
       </a>
       <aside
         className="sticky top-0 hidden h-svh flex-none min-[901px]:flex"
-        aria-label="Main menu"
+        aria-label={t('shell.mainMenu')}
       >
         <Sidebar
           collapsible="none"
@@ -77,7 +79,9 @@ export function AppShell(props: AppShellProps) {
           <header className="flex items-center justify-between px-4 pt-3 min-[901px]:hidden">
             <ShellBrand />
             <SheetTrigger
-              render={<button type="button" className={PHONE_BUTTON} aria-label="Open menu" />}
+              render={
+                <button type="button" className={PHONE_BUTTON} aria-label={t('shell.openMenu')} />
+              }
             >
               <Icon name="menu" size={20} strokeWidth={2} />
             </SheetTrigger>
@@ -85,13 +89,19 @@ export function AppShell(props: AppShellProps) {
           <SheetContent
             side="left"
             showCloseButton={false}
-            aria-label="Menu"
+            aria-label={t('shell.menu')}
             className="gap-[18px] overflow-y-auto bg-ground px-4 pt-3 pb-6 data-[side=left]:w-full data-[side=left]:rounded-none data-[side=left]:sm:max-w-none"
           >
             <div className="flex flex-none items-center justify-between">
               {head}
               <SheetClose
-                render={<button type="button" className={PHONE_BUTTON} aria-label="Close menu" />}
+                render={
+                  <button
+                    type="button"
+                    className={PHONE_BUTTON}
+                    aria-label={t('shell.closeMenu')}
+                  />
+                }
               >
                 <Icon name="close" size={20} strokeWidth={2} />
               </SheetClose>

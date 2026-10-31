@@ -20,15 +20,17 @@ struct BleImportSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text(outcome == nil ? "Import from PetKit's cloud?" : "Import finished")
+            Text(outcome == nil ? L10n.string("Import from PetKit's cloud?") : L10n.string("Import finished"))
                 .font(Theme.Font.section).accessibilityAddTraits(.isHeader)
             if let outcome {
                 results(outcome)
                 Button("Done") { dismiss() }.buttonStyle(.primary)
             } else {
-                WarningPanel(text: "The server will contact PetKit's cloud on the internet and sign the request "
-                             + "with the \(model.parent?.name ?? "parent device")'s secret, as if it were the device. "
-                             + "It asks once, now, and copies each accessory's MAC and pairing secret here.")
+                WarningPanel(text: L10n.string("""
+                    The server will contact PetKit's cloud on the internet and sign the request \
+                    with the \(model.parent?.name ?? L10n.string("parent device"))'s secret, as if it were the device. \
+                    It asks once, now, and copies each accessory's MAC and pairing secret here.
+                    """))
                 if let error {
                     Text(error).font(Theme.Font.small).foregroundStyle(Theme.Color.negative)
                         .fixedSize(horizontal: false, vertical: true)
@@ -57,8 +59,8 @@ struct BleImportSheet: View {
     private func results(_ outcome: BleImportOutcome) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text("\(outcome.imported)").font(Theme.Font.figure).monospacedDigit()
-                Text(outcome.imported == 1 ? "accessory paired or changed" : "accessories paired or changed")
+                Text(verbatim: "\(outcome.imported)").font(Theme.Font.figure).monospacedDigit()
+                Text(outcome.imported == 1 ? L10n.string("accessory paired or changed") : L10n.string("accessories paired or changed"))
                     .font(Theme.Font.body).foregroundStyle(Theme.Color.muted)
             }
             .accessibilityElement(children: .combine)

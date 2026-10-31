@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { errorMessage } from '@/shared/api/errors';
 import { todayLocal } from '@/shared/format/local-day';
 import { Card, EmptyBlock, ErrorBlock, PageHeader, Skeleton } from '@/shared/ui';
@@ -26,6 +27,7 @@ type ChangeTarget = TimelineSession & { id: number };
  * selected one with its media, and the household strip under them.
  */
 export function TimelinePage() {
+  const { t } = useTranslation('timeline');
   const [date, setDate] = useState(todayLocal);
   const [view, setView] = useState<ViewFilter>('all');
   const [device, setDevice] = useState('');
@@ -70,7 +72,7 @@ export function TimelinePage() {
   if (list.error) {
     events = (
       <ErrorBlock
-        message={`The timeline could not be loaded. ${errorMessage(list.error)}`}
+        message={t('loadFailed', { error: errorMessage(list.error) })}
         onRetry={() => void list.refetch()}
         retrying={list.isFetching}
       />
@@ -78,7 +80,7 @@ export function TimelinePage() {
   } else if (list.isPending) {
     events = <Skeleton height={240} />;
   } else if (!sessions.length) {
-    events = <EmptyBlock>No activity on this day.</EmptyBlock>;
+    events = <EmptyBlock>{t('noActivity')}</EmptyBlock>;
   } else {
     events = (
       <TimelineEventList
@@ -97,7 +99,7 @@ export function TimelinePage() {
   return (
     <div className="flex min-w-0 flex-col gap-5">
       <PageHeader
-        title="Timeline"
+        title={t('title')}
         finding={visitSummary(household.data, isToday) ?? undefined}
         actions={<TimelineDayNav date={date} onDate={narrow(setDate)} />}
       />
@@ -114,7 +116,7 @@ export function TimelinePage() {
         onDevice={narrow(setDevice)}
       />
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] items-start gap-5 max-[900px]:grid-cols-1">
-        <Card as="section" padding="none" className="px-4 py-2" aria-label="Events">
+        <Card as="section" padding="none" className="px-4 py-2" aria-label={t('events')}>
           {events}
         </Card>
         {current && (

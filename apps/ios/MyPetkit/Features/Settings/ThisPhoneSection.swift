@@ -6,6 +6,7 @@ import SwiftUI
 struct ThisPhoneSection: View {
     @Environment(ServerSession.self) private var session
     @Environment(AppModel.self) private var app
+    private let language = AppLanguageStore.shared
     let model: ServerModel
     @State private var pairing: PairingCode?
     @State private var pairingBusy = false
@@ -14,25 +15,31 @@ struct ThisPhoneSection: View {
     @State private var revoking: ServerModel.Token?
 
     var body: some View {
-        SectionHeader("This phone").accessibilityAddTraits(.isHeader)
+        SectionHeader(L10n.string("This phone")).accessibilityAddTraits(.isHeader)
         RowsCard {
-            valueRow("Address", value: address, mono: true)
+            valueRow(L10n.string("Address"), value: address, mono: true)
             RowRule()
-            valueRow("Certificate", value: certificate, mono: session.isPinned)
+            valueRow(L10n.string("Certificate"), value: certificate, mono: session.isPinned)
             RowRule()
-            valueRow("Paired", value: session.paired.pairedAt.formatted(.dateTime.day().month(.abbreviated).year()))
+            valueRow(L10n.string("Paired"),
+                     value: session.paired.pairedAt.formatted(.dateTime.day().month(.abbreviated).year().locale(L10n.locale)))
             RowRule()
-            valueRow("App version", value: "\(appVersion) · GPL-3.0")
+            valueRow(L10n.string("App version"), value: "\(appVersion) · GPL-3.0")
+            RowRule()
+            NavigationLink(value: ServerRoute.language) {
+                SettingsRow(title: L10n.string("Language"), value: language.language.nativeName)
+            }
+            .buttonStyle(.plain)
             RowRule()
             Button { Task { await startPairing() } } label: {
-                ServerNavRow(systemImage: "qrcode", title: "Pair another phone",
+                ServerNavRow(systemImage: "qrcode", title: L10n.string("Pair another phone"),
                              footnote: pairingError, needsStepUp: true)
             }
             .buttonStyle(.plain)
             .disabled(pairingBusy)
             RowRule()
             Button { confirmSignOut = true } label: {
-                SettingsRow(title: "Sign out of this server", isDestructive: true)
+                SettingsRow(title: L10n.string("Sign out of this server"), isDestructive: true)
             }
             .buttonStyle(.plain)
         }
@@ -45,7 +52,7 @@ struct ThisPhoneSection: View {
             Text("This phone's token is revoked. Pair again from the server to come back.")
         }
 
-        SectionHeader("Signed-in clients").accessibilityAddTraits(.isHeader)
+        SectionHeader(L10n.string("Signed-in clients")).accessibilityAddTraits(.isHeader)
         LoadableBlock(state: model.tokens, loadingHeight: 52, retry: { Task { await model.loadTokens() } }, content: { tokens in
             tokenList(tokens)
         })
@@ -76,7 +83,7 @@ struct ThisPhoneSection: View {
             }
         }
         .confirmationDialog(
-            "Revoke \(revoking?.name ?? "this client")?",
+            L10n.string("Revoke \(revoking?.name ?? L10n.string("this client"))?"),
             isPresented: Binding(get: { revoking != nil }, set: { if !$0 { revoking = nil } }),
             titleVisibility: .visible,
             presenting: revoking
@@ -92,9 +99,9 @@ struct ThisPhoneSection: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 8) {
                     Text(token.name).font(Theme.Font.body).foregroundStyle(Theme.Color.text).lineLimit(1)
-                    if token.id == model.currentTokenID { Pill(text: "This phone") }
+                    if token.id == model.currentTokenID { Pill(text: L10n.string("This phone")) }
                 }
-                Text("Last used \(token.lastUsed.formatted(.relative(presentation: .named)))")
+                Text("Last used \(token.lastUsed.formatted(.relative(presentation: .named).locale(L10n.locale)))")
                     .font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted)
             }
             Spacer(minLength: 8)
@@ -128,7 +135,7 @@ struct ThisPhoneSection: View {
     /// Only the short form of the pin is ever shown.
     private var certificate: String {
         if case .pinned(let pin) = session.paired.address.trust { return pin.shortHex }
-        return "System-trusted"
+        return L10n.string("System-trusted")
     }
 
     private var appVersion: String {

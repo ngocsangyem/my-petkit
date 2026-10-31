@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button, Icon, TimeInput } from '@/shared/ui';
 import { clockToMin, EVERY_DAY, minToClock } from '../schedule-clock';
 import { edited, nextId, type PointEntry } from '../schedule-model';
@@ -7,8 +8,8 @@ import { WeekdayBar } from './weekday-bar';
 // each section edits its own entries and the save sends the whole array back.
 // A section that rewrote only its own rows would delete the other job.
 const POINT_SECTIONS = [
-  { type: 0, name: 'Scheduled cleaning' },
-  { type: 1, name: 'Periodic deodorizing' },
+  { type: 0, name: 'cleaning' },
+  { type: 1, name: 'deodorizing' },
 ] as const;
 const KNOWN_TYPES = new Set<number>(POINT_SECTIONS.map(s => s.type));
 
@@ -19,9 +20,16 @@ interface PointsEditorProps {
 
 /** The litter box's timed jobs: single moments on chosen weekdays, grouped by job. */
 export function PointsEditor({ value, onChange }: PointsEditorProps) {
+  const { t } = useTranslation('devices');
   // A type nobody has seen is kept and shown, never a reason to delete somebody's entry.
-  const sections: { type: number | null; name: string }[] = [...POINT_SECTIONS];
-  if (value.some(e => !KNOWN_TYPES.has(e.type))) sections.push({ type: null, name: 'Other' });
+  const sections: { type: number | null; name: string; job: string }[] = POINT_SECTIONS.map(s => ({
+    type: s.type,
+    name: t(`points.${s.name}.title`),
+    job: t(`points.${s.name}.job`),
+  }));
+  if (value.some(e => !KNOWN_TYPES.has(e.type))) {
+    sections.push({ type: null, name: t('points.other.title'), job: t('points.other.job') });
+  }
 
   const change = (i: number, fn: (entry: PointEntry) => void) => {
     onChange(
@@ -55,7 +63,7 @@ export function PointsEditor({ value, onChange }: PointsEditorProps) {
                 >
                   <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
                     <TimeInput
-                      aria-label={`${section.name} time ${n + 1}`}
+                      aria-label={t('points.timeLabel', { name: section.name, n: n + 1 })}
                       value={minToClock(entry.time)}
                       onValueChange={v => {
                         const m = clockToMin(v);
@@ -66,7 +74,7 @@ export function PointsEditor({ value, onChange }: PointsEditorProps) {
                       }}
                     />
                     <WeekdayBar
-                      label={`Days of ${section.name.toLowerCase()} time ${n + 1}`}
+                      label={t('points.daysLabel', { job: section.job, n: n + 1 })}
                       days={entry.repeats}
                       onChange={days => {
                         change(i, e => {
@@ -75,14 +83,16 @@ export function PointsEditor({ value, onChange }: PointsEditorProps) {
                       }}
                     />
                     {section.type === null && (
-                      <span className="text-sm text-muted-foreground">type {entry.type}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {t('points.type', { type: entry.type })}
+                      </span>
                     )}
                   </div>
                   <div className="flex items-center gap-1">
                     <Button
                       variant="destructive"
                       size="small"
-                      aria-label={`Remove ${section.name.toLowerCase()} time ${n + 1}`}
+                      aria-label={t('points.removeLabel', { job: section.job, n: n + 1 })}
                       onClick={() => {
                         onChange(value.filter((_, j) => j !== i));
                       }}
@@ -93,13 +103,13 @@ export function PointsEditor({ value, onChange }: PointsEditorProps) {
                 </div>
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">No times set.</p>
+              <p className="text-sm text-muted-foreground">{t('points.empty')}</p>
             )}
             {section.type !== null && (
               <div>
                 <Button
                   variant="text"
-                  aria-label={`Add ${section.name.toLowerCase()} time`}
+                  aria-label={t('points.addLabel', { job: section.job })}
                   onClick={() => {
                     // The cloud hands these ids out of one pool shared by both job
                     // types; one above the highest held keeps that property.
@@ -111,7 +121,7 @@ export function PointsEditor({ value, onChange }: PointsEditorProps) {
                   }}
                 >
                   <Icon name="plus" size={14} />
-                  Add time
+                  {t('points.add')}
                 </Button>
               </div>
             )}

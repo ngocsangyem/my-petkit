@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { mediaUrl } from '@/shared/api/base-path';
 import { Button, CaptionPill, Icon } from '@/shared/ui';
 import { Dialog, DialogContent, DialogTitle } from '@/shared/ui/shadcn/dialog';
@@ -46,17 +47,18 @@ export function StillTiles({
   groups: readonly StillGroup[];
   onOpen: (paths: string[], title: string) => void;
 }) {
+  const { t } = useTranslation('timeline');
   if (!groups.length) return null;
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-sm text-muted-foreground">Photos</span>
+      <span className="text-sm text-muted-foreground">{t('stills.photos')}</span>
       <div className="grid grid-cols-4 gap-2 max-[900px]:grid-cols-3">
         {groups.map(g => (
           <button
             key={g.title}
             type="button"
             className="relative block aspect-square cursor-zoom-in overflow-hidden rounded-lg border-0 bg-ink p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring dark:bg-ground"
-            aria-label={`${g.title}, ${String(g.paths.length)} picture${g.paths.length === 1 ? '' : 's'}`}
+            aria-label={t('stills.tile', { title: g.title, count: g.paths.length })}
             onClick={() => {
               onOpen(g.paths, g.title);
             }}
@@ -90,6 +92,7 @@ function GalleryBody({
   title: string;
   onClose: () => void;
 }) {
+  const { t } = useTranslation(['timeline', 'common']);
   const [index, setIndex] = useState(0);
   const count = paths.length;
   const current = paths[Math.min(index, count - 1)];
@@ -102,7 +105,7 @@ function GalleryBody({
         <DialogTitle className="flex-1 text-base leading-normal font-semibold">{title}</DialogTitle>
         <Button
           size="small"
-          aria-label="Previous picture"
+          aria-label={t('stills.previous')}
           disabled={count < 2}
           onClick={() => {
             step(-1);
@@ -111,11 +114,11 @@ function GalleryBody({
           <Icon name="back" />
         </Button>
         <span className="text-muted-foreground">
-          {Math.min(index, count - 1) + 1} of {count}
+          {t('stills.position', { index: Math.min(index, count - 1) + 1, count })}
         </span>
         <Button
           size="small"
-          aria-label="Next picture"
+          aria-label={t('stills.next')}
           disabled={count < 2}
           onClick={() => {
             step(1);
@@ -124,7 +127,7 @@ function GalleryBody({
           <Icon name="forward" />
         </Button>
         <Button size="small" variant="text" onClick={onClose}>
-          Close
+          {t('common:close')}
         </Button>
       </div>
       {current && (

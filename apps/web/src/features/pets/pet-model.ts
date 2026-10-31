@@ -1,6 +1,7 @@
 // Pure rules of the Pets screen: what the server's JSON-in-a-string columns
 // hold, which devices are recognising, and whether a pet's photos reached a box.
 import type { components } from '@/api/schema';
+import { i18n } from '@/i18n';
 import type { DeviceStatus } from '@/shared/ui';
 
 export type Pet = components['schemas']['PetWithFaces'];
@@ -16,9 +17,12 @@ export type ImportResult = components['schemas']['PetImportResult'];
  */
 export const MAX_FACES = 6;
 
-/** "1 pet", "2 pets". */
-export function plural(n: number, word: string, many = `${word}s`): string {
-  return `${n} ${n === 1 ? word : many}`;
+/** What {@link countText} can count. */
+export type Countable = 'pet' | 'photo' | 'facePhoto' | 'pastEvent' | 'time';
+
+/** "1 pet", "2 pets", in the active language. */
+export function countText(what: Countable, count: number): string {
+  return i18n.t(`pets:count.${what}`, { count });
 }
 
 /**
@@ -76,11 +80,11 @@ export function petStatus(pet: Pet, devices: readonly DeviceDetail[]): PetStatus
     loaded: false,
     waiting: false,
   });
-  if (pet.faces.length === 0) return idle('No face photos yet');
+  if (pet.faces.length === 0) return idle(i18n.t('pets:status.noPhotos'));
   const assigned = parseIdList(pet.device_ids_json);
-  if (assigned.length === 0) return idle('No device assigned');
+  if (assigned.length === 0) return idle(i18n.t('pets:status.noDevice'));
   const recognising = devices.filter(d => assigned.includes(d.id) && isRecognising(d));
-  if (recognising.length === 0) return idle('Recognition is off on its devices');
+  if (recognising.length === 0) return idle(i18n.t('pets:status.recognitionOff'));
 
   const ours = pet.faces.map(f => String(f.id));
   const holding = recognising.filter(d => {
@@ -90,12 +94,19 @@ export function petStatus(pet: Pet, devices: readonly DeviceDetail[]): PetStatus
   if (holding.length > 0) {
     return {
       status: 'online',
-      label: `Loaded on ${holding.map(d => d.name || `#${d.id}`).join(', ')}`,
+      label: i18n.t('pets:status.loadedOn', {
+        devices: holding.map(d => d.name || `#${d.id}`).join(', '),
+      }),
       loaded: true,
       waiting: false,
     };
   }
-  return { status: 'polling', label: 'Waiting for device to fetch', loaded: false, waiting: true };
+  return {
+    status: 'polling',
+    label: i18n.t('pets:status.waiting'),
+    loaded: false,
+    waiting: true,
+  };
 }
 
 /** What a device's `discernPic` readback says about whose photos it is matching. */
@@ -130,26 +141,31 @@ export function importSummary(results: readonly ImportResult[]): string {
   const imported = results.filter(r => r.outcome === 'imported');
   // A box holds at most 15 cats; the server skips the rest rather than failing the import.
   const full = results.filter(r => r.outcome === 'device full').length;
-  const skipped = full
-    ? ` ${plural(full, 'pet')} not added: the box already recognises the most cats it can hold.`
-    : '';
+  const sentences: string[] = [];
   if (imported.length === 0) {
-    return full
-      ? `Nothing imported.${skipped}`
-      : 'Nothing new: PetKit lists no pets this device does not already have.';
+    if (!full) return i18n.t('pets:import.nothingNew');
+    sentences.push(i18n.t('pets:import.nothingImported'));
+  } else {
+    const photos = imported.reduce((n, r) => n + (r.faces_imported ?? 0), 0);
+    const offered = imported.reduce((n, r) => n + (r.faces_offered ?? 0), 0);
+    const named = imported.reduce((n, r) => n + (r.bound_events ?? 0), 0);
+    const values = {
+      pets: countText('pet', imported.length),
+      photos,
+      offered: countText('photo', offered),
+      named: countText('pastEvent', named),
+    };
+    sentences.push(i18n.t(named ? 'pets:import.importedNamed' : 'pets:import.imported', values));
   }
-  const photos = imported.reduce((n, r) => n + (r.faces_imported ?? 0), 0);
-  const offered = imported.reduce((n, r) => n + (r.faces_offered ?? 0), 0);
-  const named = imported.reduce((n, r) => n + (r.bound_events ?? 0), 0);
-  return (
-    `Imported ${plural(imported.length, 'pet')}, ${photos} of ${plural(offered, 'photo')}` +
-    (named ? `, named ${plural(named, 'past event')}.` : '.') +
-    skipped
-  );
+  if (full) sentences.push(i18n.t('pets:import.skipped', { count: full }));
+  return sentences.join(' ');
 }
 
 /** "Miso", "Miso and Mochi", "Miso, Mochi and Tofu". */
 export function listNames(names: readonly string[]): string {
   if (names.length <= 1) return names.join('');
-  return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1] ?? ''}`;
+  return i18n.t('pets:listJoin', {
+    rest: names.slice(0, -1).join(', '),
+    last: names[names.length - 1] ?? '',
+  });
 }

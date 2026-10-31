@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { mediaUrl } from '@/shared/api/base-path';
 import { CaptionPill, Segmented } from '@/shared/ui';
 import { AspectRatio } from '@/shared/ui/shadcn/aspect-ratio';
@@ -13,16 +14,15 @@ const VIEWER =
 const FILL = 'size-full object-contain';
 
 function AssemblingNote({ snapshot }: { snapshot: string | null }) {
+  const { t } = useTranslation('timeline');
   return (
     <AspectRatio ratio={16 / 9} className={VIEWER}>
       {snapshot && (
         <MediaImage path={snapshot} thumb className={`${FILL} absolute inset-0 opacity-35`} />
       )}
       <div className="relative flex flex-col items-center gap-1 text-on-dark dark:text-foreground">
-        <span>Assembling video…</span>
-        <span className="text-xs text-control dark:text-muted-foreground">
-          Chunks arrive during the cleaning that follows
-        </span>
+        <span>{t('media.assembling')}</span>
+        <span className="text-xs text-control dark:text-muted-foreground">{t('media.chunks')}</span>
       </div>
     </AspectRatio>
   );
@@ -43,6 +43,7 @@ function VideoPlayer({
   poster: string | null;
   caption: string | null;
 }) {
+  const { t } = useTranslation('timeline');
   const ref = useRef<HTMLVideoElement>(null);
   // The clip and the timelapse loop like a moving thumbnail; the full playback plays once.
   const loops = source.label !== 'Playback';
@@ -58,7 +59,7 @@ function VideoPlayer({
         playsInline
         preload="none"
         poster={poster ? mediaUrl(poster, true) : undefined}
-        aria-label={`${source.label} video`}
+        aria-label={t('media.video', { source: t(`media.source.${source.label}`) })}
       />
       <Caption text={caption} />
     </AspectRatio>
@@ -84,6 +85,7 @@ export function TimelineMediaViewer({
   onOpenStill,
   caption = null,
 }: TimelineMediaViewerProps) {
+  const { t } = useTranslation('timeline');
   const sources = videoSources(media);
   const [chosen, setChosen] = useState<VideoSource['label'] | null>(null);
   const source = sources.find(s => s.label === chosen) ?? sources[0];
@@ -96,9 +98,9 @@ export function TimelineMediaViewer({
       <button
         type="button"
         className="block w-full cursor-zoom-in rounded-lg border-0 bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-        aria-label="Open snapshot"
+        aria-label={t('media.openSnapshot')}
         onClick={() => {
-          onOpenStill([still], 'Snapshot');
+          onOpenStill([still], t('media.snapshot'));
         }}
       >
         <AspectRatio ratio={16 / 9} className={VIEWER}>
@@ -115,15 +117,15 @@ export function TimelineMediaViewer({
       {sources.length > 1 && (
         <div className="px-2">
           <Segmented
-            label="Video source"
-            options={sources.map(s => ({ id: s.label, label: s.label }))}
+            label={t('media.videoSource')}
+            options={sources.map(s => ({ id: s.label, label: t(`media.source.${s.label}`) }))}
             value={source.label}
             onChange={setChosen}
           />
         </div>
       )}
       {media.video_pending && !media.playback_url && (
-        <span className="px-3 text-sm text-muted-foreground">Full playback still processing…</span>
+        <span className="px-3 text-sm text-muted-foreground">{t('media.playbackProcessing')}</span>
       )}
     </div>
   );

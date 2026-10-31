@@ -15,18 +15,30 @@ enum ForceContinueRules {
     }
 
     /// The checklist rows and the reasons each one covers.
-    static let checks: [(title: String, reasons: Set<String>)] = [
-        ("No pet in the box", ["pet_in_box", "pet_entered", "presence_unknown"]),
-        ("No visit in progress", ["visit_open", "history_unavailable"]),
-        ("Lid closed, no fault", ["cover_open", "device_fault"]),
-    ]
+    static var checks: [(title: String, reasons: Set<String>)] {
+        [
+            (L10n.string("No pet in the box"), ["pet_in_box", "pet_entered", "presence_unknown"]),
+            (L10n.string("No visit in progress"), ["visit_open", "history_unavailable"]),
+            (L10n.string("Lid closed, no fault"), ["cover_open", "device_fault"]),
+        ]
+    }
 
-    static let question = "Continue cleaning now?"
-    static let detail = "The drum turns again. The box paused because it saw a cat near the entrance."
-    static let warning = "Look at the box before you continue. If a cat steps inside, the box stops again "
-        + "on its own; this app never overrides that."
-    static let footnote = "Asks for your password first. Refused while a cat is inside or the lid is open."
-    static let stepUpPurpose = "Continuing a paused clean turns the drum again while a cat may be near."
+    static var question: String { L10n.string("Continue cleaning now?") }
+    static var detail: String {
+        L10n.string("The drum turns again. The box paused because it saw a cat near the entrance.")
+    }
+    static var warning: String {
+        L10n.string("""
+            Look at the box before you continue. If a cat steps inside, the box stops again \
+            on its own; this app never overrides that.
+            """)
+    }
+    static var footnote: String {
+        L10n.string("Asks for your password first. Refused while a cat is inside or the lid is open.")
+    }
+    static var stepUpPurpose: String {
+        L10n.string("Continuing a paused clean turns the drum again while a cat may be near.")
+    }
 
     /// Whether the hero offers "Continue cleaning": only when the server says
     /// every guard passes. A box that is paused but refused shows nothing.

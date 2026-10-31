@@ -1,4 +1,5 @@
 import { type SyntheticEvent, useEffect, useId, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/shared/api/client';
 import { setCredentialHandler } from '@/shared/api/credential-prompt';
 import { errorMessage, toApiError } from '@/shared/api/errors';
@@ -20,6 +21,7 @@ import { Input } from '@/shared/ui/shadcn/input';
  * once the grant (five minutes) is in place.
  */
 export function StepUpDialog() {
+  const { t } = useTranslation(['auth', 'common']);
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
@@ -85,19 +87,17 @@ export function StepUpDialog() {
       >
         <DialogHeader className="items-start gap-2">
           <StepUpPill />
-          <DialogTitle>Confirm it&apos;s you to continue?</DialogTitle>
-          <DialogDescription>
-            This action can expose secrets or change devices. Enter your password again to continue.
-          </DialogDescription>
+          <DialogTitle>{t('stepUp.title')}</DialogTitle>
+          <DialogDescription>{t('stepUp.description')}</DialogDescription>
         </DialogHeader>
-        <Panel className="text-sm">Home server · {window.location.host}</Panel>
+        <Panel className="text-sm">{t('stepUp.homeServer', { host: window.location.host })}</Panel>
         <form className="grid gap-4" onSubmit={e => void confirm(e)} noValidate>
           <Field className="gap-1.5" data-invalid={error ? true : undefined}>
             <FieldLabel
               htmlFor={passwordId}
               className="ml-1 text-sm font-normal text-muted-foreground"
             >
-              Password
+              {t('stepUp.password')}
             </FieldLabel>
             <Input
               ref={passwordRef}
@@ -112,9 +112,7 @@ export function StepUpDialog() {
             />
             {error && <FieldError className="text-sm text-negative">{error}</FieldError>}
           </Field>
-          <p className="text-xs text-muted-foreground">
-            Valid for 5 minutes, in this browser only.
-          </p>
+          <p className="text-xs text-muted-foreground">{t('stepUp.validFor')}</p>
           <DialogFooter className="m-0 flex-row flex-wrap justify-end gap-2 rounded-none border-0 bg-transparent p-0">
             <Button
               variant="secondary"
@@ -123,10 +121,10 @@ export function StepUpDialog() {
                 finish(false);
               }}
             >
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button type="submit" variant="primary" disabled={busy || !password}>
-              Continue
+              {t('common:continue')}
             </Button>
           </DialogFooter>
         </form>

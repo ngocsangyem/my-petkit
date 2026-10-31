@@ -1,5 +1,6 @@
 import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/shadcn/toggle-group';
-import { formatDays, parseDays, WEEKDAYS } from '../schedule-clock';
+import { useTranslation } from 'react-i18next';
+import { formatDays, parseDays, WEEKDAYS, weekdayName } from '../schedule-clock';
 
 interface WeekdayBarProps {
   /** Comma list of weekday numbers, Sunday is 1. */
@@ -16,6 +17,8 @@ interface WeekdayBarProps {
  * border, never a fill.
  */
 export function WeekdayBar({ days, onChange, label }: WeekdayBarProps) {
+  // Subscribes so the day names follow a language change.
+  useTranslation('devices');
   const on = parseDays(days);
   return (
     <ToggleGroup
@@ -40,11 +43,11 @@ export function WeekdayBar({ days, onChange, label }: WeekdayBarProps) {
           key={name}
           value={name}
           role="checkbox"
-          aria-label={name}
+          aria-label={weekdayName(name)}
           aria-checked={on.has(i + 1)}
           className="px-2 text-muted-foreground aria-pressed:font-semibold aria-pressed:text-primary-foreground"
         >
-          {name}
+          {weekdayName(name)}
         </ToggleGroupItem>
       ))}
     </ToggleGroup>

@@ -6,6 +6,8 @@ options:
   deploymentTarget:
     iOS: "17.0"
   createIntermediateGroups: true
+  # English is the source language; vi comes from the String Catalogs.
+  developmentLanguage: en
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -50,6 +52,9 @@ targets:
         CURRENT_PROJECT_VERSION: "1"
         TARGETED_DEVICE_FAMILY: "1"
         CODE_SIGN_STYLE: Automatic
+        # Lets Xcode keep Localizable.xcstrings in sync with the code.
+        SWIFT_EMIT_LOC_STRINGS: YES
+        LOCALIZATION_PREFERS_STRING_CATALOGS: YES
   MyPetkitTests:
     type: bundle.unit-test
     platform: iOS
@@ -74,3 +79,6 @@ schemes:
         MyPetkitTests: [test]
     test:
       targets: [MyPetkitTests]
+      # Tests assert English; this overrides a language picked in the Simulator.
+      commandLineArguments:
+        "-appLanguage en": true

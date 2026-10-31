@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from 'cn';
 import {
   Table as ShadcnTable,
@@ -57,7 +58,7 @@ export interface TableProps<Row> {
   levelOf?: (row: Row) => LogLevel | undefined;
   /** Horizontal scroll threshold so columns never crush, e.g. 760. */
   minWidth?: number;
-  /** One sentence shown when there are no rows; the header stays. */
+  /** One sentence shown when there are no rows; the header stays. Has a translated default. */
   emptyText?: string;
   /** ARIA role override; `log` makes a live server log a log region. */
   role?: 'table' | 'log';
@@ -98,9 +99,10 @@ export function Table<Row>({
   selectedKey,
   levelOf,
   minWidth,
-  emptyText = 'Nothing to show yet.',
+  emptyText,
   role,
 }: TableProps<Row>) {
+  const { t } = useTranslation('ui');
   // Edged tables reserve a 2px left edge on every row so selection never shifts the layout.
   const edged = variant === 'log' || selectedKey !== undefined || levelOf !== undefined;
   const log = variant === 'log';
@@ -147,7 +149,7 @@ export function Table<Row>({
           {rows.length === 0 ? (
             <TableRow className="border-t border-b-0 border-rule hover:bg-transparent">
               <TableCell colSpan={columns.length} className="px-0 py-2 whitespace-normal">
-                <EmptyBlock>{emptyText}</EmptyBlock>
+                <EmptyBlock>{emptyText ?? t('tableEmpty')}</EmptyBlock>
               </TableCell>
             </TableRow>
           ) : (

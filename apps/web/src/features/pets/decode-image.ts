@@ -1,3 +1,5 @@
+import { i18n } from '@/i18n';
+
 /** A decoded photo the cropper can draw. */
 export type CropSource = ImageBitmap | HTMLImageElement;
 
@@ -22,7 +24,7 @@ export function releaseSource(source: CropSource | null): void {
  */
 export async function decodeImage(file: File): Promise<CropSource> {
   if (file.type && !file.type.startsWith('image/')) {
-    throw new Error('That file is not an image.');
+    throw new Error(i18n.t('pets:crop.notImage'));
   }
   if (typeof createImageBitmap === 'function') {
     try {
@@ -39,11 +41,11 @@ export async function decodeImage(file: File): Promise<CropSource> {
         resolve();
       });
       img.addEventListener('error', () => {
-        reject(new Error('Could not read that image.'));
+        reject(new Error(i18n.t('pets:crop.readFailed')));
       });
       img.src = url;
     });
-    if (!img.naturalWidth || !img.naturalHeight) throw new Error('Could not read that image.');
+    if (!img.naturalWidth || !img.naturalHeight) throw new Error(i18n.t('pets:crop.readFailed'));
     return img;
   } finally {
     URL.revokeObjectURL(url);
@@ -56,7 +58,7 @@ export function canvasToJpeg(canvas: HTMLCanvasElement, quality: number): Promis
     canvas.toBlob(
       blob => {
         if (blob) resolve(blob);
-        else reject(new Error('Could not encode the crop.'));
+        else reject(new Error(i18n.t('pets:crop.encodeFailed')));
       },
       'image/jpeg',
       quality,

@@ -1,3 +1,5 @@
+// First, so every string is in place before any screen module evaluates.
+import '@/i18n';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';

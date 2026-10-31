@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { usePersistedState } from '@/shared/ui';
 import { usePendingDraft } from '../hooks/pending-edits';
 import { DeferredFeedPanel } from './components/deferred-feed-panel';
@@ -25,6 +26,7 @@ export function DeviceSchedules({ device }: DeviceSchedulesProps) {
 }
 
 function SchedulesCard({ device }: DeviceSchedulesProps) {
+  const { t } = useTranslation('devices');
   const targets = device.schedules;
   // Working copies by target, so a background refresh of the device cannot
   // throw away rows somebody just added; the server value shows until an edit.
@@ -36,19 +38,24 @@ function SchedulesCard({ device }: DeviceSchedulesProps) {
   const [stored, setSelected] = usePersistedState(`devices.${device.id}.schedule-tab`, '');
   const feed = targets.find(t => t.kind === 'feed');
 
-  const tabs = targets.map(t => ({
-    id: t.target,
-    label: drafts.has(t.target) ? `${t.name} (unsaved)` : t.name,
+  const tabs = targets.map(s => ({
+    id: s.target,
+    label: drafts.has(s.target) ? t('schedules.unsaved', { name: s.name }) : s.name,
   }));
-  if (device.is_feeder) tabs.push({ id: ONE_OFF, label: 'One-off feeds' });
+  if (device.is_feeder) tabs.push({ id: ONE_OFF, label: t('automation.oneOffFeeds') });
   const first = tabs[0];
   if (!first) return null;
-  const selected = tabs.some(t => t.id === stored) ? stored : first.id;
-  const target = targets.find(t => t.target === selected);
+  const selected = tabs.some(tab => tab.id === stored) ? stored : first.id;
+  const target = targets.find(s => s.target === selected);
 
   return (
     <div className="flex min-w-0 flex-col gap-5">
-      <SegmentTabs label="Schedules" tabs={tabs} selected={selected} onSelect={setSelected}>
+      <SegmentTabs
+        label={t('automation.schedules')}
+        tabs={tabs}
+        selected={selected}
+        onSelect={setSelected}
+      >
         {target ? (
           <ScheduleEditor
             deviceId={device.id}
@@ -69,11 +76,7 @@ function SchedulesCard({ device }: DeviceSchedulesProps) {
           />
         )}
       </SegmentTabs>
-      <p className="text-xs text-muted-foreground">
-        The device runs these on its own clock, in its own time zone. Nothing is set for you: an
-        empty schedule does not restrict the device. A period that ends before it starts runs
-        through midnight, which is how PetKit's own app writes quiet hours.
-      </p>
+      <p className="text-xs text-muted-foreground">{t('schedules.note')}</p>
     </div>
   );
 }

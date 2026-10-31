@@ -1,0 +1,70 @@
+---
+title: Truy cập từ xa
+description: Vào bảng điều khiển và ứng dụng iOS từ ngoài mạng LAN mà không phải mở các port của thiết bị.
+---
+
+Device plane (các port 80, 443 và 9000) không bao giờ ra internet trong bất kỳ cách thiết lập nào dưới đây. Chỉ user plane thì có: bảng điều khiển và ứng dụng iOS trên `user_port` (mặc định 8443), nơi mọi yêu cầu đều cần mật khẩu quản trị hoặc token của client đã ghép nối.
+
+## Ứng dụng iOS quyết định tin máy chủ thế nào
+
+- Địa chỉ IP, hoặc tên `.local` hay tên một nhãn: ứng dụng ghim chứng chỉ tự ký nhận được từ mã QR ghép nối.
+- Mọi tên khác (`*.ts.net`, tên miền của bạn): iOS đòi một chứng chỉ mà hệ thống tin cậy trước khi ứng dụng kiểm tra được gì, nên tên đó phải phục vụ một chứng chỉ được tin cậy công khai.
+
+Dù trình duyệt dùng tên nào, máy chủ cũng phải chấp nhận tên đó. Địa chỉ IP và `localhost` luôn được chấp nhận. Hãy thêm tên host vào `user_hosts`.
+
+## Tailscale (khuyên dùng)
+
+Cài Tailscale trên máy đang chạy MyPetKit (với add-on thì dùng add-on Tailscale) và trên điện thoại hoặc laptop của bạn.
+
+<Tabs items={['Theo IP Tailscale', 'Theo tên MagicDNS']}>
+<Tab value="Theo IP Tailscale">
+
+Ghép nối ứng dụng iOS với `https://100.x.y.z:8443`. Đó là địa chỉ IP, nên ứng dụng ghim chứng chỉ tự ký y như trong LAN. Không cần cấu hình gì thêm. Trình duyệt hiện cảnh báo chứng chỉ, như trong LAN.
+
+</Tab>
+<Tab value="Theo tên MagicDNS">
+
+Bật chứng chỉ HTTPS trong bảng quản trị Tailscale, rồi đặt HTTPS proxy của Tailscale phía trước user plane:
+
+```bash
+tailscale serve --bg --https=443 https+insecure://127.0.0.1:8443
+```
+
+`tailscale serve` lấy chứng chỉ `<machine>.<tailnet>.ts.net` và chuyển tiếp tới user plane. Chặng `https+insecure` là cục bộ, và chứng chỉ của user plane là tự ký.
+
+Thêm `<machine>.<tailnet>.ts.net` vào `user_hosts`, và đặt `user_url` thành `https://<machine>.<tailnet>.ts.net` để mã QR ghép nối gửi điện thoại tới đó. Hãy dùng địa chỉ đó cả trong trình duyệt.
+
+Với add-on, add-on Tailscale chạy trong container riêng, nên hãy chuyển tiếp tới địa chỉ LAN của máy chủ và `user_port` đã ánh xạ thay vì `127.0.0.1`.
+
+</Tab>
+</Tabs>
+
+Hãy dùng `tailscale serve`, không dùng `tailscale funnel`. Funnel công bố bảng điều khiển ra toàn bộ internet.
+
+## Cloudflare Tunnel
+
+`cloudflared` tạo một kết nối đi ra tới Cloudflare, nơi phục vụ tên miền của bạn bằng chứng chỉ của chính nó và chuyển tiếp tới user plane:
+
+```yaml
+# ~/.cloudflared/config.yml
+tunnel: <tunnel id>
+credentials-file: /etc/cloudflared/<tunnel id>.json
+ingress:
+  - hostname: petkit.example.com
+    service: https://127.0.0.1:8443
+    originRequest:
+      noTLSVerify: true   # the user plane's certificate is self-signed
+  - service: http_status:404
+```
+
+Thêm `petkit.example.com` vào `user_hosts`, và đặt `user_url` thành `https://petkit.example.com`.
+
+Cloudflare kết thúc TLS, nên nó thấy mọi thứ đi qua: mật khẩu, token phiên, bản ghi camera và video trực tiếp. Hãy đặt Cloudflare Access phía trước nếu bạn muốn có đăng nhập thứ hai. WebRTC không đi qua tunnel vì cần đường UDP hoặc TCP trực tiếp; MSE và HLS thì có.
+
+## Giới hạn đăng nhập phía sau bất kỳ proxy nào
+
+Giới hạn đăng nhập thất bại đếm số lần thử theo địa chỉ client, và phía sau proxy mọi lần thử đều đến từ proxy. Năm lần sai mật khẩu từ bất kỳ ai tới được proxy sẽ khóa tất cả mọi người khỏi đăng nhập và ghép nối tới 15 phút. Các phiên và điện thoại đã ghép nối vẫn hoạt động. `tailscale serve` chỉ cho tailnet của bạn vào, nên điều này đáng lưu ý với tên miền công khai: Cloudflare Tunnel hoặc VPS.
+
+## Tên miền riêng trên VPS
+
+Xem [VPS với WireGuard](/vi/docs/install/vps).

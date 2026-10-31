@@ -75,12 +75,12 @@ enum SetupRules {
 
     static func regionName(_ preset: String) -> String {
         switch preset {
-        case "petkit-eu": "Europe"
-        case "petkit-americas": "Americas"
-        case "petkit-asia": "Asia"
-        case "petkit-cn": "China"
-        case "petkit-ru": "Russia"
-        case "": "Default"
+        case "petkit-eu": L10n.string("Europe")
+        case "petkit-americas": L10n.string("Americas")
+        case "petkit-asia": L10n.string("Asia")
+        case "petkit-cn": L10n.string("China")
+        case "petkit-ru": L10n.string("Russia")
+        case "": L10n.string("Default")
         default: preset
         }
     }
@@ -98,16 +98,16 @@ enum SetupRules {
     /// Blocking rule names as a person reads them.
     static func ruleLabel(_ kind: String?) -> String {
         switch kind {
-        case "rce": "Shell command"
-        case "ota": "Firmware push"
-        case "secret": "Credential swap"
-        case "log_upload": "Log upload"
-        case "server": "Server address"
-        case "mqtt": "Broker address"
-        case "oss_sts": "Media upload"
-        case "locale": "Timezone"
+        case "rce": L10n.string("Shell command")
+        case "ota": L10n.string("Firmware push")
+        case "secret": L10n.string("Credential swap")
+        case "log_upload": L10n.string("Log upload")
+        case "server": L10n.string("Server address")
+        case "mqtt": L10n.string("Broker address")
+        case "oss_sts": L10n.string("Media upload")
+        case "locale": L10n.string("Timezone")
         case .some(let other) where !other.isEmpty: other
-        default: "Unknown"
+        default: L10n.string("Unknown")
         }
     }
 }

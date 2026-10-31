@@ -59,9 +59,9 @@ enum PatcherRules {
 
     static func status(applied: Bool, greyed: Bool, unavailable: String) -> PatcherStatusWord {
         if !unavailable.isEmpty { return PatcherStatusWord(text: unavailable, tone: .warning) }
-        if greyed { return PatcherStatusWord(text: "Active · MQTT connected", tone: .positive) }
-        if applied { return PatcherStatusWord(text: "Applied", tone: .positive) }
-        return PatcherStatusWord(text: "Not applied", tone: .neutral)
+        if greyed { return PatcherStatusWord(text: L10n.string("Active · MQTT connected"), tone: .positive) }
+        if applied { return PatcherStatusWord(text: L10n.string("Applied"), tone: .positive) }
+        return PatcherStatusWord(text: L10n.string("Not applied"), tone: .neutral)
     }
 
     /// Remove what is in place, apply what is not.
@@ -73,10 +73,10 @@ enum PatcherRules {
     /// this only saves a step-up that would certainly be refused.
     static func applyBlocker(greyed: Bool, deviceIP: String) -> String? {
         if greyed {
-            return "The device already holds an MQTT session, which proves this patch is in place."
+            return L10n.string("The device already holds an MQTT session, which proves this patch is in place.")
         }
         if deviceIP.isEmpty {
-            return "The server does not know the device's address yet. Wait for it to send a state report."
+            return L10n.string("The server does not know the device's address yet. Wait for it to send a state report.")
         }
         return nil
     }
@@ -91,9 +91,11 @@ enum PatcherRules {
     static func undoText(for action: PatcherAction) -> String {
         switch action {
         case .apply:
-            "Remove undoes it: the patch files are deleted and the box reboots. With no patch left it boots stock firmware."
+            L10n.string(
+                "Remove undoes it: the patch files are deleted and the box reboots. With no patch left it boots stock firmware."
+            )
         case .remove:
-            "The box reboots without this patch. Other patches stay active; apply it again at any time."
+            L10n.string("The box reboots without this patch. Other patches stay active; apply it again at any time.")
         }
     }
 }

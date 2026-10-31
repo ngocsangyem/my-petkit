@@ -33,13 +33,16 @@ struct PatchersScreen: View {
     var body: some View {
         ScreenScroll {
             PushedScreenHeader(
-                title: "Device patches",
-                lede: "Patches change files on the device itself. Each one says what it changes and how to undo it."
+                title: L10n.string("Device patches"),
+                lede: L10n.string("Patches change files on the device itself. Each one says what it changes and how to undo it.")
             ) { StepUpPill() }
         } content: {
             LoadableBlock(state: model.rows, retry: { Task { await model.load() } }, content: { rows in
                 if rows.isEmpty {
-                    Card { EmptyBlock(title: "No devices", message: "Devices appear here once they talk to the server.") }
+                    Card {
+                        EmptyBlock(title: L10n.string("No devices"),
+                                   message: L10n.string("Devices appear here once they talk to the server."))
+                    }
                 }
                 ForEach(rows) { row in
                     deviceCard(row)

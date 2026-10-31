@@ -1,0 +1,49 @@
+---
+title: Cách hoạt động
+description: Một tiến trình giả làm đám mây PetKit, và những hệ quả kéo theo.
+---
+
+MyPetKit là một đám mây, không phải một client. Thiết bị được trỏ về nó thay vì máy chủ của PetKit, và tin rằng mình đang nói chuyện với đám mây thật. Vì vậy mọi câu trả lời phải có hình dạng giống câu trả lời của đám mây. Một câu trả lời sai không sinh ra thông báo lỗi: thiết bị sẽ khởi động lại, thử lại mãi, hoặc lặng lẽ ngừng làm gì đó.
+
+## Một tiến trình, bốn máy chủ
+
+Mọi thứ chạy trong một tiến trình Python duy nhất, bên trong một container:
+
+| Máy chủ | Port mặc định | Ai dùng |
+|---|---|---|
+| Device HTTP API | 80 | Thiết bị đăng ký tại đây và hỏi mọi thứ khác nằm ở đâu |
+| MQTT broker | 443 (TLS) | Thiết bị kết nối được sẽ chuyển sang MQTT để nhận lệnh nhanh hơn |
+| Media bucket | 9000 | Thiết bị tải ảnh và video lên đây, như khi tải lên Aliyun OSS |
+| User plane (bảng điều khiển và API) | 8443 (TLS) | Bạn, từ trình duyệt hoặc ứng dụng iOS |
+
+Ngoài ra còn một kết nối đi ra: một MQTT client công bố các thực thể lên broker của Home Assistant. Đừng nhầm hai broker này. Broker MyPetKit chạy là dành cho thiết bị. Broker mà nó kết nối tới thuộc về Home Assistant.
+
+```text
+PetKit device ──HTTP───► MyPetKit ──MQTT discovery──► Home Assistant
+              ──MQTT──►  embedded broker ──bridge──►
+              ──HTTPS─►  media bucket ──decrypt/remux──► /media/petkit
+```
+
+## Hai plane với quy tắc trái ngược
+
+Device plane (HTTP API, broker, bucket) nói chuyện với firmware. Firmware không có thông tin xác thực nào để đưa ra trước khi được đăng ký, nên các endpoint này không có xác thực và phải nằm trong mạng LAN hoặc VPN của bạn. Chúng không bao giờ được phép mở ra internet.
+
+User plane (bảng điều khiển, API của nó, ứng dụng iOS) mặc định từ chối. Mọi yêu cầu đều mang mật khẩu quản trị hoặc token của client đã ghép nối, và được phục vụ qua TLS ở mọi chế độ triển khai. Đây là phần duy nhất bạn có thể mở ra ngoài mạng của mình. Xem [Bảo mật](/vi/docs/configuration/security) để biết đầy đủ.
+
+## HTTP trước, rồi MQTT
+
+Một thiết bị nói HTTP hoặc MQTT, không bao giờ cả hai cùng lúc. Nó luôn bắt đầu bằng HTTP, vì đó là nơi nó đăng ký và biết địa chỉ của broker. Nếu sau đó nó tới được broker, nó kết nối và ngừng hẳn việc thăm dò heartbeat qua HTTP. Với T5, phía HTTP im lặng khoảng 40 giây sau khi kết nối MQTT mở. Từ đó, trạng thái, các sự kiện ghé và dọn, cùng số đo của các phụ kiện đều đến qua MQTT.
+
+MQTT mang lại độ trễ thấp. Lệnh gửi qua MQTT đến thiết bị ngay khi bạn bật điều khiển. Qua HTTP, lệnh phải xếp hàng chờ đến lần thăm dò heartbeat kế tiếp của thiết bị.
+
+Các mẫu có camera (T5, T6, T7, D4H, D4SH, W7H) chỉ tin chứng chỉ của đám mây PetKit cho MQTT, nên chúng ở lại HTTP cho đến khi áp dụng patcher [MQTT TLS Bypass](/vi/docs/firmware/patchers#mqtt-tls-bypass).
+
+## Media
+
+Thiết bị tải lên bucket với một key do nó tự chọn. MyPetKit giải mã từng tệp, remux, đặt cho nó một đường dẫn dễ đọc và ghi lại. Bản ghi đến thành nhiều đoạn, mỗi đoạn khoảng 4 giây, được ghép thành một tệp cho mỗi sự kiện. Các tệp nguồn chỉ bị xóa sau khi tệp đã ghép được kiểm tra.
+
+Video trực tiếp đi qua [go2rtc](https://github.com/AlexxIT/go2rtc) đi kèm, vì thiết bị từ chối kết nối thứ hai trong vài giây và vì Home Assistant bị treo khi đọc trực tiếp luồng FLV của thiết bị. Xem [Video trực tiếp và đàm thoại](/vi/docs/guides/live-video-and-talk).
+
+## Chế độ proxy
+
+Khi bật chế độ proxy (bảng điều khiển, Cài đặt), MyPetKit vẫn tự trả lời mọi yêu cầu trước, rồi cũng chuyển tiếp yêu cầu đó tới PetKit và trả về phản hồi của PetKit nếu dùng được và qua bộ lọc che dữ liệu. Nếu PetKit không truy cập được, chậm, hoặc từ chối thiết bị, câu trả lời cục bộ được trả về. Chế độ proxy không bao giờ đưa cho thiết bị thông tin xác thực, địa chỉ máy chủ hay bản cập nhật firmware từ upstream. Đây là công cụ gỡ lỗi để ghi lại những gì đám mây thật nói, và cũng là cách thêm hỗ trợ cho các mẫu mới.

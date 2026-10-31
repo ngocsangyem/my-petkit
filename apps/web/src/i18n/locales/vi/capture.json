@@ -1,0 +1,56 @@
+{
+  "title": "Ghi lưu lượng",
+  "findingOn": "Đang ghi. {{files}} trên máy chủ, {{size}}.",
+  "findingOff": "Đã tắt ghi. {{files}} trên máy chủ, {{size}}.",
+  "fileCount_one": "{{count}} tệp",
+  "fileCount_other": "{{count}} tệp",
+  "warning": "Mọi bản ghi đều nhạy cảm. Đó là bản ghi nguyên vẹn những gì thiết bị của bạn gửi và nhận, không lọc gì: có thể có tên Wi-Fi, địa chỉ mạng LAN, số sê-ri thiết bị và khóa ký của nó, và ở chế độ proxy là các trao đổi với PetKit, kể cả thông tin đăng nhập tài khoản của bạn. Hãy đọc trước khi gửi cho bất kỳ ai. Tệp đã xóa không thể khôi phục.",
+  "listFailed": "Không liệt kê được các tệp ghi: {{error}}",
+  "record": {
+    "title": "Ghi lưu lượng",
+    "on": "Đang bật. Mọi yêu cầu của thiết bị và khung tin của broker đều được ghi ngay khi diễn ra.",
+    "off": "Đang tắt. Đây là một thiết lập trong Cài đặt, và khi bật sẽ yêu cầu mật khẩu.",
+    "settings": "Thiết lập ghi",
+    "start": "Bắt đầu ghi"
+  },
+  "downloadFailed": "Tải xuống thất bại: {{error}}",
+  "deleted": "Đã xóa {{name}}",
+  "deleteFailed": "Không xóa được {{name}}: {{error}}",
+  "confirm": {
+    "title": "Xóa {{name}}?",
+    "delete": "Xóa",
+    "facts_one": "{{size}}, {{count}} dòng. ",
+    "facts_other": "{{size}}, {{count}} dòng. ",
+    "body": "Không thể hoàn tác: bản ghi thường là dữ liệu duy nhất về sự việc cần điều tra."
+  },
+  "files": {
+    "title": "Tệp",
+    "label": "Tệp ghi lưu lượng",
+    "emptyOff": "Chưa bật ghi lưu lượng. Bật tùy chọn Ghi lưu lượng trong Cài đặt để bắt đầu ghi; thay đổi có hiệu lực ngay, không cần khởi động lại.",
+    "empty": "Chưa có tệp nào. Lưu lượng sẽ xuất hiện khi có thiết bị liên lạc với ứng dụng này.",
+    "file": "Tệp",
+    "lines": "Số dòng",
+    "size": "Kích thước",
+    "stored": "Lưu ở",
+    "storedBody": "Chỉ trên máy chủ này, trong <path>{{dir}}</path>. Không có gì được tải lên.",
+    "kept": "Thời hạn",
+    "keptBody": "Không có gì tự xóa các tệp này: bản ghi là có chủ đích, nên được giữ nguyên cho đến khi bạn xóa. Tổng dung lượng: {{size}}.",
+    "delete": "Xóa",
+    "deleteBody": "Xóa tệp vĩnh viễn. Không có thùng rác.",
+    "sharing": "Chia sẻ",
+    "sharingBody": "Hãy đọc phần cuối trước. Chỉ đính kèm đúng một tệp trả lời được câu hỏi."
+  },
+  "tail": {
+    "pick": "Chọn một tệp để xem các bản ghi cuối.",
+    "caption": "Phần cuối của tệp · thông tin bí mật chỉ được che trong chế độ xem này",
+    "captionCount_one": "{{count}} dòng cuối trong {{total}} dòng · thông tin bí mật chỉ được che trong chế độ xem này",
+    "captionCount_other": "{{count}} dòng cuối trong {{total}} dòng · thông tin bí mật chỉ được che trong chế độ xem này",
+    "readFailed": "Không đọc được {{name}}: {{error}}",
+    "recordsLabel": "Các bản ghi cuối của {{name}}",
+    "empty": "Tệp này trống.",
+    "title": "Các dòng cuối của <name>{{name}}</name>",
+    "downloading": "Đang tải xuống…",
+    "download": "Tải xuống",
+    "delete": "Xóa"
+  }
+}

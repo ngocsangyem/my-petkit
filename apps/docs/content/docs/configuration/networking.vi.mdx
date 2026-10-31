@@ -1,0 +1,28 @@
+---
+title: Trỏ thiết bị về máy chủ
+description: Cấp phát qua Bluetooth dùng được cho mọi mẫu. Chuyển hướng DNS chỉ dùng được cho các mẫu ESP32.
+---
+
+Thiết bị phải tới được máy chủ tại địa chỉ trong `api_url`. Có hai cách để làm điều đó.
+
+## Cấp phát qua Bluetooth (mọi mẫu có Wi-Fi)
+
+Màn hình **Thêm thiết bị** của bảng điều khiển gửi cho thiết bị thông tin Wi-Fi, một URL máy chủ tùy chỉnh (`apiServers`) và múi giờ qua Bluetooth. Đây là cách đáng tin cậy nhất và là cách duy nhất cho các mẫu camera chạy Linux, vốn bắt buộc dùng HTTPS nên bỏ qua việc ghi đè DNS. Các bước nằm trong [Thêm thiết bị](/vi/docs/guides/add-a-device).
+
+## Chuyển hướng DNS (chỉ các mẫu ESP32)
+
+Các mẫu ESP32 (T3, T4, D3, D4, D4S, Feeder, Feeder Mini) nói HTTP thuần, nên bạn có thể chuyển hướng chúng bằng cách trả lời các tên host của PetKit bằng IP máy chủ của bạn trong máy chủ DNS.
+
+Không có một tên duy nhất để chuyển hướng. Giống các mẫu Linux, những thiết bị này được cho biết máy chủ API trong lúc thiết lập qua Bluetooth, nên tên đó là máy chủ khu vực nào của PetKit mà ứng dụng PetKit đã đưa cho thiết bị. Hãy tìm nó trong nhật ký truy vấn của máy chủ DNS, hoặc chuyển hướng mọi tên miền PetKit.
+
+Thiết bị gọi port 80 và không thể bảo nó khác đi, nên API phải truy cập được ở port 80.
+
+Các máy lọc nước và bình xịt chỉ có Bluetooth không bao giờ nằm trong danh sách này. Chúng không có mạng riêng nên không có tên nào để chuyển hướng. Chúng tới máy chủ thông qua một thiết bị cha.
+
+### Chế độ proxy trên mạng có chuyển hướng
+
+Chuyển hướng DNS cũng chuyển hướng luôn tên của chính MyPetKit, nên chế độ proxy sẽ tự gọi lại chính nó thay vì tới PetKit. Máy chủ nhận ra điều này và ngừng chuyển tiếp thay vì gắn nhãn câu trả lời của chính nó là của PetKit. Để dùng chế độ proxy trên mạng như vậy, hãy đặt **Trình phân giải upstream** (Upstream resolver) trong Cài đặt thành một resolver vẫn trả lời đúng sự thật. Thiết lập đó chỉ được dùng để tìm máy chủ upstream.
+
+## Các mẫu Linux cần bản vá cho MQTT
+
+T5, T6, T7, D4H, D4SH và W7H biên dịch sẵn certificate authority của PetKit vào binary `ctrl`, nên chúng không tin bất kỳ MQTT broker nào khác. Không có bản vá, chúng ở lại HTTP, vẫn chạy nhưng chỉ nhận lệnh ở heartbeat kế tiếp. Patcher [MQTT TLS Bypass](/vi/docs/firmware/patchers#mqtt-tls-bypass) giải quyết việc này.

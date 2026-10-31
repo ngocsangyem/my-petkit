@@ -29,13 +29,13 @@ struct ServerSetupScreen: View {
 
     var body: some View {
         ScreenScroll {
-            PushedScreenHeader(title: "Cloud guards and data",
-                               lede: "What PetKit's cloud may do through this server, and how long your recordings stay.")
+            PushedScreenHeader(title: L10n.string("Cloud guards and data"),
+                               lede: L10n.string("What PetKit's cloud may do through this server, and how long your recordings stay."))
         } content: {
             LoadableBlock(state: model.settings, loadingHeight: 160,
                           retry: { Task { await model.loadSettings() } }, content: { settings in
                 if !settings.writable {
-                    WarningPanel(text: "This server has no live settings file, so these settings are read-only.")
+                    WarningPanel(text: L10n.string("This server has no live settings file, so these settings are read-only."))
                 }
                 if let error = model.settingError {
                     Text(error).font(Theme.Font.small).foregroundStyle(Theme.Color.negative)
@@ -73,8 +73,8 @@ struct ServerSetupScreen: View {
 
     @ViewBuilder private func guardsSection(_ settings: ServerSetupModel.Settings) -> some View {
         let on = BoolSetting.guards.filter { settings.values[keyPath: $0.keyPath] }.count
-        SectionHeader(title: "Cloud guards") {
-            Text(on == BoolSetting.guards.count ? "All on" : "\(on) of \(BoolSetting.guards.count) on")
+        SectionHeader(title: L10n.string("Cloud guards")) {
+            Text(on == BoolSetting.guards.count ? L10n.string("All on") : L10n.string("\(on) of \(BoolSetting.guards.count) on"))
                 .font(Theme.Font.small)
                 .foregroundStyle(on == BoolSetting.guards.count ? Theme.Color.positive : Theme.Color.negative)
         }
@@ -86,7 +86,7 @@ struct ServerSetupScreen: View {
                                  isOn: binding(setting), isBusy: busy(settings))
             }
         }
-        WarningPanel(text: "Turning a guard off asks for your password, and applies only while proxy mode is on.")
+        WarningPanel(text: L10n.string("Turning a guard off asks for your password, and applies only while proxy mode is on."))
     }
 
     private func binding(_ setting: BoolSetting) -> Binding<Bool> {
@@ -109,22 +109,22 @@ private struct ProxySection: View {
     @Binding var editingText: TextSetting?
 
     var body: some View {
-        SectionHeader("Proxy mode").accessibilityAddTraits(.isHeader)
+        SectionHeader(L10n.string("Proxy mode")).accessibilityAddTraits(.isHeader)
         RowsCard {
             toggle(.proxyMode)
             RowRule()
             regionMenu
             RowRule()
-            textRow(.dns, value: settings.values.proxyDns.isEmpty ? "System" : settings.values.proxyDns)
+            textRow(.dns, value: settings.values.proxyDns.isEmpty ? L10n.string("System") : settings.values.proxyDns)
             RowRule()
-            textRow(.only, value: settings.values.proxyOnly.isEmpty ? "Everything" : settings.values.proxyOnly)
+            textRow(.only, value: settings.values.proxyOnly.isEmpty ? L10n.string("Everything") : settings.values.proxyOnly)
             ForEach(BoolSetting.proxyOptions) { setting in
                 RowRule()
                 toggle(setting)
             }
             RowRule()
             NavigationLink { BlockedAttemptsView(model: model) } label: {
-                SettingsRow(title: "Blocked attempts", value: blockedText)
+                SettingsRow(title: L10n.string("Blocked attempts"), value: blockedText)
             }
             .buttonStyle(.plain)
         }
@@ -133,8 +133,8 @@ private struct ProxySection: View {
     private var blockedText: String {
         switch model.blocked {
         case .loading: "—"
-        case .failed: "Not loaded"
-        case .loaded(let records): "\(SetupRules.blockedThisWeek(records.map(\.createdAt))) this week"
+        case .failed: L10n.string("Not loaded")
+        case .loaded(let records): L10n.string("\(SetupRules.blockedThisWeek(records.map(\.createdAt))) this week")
         }
     }
 
@@ -152,13 +152,14 @@ private struct ProxySection: View {
     private var regionMenu: some View {
         Menu {
             ForEach(settings.presets, id: \.self) { preset in
-                Button(SetupRules.regionName(preset) + (preset == settings.defaultPreset ? " (default)" : "")) {
+                Button(preset == settings.defaultPreset
+                       ? L10n.string("\(SetupRules.regionName(preset)) (default)") : SetupRules.regionName(preset)) {
                     Task { await model.set(.upstream, to: preset) }
                 }
             }
             Button("Custom URL…") { editingText = .upstream }
         } label: {
-            SettingsRow(title: "Region",
+            SettingsRow(title: L10n.string("Region"),
                         value: SetupRules.upstreamLabel(settings.values.proxyUpstream,
                                                         defaultPreset: settings.defaultPreset))
         }

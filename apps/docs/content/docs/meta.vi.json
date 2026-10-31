@@ -1,0 +1,18 @@
+{
+  "title": "MyPetKit",
+  "pages": [
+    "index",
+    "how-it-works",
+    "supported-devices",
+    "---Thiết lập---",
+    "install",
+    "configuration",
+    "---Sử dụng---",
+    "guides",
+    "---Firmware---",
+    "firmware",
+    "devices",
+    "---Dự án---",
+    "contributing"
+  ]
+}

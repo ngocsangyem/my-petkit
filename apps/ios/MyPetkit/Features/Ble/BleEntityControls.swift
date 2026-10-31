@@ -36,7 +36,7 @@ struct BleEntityControlsCard: View {
             Button("Cancel", role: .cancel) { editing = nil }
             Button("Continue") { submitNumber() }
         } message: {
-            Text(editing.map { "Enter a value\($0.unit.map { " in \($0)" } ?? "") (\(range($0)))." } ?? "")
+            Text(editing.map(prompt) ?? "")
         }
     }
 
@@ -47,7 +47,8 @@ struct BleEntityControlsCard: View {
                 get: { item.isOn ?? false },
                 set: { on in
                     onChange(BleEntityChange(item: item, value: on ? "ON" : "OFF",
-                                             description: "\(item.name) turns \(on ? "on" : "off")."))
+                                             description: on ? L10n.string("\(item.name) turns on.")
+                                                 : L10n.string("\(item.name) turns off.")))
                 }
             )) {
                 Text(item.name).font(Theme.Font.body)
@@ -59,7 +60,7 @@ struct BleEntityControlsCard: View {
                 ForEach(item.options, id: \.self) { option in
                     Button(option) {
                         onChange(BleEntityChange(item: item, value: option,
-                                                 description: "\(item.name) changes to \(option)."))
+                                                 description: L10n.string("\(item.name) changes to \(option).")))
                     }
                 }
             } label: {
@@ -85,10 +86,15 @@ struct BleEntityControlsCard: View {
     private func range(_ item: BleEntityItem) -> String {
         switch (item.min, item.max) {
         case let (low?, high?): "\(BleEntityItem.text(low) ?? "")–\(BleEntityItem.text(high) ?? "")"
-        case let (low?, nil): "at least \(BleEntityItem.text(low) ?? "")"
-        case let (nil, high?): "at most \(BleEntityItem.text(high) ?? "")"
-        default: "a number"
+        case let (low?, nil): L10n.string("at least \(BleEntityItem.text(low) ?? "")")
+        case let (nil, high?): L10n.string("at most \(BleEntityItem.text(high) ?? "")")
+        default: L10n.string("a number")
         }
+    }
+
+    private func prompt(_ item: BleEntityItem) -> String {
+        guard let unit = item.unit else { return L10n.string("Enter a value (\(range(item))).") }
+        return L10n.string("Enter a value in \(unit) (\(range(item))).")
     }
 
     private func submitNumber() {
@@ -99,7 +105,7 @@ struct BleEntityControlsCard: View {
         // own words, so an unparsable entry is still sent rather than guessed at.
         guard !text.isEmpty else { return }
         let unit = item.unit.map { " \($0)" } ?? ""
-        onChange(BleEntityChange(item: item, value: text, description: "\(item.name) changes to \(text)\(unit)."))
+        onChange(BleEntityChange(item: item, value: text, description: L10n.string("\(item.name) changes to \(text + unit).")))
     }
 }
 

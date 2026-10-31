@@ -1,7 +1,7 @@
-import { docsLlms } from '@/lib/source';
+import { llmsIndexResponse } from '@/lib/docs-route-handlers';
 
 export const revalidate = false;
 
-export async function GET() {
-  return new Response(await docsLlms.index());
+export function GET() {
+  return llmsIndexResponse('en');
 }

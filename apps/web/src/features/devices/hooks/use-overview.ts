@@ -1,5 +1,6 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import { type ReactNode, useMemo } from 'react';
+import { i18n, useLocale } from '@/i18n';
 import type { DeviceStatus } from '@/shared/ui';
 import type {
   BleAccessory,
@@ -66,6 +67,8 @@ export interface Overview {
 /** Everything the overview derives from the device list, details, sessions and pets. */
 export function useOverview(input: OverviewInput): Overview {
   const { devices, accessories, detailQueries, sessions, pets, nowSeconds, avatarFor } = input;
+  // Rows and lanes carry translated, locale-formatted text: a language change rebuilds them.
+  const locale = useLocale();
   return useMemo(() => {
     const detailById = new Map<number, UseQueryResult<DeviceDetail>>();
     const details = new Map<number, DeviceDetail>();
@@ -138,7 +141,8 @@ export function useOverview(input: OverviewInput): Overview {
         })
       : null;
     return { detailById, rows, strip, homeZone, visitsByDevice };
-  }, [devices, accessories, detailQueries, sessions, pets, nowSeconds, avatarFor]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `locale` is read through i18n inside
+  }, [devices, accessories, detailQueries, sessions, pets, nowSeconds, avatarFor, locale]);
 }
 
 function accessoryRow(a: BleAccessory): DeviceRow {
@@ -151,13 +155,18 @@ function accessoryRow(a: BleAccessory): DeviceRow {
     parentName: a.parent_name || null,
     entities: a.entities,
     model: a.parent_name
-      ? `${a.ble_type.toUpperCase()} · relayed by ${a.parent_name}`
+      ? i18n.t('devices:overview.relayedBy', {
+          type: a.ble_type.toUpperCase(),
+          parent: a.parent_name,
+        })
       : a.ble_type.toUpperCase(),
     id: String(a.petkit_id),
     status: accessoryStatus(a),
     now: null,
     attention:
-      !a.link_with || !a.parent_name ? { text: 'No parent relays for it', tone: 'warning' } : null,
+      !a.link_with || !a.parent_name
+        ? { text: i18n.t('devices:overview.noParent'), tone: 'warning' }
+        : null,
     lastReport: epochSeconds(a.last_seen),
   };
 }

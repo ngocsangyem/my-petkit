@@ -18,11 +18,13 @@
     "class-variance-authority": "0.7.1",
     "cn": "0.5.0",
     "hls.js": "^1.7.3",
+    "i18next": "26.5.12",
     "lucide-react": "1.62.0",
     "openapi-fetch": "^0.17.0",
     "qrcode": "^1.5.4",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "react-i18next": "17.1.9",
     "react-router": "^8.5.1"
   },
   "devDependencies": {

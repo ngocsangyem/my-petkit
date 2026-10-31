@@ -23,17 +23,17 @@ struct HoldToTalkButton: View {
             .gesture(DragGesture(minimumDistance: 0).updating($pressing) { _, pressing, _ in pressing = true })
             .onChange(of: pressing) { _, down in down ? press() : release() }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(active ? "Stop talking" : "Hold to talk")
+            .accessibilityLabel(active ? L10n.string("Stop talking") : L10n.string("Hold to talk"))
             .accessibilityAddTraits(.isButton)
             .accessibilityAction { active ? release() : press() }
     }
 
     private var title: String {
         switch state {
-        case .connecting: "Connecting…"
-        case .talking: "Talking. Release to stop"
-        case .stopping: "Finishing…"
-        case .idle, .failed: "Hold to talk"
+        case .connecting: L10n.string("Connecting…")
+        case .talking: L10n.string("Talking. Release to stop")
+        case .stopping: L10n.string("Finishing…")
+        case .idle, .failed: L10n.string("Hold to talk")
         }
     }
 }

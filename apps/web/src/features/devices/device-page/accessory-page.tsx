@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { relativeTime } from '@/shared/format/format';
 import {
@@ -24,6 +25,7 @@ import type { OpenState, SetOpen } from '../hooks/use-open-state';
 import { accessoryStatus } from '../lib/device-status';
 import { deviceKeyOf, useDeviceLinks } from '../lib/device-view';
 import { epochSeconds } from '../lib/timestamps';
+import { AccessoryToolsCard } from './accessory-tools-card';
 
 const REFRESH = [deviceKeys.ble, deviceKeys.list];
 
@@ -44,6 +46,7 @@ export function AccessoryPage({
   isOpen: OpenState;
   setOpen: SetOpen;
 }) {
+  const { t } = useTranslation('devices');
   const links = useDeviceLinks();
   const reader = useDeviceCall();
   const controls = useDeviceCall();
@@ -51,7 +54,7 @@ export function AccessoryPage({
   const type = a.ble_type.toUpperCase();
   const runner = useCommands({
     target: type,
-    route: 'It travels over Bluetooth through its parent, which must be on MQTT.',
+    route: t('accessory.route'),
     refresh: REFRESH,
   });
   const sensors = a.entities.filter(
@@ -67,7 +70,7 @@ export function AccessoryPage({
     <>
       <PageHeader
         title={a.name}
-        back={{ to: links.home, label: 'Home' }}
+        back={{ to: links.home, label: t('home.title') }}
         status={
           <StatusWord tone={TONE[status.status] ?? 'muted'} dot>
             {status.label}
@@ -76,13 +79,14 @@ export function AccessoryPage({
         }
         finding={
           a.parent_name ? (
-            <>
-              Relayed by the{' '}
-              <Link to={links.device(deviceKeyOf(a.link_with))}>{a.parent_name}</Link> over
-              Bluetooth.
-            </>
+            <Trans
+              t={t}
+              i18nKey="accessory.relayedBy"
+              values={{ parent: a.parent_name }}
+              components={{ link: <Link to={links.device(deviceKeyOf(a.link_with))} /> }}
+            />
           ) : (
-            <StatusWord tone="warning">No device relays for it.</StatusWord>
+            <StatusWord tone="warning">{t('accessory.noRelay')}</StatusWord>
           )
         }
       />
@@ -90,7 +94,7 @@ export function AccessoryPage({
         <div className="flex min-w-0 flex-col gap-5">
           <Card
             as="section"
-            aria-label={`${a.name} at a glance`}
+            aria-label={t('atAGlance', { name: a.name })}
             padding="none"
             className="flex flex-col gap-4 px-2 pt-2 pb-5"
           >
@@ -103,21 +107,26 @@ export function AccessoryPage({
                 <span className="text-xs text-muted-foreground">{type} · Bluetooth</span>
               </Panel>
               <FigureSplit
-                label={`${a.name} facts`}
+                label={t('accessory.factsLabel', { name: a.name })}
                 cells={[
                   {
                     id: 'last',
-                    label: 'Last reading',
+                    label: t('accessory.lastReading'),
                     value: last ? relativeTime(last) : null,
-                    missingText: 'Never',
+                    missingText: t('accessory.neverRead'),
                   },
-                  { id: 'interval', label: 'Poll interval', value: a.interval, unit: 's' },
-                  { id: 'scan', label: 'Scan type', value: a.wire_entry.type },
+                  {
+                    id: 'interval',
+                    label: t('accessory.interval'),
+                    value: a.interval,
+                    unit: 's',
+                  },
+                  { id: 'scan', label: t('pair.scanType'), value: a.wire_entry.type },
                   {
                     id: 'serial',
-                    label: 'Serial',
+                    label: t('facts.serial'),
                     value: a.serial_number || null,
-                    missingText: 'Not set',
+                    missingText: t('accessory.notSet'),
                   },
                 ]}
               />
@@ -125,11 +134,11 @@ export function AccessoryPage({
             <div className="px-3">
               <CommandList
                 runner={runner}
-                note="Read now asks the relay to open a Bluetooth session; otherwise that happens on a timer up to the poll interval away. Each command asks before it runs."
+                note={t('accessory.readNote')}
                 extra={
                   <QuickAction
                     icon="refresh"
-                    label="Read now"
+                    label={t('accessory.readNow')}
                     disabled={reader.busy}
                     onClick={() => void reader.run(() => pollBle(a.petkit_id), REFRESH)}
                   />
@@ -146,40 +155,35 @@ export function AccessoryPage({
           </Card>
           {a.scan_type_is_guessed && (
             <Panel className="text-sm text-muted-foreground">
-              The scan type for this model is a guess. Nobody has captured what a real {type}{' '}
-              pairing carries, so {a.wire_entry.type} is borrowed from its product line. If this
-              accessory never reports, unpair it and pair again with a different scan type under
-              Advanced, and please say which value worked.
+              {t('accessory.scanGuess', { type, scan: a.wire_entry.type })}
             </Panel>
           )}
-          <SectionCard title="State">
+          <SectionCard title={t('stateTitle')}>
             {sensors.length ? (
               <>
-                <EntityTable label={`${a.name} state`} sensors={sensors} all={a.entities} />
+                <EntityTable
+                  label={t('stateLabel', { name: a.name })}
+                  sensors={sensors}
+                  all={a.entities}
+                />
                 <Disclosure
-                  summary="Raw parsed state JSON"
+                  summary={t('rawStateJson')}
                   open={isOpen(rawKey, false)}
                   onOpenChange={open => {
                     setOpen(rawKey, open);
                   }}
                 >
-                  <JsonBlock label="Parsed state" value={a.state} />
+                  <JsonBlock label={t('parsedState')} value={a.state} />
                 </Disclosure>
               </>
             ) : (
-              <p className="text-muted-foreground">
-                Nothing reported yet. An accessory only speaks when its parent is asked to open a
-                Bluetooth session to it.
-              </p>
+              <p className="text-muted-foreground">{t('accessory.nothingYet')}</p>
             )}
           </SectionCard>
         </div>
         <div className="flex min-w-0 flex-col gap-5">
           {settable.length > 0 && (
-            <SettingsSection
-              title="Settings"
-              description="Settings travel as one block, so a change needs a reading first; before the accessory has reported, a write is refused rather than guessed at."
-            >
+            <SettingsSection title={t('settings')} description={t('accessory.settingsNote')}>
               {settable.map(e => (
                 <EntityControl
                   key={e.key}
@@ -194,27 +198,7 @@ export function AccessoryPage({
               <FeedbackLine feedback={controls.feedback} />
             </SettingsSection>
           )}
-          <Card as="section" aria-label="Accessory tools" className="flex flex-col py-2">
-            <div className="flex min-h-13 items-center gap-3">
-              <span className="flex-1">Bluetooth address</span>
-              <span className="font-mono text-sm text-muted-foreground">{a.mac}</span>
-            </div>
-            <div className="flex min-h-13 items-center gap-3 border-t border-rule">
-              <span className="flex-1">Accessory ID</span>
-              <span className="font-mono text-sm text-muted-foreground">{a.petkit_id}</span>
-            </div>
-            <button
-              type="button"
-              className="flex min-h-13 w-full items-center border-0 border-t border-rule bg-transparent p-0 text-left text-negative disabled:opacity-50"
-              disabled={unpair.call.busy}
-              onClick={() => {
-                unpair.ask({ id: a.petkit_id, name: type });
-              }}
-            >
-              Unpair accessory
-            </button>
-            <FeedbackLine feedback={unpair.call.feedback} />
-          </Card>
+          <AccessoryToolsCard accessory={a} unpair={unpair} />
         </div>
       </div>
       {unpair.dialog}

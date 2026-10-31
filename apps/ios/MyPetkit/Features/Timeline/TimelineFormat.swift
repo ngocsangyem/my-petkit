@@ -2,7 +2,28 @@ import Foundation
 
 /// A video file of a session, in the order it is offered.
 struct TimelineVideoSource: Hashable, Sendable, Identifiable {
-    enum Label: String, Sendable { case clip = "Clip", timelapse = "Timelapse", playback = "Playback" }
+    enum Label: String, Sendable {
+        case clip = "Clip", timelapse = "Timelapse", playback = "Playback"
+
+        /// The segment title.
+        var title: String {
+            switch self {
+            case .clip: L10n.string("Clip")
+            case .timelapse: L10n.string("Timelapse")
+            case .playback: L10n.string("Playback")
+            }
+        }
+
+        /// The button that plays the only source.
+        var playTitle: String {
+            switch self {
+            case .clip: L10n.string("Play clip")
+            case .timelapse: L10n.string("Play timelapse")
+            case .playback: L10n.string("Play playback")
+            }
+        }
+    }
+
     let label: Label
     let path: String
     var id: String { label.rawValue }
@@ -19,7 +40,7 @@ enum TimelineFormat {
         let total = Int(seconds.rounded())
         let minutes = total / 60
         let rest = total % 60
-        return minutes > 0 ? "\(minutes) min \(rest) s" : "\(rest) s"
+        return minutes > 0 ? L10n.string("\(minutes) min \(rest) s") : L10n.string("\(rest) s")
     }
 
     /// "1:55", the length printed on a video poster; nil when unknown.
@@ -47,10 +68,13 @@ enum TimelineFormat {
 
     // MARK: Sentences
 
-    private static let kindTags: [String: String] = [
-        "toilet_visit": "Toilet visit", "pet": "Appeared", "motion": "Motion", "cleaning": "Cleaning",
-        "error": "Alert", "feeding": "Feeding", "drinking": "Drinking", "system": "System",
-    ]
+    private static var kindTags: [String: String] {
+        [
+            "toilet_visit": L10n.string("Toilet visit"), "pet": L10n.string("Appeared"), "motion": L10n.string("Motion"),
+            "cleaning": L10n.string("Cleaning"), "error": L10n.string("Alert"), "feeding": L10n.string("Feeding"),
+            "drinking": L10n.string("Drinking"), "system": L10n.string("System"),
+        ]
+    }
 
     static func kindTag(_ eventKind: String?) -> String {
         let kind = eventKind ?? "event"
@@ -60,8 +84,8 @@ enum TimelineFormat {
     /// The headline of a card.
     static func sentence(_ entry: TimelineEntry) -> String {
         if entry.isVisit {
-            if let name = entry.petName, !name.isEmpty { return "\(name) used the litter box" }
-            return entry.passing ? "Light visit" : "A cat used the litter box"
+            if let name = entry.petName, !name.isEmpty { return L10n.string("\(name) used the litter box") }
+            return entry.passing ? L10n.string("Light visit") : L10n.string("A cat used the litter box")
         }
         if let label = entry.label, !label.isEmpty { return label }
         return kindTag(entry.eventKind)
@@ -79,7 +103,7 @@ enum TimelineFormat {
         if entry.isVisit {
             parts.append(duration(entry.durationSec))
             parts.append(weight(entry.weight))
-            if !entry.hasPet, !entry.passing { parts.append("not recognised") }
+            if !entry.hasPet, !entry.passing { parts.append(L10n.string("not recognised")) }
         }
         if !entry.isVisit, !entry.deviceName.isEmpty { parts.append(entry.deviceName) }
         return (parts.compactMap { $0 } + entry.bits).joined(separator: " · ")
@@ -87,7 +111,7 @@ enum TimelineFormat {
 
     static func stepLabel(_ step: TimelineStep) -> String {
         if let label = step.label, !label.isEmpty { return label }
-        return step.eventType ?? "Event"
+        return step.eventType ?? L10n.string("Event")
     }
 
     // MARK: Media
@@ -152,16 +176,12 @@ enum TimelineFormat {
         let health = unique(all.flatMap(\.health))
         var groups: [StillGroup] = []
         if !waste.isEmpty {
-            groups.append(.init(title: "Check waste", pill: count(waste.count, "waste photo"), paths: waste))
+            groups.append(.init(title: L10n.string("Check waste"), pill: L10n.string("\(waste.count) waste photos"), paths: waste))
         }
         if !health.isEmpty {
-            groups.append(.init(title: "Health", pill: count(health.count, "stool photo"), paths: health))
+            groups.append(.init(title: L10n.string("Health"), pill: L10n.string("\(health.count) stool photos"), paths: health))
         }
         return groups
-    }
-
-    static func count(_ value: Int, _ word: String) -> String {
-        "\(value) \(word)\(value == 1 ? "" : "s")"
     }
 
     // MARK: Days
@@ -193,17 +213,31 @@ enum TimelineFormat {
         return String(format: "%04d-%02d-%02d", parts.year ?? 0, parts.month ?? 0, parts.day ?? 0)
     }
 
-    private static let monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-    private static let weekdayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    private static let englishMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    private static let englishWeekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
-    /// "Today, 28 Oct", "Yesterday, 27 Oct", "Mon, 26 Oct".
+    /// English keeps fixed abbreviations (CLDR's vary by region: "Sept");
+    /// another language takes its calendar's own.
+    private static var symbolCalendar: Calendar? {
+        guard AppLanguageStore.shared.language != .english else { return nil }
+        var calendar = utcCalendar
+        calendar.locale = L10n.locale
+        return calendar
+    }
+
+    private static var weekdayNames: [String] { symbolCalendar?.shortStandaloneWeekdaySymbols ?? englishWeekdays }
+
+    /// "Today, 28 Oct", "Yesterday, 27 Oct", "Mon, 26 Oct". Another language
+    /// writes the day as "28/10": a spelled-out month ("Tháng 10") does not
+    /// fit the day pill.
     static func dayTitle(_ date: String, today: String?) -> String {
         guard let parsed = parse(date) else { return date }
         let parts = utcCalendar.dateComponents([.day, .month, .weekday], from: parsed)
-        let dayMonth = "\(parts.day ?? 0) \(monthNames[((parts.month ?? 1) - 1) % 12])"
-        if let today, date == today { return "Today, \(dayMonth)" }
-        if let today, shiftDay(today, by: -1) == date { return "Yesterday, \(dayMonth)" }
+        let day = parts.day ?? 0, month = parts.month ?? 1
+        let dayMonth = symbolCalendar == nil ? "\(day) \(englishMonths[(month - 1) % 12])" : "\(day)/\(month)"
+        if let today, date == today { return L10n.string("Today, \(dayMonth)") }
+        if let today, shiftDay(today, by: -1) == date { return L10n.string("Yesterday, \(dayMonth)") }
         return "\(weekdayNames[((parts.weekday ?? 1) - 1) % 7]), \(dayMonth)"
     }
 
@@ -211,17 +245,19 @@ enum TimelineFormat {
     static func weekdayInitial(_ date: String) -> String {
         guard let parsed = parse(date) else { return "" }
         let weekday = utcCalendar.component(.weekday, from: parsed)
-        return String(weekdayNames[(weekday - 1) % 7].prefix(1))
+        if let initials = symbolCalendar?.veryShortStandaloneWeekdaySymbols { return initials[(weekday - 1) % 7] }
+        return String(englishWeekdays[(weekday - 1) % 7].prefix(1))
     }
 
     /// "5 visits, 2 meals so far." from the day's counts; nil on an empty day.
     static func daySummary(_ day: TimelineDayResult, isToday: Bool) -> String? {
         var parts: [String] = []
-        if day.toiletingCount > 0 { parts.append(count(day.toiletingCount, "visit")) }
-        if day.feedingCount > 0 { parts.append(count(day.feedingCount, "meal")) }
-        if day.drinkingCount > 0 { parts.append(count(day.drinkingCount, "drink")) }
-        if day.faultCount > 0 { parts.append(count(day.faultCount, "fault")) }
+        if day.toiletingCount > 0 { parts.append(L10n.string("\(day.toiletingCount) visits")) }
+        if day.feedingCount > 0 { parts.append(L10n.string("\(day.feedingCount) meals")) }
+        if day.drinkingCount > 0 { parts.append(L10n.string("\(day.drinkingCount) drinks")) }
+        if day.faultCount > 0 { parts.append(L10n.string("\(day.faultCount) faults")) }
         guard !parts.isEmpty else { return nil }
-        return parts.joined(separator: ", ") + (isToday ? " so far." : ".")
+        let list = parts.joined(separator: ", ")
+        return isToday ? L10n.string("\(list) so far.") : L10n.string("\(list).")
     }
 }

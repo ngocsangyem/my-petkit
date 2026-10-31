@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ConfirmDialog } from '@/shared/ui';
 import { type DeviceDetail, deviceKeys } from '../api';
 import { deleteDevice } from '../api-calls';
@@ -16,6 +17,7 @@ export function RemoveDevice({
   device: DeviceDetail;
   onRemoved?: () => void;
 }) {
+  const { t } = useTranslation('devices');
   const call = useDeviceCall();
   const [asking, setAsking] = useState(false);
   const label = `${device.type.toUpperCase()} ${device.sn || String(device.id)}`;
@@ -29,13 +31,13 @@ export function RemoveDevice({
           setAsking(true);
         }}
       >
-        Remove device
+        {t('remove.button')}
       </button>
       <FeedbackLine feedback={call.feedback} />
       <ConfirmDialog
         open={asking}
-        title={`Delete ${label}?`}
-        confirmLabel="Delete device"
+        title={t('remove.title', { label })}
+        confirmLabel={t('remove.confirm')}
         busy={call.busy}
         onCancel={() => {
           setAsking(false);
@@ -52,11 +54,7 @@ export function RemoveDevice({
             });
         }}
       >
-        <p>
-          This permanently deletes the device from the registry and removes all its Home Assistant
-          entities. Events and media are kept. A device that is still running signs up again on its
-          own.
-        </p>
+        <p>{t('remove.body')}</p>
       </ConfirmDialog>
     </div>
   );

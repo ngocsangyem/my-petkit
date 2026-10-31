@@ -1,0 +1,34 @@
+---
+title: Camera Pan (T6)
+description: Xoay camera của Purobot Ultra bằng công cụ factory của chính firmware, và những gì việc đó bỏ qua.
+---
+
+Purobot Ultra (T6) xoay camera bằng một động cơ bước ngang. Ứng dụng của PetKit điều khiển xoay qua Agora RTM, một kênh không bao giờ đi qua đám mây mà MyPetKit thay thế, nên không có lệnh đám mây nào để tái tạo. Thiết bị có kèm một công cụ factory, `/app/bin/pktool`, với lệnh `motor_test` điều khiển động cơ trực tiếp. Patcher này dùng nó.
+
+## Bạn nhận được gì
+
+Các nút **Pan Left**, **Pan Right** và **Pan Home** trong Home Assistant, và **Trái**, **Giữa**, **Phải** trong bảng điều khiển. Mỗi lần nhấn xoay đầu camera khoảng 18 độ, một phần mười hành trình. Trái là khi nhìn đối diện máy. Home xoay camera trở lại vào trống, nơi firmware đỗ nó.
+
+## Việc áp dụng làm gì
+
+Không có gì được ghi vào thiết bị và nó không khởi động lại. Khi áp dụng, patcher kiểm tra `pktool` đúng là bản build mà các lệnh được đọc từ đó (firmware T6 951) và từ chối bất kỳ bản nào khác. Mỗi lần nhấn lại kiểm tra lần nữa, nên một bản cập nhật firmware thay `pktool` sẽ khiến các nút không làm gì. Gỡ patcher sẽ lấy các nút đi.
+
+| Lệnh | Ý nghĩa |
+|---|---|
+| `motor_test 2 <steps>` | Di chuyển tương đối. Số bước âm xoay sang trái. |
+| `motor_test 3 <coord>` | Di chuyển tuyệt đối |
+| `motor_test 4` | Trạng thái: `coord0=<now>,target0=<goal>` |
+
+Đo trên một chiếc T6: hành trình chạy từ 0 đến 2500 bước. 2500 hướng vào trống, 1250 là một phần tư vòng sang trái, và một lần nhấn là 250 bước. Mọi lần di chuyển đều dừng đúng số bước. Ba dòng lệnh shell mà máy chủ có thể gửi là hằng số; không thứ gì bạn gõ được đưa vào trong đó.
+
+## Nó bỏ qua những gì
+
+Trong dùng thông thường, `ctrl` sở hữu động cơ, với một khóa ngăn hai lần di chuyển chồng nhau và một bộ giám sát kẹt. `pktool` đi vòng qua cả hai. Driver kernel giới hạn mọi mục tiêu trong 0..2500 nhưng không có giới hạn hay cảm biến kẹt của riêng nó, nên một bộ đếm bước đã lệch (ví dụ mất điện giữa lúc di chuyển) có thể đẩy đầu camera vào điểm chặn cứng mà không có gì phát hiện.
+
+Ba chốt chặn thu hẹp rủi ro đó:
+
+- mỗi lần nhấn chỉ chạy nếu `pktool` vẫn là bản build đã được xác minh;
+- mỗi lần di chuyển trước hết đọc trạng thái và bị bỏ qua trừ khi động cơ đang rảnh, nên nó không bao giờ đua với một lần di chuyển `ctrl` đang thực hiện;
+- việc xoay bị từ chối khi công tắc Camera đang tắt, nên không thể xoay đầu ra khỏi chế độ riêng tư.
+
+Nếu đầu camera nào đó kêu ken két ở một đầu hành trình, hãy ngừng dùng các nút và tắt rồi bật lại nguồn thiết bị để firmware tự đưa nó về vị trí gốc.

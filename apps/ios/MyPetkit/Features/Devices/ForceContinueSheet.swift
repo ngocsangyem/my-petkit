@@ -73,7 +73,7 @@ struct ForceContinueSheet: View {
                 .padding(.vertical, 12)
                 .frame(minHeight: Theme.Space.control)
                 .accessibilityElement(children: .combine)
-                .accessibilityValue(row.isClear ? "Checked" : "Not clear")
+                .accessibilityValue(row.isClear ? L10n.string("Checked") : L10n.string("Not clear"))
             }
         }
         .padding(.horizontal, 14)
@@ -108,7 +108,7 @@ struct ForceContinueSheet: View {
     /// because the password screen cannot open over this sheet.
     static func message(for error: any Error) -> String {
         if let api = APIError.from(error), api.needsStepUp {
-            return "Your password check has run out. Close this and tap Continue cleaning again."
+            return L10n.string("Your password check has run out. Close this and tap Continue cleaning again.")
         }
         return Loadable<Void>.message(for: error)
     }

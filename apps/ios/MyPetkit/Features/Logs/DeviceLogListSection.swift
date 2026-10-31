@@ -9,9 +9,9 @@ struct DeviceLogListSection: View {
     var body: some View {
         LoadableBlock(state: model.deviceLogs, retry: { Task { await model.loadDeviceLogs() } }, content: { listing in
             if let reason = listing.emptyReason, listing.files.isEmpty {
-                Card { EmptyBlock(title: "No device logs", message: reason) }
+                Card { EmptyBlock(title: L10n.string("No device logs"), message: reason) }
             } else {
-                SectionHeader(title: "Files") {
+                SectionHeader(title: L10n.string("Files")) {
                     Text(ByteSize.format(listing.totalBytes)).font(Theme.Font.small).monospacedDigit()
                         .foregroundStyle(Theme.Color.muted)
                 }
@@ -46,8 +46,8 @@ struct DeviceLogListSection: View {
     }
 
     private func subtitle(_ file: DeviceLogFileRef) -> String {
-        let device = file.device.map(String.init) ?? "unknown device"
-        let when = file.modified.formatted(.relative(presentation: .named))
+        let device = file.device.map(String.init) ?? L10n.string("unknown device")
+        let when = file.modified.formatted(.relative(presentation: .named).locale(L10n.locale))
         return "\(device) · \(ByteSize.format(file.size)) · \(when)"
     }
 }

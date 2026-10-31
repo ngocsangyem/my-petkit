@@ -1,31 +1,48 @@
+import { i18n } from '@/i18n';
 import type { LiveMode, LiveReason } from './live-api';
 
+// Mode names are protocol names, the same in every language.
 export const MODE_LABEL: Record<LiveMode, string> = {
   webrtc: 'WebRTC',
   mse: 'MSE',
   hls: 'HLS',
 };
 
+// The sentences below are getters, so every read is in the active language; the component that
+// renders one subscribes to language changes.
+
 /** One plain sentence per mode: what it costs and when to pick it. */
-export const MODE_SENTENCE: Record<LiveMode, string> = {
-  webrtc: 'WebRTC: lowest delay, straight from the server.',
-  mse: 'MSE: about a second behind, over the same connection as this page.',
-  hls: 'HLS: works everywhere, a few seconds behind.',
+export const MODE_SENTENCE: Readonly<Record<LiveMode, string>> = {
+  get webrtc() {
+    return i18n.t('devices:live.mode.webrtc');
+  },
+  get mse() {
+    return i18n.t('devices:live.mode.mse');
+  },
+  get hls() {
+    return i18n.t('devices:live.mode.hls');
+  },
 };
 
 /** Why nothing can be watched, one sentence per server reason. */
-export const REASON_SENTENCE: Record<LiveReason, string> = {
-  not_a_camera: 'This device has no camera.',
-  device_unreachable:
-    'The camera has not reported its network address yet, so it cannot be reached.',
-  no_stream:
-    'The camera has no live stream yet. Apply Local Camera Streaming on the Patchers screen.',
-  sidecar_down: 'The video relay (go2rtc) is not running on the server. Restart the add-on.',
+export const REASON_SENTENCE: Readonly<Record<LiveReason, string>> = {
+  get not_a_camera() {
+    return i18n.t('devices:live.reason.notACamera');
+  },
+  get device_unreachable() {
+    return i18n.t('devices:live.reason.deviceUnreachable');
+  },
+  get no_stream() {
+    return i18n.t('devices:live.reason.noStream');
+  },
+  get sidecar_down() {
+    return i18n.t('devices:live.reason.sidecarDown');
+  },
 };
 
 /** A reason the client does not know yet still gets a sentence. */
 export function reasonSentence(reason: LiveReason | null): string {
   return reason && reason in REASON_SENTENCE
     ? REASON_SENTENCE[reason]
-    : 'The live stream is not available right now.';
+    : i18n.t('devices:live.reason.unknown');
 }

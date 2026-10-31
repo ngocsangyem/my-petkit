@@ -12,7 +12,7 @@ extension DeviceDetailModel {
             return
         }
         do { automation = .loaded(try await DevicesAPI(session: session).litterAutomation(deviceID)) } catch {
-            automation = .failed("Could not load automation. \(Loadable<Void>.message(for: error))")
+            automation = .failed(L10n.string("Could not load automation. \(Loadable<Void>.message(for: error))"))
         }
     }
 
@@ -29,7 +29,7 @@ extension DeviceDetailModel {
     /// expired step-up is thrown for the sheet to explain.
     func forceContinue(session: ServerSession) async throws {
         let said = try await DevicesAPI(session: session).forceContinue(deviceID)
-        lastCommand = "Last: Continue cleaning · \(said)"
+        lastCommand = L10n.string("Last: Continue cleaning · \(said)")
         await loadDevice(session)
         await loadAutomation(session)
     }
@@ -48,7 +48,7 @@ extension DeviceDetailModel {
         autoPackError = nil
         defer { autoPackBusy = false }
         let id = deviceID
-        let result = try await session.call(purpose: "Change auto-pack") {
+        let result = try await session.call(purpose: L10n.string("Change auto-pack")) {
             try await DevicesAPI(session: session).setAutoPack(id, rule: rule)
         }
         if var current = automation.value {

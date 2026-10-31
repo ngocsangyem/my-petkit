@@ -1,0 +1,67 @@
+---
+title: Thiết bị được hỗ trợ
+description: Những mẫu PetKit nào đã được chạy thử với máy chủ, và những mẫu nào được kỳ vọng sẽ hoạt động.
+---
+
+Trạng thái kiểm thử dưới đây lấy từ bảng thiết bị của petkit-local upstream, mà MyPetKit kế thừa cùng với phần lõi giao thức. "Đã xác nhận" nghĩa là có người đã chạy mẫu đó với máy chủ và báo lại kết quả. Điều đó không có nghĩa mọi tính năng đều hoạt động.
+
+## Đã xác nhận hoạt động
+
+| Sản phẩm | Mã | Camera | AI trên thiết bị |
+|---|---|---|---|
+| Purobot Max Pro 2 | T5 | có | có |
+| Purobot Ultra | T6 | có | có |
+| EverSweet Ultra AI | W7H | có | có |
+| EverSweet Max Cordless | CTW3 (chỉ Bluetooth) | không | không |
+| YumShare Dual-Hopper | D4SH | có | không |
+
+## Nên hoạt động
+
+Cùng họ firmware, và giao thức đã được đối chiếu với firmware của chúng, nhưng chưa ai chạy thử.
+
+| Sản phẩm | Mã | Camera | AI trên thiết bị |
+|---|---|---|---|
+| Purobot Crystal Duo | T7 | có | có |
+| EverSweet 3 Pro | W5, cùng W5C và W5N (chỉ Bluetooth) | không | không |
+| EverSweet | W4, cùng W4X và W4X UVC (chỉ Bluetooth) | không | không |
+| EverSweet Solo 2 | CTW2 (chỉ Bluetooth) | không | không |
+
+## Được hỗ trợ, chưa kiểm thử
+
+Đã có định nghĩa thực thể, nhưng phần lớn đến từ [pypetkitapi](https://github.com/Jezza34000/py-petkit-api), một client của API đám mây PetKit, có tên trường không phải lúc nào cũng trùng với thiết bị. Hãy kỳ vọng những thứ phổ biến chạy được, còn thỉnh thoảng một thực thể sẽ nằm ở "unknown".
+
+| Sản phẩm | Mã | Camera | AI trên thiết bị |
+|---|---|---|---|
+| Pura X | T3 | không | không |
+| Pura Max | T4 | không | không |
+| YumShare Solo | D4H | có | không |
+| YumShare Solo 2 | D4H | có | có |
+| YumShare Dual-Hopper 2 | D4SH | có | có |
+| Fresh Element Solo | D4 | không | không |
+| Feeder D3 / D4s | D3, D4S | không | không |
+| Feeder / Feeder Mini | feeder, feedermini | không | không |
+| Pura Air smart spray | K2, K3 (chỉ Bluetooth) | không | không |
+
+YumShare Solo một khoang (D4H) được mô hình hóa từ firmware của Dual-Hopper. Chưa có chiếc D4H nào từng báo cáo về máy chủ, nên các thực thể của nó chỉ là phỏng đoán cho đến khi có.
+
+## Ba loại phần cứng
+
+Cách kết nối một thiết bị phụ thuộc vào thứ bên trong nó, không phụ thuộc vào việc đó là máy dọn phân hay máy cho ăn.
+
+| Họ | Mẫu | Cách kết nối tới MyPetKit |
+|---|---|---|
+| Linux nhúng, có camera | T5, T6, T7, D4H, D4SH (Ingenic MIPS), W7H (ARM) | Chỉ cấp phát qua Bluetooth. Chúng bắt buộc dùng HTTPS nên chuyển hướng DNS là không đủ. MQTT cần một [patcher](/vi/docs/firmware). |
+| ESP32 | T3, T4, D3, D4, D4S, Feeder, Feeder Mini | Cấp phát qua Bluetooth, hoặc chuyển hướng DNS, vì chúng nói HTTP thuần. Chúng phải tới được máy chủ ở port 80. |
+| Chỉ Bluetooth | W4, W5, CTW2, CTW3, K2, K3 | Thông qua thiết bị cha: một máy dọn phân hoặc máy cho ăn cắm điện làm trung chuyển cho chúng. |
+
+Feeder và Feeder Mini không có sóng Bluetooth, nên chỉ chuyển hướng DNS mới tới được. Yêu cầu đăng ký của chúng không mang id lẫn số sê-ri, nên một thiết bị mới xuất xưởng có thể bị từ chối. Chưa ai chạy thử.
+
+## Phụ kiện chỉ có Bluetooth
+
+Máy lọc nước hoặc bình xịt không có Wi-Fi sẽ báo cáo qua một thiết bị cha trong tầm sóng. Hãy ghép nối từ bảng điều khiển của thiết bị sẽ làm trung chuyển cho nó. Thiết bị cha không tự khám phá gì: nó hỏi đám mây cần quét loại nào. Số loại quét đó chỉ được đọc từ lần ghép nối thực tế cho W5 và CTW3. Với các mẫu khác, nó được mượn từ dòng sản phẩm của chúng, nên nếu một phụ kiện không bao giờ báo cáo, hãy thử đổi **Kiểu quét** trong phần **Nâng cao** trước.
+
+Nếu hoàn toàn không có thiết bị cha, MyPetKit không thể tới máy lọc nước. [aavdberg/ha-petkit](https://github.com/aavdberg/ha-petkit) nói chuyện trực tiếp với các mẫu này qua Bluetooth từ Home Assistant.
+
+## Mẫu không có trong danh sách
+
+Bật chế độ proxy (bảng điều khiển, Cài đặt). Khi đó mọi yêu cầu cũng được chuyển tiếp tới PetKit, nên thiết bị vẫn hoạt động bình thường trong khi mọi điều nó nói được ghi lại. Bản ghi đó là thứ cần để thêm mẫu. Xem [Đóng góp](/vi/docs/contributing).

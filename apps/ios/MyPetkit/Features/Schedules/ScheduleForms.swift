@@ -12,21 +12,22 @@ struct FormProblem: Error, Equatable {
 
 private func clockField(_ text: String, name: String, allowsEndOfDay: Bool) -> Result<Int, FormProblem> {
     if text.trimmingCharacters(in: .whitespaces).isEmpty {
-        return .failure(FormProblem(message: "Enter \(name), such as 07:30."))
+        return .failure(FormProblem(message: L10n.string("Enter \(name), such as 07:30.")))
     }
     guard let minute = ScheduleClock.parse(text, allowsEndOfDay: allowsEndOfDay) else {
-        let range = allowsEndOfDay ? "00:00 to 24:00" : "00:00 to 23:59"
-        return .failure(FormProblem(message: "\(name.prefix(1).uppercased() + name.dropFirst()) must be a time from \(range)."))
+        let range = allowsEndOfDay ? L10n.string("00:00 to 24:00") : L10n.string("00:00 to 23:59")
+        let subject = name.prefix(1).uppercased() + name.dropFirst()
+        return .failure(FormProblem(message: L10n.string("\(subject) must be a time from \(range).")))
     }
     return .success(minute)
 }
 
 private func portionField(_ text: String, name: String, max: Int) -> Result<Int, FormProblem> {
     if text.trimmingCharacters(in: .whitespaces).isEmpty {
-        return .failure(FormProblem(message: "Enter the portions for \(name)."))
+        return .failure(FormProblem(message: L10n.string("Enter the portions for \(name).")))
     }
     guard let value = PortionRules.parse(text, max: max) else {
-        return .failure(FormProblem(message: "Portions for \(name) are whole numbers from 0 to \(max)."))
+        return .failure(FormProblem(message: L10n.string("Portions for \(name) are whole numbers from 0 to \(max).")))
     }
     return .success(value)
 }
@@ -54,8 +55,8 @@ struct RangeForm: Equatable {
     /// The server takes 0...1440 for either end, so "24:00" is accepted for both.
     func validated() -> Result<ScheduleRange, FormProblem> {
         if isAllDay { return .success(.allDay) }
-        return clockField(start, name: "a start time", allowsEndOfDay: true).flatMap { from in
-            clockField(end, name: "an end time", allowsEndOfDay: true).map { ScheduleRange(start: from, end: $0) }
+        return clockField(start, name: L10n.string("a start time"), allowsEndOfDay: true).flatMap { from in
+            clockField(end, name: L10n.string("an end time"), allowsEndOfDay: true).map { ScheduleRange(start: from, end: $0) }
         }
     }
 }
@@ -75,13 +76,13 @@ struct WeeklyForm: Equatable {
     }
 
     func validated(keeping id: UUID = UUID()) -> Result<WeeklyEntry, FormProblem> {
-        if days.isEmpty { return .failure(FormProblem(message: "Pick at least one day.")) }
+        if days.isEmpty { return .failure(FormProblem(message: L10n.string("Pick at least one day."))) }
         var parsed: [ScheduleRange] = []
         for (index, form) in ranges.enumerated() {
             switch form.validated() {
             case .success(let range): parsed.append(range)
             case .failure(let problem):
-                return .failure(FormProblem(message: "Period \(index + 1): \(problem.message)"))
+                return .failure(FormProblem(message: L10n.string("Period \(index + 1): \(problem.message)")))
             }
         }
         return .success(WeeklyEntry(id: id, enabled: enabled, days: days, ranges: parsed))
@@ -102,8 +103,8 @@ struct PointForm: Equatable {
 
     /// A moment, not a range end: "24:00" is not a time the job can run.
     func validated(onto point: PointEntry) -> Result<PointEntry, FormProblem> {
-        if days.isEmpty { return .failure(FormProblem(message: "Pick at least one day.")) }
-        return clockField(time, name: "a time", allowsEndOfDay: false).map { minute in
+        if days.isEmpty { return .failure(FormProblem(message: L10n.string("Pick at least one day."))) }
+        return clockField(time, name: L10n.string("a time"), allowsEndOfDay: false).map { minute in
             var updated = point
             updated.minute = minute
             updated.days = days
@@ -133,10 +134,11 @@ struct MealForm: Equatable {
     /// A single-hopper feeder never shows hopper 2, so its served value rides
     /// along untouched instead of being validated against a field nobody sees.
     func validated(onto meal: FeedMeal) -> Result<FeedMeal, FormProblem> {
-        clockField(time, name: "a time", allowsEndOfDay: false).flatMap { minute in
-            portionField(hopper1, name: dual ? "hopper 1" : "this meal", max: PortionRules.scheduleMax).flatMap { first in
+        clockField(time, name: L10n.string("a time"), allowsEndOfDay: false).flatMap { minute in
+            let name = dual ? L10n.string("hopper 1") : L10n.string("this meal")
+            return portionField(hopper1, name: name, max: PortionRules.scheduleMax).flatMap { first in
                 let second: Result<Int, FormProblem> = dual
-                    ? portionField(hopper2, name: "hopper 2", max: PortionRules.scheduleMax) : .success(meal.hopper2)
+                    ? portionField(hopper2, name: L10n.string("hopper 2"), max: PortionRules.scheduleMax) : .success(meal.hopper2)
                 return second.map { secondValue in
                     var updated = meal
                     updated.second = minute * 60
@@ -169,10 +171,11 @@ struct DeferredFeedForm: Equatable {
     func validated(clock: DeviceClock, now: Date) -> Result<DeferredFeedDraft, FormProblem> {
         let minute = clock.calendar.dateInterval(of: .minute, for: moment)?.start ?? moment
         guard minute > now else {
-            return .failure(FormProblem(message: "Pick a time later than now on the feeder's clock."))
+            return .failure(FormProblem(message: L10n.string("Pick a time later than now on the feeder's clock.")))
         }
-        return portionField(hopper1, name: dual ? "hopper 1" : "this feed", max: PortionRules.oneOffMax).flatMap { first in
-            let second = dual ? portionField(hopper2, name: "hopper 2", max: PortionRules.oneOffMax) : .success(0)
+        let name = dual ? L10n.string("hopper 1") : L10n.string("this feed")
+        return portionField(hopper1, name: name, max: PortionRules.oneOffMax).flatMap { first in
+            let second = dual ? portionField(hopper2, name: L10n.string("hopper 2"), max: PortionRules.oneOffMax) : .success(0)
             return second.map { secondValue in
                 let wire = clock.wireDateTime(minute)
                 return DeferredFeedDraft(date: wire.date, time: wire.time, hopper1: first, hopper2: secondValue)

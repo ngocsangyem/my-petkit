@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from 'cn';
 import { serverUrl } from '@/shared/api/base-path';
 import { Card, Pill, StatusMark } from '@/shared/ui';
-import { plural, type Pet, type PetStatus } from '../pet-model';
+import { countText, type Pet, type PetStatus } from '../pet-model';
 
 /** Each pet's identity tint, by slot; the same pair the household day strip uses. */
 const TINTS = [
@@ -24,6 +25,7 @@ interface PetHeroCardProps {
  * is one, or if it fails), the name, whether the device holds its photos, and how many it has.
  */
 export function PetHeroCard({ pet, slot, status }: PetHeroCardProps) {
+  const { t } = useTranslation('pets');
   const first = pet.faces[0];
   const [failed, setFailed] = useState<string | null>(null);
   const photo = first && failed !== first.url ? first : null;
@@ -33,7 +35,7 @@ export function PetHeroCard({ pet, slot, status }: PetHeroCardProps) {
         <img
           className={cn(PHOTO, 'bg-raised object-cover')}
           src={serverUrl(photo.url)}
-          alt={`${pet.name}, first face photo`}
+          alt={t('faces.heroAlt', { name: pet.name })}
           onError={() => {
             setFailed(photo.url);
           }}
@@ -58,7 +60,7 @@ export function PetHeroCard({ pet, slot, status }: PetHeroCardProps) {
           </span>
         </div>
         <Pill tone={status.loaded ? 'positive' : 'neutral'}>
-          {plural(pet.faces.length, 'face photo')}
+          {countText('facePhoto', pet.faces.length)}
         </Pill>
       </div>
     </Card>

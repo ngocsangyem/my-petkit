@@ -21,7 +21,9 @@ enum ScheduleEditing: Identifiable, Equatable {
 }
 
 /// The same sentence for every empty period list: unset means unrestricted.
-private let unsetSentence = "Nothing here restricts the device. Add a period to change that."
+private var unsetSentence: String {
+    L10n.string("Nothing here restricts the device.") + " " + L10n.string("Add a period to change that.")
+}
 
 /// A list of periods, each "all day" or two clocks that may cross midnight.
 struct RangeListEditor: View {
@@ -31,7 +33,7 @@ struct RangeListEditor: View {
     var body: some View {
         if ranges.isEmpty {
             Card {
-                EmptyBlock(title: "Not set", message: unsetSentence, actionTitle: "Add a period") {
+                EmptyBlock(title: L10n.string("Not set"), message: unsetSentence, actionTitle: L10n.string("Add a period")) {
                     onEdit(.range(index: nil))
                 }
             }
@@ -40,15 +42,15 @@ struct RangeListEditor: View {
                 VStack(spacing: 0) {
                     ForEach(Array(ranges.enumerated()), id: \.offset) { index, range in
                         if index > 0 { RowRule() }
-                        ScheduleRow(title: range.label, detail: "Period \(index + 1)",
-                                    note: range.crossesMidnight ? "next day" : nil) {
+                        ScheduleRow(title: range.label, detail: L10n.string("Period \(index + 1)"),
+                                    note: range.crossesMidnight ? L10n.string("next day") : nil) {
                             onEdit(.range(index: index))
                         }
                     }
                 }
                 .padding(.horizontal, 12)
             }
-            AddRowButton(title: "Add a period") { onEdit(.range(index: nil)) }
+            AddRowButton(title: L10n.string("Add a period")) { onEdit(.range(index: nil)) }
         }
     }
 }
@@ -62,7 +64,7 @@ struct WeeklyEditor: View {
     var body: some View {
         if entries.isEmpty {
             Card {
-                EmptyBlock(title: "Not set", message: unsetSentence, actionTitle: "Add an entry") {
+                EmptyBlock(title: L10n.string("Not set"), message: unsetSentence, actionTitle: L10n.string("Add an entry")) {
                     onEdit(.weekly(index: nil))
                 }
             }
@@ -74,13 +76,13 @@ struct WeeklyEditor: View {
                     }
                     .tint(Theme.Color.text)
                     RowRule()
-                    ScheduleRow(title: entry.ranges.isEmpty ? "No periods" : entry.ranges.map(\.label).joined(separator: ", "),
-                                detail: entry.enabled ? "On" : "Off") {
+                    ScheduleRow(title: entry.ranges.isEmpty ? L10n.string("No periods") : entry.ranges.map(\.label).joined(separator: ", "),
+                                detail: entry.enabled ? L10n.string("On") : L10n.string("Off")) {
                         onEdit(.weekly(index: index))
                     }
                 }
             }
-            AddRowButton(title: "Add an entry") { onEdit(.weekly(index: nil)) }
+            AddRowButton(title: L10n.string("Add an entry")) { onEdit(.weekly(index: nil)) }
         }
     }
 }
@@ -99,7 +101,7 @@ struct PointsEditor: View {
         }
         // A type nobody has seen is kept and shown, never deleted for being odd.
         let others = points.enumerated().filter { !known.contains($0.element.type) }
-        if !others.isEmpty { sectionCard(name: "Other", type: nil, rows: others) }
+        if !others.isEmpty { sectionCard(name: L10n.string("Other"), type: nil, rows: others) }
     }
 
     private func sectionCard(name: String, type: Int?, rows: [EnumeratedSequence<[PointEntry]>.Element]) -> some View {
@@ -110,7 +112,7 @@ struct PointsEditor: View {
             }
             ForEach(rows, id: \.element.id) { index, point in
                 ScheduleRow(title: ScheduleClock.format(minute: point.minute).isEmpty ? "—" : ScheduleClock.format(minute: point.minute),
-                            detail: point.days.summary, note: type == nil ? "type \(point.type)" : nil) {
+                            detail: point.days.summary, note: type == nil ? L10n.string("type \(point.type)") : nil) {
                     onEdit(.point(index: index, type: point.type))
                 }
             }

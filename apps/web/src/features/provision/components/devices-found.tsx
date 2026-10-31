@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { EmptyBlock } from '@/shared/ui';
 import type { FoundDevice } from '../hooks/use-provision-session';
 import { FIELDSET } from './provision-form';
@@ -15,13 +16,12 @@ interface DevicesFoundProps {
  * with each Find device and shows what the device advertised.
  */
 export function DevicesFound({ devices, selectedId, onSelect, disabled }: DevicesFoundProps) {
+  const { t } = useTranslation('provision');
   return (
     <fieldset className={FIELDSET}>
-      <legend className="mb-1.5 p-0 text-sm text-muted-foreground">Devices found</legend>
+      <legend className="mb-1.5 p-0 text-sm text-muted-foreground">{t('found.legend')}</legend>
       {devices.length === 0 ? (
-        <EmptyBlock>
-          No device chosen yet. Use Find device, then pick it from the browser’s list.
-        </EmptyBlock>
+        <EmptyBlock>{t('found.empty')}</EmptyBlock>
       ) : (
         <div className="flex flex-col">
           {devices.map(d => (

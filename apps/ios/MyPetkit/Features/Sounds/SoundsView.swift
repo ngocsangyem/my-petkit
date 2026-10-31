@@ -30,8 +30,8 @@ struct SoundsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                ScheduleScreenHeader(title: "Sounds", lede: lede, actionImage: "plus",
-                                   actionLabel: "Upload a sound", action: startUpload)
+                ScheduleScreenHeader(title: L10n.string("Sounds"), lede: lede, actionImage: "plus",
+                                   actionLabel: L10n.string("Upload a sound"), action: startUpload)
                 VStack(alignment: .leading, spacing: Theme.Space.gap) { content }
                     .padding(.horizontal, Theme.Space.screenEdge)
                     .padding(.bottom, Theme.Space.pad)
@@ -47,8 +47,9 @@ struct SoundsView: View {
 
     private var lede: Text? {
         guard let device = model.device.value else { return nil }
-        let noun = device.isFeeder ? "feeder" : "device"
-        return Text("\(device.name) plays the selected sound. Play sends a sound to the \(noun) once, so you hear it there.")
+        return device.isFeeder
+            ? Text("\(device.name) plays the selected sound. Play sends a sound to the feeder once, so you hear it there.")
+            : Text("\(device.name) plays the selected sound. Play sends a sound to the device once, so you hear it there.")
     }
 
     @ViewBuilder
@@ -74,12 +75,13 @@ struct SoundsView: View {
                 confirmation = settingConfirmation(key: key, value: value, label: label)
             }
         }
-        Text("Up to \(SoundUploadPolicy.maxSounds) uploads, 2 MB each\(storedCount).")
+        limits
             .font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted).padding(.horizontal, 4)
     }
 
-    private var storedCount: String {
-        model.sounds.value.map { "; \($0.count) stored" } ?? ""
+    private var limits: Text {
+        guard let stored = model.sounds.value?.count else { return Text("Up to \(SoundUploadPolicy.maxSounds) uploads, 2 MB each.") }
+        return Text("Up to \(SoundUploadPolicy.maxSounds) uploads, 2 MB each; \(stored) stored.")
     }
 
     // MARK: Upload
@@ -104,9 +106,11 @@ struct SoundsView: View {
                 model.uploadProblem = problem.message
             case .success(let file):
                 confirmation = CommandConfirmation(
-                    question: "Upload \(file.name)?",
-                    detail: "\(SoundUploadPolicy.formatSize(file.data.count)). The device downloads it and can play it from then on.",
-                    confirmTitle: "Upload"
+                    question: L10n.string("Upload \(file.name)?"),
+                    detail: L10n.string(
+                        "\(SoundUploadPolicy.formatSize(file.data.count)). The device downloads it and can play it from then on."
+                    ),
+                    confirmTitle: L10n.string("Upload")
                 ) { [session, model] in
                     guard let session else { throw APIError.notPaired }
                     try await model.upload(file, using: session)
@@ -121,9 +125,12 @@ struct SoundsView: View {
 
     private func ask(_ command: Command, _ sound: DeviceSound) {
         let (question, detail, title): (String, String, String) = switch command {
-        case .play: ("Play \(sound.name)?", "The device plays it once through its speaker.", "Play")
-        case .select: ("Use \(sound.name)?", "The device plays this sound from now on.", "Use this sound")
-        case .delete: ("Delete \(sound.name)?", "It is removed from this server and from the device's list.", "Delete")
+        case .play: (L10n.string("Play \(sound.name)?"), L10n.string("The device plays it once through its speaker."),
+                     L10n.string("Play"))
+        case .select: (L10n.string("Use \(sound.name)?"), L10n.string("The device plays this sound from now on."),
+                       L10n.string("Use this sound"))
+        case .delete: (L10n.string("Delete \(sound.name)?"),
+                       L10n.string("It is removed from this server and from the device's list."), L10n.string("Delete"))
         }
         confirmation = CommandConfirmation(question: question, detail: detail, confirmTitle: title) { [session, model] in
             guard let session else { throw APIError.notPaired }
@@ -136,8 +143,8 @@ struct SoundsView: View {
     }
 
     private func settingConfirmation(key: String, value: String, label: String) -> CommandConfirmation {
-        CommandConfirmation(question: "Set \(label)?", detail: "The device is sent the new setting.",
-                            confirmTitle: "Set") { [session, model] in
+        CommandConfirmation(question: L10n.string("Set \(label)?"), detail: L10n.string("The device is sent the new setting."),
+                            confirmTitle: L10n.string("Set")) { [session, model] in
             guard let session else { throw APIError.notPaired }
             try await model.setEntity(key, value: value, using: session)
         }
@@ -183,7 +190,7 @@ enum SoundFileReader {
             }
             return .success(SoundFile(name: name, data: data))
         } catch {
-            return .failure(FormProblem(message: "\(name) could not be read."))
+            return .failure(FormProblem(message: L10n.string("\(name) could not be read.")))
         }
     }
 }

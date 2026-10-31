@@ -11,10 +11,10 @@ enum ProvisionStage: Int, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .bluetooth: "Connected over Bluetooth"
-        case .identified: "Device identified"
-        case .wifi: "Joining Wi-Fi…"
-        case .server: "Waiting for it to reach the server"
+        case .bluetooth: L10n.string("Connected over Bluetooth")
+        case .identified: L10n.string("Device identified")
+        case .wifi: L10n.string("Joining Wi-Fi…")
+        case .server: L10n.string("Waiting for it to reach the server")
         }
     }
 }
@@ -59,15 +59,15 @@ final class ProvisionModel {
     var isRunning: Bool { phase == .running }
 
     /// "2 of 4 done" for the header.
-    var progressLabel: String { "\(done) of \(ProvisionStage.allCases.count) done" }
+    var progressLabel: String { L10n.string("\(done) of \(ProvisionStage.allCases.count) done") }
 
     var warnings: [ProvisioningRules.ServerWarning] { ProvisioningRules.serverWarnings(server) }
 
     /// Why Send is off, if it is.
     var missing: String? {
-        if ssid.isEmpty { return "Enter the Wi-Fi network name." }
-        if password.isEmpty { return "Enter the Wi-Fi password: an open network cannot be provisioned this way." }
-        if server.trimmingCharacters(in: .whitespaces).isEmpty { return "Enter the server address." }
+        if ssid.isEmpty { return L10n.string("Enter the Wi-Fi network name.") }
+        if password.isEmpty { return L10n.string("Enter the Wi-Fi password: an open network cannot be provisioned this way.") }
+        if server.trimmingCharacters(in: .whitespaces).isEmpty { return L10n.string("Enter the server address.") }
         return nil
     }
 
@@ -75,7 +75,7 @@ final class ProvisionModel {
         serverState = .loading
         do {
             guard let address = try await session.client.getServerInfo().ok.body.json.apiUrl, !address.isEmpty else {
-                serverState = .failed("the server does not say which address devices should use")
+                serverState = .failed(L10n.string("the server does not say which address devices should use"))
                 return
             }
             serverState = .loaded(address)
@@ -113,26 +113,27 @@ final class ProvisionModel {
         }
         // Read alongside the connect, so a slow server never delays Bluetooth.
         async let before = try? session.client.listDevices().ok.body.json.count
-        status = "Connecting…"
+        status = L10n.string("Connecting…")
         log.note("connecting to \(device.name)…")
         do {
             let transport = try await scanner.connect(device)
             self.transport = transport
             defer { self.transport = nil }
-            status = "Connected. Keep the phone near the device."
+            status = L10n.string("Connected. Keep the phone near the device.")
             let payload = ProvisioningPayload(ssid: ssid, password: password,
                                               server: server.trimmingCharacters(in: .whitespaces),
                                               offsetHours: offsetHours, zoneName: zoneName)
             let run = ProvisioningSession(transport: transport, payload: payload,
                                           language: ProvisioningRules.language(Locale.preferredLanguages.first), log: log)
             run.onStep = { [weak self] step in self?.reached(step) }
+            run.describeFailure = { $0.localizedSentence }
             let outcome = await run.run()
             guard !Task.isCancelled else { return }
             finish(outcome)
             if outcome == .provisioned || outcome == .unanswered { watch(session, before: await before) }
         } catch let error as ProvisioningTransportError {
             log.note("ERROR \(ProvisioningSession.describe(error))")
-            finish(.failed(ProvisioningSession.describe(error)))
+            finish(.failed(error.localizedSentence))
         } catch {
             finish(.failed(error.localizedDescription))
         }
@@ -149,22 +150,22 @@ final class ProvisionModel {
 
     private func reached(_ step: ProvisioningStep) {
         switch step {
-        case .connected: done = max(done, 1); status = "Connected over Bluetooth."
-        case .identified: done = max(done, 2); status = "Joining Wi-Fi… Keep the phone near the device."
-        case .credentialsAccepted: status = "Joining Wi-Fi… Keep the phone near the device."
-        case .joined: done = max(done, 3); status = "Waiting for it to reach the server."
+        case .connected: done = max(done, 1); status = L10n.string("Connected over Bluetooth.")
+        case .identified: done = max(done, 2); status = L10n.string("Joining Wi-Fi… Keep the phone near the device.")
+        case .credentialsAccepted: status = L10n.string("Joining Wi-Fi… Keep the phone near the device.")
+        case .joined: done = max(done, 3); status = L10n.string("Waiting for it to reach the server.")
         }
     }
 
     private func finish(_ outcome: ProvisioningOutcome) {
         phase = .finished(outcome)
         switch outcome {
-        case .accessory: status = "This is a Bluetooth-only accessory: it has no Wi-Fi."
-        case .unknownDevice: status = "This device has no Bluetooth setup this app knows."
+        case .accessory: status = L10n.string("This is a Bluetooth-only accessory: it has no Wi-Fi.")
+        case .unknownDevice: status = L10n.string("This device has no Bluetooth setup this app knows.")
         case .provisioned:
             done = max(done, 3)
-            status = "Provisioned. The device restarts and joins Wi-Fi."
-        case .unanswered: status = "Sent, but the device never answered."
+            status = L10n.string("Provisioned. The device restarts and joins Wi-Fi.")
+        case .unanswered: status = L10n.string("Sent, but the device never answered.")
         case .failed(let reason): status = reason
         }
     }
@@ -183,7 +184,7 @@ final class ProvisionModel {
                 guard let list = try? await session.client.listDevices().ok.body.json else { continue }
                 if list.count > before, let newest = list.last {
                     done = ProvisionStage.allCases.count
-                    status = "\(newest.name) reached the server."
+                    status = L10n.string("\(newest.name) reached the server.")
                     log.note("device connected: \(newest.name) #\(newest.id)")
                     return
                 }

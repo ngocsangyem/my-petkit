@@ -1,0 +1,43 @@
+---
+title: Quy tắc
+description: Những bất biến mà một thay đổi phải giữ, và các kiểm tra buộc nó tuân thủ.
+---
+
+Những quy tắc này đến từ `AGENTS.md`, `docs/code-standards.md` và `docs/security/secure-coding-rules.md` trong kho mã. Danh sách đầy đủ nằm ở đó; đây là những quy tắc mà đa số thay đổi gặp phải.
+
+## Nói chuyện với thiết bị
+
+- **Không bao giờ trả 404 cho thiết bị.** Endpoint không được xử lý sẽ rơi vào catch-all. Firmware coi 4xx là lỗi máy chủ và thử lại mãi.
+- **Đầu vào từ thiết bị không bao giờ ném lỗi.** Giá trị không tin cậy đi qua `utils/coerce`, các phần đường dẫn không tin cậy đi qua `utils/paths.safe_join`. Bucket lắng nghe mà không có xác thực.
+- **Mã sự kiện HTTP phụ thuộc loại thiết bị.** Mã `2` là `err_over` trên máy dọn phân và `feed_over` trên D4H. Luôn truyền `device_type` khi tra mã.
+- **Thiết bị đang dùng MQTT ngừng thăm dò HTTP.** Đừng bao giờ đánh giá trạng thái còn sống chỉ dựa vào mốc thời gian HTTP.
+- **Chế độ proxy không bao giờ đưa cho thiết bị thông tin xác thực, địa chỉ máy chủ hay firmware từ upstream.** Việc che dữ liệu dựa vào nội dung, không dựa vào endpoint.
+- **Không có gì tới PetKit theo lịch.** Máy chủ chỉ hỏi PetKit khi bạn bấm nút, ký như chính thiết bị.
+- **Mọi kết nối tới thiết bị đi qua `utils/outbound_guard.py`.** Chỉ địa chỉ IP trên mạng thiết bị mà một thiết bị đã đăng ký báo về mới được kết nối tới.
+
+## Được ghim bởi các kiểm tra
+
+- **Đầu ra hướng thiết bị được ghim bởi kiểm tra golden.** `scripts/golden_device_responses.py` phát lại mọi endpoint thiết bị, phản hồi MQTT, lần publish Home Assistant và script patcher với thời gian và ngẫu nhiên bị đóng băng. Một refactor phải giữ kết quả y hệt. Một thay đổi hành vi đã được duyệt cập nhật `scripts/golden-baseline.sha` trong cùng PR, kèm lý do, và PR đó được merge bằng merge commit để commit được ghim vẫn nằm trên `main`.
+- **Hợp đồng user plane đi theo mã.** `packages/contracts/openapi.yaml` được duy trì thủ công. Đổi một route của user plane thì đổi spec trong cùng PR, chạy `scripts/gen-clients.sh`, và commit `apps/web/src/api/schema.d.ts` đã sinh lại cùng bản sao spec của iOS.
+- **Bộ kiểm thử được ghim theo ID.** Thêm, xóa hoặc viết lại một kiểm thử thì ghi vào `tests/TEST-LEDGER.md` và `tests/baseline-test-ids.txt`, nếu không `test_collected_ids_match_baseline` sẽ thất bại.
+
+## Thời gian
+
+Giờ địa phương chỉ đến từ `utils/clock.py`, không bao giờ từ máy chủ. `time.localtime`, `datetime.fromtimestamp` không có múi giờ hay `.astimezone()` trần ở bất kỳ nơi nào khác đều làm một kiểm thử thất bại. Ngày được cắt ở nửa đêm địa phương, không bao giờ là `start + 86400`, vì giờ mùa hè làm ngày dài 23 hoặc 25 giờ.
+
+## User plane
+
+- Mặc định từ chối. Mỗi route khai báo một tầng rủi ro, và mọi yêu cầu mang một token, trừ tệp tĩnh công khai và liên kết media có chữ ký.
+- Không bí mật nào có giá trị mặc định viết cứng. Hãy giả định kẻ tấn công đã đọc toàn bộ mã nguồn.
+- Các feature không bao giờ import lẫn nhau. Mã dùng chung đặt trong `shared/`.
+
+## Mã
+
+- Mã giao thức được port sang không bị định dạng lại, để vẫn diff được với petkit-local upstream. Mã mới trong `features/`, `web/` và `shared/` được định dạng bằng ruff và kiểm tra kiểu nghiêm ngặt.
+- Tên kiểm thử mô tả kịch bản. Đừng mock thứ đang được kiểm thử; chỉ giả lập các ranh giới ngoài cùng: thiết bị, đám mây PetKit, broker Home Assistant.
+- Không có plan ID, số phase hay mã phát hiện trong comment mã, tên kiểm thử hay commit message.
+- Mọi workflow ghim action của bên thứ ba vào commit SHA và đặt `permissions:` tối thiểu.
+
+## Triển khai lên máy Home Assistant
+
+Đừng bao giờ triển khai một Dockerfile chưa kiểm thử. Supervisor xóa image cũ trước khi build lại, nên build thất bại không để lại image nào, add-on rơi vào trạng thái lỗi, và các thiết bị mất đám mây cục bộ. Hãy build trước bằng `docker build` thường trên chính máy đó.

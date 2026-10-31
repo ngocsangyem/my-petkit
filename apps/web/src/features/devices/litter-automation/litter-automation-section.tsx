@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { errorMessage } from '@/shared/api/errors';
 import { ErrorBlock } from '@/shared/ui';
 import { AutoPackCard } from './auto-pack-card';
@@ -22,13 +23,14 @@ interface LitterAutomationSectionProps {
  * design: a model that supports neither renders nothing, and so does the read while it loads.
  */
 export function LitterAutomationSection({ deviceId, force }: LitterAutomationSectionProps) {
+  const { t } = useTranslation('devices');
   const query = useLitterAutomation(deviceId);
   const own = useForceContinue(deviceId, query.data?.forceContinue);
 
   if (query.isError) {
     return (
       <ErrorBlock
-        message={`Force continue and auto-pack could not be read. ${errorMessage(query.error)}`}
+        message={t('force.readFailed', { error: errorMessage(query.error) })}
         onRetry={() => void query.refetch()}
         retrying={query.isFetching}
       />

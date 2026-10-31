@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Select, SettingsRow, TextInput } from '@/shared/ui';
 import { defaultUpstream, validDns, validUpstream, type UpstreamChoice } from '../setup-model';
 
@@ -28,6 +29,7 @@ export function UpstreamFields({
   onUpstream,
   onDns,
 }: UpstreamFieldsProps) {
+  const { t } = useTranslation('setup');
   const fallback = defaultUpstream(presets);
   const current = upstream || fallback;
   const isPreset = presets.some(p => p.key === current);
@@ -37,18 +39,21 @@ export function UpstreamFields({
   const presetUrl = presets.find(p => p.key === current)?.url;
 
   const options = [
-    ...presets.map(p => ({ value: p.key, label: p.default ? `${p.key} (default)` : p.key })),
-    { value: CUSTOM, label: 'Custom…' },
+    ...presets.map(p => ({
+      value: p.key,
+      label: p.default ? t('upstream.presetDefault', { key: p.key }) : p.key,
+    })),
+    { value: CUSTOM, label: t('upstream.custom') },
   ];
 
   return (
     <>
       <SettingsRow
         kind="field"
-        label="Upstream host"
+        label={t('upstream.host')}
         description={
           selected === CUSTOM ? (
-            'A PetKit or Aliyun IoT URL. Every device request is forwarded there with its credential.'
+            t('upstream.hostNote')
           ) : (
             <span className="font-mono text-xs wrap-anywhere">{presetUrl}</span>
           )
@@ -76,7 +81,7 @@ export function UpstreamFields({
       {selected === CUSTOM && (
         <SettingsRow
           kind="field"
-          label="Custom upstream URL"
+          label={t('upstream.customUrl')}
           control={props => (
             <TextInput
               {...props}
@@ -97,14 +102,14 @@ export function UpstreamFields({
       )}
       <SettingsRow
         kind="field"
-        label="Upstream resolver"
-        description="Only used to find the server above. Leave empty unless your router or Pi-hole points PetKit's names at this server: then it would point them here for us too, and the proxy would reach itself instead of the cloud."
+        label={t('upstream.resolver')}
+        description={t('upstream.resolverNote')}
         control={props => (
           <TextInput
             {...props}
             mono
             alignEnd
-            placeholder="System resolver"
+            placeholder={t('upstream.systemResolver')}
             value={dns}
             disabled={disabled}
             aria-invalid={!validDns(dns) || undefined}

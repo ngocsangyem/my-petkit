@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useRouteError } from 'react-router';
 import { Button, ErrorBlock, PageHeading } from '@/shared/ui';
 import { errorMessage } from '@/shared/api/errors';
@@ -9,13 +10,14 @@ const STALE_CHUNK =
 
 /** What a screen shows instead of crashing the tab when it cannot load or render. */
 export function RouteError() {
+  const { t } = useTranslation(['app', 'common']);
   const error = useRouteError();
   const message = errorMessage(error);
   if (STALE_CHUNK.test(message)) {
     return (
       <PageHeading
-        title="This page is out of date"
-        finding="The server has a newer version of the app. Reload to open this screen."
+        title={t('outdated.title')}
+        finding={t('outdated.routeBody')}
         actions={
           <Button
             variant="primary"
@@ -23,7 +25,7 @@ export function RouteError() {
               window.location.reload();
             }}
           >
-            Reload
+            {t('common:reload')}
           </Button>
         }
       />
@@ -35,7 +37,7 @@ export function RouteError() {
       onRetry={() => {
         window.location.reload();
       }}
-      retryLabel="Reload"
+      retryLabel={t('common:reload')}
     />
   );
 }

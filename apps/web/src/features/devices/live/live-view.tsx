@@ -1,4 +1,5 @@
 import { type ReactNode, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { errorMessage } from '@/shared/api/errors';
 import { Card, ErrorBlock, Segmented, Skeleton } from '@/shared/ui';
 import { type LiveMode, useLiveInfo } from './live-api';
@@ -32,14 +33,15 @@ export function LiveView({
   streamExtra,
   side,
 }: LiveViewProps) {
+  const { t } = useTranslation('devices');
   const info = useLiveInfo(deviceId);
   const header = (modes: ReactNode) => (renderHeader ? renderHeader(modes) : modes);
   const stream = (sentence: string | null) => (
     <div className="flex min-w-0 flex-col gap-5">
-      <Card as="section" aria-label="Stream" className="flex flex-col gap-2.5">
-        <h2>Stream</h2>
+      <Card as="section" aria-label={t('live.stream')} className="flex flex-col gap-2.5">
+        <h2>{t('live.stream')}</h2>
         {sentence && <p className="text-sm">{sentence}</p>}
-        <p className="text-sm text-muted-foreground">Nothing connects until you press Watch.</p>
+        <p className="text-sm text-muted-foreground">{t('live.nothingUntilWatch')}</p>
         {streamExtra}
       </Card>
       {side}
@@ -52,7 +54,7 @@ export function LiveView({
     else if (info.isError) {
       body = (
         <ErrorBlock
-          message={`Could not check the live stream: ${errorMessage(info.error)}`}
+          message={t('live.checkFailed', { error: errorMessage(info.error) })}
           onRetry={() => void info.refetch()}
           retrying={info.isFetching}
         />
@@ -70,7 +72,7 @@ export function LiveView({
       <>
         {header(null)}
         <div className={GRID}>
-          <section aria-label="Live" className="min-w-0">
+          <section aria-label={t('live.frame.live')} className="min-w-0">
             {body}
           </section>
           {stream(null)}
@@ -124,6 +126,7 @@ interface LivePlayerBlockProps {
 }
 
 function LivePlayerBlock(props: LivePlayerBlockProps) {
+  const { t } = useTranslation('devices');
   const { deviceId, deviceName, modes } = props;
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const player = useLivePlayer(deviceId, modes, videoRef);
@@ -134,7 +137,7 @@ function LivePlayerBlock(props: LivePlayerBlockProps) {
       {props.header(
         <Segmented
           fit
-          label="Live mode"
+          label={t('live.modeLabel')}
           className="min-w-60"
           options={modes.map(m => ({ id: m, label: MODE_LABEL[m] }))}
           value={mode}
@@ -142,7 +145,7 @@ function LivePlayerBlock(props: LivePlayerBlockProps) {
         />,
       )}
       <div className={GRID}>
-        <section aria-label="Live" className="flex min-w-0 flex-col gap-3">
+        <section aria-label={t('live.frame.live')} className="flex min-w-0 flex-col gap-3">
           <LiveFrame
             deviceName={deviceName}
             mode={mode}

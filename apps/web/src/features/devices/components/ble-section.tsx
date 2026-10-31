@@ -1,4 +1,5 @@
 import { useId, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { relativeTime } from '@/shared/format/format';
 import { Button, Card, ConfirmDialog, Icon, OverlayTitleRow } from '@/shared/ui';
@@ -14,6 +15,7 @@ import { FeedbackLine } from './panel-parts';
 
 /** Unpair with a confirm; shared by the parent's list and the accessory's own page. */
 export function useUnpair(parentId: number | null) {
+  const { t } = useTranslation('devices');
   const call = useDeviceCall();
   const [asking, setAsking] = useState<{ id: number; name: string } | null>(null);
   const refresh = [
@@ -24,8 +26,8 @@ export function useUnpair(parentId: number | null) {
   const dialog = (
     <ConfirmDialog
       open={asking !== null}
-      title={`Unpair the ${asking?.name ?? 'accessory'}?`}
-      confirmLabel="Unpair"
+      title={asking ? t('ble.unpairTitle', { name: asking.name }) : t('ble.unpairTitleAccessory')}
+      confirmLabel={t('ble.unpair')}
       busy={call.busy}
       onCancel={() => {
         setAsking(null);
@@ -40,10 +42,7 @@ export function useUnpair(parentId: number | null) {
           });
       }}
     >
-      <p>
-        The relay stops reading it. Its Home Assistant entities stay until you delete the device
-        there.
-      </p>
+      <p>{t('ble.unpairBody')}</p>
     </ConfirmDialog>
   );
   return { call, ask: setAsking, dialog };
@@ -59,6 +58,7 @@ function PairSheet({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { t } = useTranslation('devices');
   const importer = useDeviceCall();
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -72,12 +72,15 @@ function PairSheet({
             onOpenChange(false);
           }}
         >
-          <SheetTitle>Pair an accessory</SheetTitle>
+          <SheetTitle>{t('ble.pairTitle')}</SheetTitle>
         </OverlayTitleRow>
         <SheetDescription className="-mt-2 text-md text-lede">
-          It talks to the server through the{' '}
-          <b className="font-semibold">{device.name.toLowerCase()}</b>, which must stay on and
-          nearby.
+          <Trans
+            t={t}
+            i18nKey="ble.pairDescription"
+            values={{ name: device.name.toLowerCase() }}
+            components={{ b: <b className="font-semibold" /> }}
+          />
         </SheetDescription>
         <div className="flex flex-col gap-1">
           <Button
@@ -90,12 +93,10 @@ function PairSheet({
             }
           >
             <Icon name="cloud" size={16} />
-            {importer.busy ? 'Asking PetKit…' : 'Import from PetKit'}
+            {importer.busy ? t('ble.importing') : t('ble.import')}
           </Button>
           <p className="text-xs text-muted-foreground">
-            Asks PetKit once, signed as the {device.name.toLowerCase()}, which accessories it owns,
-            and copies each one’s Bluetooth address and pairing secret across. Nothing is sent to
-            PetKit until you press it.
+            {t('ble.importNote', { name: device.name.toLowerCase() })}
           </p>
           <FeedbackLine feedback={importer.feedback} />
         </div>
@@ -122,6 +123,7 @@ export function BleSection({
   device: DeviceDetail;
   accessories: readonly BleAccessory[];
 }) {
+  const { t } = useTranslation('devices');
   const headingId = useId();
   const links = useDeviceLinks();
   const unpair = useUnpair(device.id);
@@ -129,19 +131,21 @@ export function BleSection({
   return (
     <Card as="section" aria-labelledby={headingId} className="flex flex-col gap-1 pt-4 pb-2">
       <div className="mb-1 flex items-baseline justify-between gap-3">
-        <h2 id={headingId}>Bluetooth accessories</h2>
+        <h2 id={headingId}>{t('ble.title')}</h2>
         <Button
           variant="text"
           onClick={() => {
             setPairing(true);
           }}
         >
-          Pair
+          {t('ble.pair')}
         </Button>
       </div>
-      <ul className="m-0 flex list-none flex-col p-0" aria-label="Paired accessories">
+      <ul className="m-0 flex list-none flex-col p-0" aria-label={t('ble.pairedLabel')}>
         {device.ble.length === 0 && (
-          <li className="flex min-h-13 items-center text-muted-foreground">Nothing paired.</li>
+          <li className="flex min-h-13 items-center text-muted-foreground">
+            {t('ble.nothingPaired')}
+          </li>
         )}
         {device.ble.map(b => {
           const full = accessories.find(a => a.petkit_id === b.id);
@@ -155,20 +159,24 @@ export function BleSection({
               <span className="flex min-w-0 flex-1 flex-col">
                 <span>{full?.name ?? b.type.toUpperCase()}</span>
                 <span className="text-xs text-muted-foreground">
-                  {b.type.toUpperCase()} · relayed by this device ·{' '}
-                  <span className="font-mono">{b.mac}</span>
+                  <Trans
+                    t={t}
+                    i18nKey="ble.relayedBy"
+                    values={{ type: b.type.toUpperCase(), mac: b.mac }}
+                    components={{ mono: <span className="font-mono" /> }}
+                  />
                 </span>
               </span>
               <span className="text-sm text-muted-foreground">
-                {last ? relativeTime(last) : 'No report yet'}
+                {last ? relativeTime(last) : t('ble.noReportYet')}
               </span>
               {full && (
                 <Link
                   to={links.device(accessoryKeyOf(b.id))}
                   className="text-sm font-medium"
-                  aria-label={`Open ${full.name}`}
+                  aria-label={t('ble.openLabel', { name: full.name })}
                 >
-                  Open
+                  {t('ble.open')}
                 </Link>
               )}
               <Button
@@ -179,7 +187,7 @@ export function BleSection({
                   unpair.ask({ id: b.id, name: b.type.toUpperCase() });
                 }}
               >
-                Unpair
+                {t('ble.unpair')}
               </Button>
             </li>
           );

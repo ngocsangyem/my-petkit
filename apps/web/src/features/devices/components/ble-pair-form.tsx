@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { components } from '@/api/schema';
 import { Button, Panel, SegmentedChips, StackedField, TextInput } from '@/shared/ui';
 import { Collapsible } from '@/shared/ui/shadcn/collapsible';
@@ -40,6 +41,7 @@ function intOr(raw: string, fallback: number): number {
  * be worked out; they come off the accessory or out of PetKit's app.
  */
 export function BlePairForm({ parentId, onPaired }: { parentId: number; onPaired?: () => void }) {
+  const { t } = useTranslation('devices');
   const call = useDeviceCall();
   const [form, setForm] = useState(EMPTY);
   const field = (key: keyof typeof EMPTY) => ({
@@ -52,7 +54,7 @@ export function BlePairForm({ parentId, onPaired }: { parentId: number; onPaired
 
   const submit = () => {
     if (!form.mac.trim()) {
-      call.say({ text: 'Enter the Bluetooth address', tone: 'error' });
+      call.say({ text: t('pair.enterMac'), tone: 'error' });
       return;
     }
     void call
@@ -80,10 +82,10 @@ export function BlePairForm({ parentId, onPaired }: { parentId: number; onPaired
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <span className="text-sm text-muted-foreground">Type</span>
+        <span className="text-sm text-muted-foreground">{t('pair.type')}</span>
         <SegmentedChips
           small
-          label="Accessory type"
+          label={t('pair.typeLabel')}
           options={TYPES}
           value={form.type}
           onChange={type => {
@@ -94,45 +96,42 @@ export function BlePairForm({ parentId, onPaired }: { parentId: number; onPaired
           {TYPES.find(t => t.id === form.type)?.full}
         </span>
       </div>
-      <StackedField label="Bluetooth address (MAC)">
+      <StackedField label={t('pair.mac')}>
         <TextInput mono placeholder="AA:BB:CC:DD:EE:FF" {...field('mac')} />
       </StackedField>
-      <StackedField
-        label="Pairing secret"
-        hint="Eight bytes kept by the accessory until a factory reset. One set up in PetKit's app needs that secret; a factory-fresh one accepts eight zero bytes."
-      >
-        <TextInput mono placeholder="from the accessory" {...field('secret')} />
+      <StackedField label={t('pair.secret')} hint={t('pair.secretHint')}>
+        <TextInput mono placeholder={t('pair.secretPlaceholder')} {...field('secret')} />
       </StackedField>
-      <StackedField label="Name it (optional)">
-        <TextInput placeholder="serial or a label" {...field('sn')} />
+      <StackedField label={t('pair.name')}>
+        <TextInput placeholder={t('pair.namePlaceholder')} {...field('sn')} />
       </StackedField>
       <Panel>
         <Collapsible>
-          <DisclosureFrame plain summary="Advanced">
-            <StackedField
-              label="Identifier"
-              hint="Becomes its Home Assistant device id. Leave blank unless you want the id PetKit's app gave it."
-            >
-              <TextInput mono inputMode="numeric" placeholder="chosen for you" {...field('id')} />
+          <DisclosureFrame plain summary={t('pair.advanced')}>
+            <StackedField label={t('pair.identifier')} hint={t('pair.identifierHint')}>
+              <TextInput
+                mono
+                inputMode="numeric"
+                placeholder={t('pair.identifierPlaceholder')}
+                {...field('id')}
+              />
             </StackedField>
-            <StackedField
-              label="Poll interval (s)"
-              hint="How often the relay opens a Bluetooth session to read it."
-            >
+            <StackedField label={t('pair.interval')} hint={t('pair.intervalHint')}>
               <TextInput inputMode="numeric" {...field('interval')} />
             </StackedField>
-            <StackedField
-              label="Scan type"
-              hint="14 is the only value read off a real pairing (a W5). If an accessory never reports, try another number here."
-            >
-              <TextInput inputMode="numeric" placeholder="default" {...field('scan')} />
+            <StackedField label={t('pair.scanType')} hint={t('pair.scanTypeHint')}>
+              <TextInput
+                inputMode="numeric"
+                placeholder={t('pair.scanTypePlaceholder')}
+                {...field('scan')}
+              />
             </StackedField>
           </DisclosureFrame>
         </Collapsible>
       </Panel>
       <div className="mt-auto flex flex-col gap-2">
         <Button variant="primary" size="large" onClick={submit} disabled={call.busy}>
-          Pair accessory
+          {t('pair.submit')}
         </Button>
         <FeedbackLine feedback={call.feedback} />
       </div>

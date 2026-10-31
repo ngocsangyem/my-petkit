@@ -1,13 +1,13 @@
 import type { ReactNode } from 'react';
+import type { Dictionary } from '@/lib/i18n-dictionaries';
 import { SectionHead } from './section-head';
 
 const stroke = { fill: 'none', stroke: 'var(--lp-drawing-stroke)', strokeWidth: 3 } as const;
 
 // Codenames per hardware family; `ok` marks models somebody has run against the server
-const FAMILIES: { title: string; body: string; codes: [string, boolean][]; drawing: ReactNode }[] = [
+const FAMILIES: { id: keyof Dictionary['families']['items']; codes: [string, boolean][]; drawing: ReactNode }[] = [
   {
-    title: 'Embedded Linux, with camera',
-    body: 'Bluetooth provisioning only, because they insist on HTTPS. MQTT needs a firmware patcher.',
+    id: 'camera',
     codes: [['T5', true], ['T6', true], ['T7', false], ['D4H', false], ['D4SH', true], ['W7H', true]],
     drawing: (
       <>
@@ -19,8 +19,7 @@ const FAMILIES: { title: string; body: string; codes: [string, boolean][]; drawi
     ),
   },
   {
-    title: 'ESP32',
-    body: 'Bluetooth provisioning or a DNS redirect, since they talk plain HTTP on port 80.',
+    id: 'esp32',
     codes: [['T3', false], ['T4', false], ['D3', false], ['D4', false], ['D4S', false], ['Feeder', false], ['Mini', false]],
     drawing: (
       <>
@@ -31,8 +30,7 @@ const FAMILIES: { title: string; body: string; codes: [string, boolean][]; drawi
     ),
   },
   {
-    title: 'Bluetooth only',
-    body: 'Fountains and sprays report through a mains-powered litter box or feeder within range.',
+    id: 'bluetooth',
     codes: [['W4', false], ['W5', false], ['CTW2', false], ['CTW3', true], ['K2', false], ['K3', false]],
     drawing: (
       <>
@@ -44,22 +42,21 @@ const FAMILIES: { title: string; body: string; codes: [string, boolean][]; drawi
 ];
 
 /** Supported devices grouped by what is inside them, which decides how they connect. */
-export function DeviceFamilies() {
+export function DeviceFamilies({ t }: { t: Dictionary['families'] }) {
   return (
     <section className="lp-block" id="devices">
       <div className="lp-wrap">
-        <SectionHead eyebrow="Supported devices" title="It depends on what's inside, not what it is.">
-          How a device reaches MyPetKit is decided by its hardware family. A litter box and a feeder can take the same
-          path.
+        <SectionHead eyebrow={t.eyebrow} title={t.title}>
+          {t.lede}
         </SectionHead>
         <div className="lp-families" data-lp-reveal="">
           {FAMILIES.map((f) => (
-            <article className="lp-family" key={f.title}>
+            <article className="lp-family" key={f.id}>
               <svg viewBox="0 0 88 88" aria-hidden="true">
                 {f.drawing}
               </svg>
-              <h3>{f.title}</h3>
-              <p>{f.body}</p>
+              <h3>{t.items[f.id].title}</h3>
+              <p>{t.items[f.id].body}</p>
               <div className="lp-codes">
                 {f.codes.map(([code, ok]) => (
                   <span className="lp-code" data-ok={ok || undefined} key={code}>
@@ -74,9 +71,9 @@ export function DeviceFamilies() {
           <span className="lp-code" data-ok="">
             T6
           </span>
-          Confirmed by someone running it against the server
+          {t.confirmed}
           <span className="lp-code">T7</span>
-          Expected to work, not yet run
+          {t.expected}
         </div>
       </div>
     </section>

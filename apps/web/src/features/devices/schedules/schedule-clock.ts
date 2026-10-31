@@ -3,13 +3,19 @@
 // feeder meal's `t`, which counts SECONDS since local midnight: the cloud's
 // `n_46560` fires at 12:56:00 (D4SH capture). "Local" is the device's own
 // clock, never the browser's.
+import { currentLocale, i18n } from '@/i18n';
 
 /** Minutes in a day. 1440 is the end of the day and appears only in `[0, 1440]`. */
 export const DAY_END = 1440;
 /** Seconds in a day, the unit of a feeder meal's `t`. */
 export const DAY_SECONDS = 86_400;
-/** Weekday names in wire order: index 0 is weekday 1, Sunday. */
+/** Weekday codes in wire order: index 0 is weekday 1, Sunday. Stable ids, not display text. */
 export const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
+
+/** A weekday's short name in the active language. */
+export function weekdayName(day: (typeof WEEKDAYS)[number]): string {
+  return i18n.t(`devices:weekday.${day}`);
+}
 /** Every day of the week, as a new entry starts. */
 export const EVERY_DAY = '1,2,3,4,5,6,7';
 
@@ -82,19 +88,29 @@ export function deviceToday(offsetHours: number, nowMs = Date.now()): string {
   return shifted(nowMs, offsetHours).toISOString().slice(0, 10);
 }
 
-const FIRE_AT_FORMAT = new Intl.DateTimeFormat(undefined, {
-  weekday: 'short',
-  day: 'numeric',
-  month: 'short',
-  hour: '2-digit',
-  minute: '2-digit',
-  hourCycle: 'h23',
-  timeZone: 'UTC',
-});
+/** One formatter per locale, made on first use: the active language can change at any time. */
+const fireAtFormats = new Map<string, Intl.DateTimeFormat>();
 
-/** A unix-seconds moment as the device's own date and time. */
+function fireAtFormat(locale: string): Intl.DateTimeFormat {
+  let format = fireAtFormats.get(locale);
+  if (!format) {
+    format = new Intl.DateTimeFormat(locale, {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+      timeZone: 'UTC',
+    });
+    fireAtFormats.set(locale, format);
+  }
+  return format;
+}
+
+/** A unix-seconds moment as the device's own date and time, in the active locale. */
 export function formatDeviceMoment(unixSeconds: number, offsetHours: number): string {
-  return FIRE_AT_FORMAT.format(shifted(unixSeconds * 1000, offsetHours));
+  return fireAtFormat(currentLocale()).format(shifted(unixSeconds * 1000, offsetHours));
 }
 
 /** An hour offset as "UTC+7", "UTC+5:45", "UTC-3:30". */

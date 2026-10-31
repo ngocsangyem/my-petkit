@@ -12,7 +12,7 @@ struct ProvisionNetworkCard: View {
         Card {
             Text("Network").font(Theme.Font.section).foregroundStyle(Theme.Color.text)
                 .accessibilityAddTraits(.isHeader)
-            LabeledField(label: "Wi-Fi network") {
+            LabeledField(label: L10n.string("Wi-Fi network")) {
                 HStack(spacing: 10) {
                     Image(systemName: "wifi").font(Theme.Font.icon).foregroundStyle(Theme.Color.muted)
                         .accessibilityHidden(true)
@@ -20,10 +20,10 @@ struct ProvisionNetworkCard: View {
                         .textInputAutocapitalization(.never).autocorrectionDisabled()
                 }
             }
-            LabeledField(label: "Password") {
+            LabeledField(label: L10n.string("Password")) {
                 SecureField("Wi-Fi password", text: $model.password).textContentType(.password)
             }
-            LabeledField(label: "Server", footnote: serverFootnote) {
+            LabeledField(label: L10n.string("Server"), footnote: serverFootnote) {
                 TextField("http://192.168.1.20/6/", text: $model.server)
                     .font(Theme.Font.mono)
                     .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
@@ -54,8 +54,8 @@ struct ProvisionNetworkCard: View {
 
     private var serverFootnote: String? {
         switch model.serverState {
-        case .loading: "Reading the address from your server…"
-        case .failed(let message): "Could not read this server's address (\(message)). Type it in, or retry."
+        case .loading: L10n.string("Reading the address from your server…")
+        case .failed(let message): L10n.string("Could not read this server's address (\(message)). Type it in, or retry.")
         case .loaded: nil
         }
     }
@@ -63,8 +63,8 @@ struct ProvisionNetworkCard: View {
     private var warnings: [String] {
         model.warnings.map {
             switch $0 {
-            case .mdnsHost: "Most devices cannot resolve a .local name. Use the server's IP address."
-            case .notPort80: "ESP32 devices (T4, D4) only reach a server on port 80 over plain http."
+            case .mdnsHost: L10n.string("Most devices cannot resolve a .local name. Use the server's IP address.")
+            case .notPort80: L10n.string("ESP32 devices (T4, D4) only reach a server on port 80 over plain http.")
             }
         }
     }

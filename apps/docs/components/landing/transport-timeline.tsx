@@ -2,6 +2,7 @@
 
 import { useRef } from 'react';
 import { gsap, prefersReducedMotion, useGSAP } from './gsap-setup';
+import type { Dictionary } from '@/lib/i18n-dictionaries';
 import { SectionHead } from './section-head';
 
 const MONO = 'IBM Plex Mono, monospace';
@@ -9,7 +10,7 @@ const MONO = 'IBM Plex Mono, monospace';
 const BEATS = Array.from({ length: 12 }, (_, i) => 110 + i * 42);
 
 /** HTTP first, then MQTT: a playhead scrubbed by scroll across the observed transport switch. */
-export function TransportTimeline() {
+export function TransportTimeline({ t }: { t: Dictionary['transport'] }) {
   const root = useRef<HTMLElement>(null);
 
   useGSAP(
@@ -32,20 +33,21 @@ export function TransportTimeline() {
   return (
     <section className="lp-block lp-block-tight" ref={root}>
       <div className="lp-wrap">
-        <SectionHead eyebrow="HTTP first, then MQTT" title="The heartbeat goes quiet. That's the good sign.">
-          A device always starts on HTTP, because that&apos;s where it signs up. Once it reaches the broker it stops
-          polling. On a real T5 the HTTP side went silent about 40 seconds after the MQTT connection opened, and
-          commands started arriving the moment you flip a control.
+        <SectionHead eyebrow={t.eyebrow} title={t.title}>
+          {t.lede}
         </SectionHead>
         <div className="lp-transport">
-          <svg viewBox="0 0 900 220" role="img" aria-label="Timeline: HTTP heartbeats until about 40 seconds after MQTT connects, then MQTT only">
+          <svg viewBox="0 0 900 220" role="img" aria-label={t.chartLabel}>
             <g fontFamily={MONO} fontSize="12" fill="var(--lp-muted)">
               <text x="0" y="66">HTTP</text>
               <text x="0" y="146">MQTT</text>
               <text x="90" y="206">0 s</text>
               <text x="330" y="206">CONNECT</text>
               <text x="590" y="206">+40 s</text>
-              <text x="840" y="206">later</text>
+              {/* Right-aligned so a longer translation stays inside the chart */}
+              <text x="880" y="206" textAnchor="end">
+                {t.later}
+              </text>
             </g>
             <line x1="90" y1="60" x2="880" y2="60" stroke="var(--lp-rule)" strokeWidth="2" />
             <line x1="90" y1="140" x2="880" y2="140" stroke="var(--lp-rule)" strokeWidth="2" />
@@ -57,13 +59,13 @@ export function TransportTimeline() {
             <line x1="350" y1="30" x2="350" y2="186" stroke="var(--lp-accent)" strokeWidth="1.5" strokeDasharray="3 4" />
             <line x1="610" y1="30" x2="610" y2="186" stroke="var(--lp-muted)" strokeWidth="1.5" strokeDasharray="3 4" />
             <text x="618" y="40" fontSize="13" fill="var(--lp-muted)">
-              HTTP heartbeat stops
+              {t.heartbeatStops}
             </text>
             <line data-playhead="" x1="90" y1="22" x2="90" y2="190" stroke="var(--lp-ink)" strokeWidth="2" />
           </svg>
           <div className="lp-legend">
-            <span>Observed on a Purobot Max Pro 2 (T5). Tick spacing is illustrative.</span>
-            <span>Camera models need the MQTT TLS Bypass patcher to get here.</span>
+            <span>{t.observed}</span>
+            <span>{t.patcherNote}</span>
           </div>
         </div>
       </div>

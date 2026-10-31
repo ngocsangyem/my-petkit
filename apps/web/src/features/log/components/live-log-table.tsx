@@ -1,4 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button, Icon, LogLevelText, Skeleton, Table, type TableColumn } from '@/shared/ui';
 import { formatTime } from '@/shared/format/format';
 import type { HubEvent } from '@/shared/ws/hub-event';
@@ -54,6 +55,7 @@ function MessageCell({
 
 /** The live rows: newest at the bottom, expandable, each one copyable whole. */
 export function LiveLogTable({ rows, autoscroll, loading, emptyText, onCopy }: LiveLogTableProps) {
+  const { t } = useTranslation('log');
   const [open, setOpen] = useState<ReadonlySet<string>>(new Set());
   const scroller = useRef<HTMLDivElement>(null);
   const nearBottom = useRef(true);
@@ -74,7 +76,7 @@ export function LiveLogTable({ rows, autoscroll, loading, emptyText, onCopy }: L
   const columns: TableColumn<HubEvent>[] = [
     {
       key: 'time',
-      header: 'Time',
+      header: t('live.time'),
       width: '96px',
       nowrap: true,
       muted: true,
@@ -82,13 +84,13 @@ export function LiveLogTable({ rows, autoscroll, loading, emptyText, onCopy }: L
     },
     {
       key: 'kind',
-      header: 'Kind',
+      header: t('live.kind'),
       width: '72px',
       cell: e => <LogLevelText level={levelOf(e)}>{e.kind}</LogLevelText>,
     },
     {
       key: 'device',
-      header: 'Device',
+      header: t('live.device'),
       width: '110px',
       nowrap: true,
       muted: true,
@@ -96,7 +98,7 @@ export function LiveLogTable({ rows, autoscroll, loading, emptyText, onCopy }: L
     },
     {
       key: 'message',
-      header: 'Message',
+      header: t('live.message'),
       cell: e => (
         <MessageCell
           event={e}
@@ -109,7 +111,7 @@ export function LiveLogTable({ rows, autoscroll, loading, emptyText, onCopy }: L
     },
     {
       key: 'copy',
-      header: 'Copy',
+      header: t('copy'),
       hiddenHeader: true,
       alignEnd: true,
       width: '64px',
@@ -118,12 +120,12 @@ export function LiveLogTable({ rows, autoscroll, loading, emptyText, onCopy }: L
           <Button
             variant="text"
             size="small"
-            aria-label={`Copy the ${e.kind} entry at ${formatTime(e.ts)}`}
+            aria-label={t('live.copyEntry', { kind: e.kind, time: formatTime(e.ts) })}
             onClick={() => {
               onCopy(entryText(e));
             }}
           >
-            Copy
+            {t('copy')}
           </Button>
         ),
     },
@@ -134,7 +136,7 @@ export function LiveLogTable({ rows, autoscroll, loading, emptyText, onCopy }: L
       <div
         className="flex max-h-[480px] flex-col gap-4 overflow-y-auto py-3"
         aria-busy="true"
-        aria-label="Loading the log"
+        aria-label={t('live.loading')}
       >
         {Array.from({ length: 6 }, (_, i) => (
           <Skeleton key={i} height={14} />
@@ -156,7 +158,7 @@ export function LiveLogTable({ rows, autoscroll, loading, emptyText, onCopy }: L
       <Table
         variant="log"
         role="log"
-        label="Live log"
+        label={t('live.label')}
         columns={columns}
         rows={rows}
         rowKey={eventKey}

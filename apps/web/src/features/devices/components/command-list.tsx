@@ -1,5 +1,6 @@
 import type { QueryKey } from '@tanstack/react-query';
 import { type CSSProperties, type ReactNode, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ConfirmDialog, type IconName, QuickAction } from '@/shared/ui';
 import { type Feedback, useDeviceCall } from '../hooks/use-device-call';
 import { FeedbackLine } from './panel-parts';
@@ -54,31 +55,33 @@ export interface CommandRunner {
  * says what moves and how it gets there.
  */
 export function useCommands({ target, route, refresh }: CommandsOptions): CommandRunner {
+  const { t } = useTranslation('devices');
   const call = useDeviceCall();
   const [asking, setAsking] = useState<Command | null>(null);
 
   const confirm = async () => {
     const cmd = asking;
     if (!cmd) return;
-    await call.run(async () => `Last command: ${cmd.name} · ${await cmd.run()}`, refresh);
+    await call.run(
+      async () => t('commands.last', { name: cmd.name, result: await cmd.run() }),
+      refresh,
+    );
     setAsking(null);
   };
 
   const dialog = (
     <ConfirmDialog
       open={asking !== null}
-      title={`${asking?.name ?? ''} on the ${target}?`}
-      confirmLabel={asking?.name ?? 'Send'}
+      title={t('commands.confirmTitle', { name: asking?.name ?? '', target })}
+      confirmLabel={asking?.name ?? t('commands.send')}
       busy={call.busy}
       onConfirm={() => void confirm()}
       onCancel={() => {
         setAsking(null);
       }}
     >
-      <p>
-        This sends “{asking?.name}” to the {target}. {route}
-      </p>
-      {asking?.destructive && <p>The device acts on it at once and it cannot be called back.</p>}
+      <p>{t('commands.confirmBody', { name: asking?.name ?? '', target, route })}</p>
+      {asking?.destructive && <p>{t('commands.destructiveNote')}</p>}
     </ConfirmDialog>
   );
   return { ask: setAsking, busy: call.busy, feedback: call.feedback, dialog };
@@ -108,6 +111,7 @@ function share(n: number): CSSProperties {
  * per object, and the group label and the confirm say what they do.
  */
 export function CommandList({ commands, runner, extra, note }: CommandListProps) {
+  const { t } = useTranslation('devices');
   const routine = commands.filter(cmd => !cmd.destructive);
   const destructive = commands.filter(cmd => cmd.destructive);
   const button = (cmd: Command) => (
@@ -125,7 +129,7 @@ export function CommandList({ commands, runner, extra, note }: CommandListProps)
   const grid = 'grid grid-cols-[repeat(auto-fit,minmax(124px,1fr))] gap-2';
   const routineCount = routine.length + (extra ? 1 : 0);
   return (
-    <section className="flex min-w-0 flex-col gap-2.5" aria-label="Commands">
+    <section className="flex min-w-0 flex-col gap-2.5" aria-label={t('commands.label')}>
       {/*
         One row across the card: the routine block and the destructive group grow in proportion
         to how many buttons each holds, so every button is the same width, and the row wraps
@@ -142,15 +146,15 @@ export function CommandList({ commands, runner, extra, note }: CommandListProps)
           <div
             className="grid gap-1.5"
             role="group"
-            aria-label="Cannot be undone"
+            aria-label={t('commands.cannotUndo')}
             style={share(destructive.length)}
           >
-            <span className="text-sm text-muted-foreground">Cannot be undone</span>
+            <span className="text-sm text-muted-foreground">{t('commands.cannotUndo')}</span>
             <div className={grid}>{destructive.map(button)}</div>
           </div>
         )}
       </div>
-      <p className="text-xs text-muted-foreground">{note ?? 'Each command asks before it runs.'}</p>
+      <p className="text-xs text-muted-foreground">{note ?? t('commands.note')}</p>
       <FeedbackLine feedback={runner.feedback} />
     </section>
   );

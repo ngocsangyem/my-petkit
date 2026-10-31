@@ -11,15 +11,15 @@ enum CaptureRules {
     static func describe(_ fileName: String) -> String? {
         let stem = fileName.hasSuffix(".jsonl") ? String(fileName.dropLast(6)) : fileName
         switch stem {
-        case "requests": return "HTTP from devices"
-        case "mqtt": return "broker frames"
-        case "state_report": return "state reports"
-        case "state_report_raw": return "raw state reports"
-        case "event_report": return "event reports"
-        case "upload_file_info": return "media upload reports"
-        case "proxy_http": return "proxied HTTP with the cloud's replies"
-        case "proxy_redactions": return "what proxy mode rewrote"
-        case "proxy_mqtt": return "proxied MQTT frames"
+        case "requests": return L10n.string("HTTP from devices")
+        case "mqtt": return L10n.string("broker frames")
+        case "state_report": return L10n.string("state reports")
+        case "state_report_raw": return L10n.string("raw state reports")
+        case "event_report": return L10n.string("event reports")
+        case "upload_file_info": return L10n.string("media upload reports")
+        case "proxy_http": return L10n.string("proxied HTTP with the cloud's replies")
+        case "proxy_redactions": return L10n.string("what proxy mode rewrote")
+        case "proxy_mqtt": return L10n.string("proxied MQTT frames")
         default: return nil
         }
     }
@@ -38,11 +38,8 @@ enum CaptureRules {
 
     /// "Recording is off. 4 files on the server."
     static func summary(recording: Bool, fileCount: Int) -> String {
-        let files = switch fileCount {
-        case 0: "No files on the server."
-        case 1: "1 file on the server."
-        default: "\(fileCount) files on the server."
-        }
-        return "Recording is \(recording ? "on" : "off"). \(files)"
+        let state = recording ? L10n.string("Recording is on.") : L10n.string("Recording is off.")
+        let files = fileCount == 0 ? L10n.string("No files on the server.") : L10n.string("\(fileCount) files on the server.")
+        return "\(state) \(files)"
     }
 }

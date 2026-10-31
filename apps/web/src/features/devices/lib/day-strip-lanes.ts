@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { components } from '@/api/schema';
+import { i18n } from '@/i18n';
 import { formatDuration } from '@/shared/format/format';
 import type { DayStripLane, DayStripMeal, DayStripSpan, DayStripVisit } from '@/shared/ui';
 import { formatMinute } from '@/shared/ui';
@@ -67,18 +68,23 @@ function fountainSpans(
   nowSeconds: number,
 ): DayStripSpan[] {
   const now = minuteOfDay(nowSeconds, zone);
-  if (!quiet) return [{ start: 0, end: now, state: 'reporting', title: 'Reporting' }];
+  if (!quiet) {
+    return [{ start: 0, end: now, state: 'reporting', title: i18n.t('devices:strip.reporting') }];
+  }
   if (last === null || localDateKey(last, zone) !== localDateKey(nowSeconds, zone)) {
-    return [{ start: 0, end: now, state: 'no-report', title: 'No report today' }];
+    return [
+      { start: 0, end: now, state: 'no-report', title: i18n.t('devices:strip.noReportToday') },
+    ];
   }
   const lastMinute = minuteOfDay(last, zone);
-  const since = `No report since ${formatMinute(lastMinute)}`;
+  const clock = formatMinute(lastMinute);
+  const since = i18n.t('devices:problem.noReportSince', { when: clock });
   return [
     {
       start: 0,
       end: lastMinute,
       state: 'reporting',
-      title: `Reporting until ${formatMinute(lastMinute)}`,
+      title: i18n.t('devices:strip.reportingUntil', { clock }),
     },
     { start: lastMinute, end: now, state: 'no-report', title: since },
   ];
@@ -113,7 +119,7 @@ export function buildStrip(input: StripInput): StripModel {
     lanes.push({
       kind: 'pet',
       id: 'unknown',
-      name: 'Unrecognised',
+      name: i18n.t('devices:strip.unrecognised'),
       petIndex: pets.length,
       visits: unknown,
     });
@@ -132,7 +138,13 @@ export function buildStrip(input: StripInput): StripModel {
           const minute = todayMinute(s, zoneOf, nowSeconds);
           return minute === null
             ? []
-            : [{ minute, fed: true, title: `${formatMinute(minute)} · fed` }];
+            : [
+                {
+                  minute,
+                  fed: true,
+                  title: i18n.t('devices:strip.fed', { clock: formatMinute(minute) }),
+                },
+              ];
         });
       const planned = detail ? todaysMeals(detail, zone, nowSeconds) : [];
       const dual = detail?.schedules.find(t => t.kind === 'feed')?.dual === true;
@@ -141,7 +153,10 @@ export function buildStrip(input: StripInput): StripModel {
         meals.push({
           minute: m.minute,
           fed: false,
-          title: `${formatMinute(m.minute)} · ${portionsText(m, dual)} planned`,
+          title: i18n.t('devices:strip.planned', {
+            clock: formatMinute(m.minute),
+            portions: portionsText(m, dual),
+          }),
         });
       }
       lanes.push({ kind: 'feeder', id: `d${d.id}`, name: d.name, meals });

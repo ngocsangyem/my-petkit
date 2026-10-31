@@ -47,7 +47,7 @@ struct SoundRow: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("\(sound.name), \(source)")
-            .accessibilityHint(isSelected ? "" : "Use this sound")
+            .accessibilityHint(isSelected ? "" : L10n.string("Use this sound"))
             .accessibilityAddTraits(isSelected ? .isSelected : [])
             if isSelected {
                 Image(systemName: "checkmark")
@@ -67,8 +67,8 @@ struct SoundRow: View {
     }
 
     private var source: String {
-        guard let size = sound.size else { return "Built in" }
-        return "Uploaded · \(SoundUploadPolicy.formatSize(size))"
+        guard let size = sound.size else { return L10n.string("Built in") }
+        return L10n.string("Uploaded · \(SoundUploadPolicy.formatSize(size))")
     }
 }
 
@@ -86,10 +86,10 @@ struct SoundSettingsCard: View {
                     if let volume {
                         Menu {
                             ForEach(Array(volume.range), id: \.self) { level in
-                                Button("\(level)") { onSet(volume.key, String(level), "volume to \(level)") }
+                                Button(String(level)) { onSet(volume.key, String(level), L10n.string("volume to \(level)")) }
                             }
                         } label: {
-                            SettingsRow(title: "Volume", value: volume.display, showsChevron: volume.isSettable)
+                            SettingsRow(title: L10n.string("Volume"), value: volume.display, showsChevron: volume.isSettable)
                         }
                         .disabled(!volume.isSettable)
                         .monospacedDigit()
@@ -98,10 +98,10 @@ struct SoundSettingsCard: View {
                     if let language {
                         Menu {
                             ForEach(language.options, id: \.self) { option in
-                                Button(option) { onSet(language.key, option, "voice language to \(option)") }
+                                Button(option) { onSet(language.key, option, L10n.string("voice language to \(option)")) }
                             }
                         } label: {
-                            SettingsRow(title: "Voice language", value: language.display,
+                            SettingsRow(title: L10n.string("Voice language"), value: language.display,
                                         showsChevron: language.isSettable)
                         }
                         .disabled(!language.isSettable)

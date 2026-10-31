@@ -1,6 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { components } from '@/api/schema';
+import { i18n } from '@/i18n';
 import { errorMessage } from '@/shared/api/errors';
 import { formatBytes, formatDateTime } from '@/shared/format/format';
 import {
@@ -26,22 +28,28 @@ type DeviceLogListing = components['schemas']['DeviceLogListing'];
 // typist should queue one request, not ten.
 const GREP_DEBOUNCE_MS = 200;
 
-const REASONS: Record<string, string> = {
-  no_log_root: 'no log directory is configured',
-  no_bucket_endpoint: 'this app has no bucket address, so there is nowhere to send the device',
-  authority_not_splittable:
-    'the bucket address cannot be split into a host the device can build — it needs a dotted name or IP',
-};
+/** Reasons the server gives as codes; an unknown code is shown as it came. */
+const REASONS = ['no_log_root', 'no_bucket_endpoint', 'authority_not_splittable'] as const;
+type Reason = (typeof REASONS)[number];
+
+function isKnownReason(code: string): code is Reason {
+  return (REASONS as readonly string[]).includes(code);
+}
 
 /** Why there is nothing to show, in one sentence. */
 export function emptyReason(listing: DeviceLogListing): string {
-  if (listing.reason) return `Cannot collect: ${REASONS[listing.reason] ?? listing.reason}.`;
+  if (listing.reason) {
+    const code = listing.reason;
+    const reason = isKnownReason(code) ? i18n.t(`log:device.reason.${code}`) : code;
+    return i18n.t('log:device.cannotCollect', { reason });
+  }
   return listing.enabled_devices.length
-    ? 'Collection is on. The device uploads on its own schedule; a reboot is the usual trigger.'
-    : 'No device has debug log collection turned on.';
+    ? i18n.t('log:device.collecting')
+    : i18n.t('log:device.notCollecting');
 }
 
 export function DeviceLogsSection() {
+  const { t } = useTranslation('log');
   const toast = useToast();
   const list = useDeviceLogList();
   const queryClient = useQueryClient();
@@ -52,12 +60,12 @@ export function DeviceLogsSection() {
   const [downloading, setDownloading] = useState<string | null>(null);
 
   useEffect(() => {
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       setQuery(grep);
       setOffset(0);
     }, GREP_DEBOUNCE_MS);
     return () => {
-      clearTimeout(t);
+      clearTimeout(timer);
     };
   }, [grep]);
 
@@ -76,7 +84,7 @@ export function DeviceLogsSection() {
     try {
       saveBlob(await fetchDeviceLogFile(file.rel), file.name);
     } catch (e) {
-      toast(`Download failed: ${errorMessage(e)}`, { error: true });
+      toast(t('device.downloadFailed', { error: errorMessage(e) }), { error: true });
     } finally {
       setDownloading(null);
     }
@@ -88,7 +96,7 @@ export function DeviceLogsSection() {
   } else if (list.isError) {
     body = (
       <ErrorBlock
-        message={`Could not list the device logs: ${errorMessage(list.error)}`}
+        message={t('device.listFailed', { error: errorMessage(list.error) })}
         onRetry={() => void list.refetch()}
         retrying={list.isFetching}
       />
@@ -99,7 +107,7 @@ export function DeviceLogsSection() {
     body = (
       <>
         <Table
-          label="Device logs"
+          label={t('device.title')}
           variant="compact"
           minWidth={560}
           rows={files}
@@ -108,7 +116,7 @@ export function DeviceLogsSection() {
           columns={[
             {
               key: 'uploaded',
-              header: 'Uploaded',
+              header: t('device.uploaded'),
               nowrap: true,
               cell: f => (
                 <button
@@ -126,15 +134,20 @@ export function DeviceLogsSection() {
             },
             {
               key: 'device',
-              header: 'Device',
+              header: t('device.device'),
               mono: true,
               cell: f => <ValueText value={f.device} />,
             },
-            { key: 'file', header: 'File', mono: true, cell: f => f.name },
-            { key: 'size', header: 'Size', numeric: true, cell: f => formatBytes(f.size) },
+            { key: 'file', header: t('device.file'), mono: true, cell: f => f.name },
+            {
+              key: 'size',
+              header: t('device.size'),
+              numeric: true,
+              cell: f => formatBytes(f.size),
+            },
             {
               key: 'download',
-              header: 'Download',
+              header: t('device.download'),
               hiddenHeader: true,
               alignEnd: true,
               cell: f => (
@@ -142,10 +155,10 @@ export function DeviceLogsSection() {
                   variant="text"
                   size="small"
                   disabled={downloading === f.rel}
-                  aria-label={`Download ${f.name}`}
+                  aria-label={t('device.downloadFile', { name: f.name })}
                   onClick={() => void download(f)}
                 >
-                  Download
+                  {t('device.download')}
                 </Button>
               ),
             },
@@ -161,11 +174,11 @@ export function DeviceLogsSection() {
   return (
     <Card as="section" className="flex flex-col gap-3" aria-labelledby="devlog-title">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-        <h2 id="devlog-title">Device logs</h2>
+        <h2 id="devlog-title">{t('device.title')}</h2>
         <SearchField
           className="w-[240px] max-[900px]:w-full"
-          aria-label="Search the device log"
-          placeholder="grep pattern"
+          aria-label={t('device.search')}
+          placeholder={t('device.searchPlaceholder')}
           mono
           autoComplete="off"
           spellCheck={false}
@@ -173,10 +186,7 @@ export function DeviceLogsSection() {
           onValueChange={setGrep}
         />
       </div>
-      <p className="text-xs text-muted-foreground">
-        The device’s own devRun.log, uploaded here instead of to PetKit. Off until you turn on
-        Collect debug logs on a device, and the device decides when to send one.
-      </p>
+      <p className="text-xs text-muted-foreground">{t('device.intro')}</p>
       {body}
     </Card>
   );

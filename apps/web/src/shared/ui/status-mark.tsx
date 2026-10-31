@@ -1,20 +1,13 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from 'cn';
+import { i18n } from '@/i18n';
 
 /** Reachability of a device as the server sees it. */
 export type DeviceStatus = 'online' | 'polling' | 'offline' | 'unknown';
 
-/** Default words per status, as on the design sheet. */
+/** Default words per status, as on the design sheet, in the active language. */
 export function statusLabel(status: DeviceStatus): string {
-  switch (status) {
-    case 'online':
-      return 'Online · MQTT';
-    case 'polling':
-      return 'Polling · heartbeat';
-    case 'offline':
-      return 'Offline';
-    case 'unknown':
-      return 'Unknown';
-  }
+  return i18n.t(`ui:deviceStatus.${status}`);
 }
 
 /** Props for {@link StatusMark}. */
@@ -50,6 +43,8 @@ function Dot({ hollow, className }: { hollow?: boolean; className?: string }) {
  * `ui-status ui-status--<status>` classes stay as hooks for tests and screen-level selectors.
  */
 export function StatusMark({ status, label }: StatusMarkProps) {
+  // Subscribes to language changes, so the default words follow a switch.
+  useTranslation('ui');
   return (
     <span
       className={cn(
@@ -66,17 +61,6 @@ export function StatusMark({ status, label }: StatusMarkProps) {
 
 /** State of the browser's live connection to the server. */
 export type LiveState = 'live' | 'connecting' | 'offline';
-
-function liveLabel(state: LiveState): string {
-  switch (state) {
-    case 'live':
-      return 'Live';
-    case 'connecting':
-      return 'Connecting';
-    case 'offline':
-      return 'Offline';
-  }
-}
 
 /** Props for {@link LiveIndicator}. */
 export interface LiveIndicatorProps {
@@ -97,6 +81,7 @@ const LIVE_DOT: Record<LiveState, string> = {
  * stays muted; only the dot carries the state.
  */
 export function LiveIndicator({ state, label, className }: LiveIndicatorProps) {
+  const { t } = useTranslation('ui');
   return (
     <span
       className={cn(
@@ -107,7 +92,7 @@ export function LiveIndicator({ state, label, className }: LiveIndicatorProps) {
       role="status"
     >
       <Dot hollow={state === 'connecting'} className={LIVE_DOT[state]} />
-      {label ?? liveLabel(state)}
+      {label ?? t(`live.${state}`)}
     </span>
   );
 }

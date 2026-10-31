@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { Card, Panel } from '@/shared/ui';
 import type { DeviceDetail } from '../api';
 import { type Command, CommandList, type CommandRunner } from '../components/command-list';
@@ -8,13 +9,19 @@ import { figureCells } from '../components/model-block';
 
 /** "T6 · firmware 1.2.86" under a drawing; the firmware in mono. */
 export function ModelCaption({ device }: { device: DeviceDetail }) {
+  const { t } = useTranslation('devices');
   return (
     <span className="text-center text-xs text-muted-foreground">
       {device.type.toUpperCase()}
       {device.firmware && (
         <>
           {' '}
-          · firmware <span className="font-mono">{device.firmware}</span>
+          <Trans
+            t={t}
+            i18nKey="hero.firmware"
+            values={{ firmware: device.firmware }}
+            components={{ mono: <span className="font-mono" /> }}
+          />
         </>
       )}
     </span>
@@ -66,11 +73,12 @@ export function HeroCard({
   commandsNote,
   extra,
 }: HeroCardProps) {
+  const { t } = useTranslation('devices');
   const cells = figureCells(device, visitsToday);
   return (
     <Card
       as="section"
-      aria-label={`${device.name} at a glance`}
+      aria-label={t('atAGlance', { name: device.name })}
       padding="none"
       className="flex flex-col gap-4 px-2 pt-2 pb-5"
     >
@@ -78,10 +86,14 @@ export function HeroCard({
         <HeroArt device={device} />
         <div className="flex min-w-0 flex-col gap-2">
           {cells.length > 0 ? (
-            <FigureSplit label={`${device.name} figures`} cells={cells} className="flex-1" />
+            <FigureSplit
+              label={t('figuresLabel', { name: device.name })}
+              cells={cells}
+              className="flex-1"
+            />
           ) : (
             <Panel className="flex flex-1 items-center text-muted-foreground">
-              This model publishes no figures.
+              {t('hero.noFigures')}
             </Panel>
           )}
           {figuresNote && <p className="mx-1.5 text-xs text-muted-foreground">{figuresNote}</p>}

@@ -3,7 +3,9 @@ import { useSaveSettings } from './api';
 import {
   defaultUpstream,
   draftProblem,
+  isBlockingGuard,
   withEdit,
+  type GuardKey,
   type LiveSettings,
   type ServerInfo,
   type SettingsDraft,
@@ -22,15 +24,16 @@ export function useSettingsDraft(info: ServerInfo) {
   const [draft, setDraft] = useState<SettingsDraft>({});
   // Bumped on save and discard, so uncontrolled fields (the custom upstream) start over.
   const [generation, setGeneration] = useState(0);
-  const [asking, setAsking] = useState<ToggleDef | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [asking, setAsking] = useState<GuardKey | null>(null);
+  // How many settings the last save changed; the header words it in the active language.
+  const [savedCount, setSavedCount] = useState<number | null>(null);
   const save = useSaveSettings();
 
   const value: LiveSettings = { ...saved, ...draft };
   const dirty = Object.keys(draft) as (keyof LiveSettings)[];
 
   function edit<K extends keyof LiveSettings>(key: K, next: LiveSettings[K]) {
-    setNotice(null);
+    setSavedCount(null);
     save.reset();
     setDraft(d => withEdit(d, saved, key, next, fallback));
   }
@@ -42,13 +45,13 @@ export function useSettingsDraft(info: ServerInfo) {
     problem: draftProblem(draft, info.upstreams),
     writable: info.settings_writable,
     generation,
-    notice,
+    savedCount,
     save,
     asking,
     edit,
     toggle: (def: ToggleDef, checked: boolean) => {
-      if (!checked && def.offWarning) {
-        setAsking(def);
+      if (!checked && isBlockingGuard(def.key)) {
+        setAsking(def.key);
         return;
       }
       edit(def.key, checked);
@@ -63,8 +66,7 @@ export function useSettingsDraft(info: ServerInfo) {
         onSuccess: result => {
           setDraft({});
           setGeneration(g => g + 1);
-          const keys = Object.keys(result.changed);
-          setNotice(`Saved ${keys.length === 1 ? '1 setting' : `${keys.length} settings`}.`);
+          setSavedCount(Object.keys(result.changed).length);
         },
       });
     },
@@ -72,7 +74,7 @@ export function useSettingsDraft(info: ServerInfo) {
       setAsking(null);
     },
     confirmAsk: () => {
-      if (asking) edit(asking.key, false);
+      if (asking) edit(asking, false);
       setAsking(null);
     },
   };

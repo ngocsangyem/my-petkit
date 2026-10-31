@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import { socketUrl } from '@/shared/api/base-path';
 import {
   clearVideo,
@@ -83,8 +84,8 @@ export function startMse(
     } catch (error) {
       fail(
         error instanceof Error
-          ? `The live video could not be decoded: ${error.message}`
-          : 'The live video could not be decoded.',
+          ? i18n.t('devices:live.fail.decodeDetail', { detail: error.message })
+          : i18n.t('devices:live.fail.decode'),
       );
     }
   };
@@ -99,7 +100,7 @@ export function startMse(
     if (typeof message !== 'object' || message === null) return;
     const { type, value } = message as { type?: unknown; value?: unknown };
     if (type === 'error') {
-      fail(typeof value === 'string' ? value : 'The live stream refused the connection.');
+      fail(typeof value === 'string' ? value : i18n.t('devices:live.fail.refused'));
     } else if (type === 'mse' && typeof value === 'string' && !buffer) {
       try {
         // Exactly the server's string: it names the codecs the stream really carries.
@@ -107,11 +108,11 @@ export function startMse(
         buffer.mode = 'segments';
         buffer.addEventListener('updateend', pump);
         buffer.addEventListener('error', () => {
-          fail('The live video could not be decoded.');
+          fail(i18n.t('devices:live.fail.decode'));
         });
         pump();
       } catch {
-        fail(`This browser cannot play the stream's format (${value}).`);
+        fail(i18n.t('devices:live.fail.format', { format: value }));
       }
     }
   };
@@ -119,14 +120,14 @@ export function startMse(
   const MediaSourceCtor = globalThis.MediaSource as typeof MediaSource | undefined;
   if (!MediaSourceCtor) {
     queueMicrotask(() => {
-      fail('This browser cannot play MSE. Choose HLS instead.');
+      fail(i18n.t('devices:live.fail.mseUnsupported'));
     });
     return { stop };
   }
   const codecs = supportedCodecs(type => MediaSourceCtor.isTypeSupported(type));
   if (!codecs) {
     queueMicrotask(() => {
-      fail('This browser plays none of the codecs the stream offers. Choose HLS instead.');
+      fail(i18n.t('devices:live.fail.noCodecs'));
     });
     return { stop };
   }
@@ -156,10 +157,10 @@ export function startMse(
           }
         });
         ws.addEventListener('close', () => {
-          fail('The live stream closed. Press Watch to start it again.');
+          fail(i18n.t('devices:live.fail.closed'));
         });
       } catch {
-        fail('Could not open the live stream connection.');
+        fail(i18n.t('devices:live.fail.socket'));
       }
     },
     { once: true },

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { errorMessage } from '@/shared/api/errors';
 import { Button, EmptyBlock, ErrorBlock, Pill, SectionCard, Skeleton } from '@/shared/ui';
 import { useDeferredFeeds, useDeleteDeferredFeed } from '../api';
@@ -18,6 +19,7 @@ interface DeferredFeedPanelProps {
  * back, so the browser's own zone never enters into it.
  */
 export function DeferredFeedPanel({ deviceId, dual, offset }: DeferredFeedPanelProps) {
+  const { t } = useTranslation('devices');
   const feeds = useDeferredFeeds(deviceId);
   const remove = useDeleteDeferredFeed(deviceId);
 
@@ -32,7 +34,7 @@ export function DeferredFeedPanel({ deviceId, dual, offset }: DeferredFeedPanelP
   if (feeds.isError) {
     return (
       <ErrorBlock
-        message={`One-off feeds could not be loaded: ${errorMessage(feeds.error)}`}
+        message={t('deferred.loadFailed', { error: errorMessage(feeds.error) })}
         retrying={feeds.isFetching}
         onRetry={() => {
           void feeds.refetch();
@@ -43,7 +45,7 @@ export function DeferredFeedPanel({ deviceId, dual, offset }: DeferredFeedPanelP
 
   const zone = formatOffset(offset);
   return (
-    <SectionCard title="Deferred feed" aside="Sent when the feeder next polls">
+    <SectionCard title={t('deferred.title')} aside={t('deferred.aside')}>
       {feeds.data.length ? (
         <div className="flex flex-col">
           {feeds.data.map(feed => (
@@ -54,11 +56,13 @@ export function DeferredFeedPanel({ deviceId, dual, offset }: DeferredFeedPanelP
               <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
                 <span className="font-semibold">{formatDeviceMoment(feed.fire_at, offset)}</span>
                 <span className="text-sm text-muted-foreground">
-                  {dual ? `Hopper 1: ${feed.a1}, Hopper 2: ${feed.a2}` : `Portions: ${feed.a1}`}
+                  {dual
+                    ? t('deferred.dualPortions', { a1: feed.a1, a2: feed.a2 })
+                    : t('deferred.singlePortions', { a1: feed.a1 })}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <Pill>Waiting</Pill>
+                <Pill>{t('deferred.waiting')}</Pill>
                 <Button
                   variant="ghost"
                   size="small"
@@ -67,25 +71,22 @@ export function DeferredFeedPanel({ deviceId, dual, offset }: DeferredFeedPanelP
                     remove.mutate(feed.id);
                   }}
                 >
-                  Delete
+                  {t('sounds.delete')}
                 </Button>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <EmptyBlock>No one-off feeds scheduled.</EmptyBlock>
+        <EmptyBlock>{t('deferred.empty')}</EmptyBlock>
       )}
       {remove.isError && (
         <p className="text-sm text-negative" role="alert">
-          Not removed: {errorMessage(remove.error)}
+          {t('deferred.notRemoved', { error: errorMessage(remove.error) })}
         </p>
       )}
       <DeferredFeedForm deviceId={deviceId} dual={dual} offset={offset} />
-      <p className="text-xs text-muted-foreground">
-        Date and time are on the feeder's own clock ({zone}). The feeder picks the meal up on its
-        next check-in.
-      </p>
+      <p className="text-xs text-muted-foreground">{t('deferred.note', { zone })}</p>
     </SectionCard>
   );
 }

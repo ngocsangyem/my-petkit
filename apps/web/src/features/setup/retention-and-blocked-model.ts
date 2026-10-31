@@ -1,6 +1,7 @@
 import type { components } from '@/api/schema';
+import { i18n } from '@/i18n';
 
-// Retention categories and blocked-attempt rules, as the Setup screen labels them.
+// Retention categories and blocked-attempt rules, as the Setup screen names them.
 
 export type RetentionCaps = components['schemas']['SetupRetention'];
 export type BlockedAttempt = components['schemas']['SetupBlockedAttempt'];
@@ -9,41 +10,48 @@ export type BlockedAttempt = components['schemas']['SetupBlockedAttempt'];
  * Categories with both a size and an age cap, in display order: the single
  * source for the retention table and for its save. `rawUpload` is left out on
  * purpose (staged files are deleted inline and by the sweeper, with a one-hour
- * floor a panel edit cannot lower), so the server default stays.
+ * floor a panel edit cannot lower), so the server default stays. Each is named
+ * by `setup:retention.kind.{key}`.
  */
 export const RETENTION_SIZED = [
-  ['fullVideo', 'Recordings'],
-  ['eventImage', 'Snapshots'],
-  ['highLight', 'Highlights'],
-  ['dynamicVideo', 'Motion clips'],
-  ['cloudDouble', 'Timelapses'],
-  ['wasteCheck', 'Waste photos'],
-  ['healthPic', 'Health photos'],
-  ['deviceLog', 'Device logs'],
-  ['thumbnail', 'Thumbnail cache'],
-] as const satisfies readonly (readonly [keyof RetentionCaps, string])[];
+  'fullVideo',
+  'eventImage',
+  'highLight',
+  'dynamicVideo',
+  'cloudDouble',
+  'wasteCheck',
+  'healthPic',
+  'deviceLog',
+  'thumbnail',
+] as const satisfies readonly (keyof RetentionCaps)[];
 
 /** Age-only categories: they carry no size cap. */
 export const RETENTION_AGE_ONLY = [
-  ['events', 'Events (history)'],
-  ['blocked', 'Blocked attempts'],
-] as const satisfies readonly (readonly [keyof RetentionCaps, string])[];
+  'events',
+  'blocked',
+] as const satisfies readonly (keyof RetentionCaps)[];
 
-/** Blocking rule names as a person reads them. */
-export const REDACT_LABELS: Readonly<Record<string, string>> = {
-  rce: 'Shell command',
-  ota: 'Firmware push',
-  secret: 'Credential swap',
-  log_upload: 'Log upload',
-  server: 'Server address',
-  mqtt: 'Broker address',
-  oss_sts: 'Media upload',
-  locale: 'Timezone',
-};
+/** Blocking rules this screen names (`setup:blocked.kind.{kind}`); any other shows as sent. */
+const REDACT_KINDS = [
+  'rce',
+  'ota',
+  'secret',
+  'log_upload',
+  'server',
+  'mqtt',
+  'oss_sts',
+  'locale',
+] as const;
+type RedactKind = (typeof REDACT_KINDS)[number];
 
+function isRedactKind(kind: string): kind is RedactKind {
+  return (REDACT_KINDS as readonly string[]).includes(kind);
+}
+
+/** A blocking rule name as a person reads it, in the active language. */
 export function redactLabel(kind: string | null): string {
-  if (!kind) return 'Unknown';
-  return Object.hasOwn(REDACT_LABELS, kind) ? (REDACT_LABELS[kind] ?? kind) : kind;
+  if (!kind) return i18n.t('setup:blocked.unknown');
+  return isRedactKind(kind) ? i18n.t(`setup:blocked.kind.${kind}`) : kind;
 }
 
 /** How many blocked attempts the table asks for. */

@@ -1,0 +1,129 @@
+---
+title: Cách vá hoạt động
+description: Các bước một patcher chạy, boot wrapper giúp bản vá tồn tại, và cách gỡ khôi phục bản gốc.
+---
+
+Mọi việc vá đều diễn ra trên máy chủ. Thiết bị chỉ gửi tệp gốc và nhận về một phiên bản đã được vá và kiểm tra. Không có gì được flash: các bản sao đã vá nằm trên bộ nhớ ghi được của thiết bị và được bind-mount đè lên bản gốc khi khởi động, nên firmware image chỉ đọc không bao giờ bị đụng tới.
+
+## Lệnh đến thiết bị dưới dạng `run_cmd`
+
+Máy chủ gửi các lệnh shell cho thiết bị bên trong thông điệp `run_cmd` của chính firmware, qua bất kỳ phương thức truyền nào thiết bị đang dùng. Qua MQTT, lệnh đến ngay lập tức. Qua HTTP, nó chờ heartbeat kế tiếp, đó là lý do mỗi bước chờ khoảng 12 giây trước khi cho rằng bước trước đã chạy. Một lần vá mất vài phút, và bảng điều khiển hiển thị từng bước khi nó diễn ra.
+
+Vì `run_cmd` thực thi bất kỳ lệnh shell nào, chế độ proxy luôn chặn nó khi nó đến từ phía PetKit. Nó xuất hiện là "Shell command" trong các nỗ lực bị chặn.
+
+## Áp dụng bản vá binary hoặc chứng chỉ
+
+Đây là trình tự cho MQTT TLS Bypass, Local Storage và CA Certificate:
+
+<Steps>
+<Step>
+
+### Tìm bộ nhớ ghi được
+
+Máy chủ hỏi `/system/user.conf` hay `/opt/user.conf` tồn tại, và giữ các tệp đã vá trong thư mục đó.
+
+</Step>
+<Step>
+
+### Tải bản gốc
+
+Thiết bị được bảo khởi động một `busybox httpd` tạm thời trên port 8888, phục vụ `/app/bin`. Máy chủ tải `ctrl`, `cloud` hoặc `ca.crt` từ đó, rồi dừng httpd, ngay cả khi bước kế tiếp thất bại.
+
+</Step>
+<Step>
+
+### Kiểm tra những gì nhận về
+
+Trước khi vá bất cứ thứ gì, bản tải về được kiểm tra: một lần truyền bị cắt cụt, một danh sách thư mục, hoặc một binary thuộc họ không mong đợi sẽ bị từ chối ngay tại đây, bằng lỗi truyền tải thay vì thông báo "firmware mismatch" gây khó hiểu.
+
+</Step>
+<Step>
+
+### Vá trên máy chủ
+
+Bản vá giữ nguyên kích thước tệp. MQTT TLS Bypass đổi 16 byte trên MIPS hoặc 8 byte trên ARM. Offset và MD5 của kết quả được hiển thị trong nhật ký tiến trình.
+
+</Step>
+<Step>
+
+### Kiểm tra dung lượng trống
+
+Máy chủ đo dung lượng trống trên thiết bị cho tệp đã vá cộng boot wrapper. Thiết bị không đủ chỗ để ghi sẽ được để nguyên.
+
+</Step>
+<Step>
+
+### Tải lên và khởi động lại
+
+Thiết bị lấy tệp đã vá bằng `wget` từ máy chủ và đánh dấu nó là thực thi được. Sau đó máy chủ viết lại boot wrapper từ toàn bộ tập các bản vá đang hoạt động và khởi động lại thiết bị.
+
+</Step>
+</Steps>
+
+Máy chủ chỉ kết nối tới thiết bị ở địa chỉ riêng, ULA hoặc WireGuard mà chính thiết bị đã đăng ký báo về. Nó không bao giờ gọi một tên host và không bao giờ theo một redirect.
+
+## Boot wrapper
+
+Mọi patcher dùng chung một script được tạo ra, `/system/app_init.sh` (hoặc `/opt/app_init.sh` trên bo Axera). Nó chạy khi khởi động, làm việc của nó, rồi source `/app/script/app_init.sh` gốc, thứ khởi động các tiến trình của thiết bị. Vì các bind-mount diễn ra trước, mọi tiến trình đều khởi động từ các tệp đã vá.
+
+Một wrapper khi mọi bản vá đều hoạt động trông như sau trên bo Ingenic:
+
+```sh
+#!/bin/sh
+# /system/app_init.sh - my-petkit patcher wrapper
+# Persistent SSH (dropbear on port 22)
+mkdir -p /tmp/.ssh
+cp /system/authorized_keys /tmp/.ssh/authorized_keys
+/system/dropbear -r /system/dbkey_ecdsa -p 22 &
+# Two-way talk: a TCP audio sink
+( while true; do nc -l -p 9010 -e /bin/sh /system/pktalk_sink.sh; sleep 1; done ) &
+mount --bind /system/ctrl_patched /app/bin/ctrl
+mount --bind /system/cloud_patched /app/bin/cloud
+mount --bind /system/ca_patched.crt /app/bin/ca.crt
+mount --bind /app/bin/tserver /app/bin/agora
+
+# Run the stock init (which starts all processes using the patched files)
+. /app/script/app_init.sh
+```
+
+Wrapper luôn được dựng lại từ toàn bộ tập đang hoạt động, nên các patcher kết hợp với nhau thay vì ghi đè nhau.
+
+## Gỡ một bản vá
+
+Gỡ một patcher xóa các tệp của patcher đó khỏi thiết bị và tải lên một wrapper dựng từ các bản vá còn lại, trong một lệnh, để thiết bị không bao giờ khởi động với một wrapper trỏ tới tệp đã mất. Sau đó nó khởi động lại. Khi bản vá cuối cùng bị gỡ, chính wrapper bị xóa và thiết bị khởi động ở trạng thái gốc.
+
+Camera Pan không ghi gì, nên gỡ nó chỉ lấy các nút đi, không cần khởi động lại.
+
+## Cập nhật firmware
+
+Các bản sao đã vá và wrapper nằm trên bộ nhớ ghi được, nên chúng sống sót qua khởi động lại. Persistent SSH Access được ghi nhận là sống sót qua cả cập nhật OTA của ứng dụng và khôi phục cài đặt gốc, miễn là bộ nhớ ứng dụng ghi được không bị định dạng. MyPetKit không bao giờ đưa cho thiết bị một bản cập nhật firmware, và chế độ proxy chặn các lần đẩy firmware từ PetKit.
+
+Camera Pan kiểm tra checksum của `pktool` ở mỗi lần nhấn, nên một bản cập nhật thay `pktool` sẽ tắt các nút thay vì chạy một công cụ chưa được xác minh.
+
+## Tự đọc một firmware image [#reading-a-firmware-image-yourself]
+
+Kho mã không phát hành firmware và không ghi tài liệu về nơi lấy image. Nếu bạn có một cái, đây là định dạng mà bộ kiểm thử đọc.
+
+Một app image là uImage: một header 64 byte theo sau là hệ thống tệp squashfs. Để giải nén:
+
+```bash
+dd if=app.bin of=app.sqfs bs=64 skip=1
+unsquashfs -d root app.sqfs
+ls root    # ctrl, cloud, ca.crt, pktool, tserver, ...
+```
+
+`unsquashfs` đến từ gói `squashfs` (`brew install squashfs` trên macOS).
+
+Để chạy các patcher với binary thật, hãy đặt image vào `services/api/tests/firmware/` (git bỏ qua thư mục này) và chạy `pytest --firmware`:
+
+```text
+services/api/tests/firmware/
+├── t5/943/app_261463.bin
+├── t6/daniel/app.bin
+├── d4sh/867/app_261301.bin
+└── w7h/456/app_262863.bin
+```
+
+Thư mục `w7h` được coi là ARM, các thư mục còn lại là MIPS.
+
+Trên thiết bị đang chạy, Persistent SSH Access cho bạn một shell, và httpd đọc ngược trên port 8889 hiển thị đầu ra lệnh từ thiết bị trong lúc vá.

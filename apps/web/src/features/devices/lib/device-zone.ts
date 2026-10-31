@@ -1,4 +1,5 @@
 import type { components } from '@/api/schema';
+import { currentLanguage, currentLocale } from '@/i18n';
 
 type TimezoneView = components['schemas']['DeviceTimezoneView'];
 
@@ -133,10 +134,22 @@ export function localClock(epochSeconds: number, zone: DeviceZone): string {
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-/** "Tue 28 Oct" for an instant in `zone`. */
+/**
+ * "Tue 28 Oct" for an instant in `zone`, the design's English form; other languages get their
+ * own short weekday and date from `Intl` ("Th 3, 28/10"). The zone's calendar fields are
+ * formatted as a UTC date, so the browser's zone never shifts the day.
+ */
 export function localDayLabel(epochSeconds: number, zone: DeviceZone): string {
   const p = zoneParts(epochSeconds, zone);
-  return `${DAYS[p.weekday] ?? ''} ${p.day} ${MONTHS[p.month - 1] ?? ''}`.trim();
+  if (currentLanguage() === 'en') {
+    return `${DAYS[p.weekday] ?? ''} ${p.day} ${MONTHS[p.month - 1] ?? ''}`.trim();
+  }
+  return new Intl.DateTimeFormat(currentLocale(), {
+    timeZone: 'UTC',
+    weekday: 'short',
+    day: 'numeric',
+    month: 'numeric',
+  }).format(new Date(Date.UTC(p.year, p.month - 1, p.day)));
 }
 
 /** "Asia/Saigon", or "UTC+7" / "UTC-3.5" for a fixed offset. */

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, formatMinute, PageHeader, RatioBar } from '@/shared/ui';
 import { deviceFamily } from '../lib/device-family';
 import { useDeviceLinks } from '../lib/device-view';
@@ -23,6 +24,7 @@ export function SchedulesPage({
   device: DeviceDetail;
   nowSeconds: number;
 }) {
+  const { t } = useTranslation('devices');
   const links = useDeviceLinks();
   const feeder = deviceFamily(d.type) === 'feeder' || d.is_feeder;
   const zone = deviceZone(d.timezoneInfo);
@@ -31,38 +33,43 @@ export function SchedulesPage({
     const now = minuteOfDay(nowSeconds, zone);
     const next = todaysMeals(d, zone, nowSeconds).find(m => m.minute > now);
     finding = next
-      ? `Next meal at ${formatMinute(next.minute)}, in ${untilText(next.minute - now)}.`
-      : 'No more meals today.';
+      ? t('schedules.nextMeal', {
+          clock: formatMinute(next.minute),
+          span: untilText(next.minute - now),
+        })
+      : t('headline.noMoreMeals');
   }
   const fed = numericValue(findEntity(d.entities, 'total_dispensed'));
   const eaten = numericValue(findEntity(d.entities, 'amount_eaten'));
   return (
     <div className="flex w-full max-w-[860px] flex-col gap-5">
       <PageHeader
-        title={feeder ? 'Feeding schedule' : 'Schedules'}
+        title={feeder ? t('schedules.feedingTitle') : t('automation.schedules')}
         back={{ to: links.device(`d${d.id}`), label: d.name }}
         finding={finding}
       />
       {feeder && fed !== null && (
-        <Card as="section" aria-label="Fed today" className="flex flex-col gap-2.5">
+        <Card as="section" aria-label={t('figure.fedToday')} className="flex flex-col gap-2.5">
           <div className="flex items-baseline justify-between gap-3">
             <span>
               <b className="text-3xl font-medium tabular-nums">{fed}</b>{' '}
-              <span className="text-muted-foreground">g fed today</span>
+              <span className="text-muted-foreground">{t('schedules.gFedToday')}</span>
             </span>
             {eaten !== null && (
-              <span className="text-sm text-muted-foreground">{eaten} g eaten</span>
+              <span className="text-sm text-muted-foreground">
+                {t('schedules.gEaten', { grams: eaten })}
+              </span>
             )}
           </div>
           {eaten !== null && fed > 0 && (
-            <RatioBar value={eaten} max={fed} ariaLabel="Eaten of what was fed today" />
+            <RatioBar value={eaten} max={fed} ariaLabel={t('schedules.eatenOfFed')} />
           )}
         </Card>
       )}
       <DeviceSchedules device={d} />
       {zone && (
         <p className="text-xs text-muted-foreground">
-          Times use the device's own time zone, {zoneLabel(zone)}.
+          {t('schedules.zoneNote', { zone: zoneLabel(zone) })}
         </p>
       )}
     </div>

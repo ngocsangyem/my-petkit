@@ -1,4 +1,5 @@
 import type { components } from '@/api/schema';
+import { i18n } from '@/i18n';
 import { DAY_END, DAY_SECONDS, validDays } from './schedule-clock';
 
 // The four schedule shapes as the editors hold them. Nothing here sorts, merges
@@ -120,26 +121,31 @@ const isPortion = (n: number) => Number.isInteger(n) && n >= 0 && n <= 255;
 export function validateDraft(draft: ScheduleDraft): string | null {
   switch (draft.kind) {
     case 'ranges':
-      return validRanges(draft.value) ? null : 'A period has a time outside the day.';
+      return validRanges(draft.value) ? null : i18n.t('devices:schedules.invalid.periodOutside');
     case 'weekly':
-      if (draft.value.some(e => !validDays(e.rpt))) return 'Pick at least one day for each entry.';
+      if (draft.value.some(e => !validDays(e.rpt))) {
+        return i18n.t('devices:schedules.invalid.entryDays');
+      }
       return draft.value.every(e => validRanges(e.time))
         ? null
-        : 'A period has a time outside the day.';
+        : i18n.t('devices:schedules.invalid.periodOutside');
     case 'points':
-      if (draft.value.some(e => !validDays(e.repeats)))
-        return 'Pick at least one day for each time.';
+      if (draft.value.some(e => !validDays(e.repeats))) {
+        return i18n.t('devices:schedules.invalid.timeDays');
+      }
       return draft.value.every(e => isMinute(e.time, DAY_END - 1))
         ? null
-        : 'A time is outside the day.';
+        : i18n.t('devices:schedules.invalid.timeOutside');
     case 'feed':
-      if (draft.value.schedule.some(g => !validDays(g.re)))
-        return 'Pick at least one day for each set of meals.';
-      if (draft.value.schedule.some(g => g.it.some(m => !isMinute(m.t, DAY_SECONDS - 1))))
-        return 'A meal time is outside the day.';
+      if (draft.value.schedule.some(g => !validDays(g.re))) {
+        return i18n.t('devices:schedules.invalid.mealDays');
+      }
+      if (draft.value.schedule.some(g => g.it.some(m => !isMinute(m.t, DAY_SECONDS - 1)))) {
+        return i18n.t('devices:schedules.invalid.mealOutside');
+      }
       return draft.value.schedule.every(g => g.it.every(m => isPortion(m.a1) && isPortion(m.a2)))
         ? null
-        : 'Portions are whole numbers from 0 to 255.';
+        : i18n.t('devices:schedules.invalid.portions');
   }
 }
 

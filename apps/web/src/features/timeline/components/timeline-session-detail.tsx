@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from 'cn';
 import { Button, Card } from '@/shared/ui';
 import {
@@ -58,6 +59,7 @@ export interface TimelineSessionDetailProps {
  * switch, the sentence with "Change cat", the figures, every step, the captures and Debug info.
  */
 export function TimelineSessionDetail({ session: s, onChangeCat }: TimelineSessionDetailProps) {
+  const { t } = useTranslation('timeline');
   const [stepMedia, setStepMedia] = useState<number | null>(null);
   const [gallery, setGallery] = useState<{ paths: string[]; title: string } | null>(null);
   const isVisit = s.kind === 'visit';
@@ -74,7 +76,7 @@ export function TimelineSessionDetail({ session: s, onChangeCat }: TimelineSessi
       as="section"
       padding="none"
       className={cn('flex flex-col gap-3.5 px-2 pb-5', media ? 'pt-2' : 'pt-5')}
-      aria-label="Selected event"
+      aria-label={t('detail.label')}
     >
       {media && (
         <TimelineMediaViewer
@@ -98,7 +100,7 @@ export function TimelineSessionDetail({ session: s, onChangeCat }: TimelineSessi
                 onChangeCat(s);
               }}
             >
-              Change cat
+              {t('detail.changeCat')}
             </Button>
           )}
         </div>

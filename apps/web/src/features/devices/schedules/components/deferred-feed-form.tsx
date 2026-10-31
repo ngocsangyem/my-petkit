@@ -1,4 +1,5 @@
 import { useId, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { errorMessage } from '@/shared/api/errors';
 import { Button, TimeInput } from '@/shared/ui';
 import { Input } from '@/shared/ui/shadcn/input';
@@ -18,6 +19,7 @@ interface DeferredFeedFormProps {
 
 /** Date, time and portions of a new one-off feed; the date starts at today on the device's clock. */
 export function DeferredFeedForm({ deviceId, dual, offset }: DeferredFeedFormProps) {
+  const { t } = useTranslation('devices');
   const id = useId();
   const add = useAddDeferredFeed(deviceId);
   const today = deviceToday(offset);
@@ -31,7 +33,7 @@ export function DeferredFeedForm({ deviceId, dual, offset }: DeferredFeedFormPro
   const submit = () => {
     setNotice(null);
     if (!date || !time) {
-      setProblem('Pick a date and a time.');
+      setProblem(t('deferred.pickDateTime'));
       return;
     }
     setProblem(null);
@@ -40,7 +42,7 @@ export function DeferredFeedForm({ deviceId, dual, offset }: DeferredFeedFormPro
       {
         onSuccess: () => {
           setTime('');
-          setNotice('Feed scheduled.');
+          setNotice(t('deferred.scheduled'));
         },
       },
     );
@@ -49,14 +51,14 @@ export function DeferredFeedForm({ deviceId, dual, offset }: DeferredFeedFormPro
   return (
     <form
       className="flex flex-col gap-2 rounded-md bg-raised px-4 py-3 [--pk-fill-field:var(--pk-surface)] [--pk-fill-secondary:var(--pk-surface)]"
-      aria-label="Schedule a one-off feed"
+      aria-label={t('deferred.formLabel')}
       onSubmit={e => {
         e.preventDefault();
         submit();
       }}
     >
       <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
-        <InlineControlField id={`${id}-date`} label="Date">
+        <InlineControlField id={`${id}-date`} label={t('deferred.date')}>
           <Input
             id={`${id}-date`}
             type="date"
@@ -68,25 +70,30 @@ export function DeferredFeedForm({ deviceId, dual, offset }: DeferredFeedFormPro
             }}
           />
         </InlineControlField>
-        <InlineControlField id={`${id}-time`} label="Time">
+        <InlineControlField id={`${id}-time`} label={t('deferred.time')}>
           <TimeInput id={`${id}-time`} value={time} onValueChange={setTime} />
         </InlineControlField>
         <PortionInput
-          label={dual ? 'Hopper 1' : 'Portions'}
+          label={dual ? t('feeder.hopper', { n: 1 }) : t('deferred.portions')}
           max={MAX_ONE_OFF_PORTIONS}
           value={a1}
           onChange={setA1}
         />
         {dual && (
-          <PortionInput label="Hopper 2" max={MAX_ONE_OFF_PORTIONS} value={a2} onChange={setA2} />
+          <PortionInput
+            label={t('feeder.hopper', { n: 2 })}
+            max={MAX_ONE_OFF_PORTIONS}
+            value={a2}
+            onChange={setA2}
+          />
         )}
         <Button type="submit" variant="secondary" disabled={add.isPending}>
-          {add.isPending ? 'Scheduling…' : 'Schedule feed'}
+          {add.isPending ? t('deferred.scheduling') : t('deferred.schedule')}
         </Button>
       </div>
       {(problem !== null || add.isError) && (
         <p className="text-sm text-negative" role="alert">
-          {problem ?? `Not scheduled: ${errorMessage(add.error)}`}
+          {problem ?? t('deferred.notScheduled', { error: errorMessage(add.error) })}
         </p>
       )}
       {notice && (

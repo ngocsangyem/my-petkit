@@ -4,7 +4,8 @@ import { useCallback, useState } from 'react';
 // the web session is an HttpOnly cookie the page cannot read, by design.
 const PREFIX = 'mp.';
 
-function read<T>(key: string, initial: T): T {
+/** The stored value under `mp.{key}`, or `initial` when there is none or it cannot be read. */
+export function readPersisted<T>(key: string, initial: T): T {
   try {
     const raw = localStorage.getItem(PREFIX + key);
     return raw === null ? initial : (JSON.parse(raw) as T);
@@ -13,17 +14,22 @@ function read<T>(key: string, initial: T): T {
   }
 }
 
+/** Stores `value` under `mp.{key}`; outside React, for state that lives elsewhere (i18next). */
+export function writePersisted(key: string, value: unknown): void {
+  try {
+    localStorage.setItem(PREFIX + key, JSON.stringify(value));
+  } catch {
+    // Private mode or a full quota: the value still holds for this page.
+  }
+}
+
 /** `useState` whose value survives a reload, kept in this browser only. */
 export function usePersistedState<T>(key: string, initial: T): [T, (value: T) => void] {
-  const [value, setValue] = useState<T>(() => read(key, initial));
+  const [value, setValue] = useState<T>(() => readPersisted(key, initial));
   const set = useCallback(
     (next: T) => {
       setValue(next);
-      try {
-        localStorage.setItem(PREFIX + key, JSON.stringify(next));
-      } catch {
-        // Private mode or a full quota: the value still holds for this page.
-      }
+      writePersisted(key, next);
     },
     [key],
   );

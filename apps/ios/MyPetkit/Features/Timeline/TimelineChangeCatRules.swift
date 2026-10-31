@@ -79,9 +79,9 @@ enum TimelineChangeCatRules {
     /// "Who used the box at 14:31?"
     static func title(_ entry: TimelineEntry, tzOffset: Int) -> String {
         guard let time = TimelineFormat.clock(entry.displayTs ?? entry.ts, tzOffset: tzOffset) else {
-            return "Who used the box?"
+            return L10n.string("Who used the box?")
         }
-        return "Who used the box at \(time)?"
+        return L10n.string("Who used the box at \(time)?")
     }
 
     /// How the visit was attributed, then what the scale read.
@@ -89,22 +89,24 @@ enum TimelineChangeCatRules {
         let name = entry.petName ?? ""
         let how: String
         switch (entry.hasPet, entry.petSource) {
-        case (true, "weight"): how = "Matched to \(name) by weight; the camera did not recognise the cat."
-        case (true, "manual"): how = "You assigned this visit to \(name)."
-        case (true, _): how = "The camera recognised \(name)."
-        case (false, "manual"): how = entry.passing ? "You marked this visit as no cat." : "You cleared the cat on this visit."
-        case (false, _): how = entry.passing ? "Lighter than any registered cat." : "The camera did not recognise the cat."
+        case (true, "weight"): how = L10n.string("Matched to \(name) by weight; the camera did not recognise the cat.")
+        case (true, "manual"): how = L10n.string("You assigned this visit to \(name).")
+        case (true, _): how = L10n.string("The camera recognised \(name).")
+        case (false, "manual"):
+            how = entry.passing ? L10n.string("You marked this visit as no cat.") : L10n.string("You cleared the cat on this visit.")
+        case (false, _):
+            how = entry.passing ? L10n.string("Lighter than any registered cat.") : L10n.string("The camera did not recognise the cat.")
         }
         guard let reading = TimelineFormat.weight(visitGrams(entry)) else { return how }
-        return "\(how) The scale read \(reading)."
+        return L10n.string("\(how) The scale read \(reading).")
     }
 
     /// "5.43 kg registered · closest weight".
     static func registeredLine(_ candidate: TimelineCatCandidate) -> String {
         guard let grams = candidate.pet.weightG, grams > 0, let text = TimelineFormat.weight(Double(grams)) else {
-            return "No registered weight"
+            return L10n.string("No registered weight")
         }
-        return candidate.isClosest ? "\(text) registered · closest weight" : "\(text) registered"
+        return candidate.isClosest ? L10n.string("\(text) registered · closest weight") : L10n.string("\(text) registered")
     }
 
     /// The row selected when the sheet opens: the visit's current answer.

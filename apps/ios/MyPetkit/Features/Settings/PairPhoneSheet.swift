@@ -12,7 +12,7 @@ struct PairingCode: Identifiable, Equatable {
 
     @MainActor
     static func create(with session: ServerSession) async throws -> PairingCode {
-        let body = try await session.call(purpose: "Pairing another phone makes a one-time code that signs it in.") {
+        let body = try await session.call(purpose: L10n.string("Pairing another phone makes a one-time code that signs it in.")) {
             try await session.client.authPairingCreate().ok.body.json
         }
         return PairingCode(

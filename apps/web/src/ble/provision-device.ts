@@ -1,6 +1,7 @@
 // One provisioning attempt on a chosen device: connect, ask which protocol it
 // speaks, run that session, and always disconnect.
 
+import { i18n } from '@/i18n';
 import { BLUFI_SERVICE } from './blufi-protocol';
 import { provisionBlufi } from './blufi-provisioning-session';
 import type { BleDeviceLike, GattServerLike, GattServiceLike, SessionDeps } from './gatt-types';
@@ -111,11 +112,14 @@ export async function provisionDevice(
   }
 }
 
-const ERROR_TEXT: Readonly<Record<string, string>> = {
-  NotFoundError: "No device selected — make sure it's in pairing mode.",
-  SecurityError: 'Bluetooth blocked — the page must be HTTPS.',
-  NotAllowedError: 'Permission denied — allow Bluetooth for the browser in your OS settings.',
-};
+// The Web Bluetooth failures a person can fix, explained in the active language. Session log
+// lines stay English: they are what gets pasted into a bug report.
+const EXPLAINED_ERRORS = ['NotFoundError', 'SecurityError', 'NotAllowedError'] as const;
+type ExplainedError = (typeof EXPLAINED_ERRORS)[number];
+
+function isExplained(name: string): name is ExplainedError {
+  return (EXPLAINED_ERRORS as readonly string[]).includes(name);
+}
 
 interface NamedError {
   name: string;
@@ -135,7 +139,7 @@ function asNamedError(err: unknown): NamedError | null {
 export function bluetoothErrorText(err: unknown): string {
   const e = asNamedError(err);
   if (!e) return String(err);
-  return ERROR_TEXT[e.name] ?? `${e.name}: ${e.message}`;
+  return isExplained(e.name) ? i18n.t(`ble:error.${e.name}`) : `${e.name}: ${e.message}`;
 }
 
 /** The raw log line for a failed attempt. */

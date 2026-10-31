@@ -10,7 +10,10 @@ struct WeekdaySet: OptionSet, Hashable, Sendable {
     static let weekend = WeekdaySet(days: [1, 7])
 
     /// Short names in WIRE order: index 0 is weekday 1, Sunday.
-    static let shortNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    static var shortNames: [String] {
+        [L10n.string("Sun"), L10n.string("Mon"), L10n.string("Tue"), L10n.string("Wed"),
+         L10n.string("Thu"), L10n.string("Fri"), L10n.string("Sat")]
+    }
     /// Display order, Monday first; the wire order is unaffected.
     static let displayOrder = [2, 3, 4, 5, 6, 7, 1]
 
@@ -45,12 +48,13 @@ struct WeekdaySet: OptionSet, Hashable, Sendable {
     /// "Every day", "Weekdays", "Weekends", or "Mon, Wed, Fri".
     var summary: String {
         switch self {
-        case .everyDay: return "Every day"
-        case .weekdays: return "Weekdays"
-        case .weekend: return "Weekends"
-        case []: return "No days"
+        case .everyDay: return L10n.string("Every day")
+        case .weekdays: return L10n.string("Weekdays")
+        case .weekend: return L10n.string("Weekends")
+        case []: return L10n.string("No days")
         default:
-            return Self.displayOrder.filter { contains(.day($0)) }.map { Self.shortNames[$0 - 1] }
+            let names = Self.shortNames
+            return Self.displayOrder.filter { contains(.day($0)) }.map { names[$0 - 1] }
                 .joined(separator: ", ")
         }
     }

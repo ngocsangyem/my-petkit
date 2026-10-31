@@ -1,0 +1,7 @@
+{
+  "error": {
+    "NotFoundError": "Chưa chọn thiết bị — hãy đảm bảo thiết bị đang ở chế độ ghép nối.",
+    "SecurityError": "Bluetooth bị chặn — trang phải dùng HTTPS.",
+    "NotAllowedError": "Không được cấp quyền — hãy cho phép trình duyệt dùng Bluetooth trong cài đặt của hệ điều hành."
+  }
+}

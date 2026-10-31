@@ -43,17 +43,17 @@ enum TimelineFilterRules {
     /// given, then each device, in the order the server lists them.
     static func chips(pets: [TimelineSubject], devices: [TimelineSubject],
                       passingCount: Int? = nil) -> [TimelineChip] {
-        var chips = [TimelineChip(filter: .all, title: "All")]
+        var chips = [TimelineChip(filter: .all, title: L10n.string("All"))]
         for (index, pet) in pets.enumerated() {
-            chips.append(TimelineChip(filter: .pet(pet.id), title: displayName(pet.name, fallback: "Pet \(pet.id)"),
+            chips.append(TimelineChip(filter: .pet(pet.id), title: displayName(pet.name, fallback: L10n.string("Pet \(pet.id)")),
                                       photoPath: pet.photoPath, tintIndex: index))
         }
         if let passingCount {
-            chips.append(TimelineChip(filter: .passing, title: "Light visits · \(passingCount)"))
+            chips.append(TimelineChip(filter: .passing, title: L10n.string("Light visits · \(passingCount)")))
         }
         for device in devices {
             chips.append(TimelineChip(filter: .device(device.id),
-                                      title: displayName(device.name, fallback: "Device \(device.id)")))
+                                      title: displayName(device.name, fallback: L10n.string("Device \(device.id)"))))
         }
         return chips
     }

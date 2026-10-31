@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui';
 import { sessionKey, type TimelineSession } from '../timeline-model';
 import { isUnrecognisedVisit } from '../timeline-view-filter';
@@ -25,6 +26,7 @@ export function TimelineEventList({
   showDevice,
   onAskWho,
 }: TimelineEventListProps) {
+  const { t } = useTranslation('timeline');
   return (
     <ul className="m-0 flex list-none flex-col p-0">
       {sessions.map((s, i) => {
@@ -53,7 +55,7 @@ export function TimelineEventList({
                   onAskWho(s, key);
                 }}
               >
-                Who was it?
+                {t('row.whoWasIt')}
               </Button>
             )}
           </li>

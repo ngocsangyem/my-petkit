@@ -39,10 +39,10 @@ enum DeviceStatus: Equatable {
 
     var label: String {
         switch self {
-        case .online: "Online"
-        case .polling: "Polling"
-        case .offline: "Offline"
-        case .unknown: "Unknown"
+        case .online: L10n.string("Online")
+        case .polling: L10n.string("Polling")
+        case .offline: L10n.string("Offline")
+        case .unknown: L10n.string("Unknown")
         }
     }
 
@@ -73,10 +73,10 @@ struct StatusMark: View {
 
     private var words: String {
         switch status {
-        case .online(let transport): transport.map { "Online · \($0)" } ?? "Online"
-        case .polling: "Polling · heartbeat"
-        case .offline: "Offline"
-        case .unknown: "Unknown"
+        case .online(let transport): transport.map { L10n.string("Online · \($0)") } ?? L10n.string("Online")
+        case .polling: L10n.string("Polling · heartbeat")
+        case .offline: L10n.string("Offline")
+        case .unknown: L10n.string("Unknown")
         }
     }
 

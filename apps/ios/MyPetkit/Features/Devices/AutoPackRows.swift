@@ -45,11 +45,11 @@ struct AutoPackRows: View {
                 thresholdRow
             }
             RowRule()
-            SettingToggleRow(title: "Quiet hours", footnote: "No automatic pack inside this window.",
+            SettingToggleRow(title: L10n.string("Quiet hours"), footnote: L10n.string("No automatic pack inside this window."),
                              isOn: $draft.quietHours, isBusy: busy)
             if draft.quietHours {
-                timeRow("From", minute: $draft.quietStart)
-                timeRow("To", minute: $draft.quietEnd)
+                timeRow(L10n.string("From"), minute: $draft.quietStart)
+                timeRow(L10n.string("To"), minute: $draft.quietEnd)
             }
             if isDirty {
                 Button("Save") { save(edited) }
@@ -70,7 +70,7 @@ struct AutoPackRows: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 8) {
                     Text("Auto-pack").font(Theme.Font.body).foregroundStyle(Theme.Color.text)
-                    Pill(text: "Experimental")
+                    Pill(text: L10n.string("Experimental"))
                 }
                 Text(AutoPackText.summary(edited)).font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted)
                     .fixedSize(horizontal: false, vertical: true)
@@ -94,7 +94,7 @@ struct AutoPackRows: View {
                 ForEach(AutoPackTrigger.allCases, id: \.self) { Text(AutoPackText.option($0)).tag($0) }
             }
         } label: {
-            SettingsRow(title: "Pack trigger", value: AutoPackText.trigger(edited))
+            SettingsRow(title: L10n.string("Pack trigger"), value: AutoPackText.trigger(edited))
         }
         .buttonStyle(.plain)
         .disabled(busy)
@@ -113,14 +113,15 @@ struct AutoPackRows: View {
             .disabled(busy)
             .frame(minHeight: Theme.Space.rowHeight)
         } else {
-            timeRow("Pack at", minute: $draft.atMinute)
+            timeRow(L10n.string("Pack at"), minute: $draft.atMinute)
         }
     }
 
     /// A time of the device's day. The picker runs in UTC on purpose: the
     /// value is a wall-clock "HH:MM" for the device, not a moment for the phone.
     /// It is also pinned to 24-hour time, the way the rule's summary and
-    /// status lines print it, whatever the phone's region prefers.
+    /// status lines print it, whatever the phone's region prefers. The title
+    /// is resolved before the locale is pinned.
     private func timeRow(_ title: String, minute: Binding<Int>) -> some View {
         DatePicker(selection: Binding(
             get: { Date(timeIntervalSince1970: TimeInterval(minute.wrappedValue * 60)) },
@@ -129,7 +130,7 @@ struct AutoPackRows: View {
             Text(title).font(Theme.Font.body).foregroundStyle(Theme.Color.text)
         }
         .environment(\.timeZone, .gmt)
-        .environment(\.locale, Locale(identifier: "en_GB"))
+        .environment(\.locale, L10n.deviceClockLocale)
         .disabled(busy)
         .frame(minHeight: Theme.Space.rowHeight)
     }

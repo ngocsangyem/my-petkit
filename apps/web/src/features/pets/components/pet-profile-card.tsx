@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { errorMessage } from '@/shared/api/errors';
 import { Button, IconButton, SectionCard, Switch } from '@/shared/ui';
 import { useUpdatePetWeight } from '../api';
@@ -8,7 +9,7 @@ import {
   deviceLoadText,
   gramsToKgText,
   matchGuardSentence,
-  weightUpdatedText,
+  weightUpdatedWhen,
 } from '../pet-weight-model';
 import { PetNameEditor } from './pet-name-editor';
 
@@ -67,16 +68,17 @@ export function PetProfileCard({
   onDelete,
   notify,
 }: PetProfileCardProps) {
+  const { t } = useTranslation('pets');
   const save = useUpdatePetWeight();
   const deviceIds = parseIdList(pet.device_ids_json);
   const aliases = parseIdList(pet.device_pet_ids_json);
-  const updated = weightUpdatedText(pet.weight_updated_at);
+  const updated = weightUpdatedWhen(pet.weight_updated_at);
   const matching = pet.weight_match !== 0;
 
   return (
-    <SectionCard title="Profile and recognition">
+    <SectionCard title={t('profile.title')}>
       <div className="flex flex-col">
-        <Row label="Name">
+        <Row label={t('profile.name')}>
           {editingName ? (
             <PetNameEditor name={pet.name} onDone={onNameDone} />
           ) : (
@@ -85,25 +87,28 @@ export function PetProfileCard({
           <IconButton
             icon="edit"
             variant="ghost"
-            aria-label="Rename"
+            aria-label={t('profile.rename')}
             disabled={editingName || renaming}
             onClick={onRename}
           />
         </Row>
         <Row
-          label="Registered weight"
-          hint={updated ? updated.charAt(0).toUpperCase() + updated.slice(1) : 'Not set yet'}
+          label={t('profile.registeredWeight')}
+          hint={updated ? t('profile.updated', { when: updated }) : t('profile.notSet')}
         >
           <span className="tabular-nums">
             {pet.weight_g === null ? '—' : `${gramsToKgText(pet.weight_g)} kg`}
           </span>
-          <IconButton icon="edit" variant="ghost" aria-label="Edit weight" onClick={onEditWeight} />
+          <IconButton
+            icon="edit"
+            variant="ghost"
+            aria-label={t('profile.editWeight')}
+            onClick={onEditWeight}
+          />
         </Row>
         <Row
           label={
-            <label htmlFor={`pet-${String(pet.id)}-match`}>
-              Match by weight when the camera cannot
-            </label>
+            <label htmlFor={`pet-${String(pet.id)}-match`}>{t('profile.matchByWeight')}</label>
           }
           hint={matchGuardSentence(pet.weight_tolerance_g)}
         >
@@ -116,7 +121,7 @@ export function PetProfileCard({
                 { id: pet.id, body: { weight_match: on } },
                 {
                   onSuccess: () => {
-                    notify(`Saved ${pet.name}'s weight settings`);
+                    notify(t('profile.savedWeight', { name: pet.name }));
                   },
                   onError: e => {
                     notify(errorMessage(e), true);
@@ -127,8 +132,8 @@ export function PetProfileCard({
           />
         </Row>
         <Row
-          label="Weight tolerance"
-          hint={pet.weight_tolerance_g === null ? 'The default' : undefined}
+          label={t('profile.tolerance')}
+          hint={pet.weight_tolerance_g === null ? t('profile.defaultTolerance') : undefined}
         >
           <span className="text-muted-foreground tabular-nums">
             ± {pet.weight_tolerance_g ?? DEFAULT_TOLERANCE_G} g
@@ -136,12 +141,12 @@ export function PetProfileCard({
           <IconButton
             icon="edit"
             variant="ghost"
-            aria-label="Edit weight tolerance"
+            aria-label={t('profile.editTolerance')}
             onClick={onEditWeight}
           />
         </Row>
         {deviceIds.length === 0 ? (
-          <Row label="Devices" hint="No devices assigned" />
+          <Row label={t('profile.devices')} hint={t('profile.noDevices')} />
         ) : (
           deviceIds.map(id => {
             const name = devices.find(d => d.id === id)?.name || `#${String(id)}`;
@@ -152,19 +157,21 @@ export function PetProfileCard({
             return (
               <Row
                 key={id}
-                label={off ? `${name} (recognition off)` : name}
+                label={off ? t('profile.recognitionOff', { name }) : name}
                 hint={deviceLoadText(load.get(id) ?? 0)}
               />
             );
           })
         )}
         <Row
-          label="Bound identities"
-          hint={aliases.length ? `Alias ${aliases.join(', ')}` : 'No alias yet'}
+          label={t('profile.boundIdentities')}
+          hint={
+            aliases.length ? t('profile.alias', { ids: aliases.join(', ') }) : t('profile.noAlias')
+          }
         />
         <div className="border-t border-rule pt-2">
           <Button variant="destructive" className="-ml-4" onClick={onDelete}>
-            Delete {pet.name}
+            {t('profile.delete', { name: pet.name })}
           </Button>
         </div>
       </div>

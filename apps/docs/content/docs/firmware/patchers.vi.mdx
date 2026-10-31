@@ -1,0 +1,82 @@
+---
+title: Các patcher
+description: Mỗi patcher thay đổi gì trên thiết bị, bạn nhận được gì, và các tác dụng phụ đã biết.
+---
+
+Mỗi mục dưới đây tương ứng với một thẻ trên màn hình **Trình vá**. Các số liệu về dung lượng là những gì màn hình cảnh báo trước khi biết mẫu; kiểm tra thật lúc áp dụng dùng kích thước đã đo của tệp đã vá.
+
+![Màn hình Patchers](/screenshots/web-patchers.webp)
+
+## MQTT TLS Bypass
+
+Các mẫu Linux chỉ tin chứng chỉ của đám mây PetKit, nên chúng từ chối chứng chỉ broker tự ký của MyPetKit trước khi trao đổi dù chỉ một byte MQTT. Patcher này cho phép thiết bị kết nối với broker nhúng, để lệnh và sự kiện di chuyển theo thời gian thực thay vì chờ heartbeat HTTP.
+
+Nó làm gì: sao chép `/app/bin/ctrl` sang bộ nhớ ghi được và vá `mbedtls_x509_crt_verify_with_profile`, hàm kiểm tra chuỗi chứng chỉ của máy chủ trong lúc bắt tay TLS, để nó trả về thành công. Đó là 16 byte trên MIPS và 8 byte trên ARM, được chọn từ binary. Boot wrapper bind-mount `ctrl` đã vá đè lên bản gốc.
+
+Chỉ cần vá hàm này là đủ. Chỉ vá bước đọc lại phía sau, `mbedtls_ssl_get_verify_result`, không hiệu quả, vì quá trình bắt tay đã thất bại trước khi chạy tới đoạn mã đó.
+
+Cần khoảng 2 MB trống: `ctrl` là 1,420,656 byte trên T5 và 903,148 byte trên D4SH, và bản vá ghi một bản sao đầy đủ.
+
+Khi thiết bị giữ một phiên MQTT, thẻ hiển thị "active (MQTT connected)". Một phiên đang sống là bằng chứng bản vá đã có hiệu lực.
+
+## CA Certificate (Bucket TLS)
+
+Bộ tải lên của thiết bị, `cloud`, kiểm tra chứng chỉ TLS của máy chủ bucket với `/app/bin/ca.crt`, một bộ CA của Mozilla. Patcher này thêm chứng chỉ riêng của máy chủ vào một bản sao của bộ đó và bind-mount bản sao khi khởi động, để việc tải lên bucket cục bộ thành công. Hãy áp dụng cùng với Local Storage.
+
+Cần khoảng 512 KB trống: `ca.crt` là 226,168 byte trên T5 và 11,171 byte trên D4SH, cộng thêm chứng chỉ được nối vào.
+
+## Local Storage (Cloud Upload)
+
+Vá binary `cloud`, bộ tải media lên, ở hai chỗ:
+
+1. nó chấp nhận địa chỉ IP LAN cho máy chủ tải lên (`isCClassIP` trả về 0);
+2. nó bỏ qua `CURLOPT_CONNECT_TO`, để curl dùng thẳng URL tải lên mà nó được cho.
+
+Cùng với CA Certificate, điều này cho phép thiết bị tải ảnh và video lên MyPetKit qua HTTPS.
+
+## Local Camera Streaming
+
+Thay client video P2P Agora bằng `tserver`, một bộ phát video HTTP cục bộ đã có sẵn trong firmware. Sau khi áp dụng, go2rtc đi kèm phát lại luồng dưới dạng RTSP, và địa chỉ để đưa cho Home Assistant xuất hiện trên thẻ và dưới dạng cảm biến **Camera Stream URL**.
+
+Nó làm gì: bind-mount `/app/bin/tserver` đè lên `/app/bin/agora`, để dòng khởi động gốc `./agora &` chạy bộ phát cục bộ. Không có tệp nào của MyPetKit được ghi vào thiết bị. Gỡ bản vá và khởi động lại sẽ khôi phục Agora y nguyên.
+
+Tác dụng phụ:
+
+- Ứng dụng của PetKit không còn hiển thị được video trực tiếp. Hãy dùng bảng điều khiển, ứng dụng iOS hoặc địa chỉ RTSP.
+- Watchdog của firmware ghi nhật ký "kill agora" và "reboot agora" mỗi phút một lần, vì `tserver` không bao giờ "cho watchdog ăn" như Agora đã làm. Đo trên T5 trong 16 phút: lệnh kill không bao giờ có hiệu lực, `tserver` giữ nguyên PID, bộ nhớ của nó phẳng và thiết bị không khởi động lại.
+- Thiết bị cần vài giây giữa các kết nối, nên mở lại luồng ngay sau khi đóng có thể thất bại một lần.
+
+Đừng bao giờ đưa cho Home Assistant địa chỉ luồng của chính thiết bị. Xem [Home Assistant](/vi/docs/guides/home-assistant#the-camera).
+
+## Two-Way Talk (Intercom)
+
+Thêm một đầu nhận âm thanh cục bộ để bảng điều khiển và ứng dụng iOS có thể nói qua loa của thiết bị. PetKit định tuyến đàm thoại qua Agora, thứ mà Local Camera Streaming thay thế.
+
+Nó làm gì: cài một shell script nhỏ một lần vào bộ nhớ ghi được, và thêm một khối vào boot wrapper chạy một listener `nc` trên TCP 9010. Với mỗi kết nối, script đưa một named pipe vào `pktool play_aac` của chính firmware, lệnh này chuyển nó cho tiến trình `media` đang giữ loa. Không có binary mới nào được cài.
+
+Cần một mẫu camera có loa, và thường dùng cùng Local Camera Streaming. Gỡ nó sẽ xóa script và viết lại wrapper; lần khởi động lại kế tiếp là bản gốc. Bán song công: hãy tắt tiếng phần nghe khi bạn nói.
+
+Listener không có xác thực và truy cập được từ toàn bộ LAN khi đang được áp dụng. Nó chỉ phát âm thanh, nhưng bất kỳ ai trong mạng đều có thể đẩy âm thanh vào loa. Chỉ áp dụng trên mạng đáng tin cậy.
+
+## Persistent SSH Access
+
+Cài Dropbear SSH trên port 22 với xác thực bằng khóa công khai. Đăng nhập bằng mật khẩu bị tắt. Hãy dán khóa công khai của bạn vào thẻ trước khi áp dụng; nó được lưu theo từng thiết bị và dùng lại khi bạn áp dụng lần nữa.
+
+Nó làm gì: boot wrapper khởi động dropbear trước mọi tiến trình PetKit, nên SSH lên được ngay cả khi init gốc thất bại. Nó sống sót qua các lần khởi động lại, cập nhật OTA của ứng dụng và khôi phục cài đặt gốc, miễn là bộ nhớ ứng dụng ghi được không bị định dạng.
+
+Có hai bản build static, được chọn từ ELF header của `ctrl` của chính thiết bị:
+
+| Bản build | Kích thước | Dành cho |
+|---|---|---|
+| `dropbear-mipsel` | 165 KB | Ingenic MIPS32r2 little-endian: T5, T6, T7, D4H, D4SH |
+| `dropbear-armv7` | 128 KB | ARMv7-A hard-float: W7H |
+
+Cả hai đều là bản build musl static, nén UPX, từ cùng một mã nguồn. Host key ECDSA được tạo một lần khi cài và giữ trong bộ nhớ ghi được, nên vân tay không đổi qua các lần khởi động lại. Khóa client được chấp nhận là RSA và ECDSA.
+
+Nếu có script `test_case_root` cũ từ phương pháp SSH trước đó, nó được đổi tên thành `old_test_case_root` để chỉ một máy chủ lắng nghe trên port 22.
+
+Cần khoảng 256 KB trống.
+
+## Camera Pan (T6)
+
+Xem [Camera Pan (T6)](/vi/docs/firmware/camera-pan-t6).

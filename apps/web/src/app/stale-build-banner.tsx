@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useServerInfo } from '@/auth/use-server-info';
 import { Button, NoticeCard } from '@/shared/ui';
 
@@ -12,13 +13,14 @@ function ownEntry(): string | null {
  * the one this tab is running. Only a production build knows its own entry.
  */
 export function StaleBuildBanner() {
+  const { t } = useTranslation(['app', 'common']);
   const info = useServerInfo();
   const mine = ownEntry();
   const current = info.data?.web_entry ?? null;
   if (!mine || !current || mine === current) return null;
   return (
     <NoticeCard
-      title="This page is out of date"
+      title={t('outdated.title')}
       action={
         <Button
           variant="primary"
@@ -26,11 +28,11 @@ export function StaleBuildBanner() {
             window.location.reload();
           }}
         >
-          Reload
+          {t('common:reload')}
         </Button>
       }
     >
-      The server has a newer version. Reload to get the matching dashboard.
+      {t('outdated.bannerBody')}
     </NoticeCard>
   );
 }

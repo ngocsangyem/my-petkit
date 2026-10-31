@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Chip, PetAvatar } from '@/shared/ui';
 import type { Pet } from '../pet-model';
 
@@ -9,8 +10,9 @@ interface PetChipsProps {
 
 /** One chip per pet with its face; the pressed one is the pet the page shows. */
 export function PetChips({ pets, selected, onSelect }: PetChipsProps) {
+  const { t } = useTranslation('pets');
   return (
-    <div role="group" aria-label="Pet shown" className="flex flex-wrap gap-2">
+    <div role="group" aria-label={t('chips')} className="flex flex-wrap gap-2">
       {pets.map(p => (
         <Chip
           key={p.id}

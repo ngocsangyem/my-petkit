@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { FeederDrawing, Icon, PetAvatar, Pill, UnknownPetAvatar, type IconName } from '@/shared/ui';
 import {
   clockTime,
@@ -69,11 +70,16 @@ function Meta({ s, device }: { s: TimelineSession; device: string | null }) {
   );
 }
 
+function AssemblingWord() {
+  const { t } = useTranslation('timeline');
+  return <span className="flex-none text-xs text-muted-foreground">{t('row.assembling')}</span>;
+}
+
 /** The poster of the session's video or snapshot, or a word while the video is assembled. */
 function Trailing({ s }: { s: TimelineSession }) {
   // A recording still being stitched says so instead of offering a poster that will not play.
   if (s.media.video_pending) {
-    return <span className="flex-none text-xs text-muted-foreground">Assembling video…</span>;
+    return <AssemblingWord />;
   }
   const poster = posterPath(s.media);
   if (!poster) return null;
@@ -99,6 +105,7 @@ export function TimelineEventRow({
   onSelect,
   device,
 }: TimelineEventRowProps) {
+  const { t } = useTranslation('timeline');
   const tag = petSourceTag(s);
   return (
     <button
@@ -112,7 +119,7 @@ export function TimelineEventRow({
         <span className="inline-flex flex-wrap items-center gap-2 font-medium">
           {sessionSentence(s)}
           {tag?.kind === 'badge' && <Pill>{tag.label}</Pill>}
-          {s.event_kind === 'error' && <Pill tone="negative">Alert</Pill>}
+          {s.event_kind === 'error' && <Pill tone="negative">{t('kind.error')}</Pill>}
         </span>
         <Meta s={s} device={device} />
       </span>

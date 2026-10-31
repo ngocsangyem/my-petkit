@@ -1,0 +1,66 @@
+{
+  "title": "Add a device",
+  "finding": "Sends Wi-Fi, this server’s address and the time zone over Bluetooth. Your browser talks to the device; the server never sees the Wi-Fi password, and no PetKit app is involved.",
+  "newDevice": "New device",
+  "noneChosen": "None chosen yet",
+  "findDevice": "Find device",
+  "networkAndServer": "Network and server",
+  "browserNote": "Web Bluetooth needs Chrome or Edge on desktop or Android, and a secure context: a page with a trusted certificate. On an iPhone, use the MyPetKit app.",
+  "status": {
+    "accessory": "This model has no Wi-Fi.",
+    "unknownDevice": "Unknown device.",
+    "provisioned": "Provisioned. The device will restart and join Wi-Fi.",
+    "unanswered": "Sent, but the device never answered.",
+    "connected": "Device connected. See the Devices page.",
+    "requesting": "Requesting device…",
+    "error": "Error: {{error}}",
+    "missingWifi": "The Wi-Fi name and password are both required.",
+    "connecting": "Connecting…",
+    "sending": "Sending…"
+  },
+  "found": {
+    "legend": "Devices found",
+    "empty": "No device chosen yet. Use Find device, then pick it from the browser’s list."
+  },
+  "environment": {
+    "insecureTooltip": "Web Bluetooth needs a secure page, and this one is plain HTTP. See the note above.",
+    "noBluetoothTooltip": "This browser has no Web Bluetooth. Use Chrome or Edge, on desktop or Android.",
+    "insecure": "Web Bluetooth only works on a secure page, and this one is plain HTTP. Serve Home Assistant over HTTPS with your own certificate; provisioning then works from this page, Ingress included. You will need Chrome or Edge as well. A plain-HTTP page cannot tell whether you have one, because the browser hides Web Bluetooth entirely until the page is secure. Or use the hosted provisioning page at <hosted>{{url}}</hosted>, which runs entirely in your browser and talks to the device over Bluetooth. It never sees your Wi-Fi password.",
+    "noBluetooth": "This browser has no Web Bluetooth. It is only in Chrome and Edge, on desktop or Android; Firefox, Safari and iOS cannot provision. On an iPhone, use the MyPetKit app."
+  },
+  "form": {
+    "network": "Network",
+    "wifiName": "Wi-Fi name",
+    "wifiNameHint": "The network the device will join, not necessarily the one this browser is on.",
+    "password": "Password",
+    "passwordHint": "Required: an open network cannot be provisioned this way. It goes from this page to the device over Bluetooth, never to this server or to PetKit.",
+    "server": "Server",
+    "serverUrl": "Server devices will use",
+    "serverUrlHint": "Burned in at provisioning: use an IP, or a name the device itself can resolve.",
+    "serverFailed": "Could not read this server’s address ({{error}}). Type it in, or retry.",
+    "timeZone": "Time zone",
+    "timeZoneHint": "The device has no clock settings of its own: it keeps this fixed offset, with no daylight saving. Changing it later means provisioning again.",
+    "detected": "{{label}}, detected",
+    "detectedZone": "{{label}} · {{zone}}, detected",
+    "note": "The address comes from your server, not from this browser. Hold the device’s button until it beeps, then choose it from the browser’s list.",
+    "send": "Send to device"
+  },
+  "warning": {
+    "mdnsHost": "This address uses a .local mDNS host, which most PetKit devices cannot resolve. Use the server’s IP instead, for example http://<server-ip>/6/.",
+    "notPort80": "ESP32 devices such as T4 and D4 need the server on port 80. Provisioning them will fail with this address."
+  },
+  "progress": {
+    "label": "Provisioning progress",
+    "done": "{{done}} of {{total}} done",
+    "wifi": "Wi-Fi network",
+    "server": "Server and time zone",
+    "send": "Send to the device",
+    "stepDone": ", done",
+    "stepNext": ", next",
+    "stepTodo": ", to do"
+  },
+  "log": {
+    "title": "Session log · Bluetooth frames, newest last",
+    "empty": "Nothing sent yet. Each step and every reply lands here."
+  }
+}

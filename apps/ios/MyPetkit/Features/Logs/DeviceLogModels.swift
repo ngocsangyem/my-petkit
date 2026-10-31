@@ -62,15 +62,16 @@ enum DeviceLogRules {
     /// Why the listing is empty, in one sentence (`reason` is a machine token).
     static func emptyReason(reason: String, enabledDevices: Int) -> String {
         switch reason {
-        case "": enabledDevices > 0
-            ? "Collection is on. The device uploads on its own schedule; a reboot is the usual trigger."
-            : "No device has debug log collection turned on. Turn it on from the device's settings."
-        case "no_log_root": "Cannot collect: no log directory is configured."
+        case "" where enabledDevices > 0:
+            L10n.string("Collection is on. The device uploads on its own schedule; a reboot is the usual trigger.")
+        case "":
+            L10n.string("No device has debug log collection turned on. Turn it on from the device's settings.")
+        case "no_log_root": L10n.string("Cannot collect: no log directory is configured.")
         case "no_bucket_endpoint":
-            "Cannot collect: this server has no bucket address, so there is nowhere to send the device."
+            L10n.string("Cannot collect: this server has no bucket address, so there is nowhere to send the device.")
         case "authority_not_splittable":
-            "Cannot collect: the bucket address needs a dotted name or IP the device can build."
-        default: "Cannot collect: \(reason)."
+            L10n.string("Cannot collect: the bucket address needs a dotted name or IP the device can build.")
+        default: L10n.string("Cannot collect: \(reason).")
         }
     }
 

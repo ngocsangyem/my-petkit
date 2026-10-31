@@ -23,7 +23,7 @@ struct TimelineAPI {
         if let date { items.append(URLQueryItem(name: "date", value: date)) }
         if let device = query.device { items.append(URLQueryItem(name: "device", value: String(device))) }
         if let pet = query.pet { items.append(URLQueryItem(name: "pet", value: String(pet))) }
-        let json = try await session.call(purpose: "Show the timeline") {
+        let json = try await session.call(purpose: L10n.string("Show the timeline")) {
             try await requestJSON(path: "/api/timeline", query: items)
         }
         guard let result = TimelineJSON.day(json) else { throw URLError(.cannotParseResponse) }
@@ -46,7 +46,7 @@ struct TimelineAPI {
 
     /// Everything stored about one event.
     func eventDetail(id: Int) async throws -> TimelineEventDetail {
-        let json = try await session.call(purpose: "Show this event") {
+        let json = try await session.call(purpose: L10n.string("Show this event")) {
             try await requestJSON(path: "/api/timeline/\(id)", query: [])
         }
         return TimelineEventDetail(json: json)
@@ -111,18 +111,20 @@ struct TimelineEventDetail: Hashable, Sendable {
     init(json: JSONValue) {
         let event = json["event"]
         let eventKeys: [(String, String)] = [
-            ("id", "Event id"), ("event_type", "Type"), ("event_kind", "Kind"), ("label", "Label"),
-            ("source", "Source"), ("device_type", "Device type"), ("device_id", "Device id"),
-            ("pet_name", "Pet"), ("pet_ref", "Device's pet ref"), ("score", "Match score"),
-            ("related_event", "Session"), ("parent_event", "Parent event"), ("event_uid", "Dedup key"),
+            ("id", L10n.string("Event id")), ("event_type", L10n.string("Type")), ("event_kind", L10n.string("Kind")),
+            ("label", L10n.string("Label")), ("source", L10n.string("Source")),
+            ("device_type", L10n.string("Device type")), ("device_id", L10n.string("Device id")),
+            ("pet_name", L10n.string("Pet")), ("pet_ref", L10n.string("Device's pet ref")),
+            ("score", L10n.string("Match score")), ("related_event", L10n.string("Session")),
+            ("parent_event", L10n.string("Parent event")), ("event_uid", L10n.string("Dedup key")),
         ]
         fields = eventKeys.compactMap { key, label in
             event?[key]?.string.map { Field(label: label, value: $0) }
         }
         let codeEntry = json["code"]
         let codeKeys: [(String, String)] = [
-            ("label", "Meaning"), ("kind", "Kind"), ("grade", "Grade"), ("role", "Role"),
-            ("firmware", "Firmware function"), ("note", "Note"),
+            ("label", L10n.string("Meaning")), ("kind", L10n.string("Kind")), ("grade", L10n.string("Grade")),
+            ("role", L10n.string("Role")), ("firmware", L10n.string("Firmware function")), ("note", L10n.string("Note")),
         ]
         code = codeKeys.compactMap { key, label in
             guard let value = codeEntry?[key]?.string, !value.isEmpty else { return nil }

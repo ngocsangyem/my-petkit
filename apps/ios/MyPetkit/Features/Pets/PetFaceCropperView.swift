@@ -5,15 +5,17 @@ import UIKit
 /// What PetKit's own app tells its users: the conditions the matcher was
 /// tuned for. A photo that breaks one costs accuracy on every future visit.
 enum PetFaceRules {
-    static let rules: [(ok: Bool, text: String)] = [
-        (true, "Front view, both eyes visible, looking at the camera"),
-        (true, "The whole head in frame, evenly lit"),
-        (false, "No side or three-quarter views"),
-        (false, "No night-vision or infrared shots"),
-        (false, "No backlighting: the face must not be in shadow"),
-        (false, "Nothing covering the face"),
-        (false, "One cat per photo"),
-    ]
+    static var rules: [(ok: Bool, text: String)] {
+        [
+            (true, L10n.string("Front view, both eyes visible, looking at the camera")),
+            (true, L10n.string("The whole head in frame, evenly lit")),
+            (false, L10n.string("No side or three-quarter views")),
+            (false, L10n.string("No night-vision or infrared shots")),
+            (false, L10n.string("No backlighting: the face must not be in shadow")),
+            (false, L10n.string("Nothing covering the face")),
+            (false, L10n.string("One cat per photo")),
+        ]
+    }
 
     /// The 224² JPEG of what the frame shows. `UIImage.draw` honours the
     /// photo's orientation, so a camera shot comes out upright.
@@ -137,7 +139,7 @@ struct PetFaceCropperView: View {
                     Image(systemName: rule.ok ? "checkmark" : "xmark")
                         .font(Theme.Font.chevron)
                         .foregroundStyle(rule.ok ? Theme.Color.positive : Theme.Color.muted)
-                        .accessibilityLabel(rule.ok ? "Do" : "Avoid")
+                        .accessibilityLabel(rule.ok ? L10n.string("Do") : L10n.string("Avoid"))
                     Text(rule.text).font(Theme.Font.small).foregroundStyle(Theme.Color.lede)
                 }
             }
@@ -146,7 +148,7 @@ struct PetFaceCropperView: View {
 
     private func save() {
         guard let geometry, let jpeg = PetFaceRules.jpeg(of: image, geometry: geometry) else {
-            error = "This photo could not be cropped. Try another one."
+            error = L10n.string("This photo could not be cropped. Try another one.")
             return
         }
         busy = true

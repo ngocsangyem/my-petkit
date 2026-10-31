@@ -15,9 +15,9 @@ struct PatcherDetailView: View {
                 PatcherDetailScreen(model: model, run: run, device: device, state: state, patcher: patcher)
             } else {
                 ScreenScroll {
-                    PushedScreenHeader(title: "Patch")
+                    PushedScreenHeader(title: L10n.string("Patch"))
                 } content: {
-                    Card { EmptyBlock(title: "Not available", message: "This device no longer lists the patch.") }
+                    Card { EmptyBlock(title: L10n.string("Not available"), message: L10n.string("This device no longer lists the patch.")) }
                 }
                 .toolbar(.hidden, for: .navigationBar)
             }
@@ -58,7 +58,8 @@ struct PatcherDetailScreen: View {
             }
         } content: {
             deviceCard
-            WarningPanel(text: "Runs commands on the box as root. A mistake can stop it booting, and it is outside the warranty.")
+            WarningPanel(text: L10n.string(
+                "Runs commands on the box as root. A mistake can stop it booting, and it is outside the warranty."))
             explanation
             PatcherKeyCard(run: run, needsKey: needsKey, deviceIP: state.deviceIP, blocker: blocker)
             if !run.lines.isEmpty || run.accepted { progress }
@@ -95,8 +96,8 @@ struct PatcherDetailScreen: View {
 
     private var explanation: some View {
         Card {
-            block("What changes", PatcherRules.detailParagraphs(patcher.description))
-            block("How to undo", PatcherRules.undoText(for: action))
+            block(L10n.string("What changes"), PatcherRules.detailParagraphs(patcher.description))
+            block(L10n.string("How to undo"), PatcherRules.undoText(for: action))
             if action == .apply {
                 HStack(alignment: .firstTextBaseline) {
                     Text("Space on the box").font(Theme.Font.section).accessibilityAddTraits(.isHeader)
@@ -147,14 +148,14 @@ struct PatcherDetailScreen: View {
                 if run.busy {
                     ProgressView().tint(Theme.Color.onNegative)
                 } else {
-                    Label(action == .apply ? "Apply patch" : "Remove patch", systemImage: "lock")
+                    Label(action == .apply ? L10n.string("Apply patch") : L10n.string("Remove patch"), systemImage: "lock")
                 }
             }
             .buttonStyle(.finalDestructive)
             .disabled(run.busy || blocker != nil)
             Text("Asks for your password, then shows progress here step by step.")
                 .font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted)
-            Button(action == .apply ? "Remove instead" : "Apply again") {
+            Button(action == .apply ? L10n.string("Remove instead") : L10n.string("Apply again")) {
                 run.actionOverride = action == .apply ? .remove : .apply
                 run.error = nil
             }

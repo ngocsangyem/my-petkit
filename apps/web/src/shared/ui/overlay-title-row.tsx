@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { IconButton } from './icon-button';
 
 /** Props for {@link OverlayTitleRow}. */
@@ -16,10 +17,11 @@ export interface OverlayTitleRowProps {
  * top-aligned with it. Pair it with `showCloseButton={false}` on the content.
  */
 export function OverlayTitleRow({ children, onClose, closeDisabled }: OverlayTitleRowProps) {
+  const { t } = useTranslation('common');
   return (
     <div className="flex items-start justify-between gap-3">
       <div className="min-w-0 pt-1.5">{children}</div>
-      <IconButton icon="close" aria-label="Close" disabled={closeDisabled} onClick={onClose} />
+      <IconButton icon="close" aria-label={t('close')} disabled={closeDisabled} onClick={onClose} />
     </div>
   );
 }

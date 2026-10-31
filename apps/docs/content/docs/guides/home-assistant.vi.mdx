@@ -1,0 +1,57 @@
+---
+title: Home Assistant
+description: Các thực thể qua MQTT discovery, sự kiện, và camera dưới dạng Generic Camera.
+---
+
+MyPetKit công bố mọi thiết bị lên Home Assistant qua MQTT discovery. Các lệnh bạn gửi từ Home Assistant quay lại thiết bị qua bất kỳ phương thức truyền nào nó đang dùng: được đẩy ngay qua MQTT, hoặc xếp hàng chờ heartbeat kế tiếp qua HTTP.
+
+## Kết nối broker
+
+Bạn cần tích hợp MQTT trong Home Assistant và một broker mà MyPetKit publish tới được.
+
+- Với add-on Mosquitto, thông tin đăng nhập lấy từ Supervisor và không có gì phải cấu hình.
+- Với bất kỳ broker nào khác, hãy đặt `ha_mqtt_host`, cùng `ha_mqtt_user` và `ha_mqtt_pass` nếu cần. Trong Docker, đó là `MY_PETKIT_HA_MQTT_HOST`.
+
+Nếu bỏ qua bước này, không có gì cảnh báo bạn. Phía thiết bị và bảng điều khiển vẫn hoạt động, và Home Assistant không bao giờ nhận được dù chỉ một thực thể.
+
+## Thực thể và sự kiện
+
+Các điều khiển được dựng từ cài đặt của thiết bị. Chúng bắt đầu từ giá trị mặc định và cập nhật ở lần thay đổi đầu tiên, nên một điều khiển có thể hiển thị "unknown" cho đến lúc đó.
+
+Các thực thể sự kiện được kích hoạt theo các chu trình của thiết bị, chẳng hạn T5, T6 hoặc T7 hoàn tất một chu trình dọn, bật đèn, san phẳng hoặc xịt, và W7H hoàn tất việc xả hoặc thay nước. Mỗi sự kiện được kích hoạt mang nội dung đã giải mã của nó dưới dạng thuộc tính.
+
+Khóa thực thể được giữ ổn định có chủ đích. Đổi tên một khóa sẽ khiến thực thể bị mồ côi trong Home Assistant của bạn.
+
+## Camera [#the-camera]
+
+<Steps>
+<Step>
+
+Áp dụng patcher [Local Camera Streaming](/vi/docs/firmware/patchers#local-camera-streaming). go2rtc đi kèm sẽ phát lại luồng của thiết bị dưới dạng RTSP.
+
+</Step>
+<Step>
+
+Sao chép địa chỉ RTSP từ thẻ của patcher đó trong bảng điều khiển, hoặc từ cảm biến **Camera Stream URL**. Hãy sao chép thay vì tự gõ, vì tên host phụ thuộc vào cách máy chủ được cài.
+
+</Step>
+<Step>
+
+Thêm một **Generic Camera** trong Home Assistant với địa chỉ đó.
+
+</Step>
+</Steps>
+
+<Callout type="error" title="Đừng bao giờ đưa cho Home Assistant luồng của chính thiết bị">
+Đừng dùng địa chỉ `http://.../main.flv` của thiết bị trong Home Assistant. Home Assistant mở luồng bằng PyAV, thứ bị sập bên trong libav với luồng đó và khởi động lại toàn bộ Home Assistant. Địa chỉ của thiết bị được liệt kê cho VLC và các công cụ của riêng bạn. go2rtc đứng giữa hai bên.
+</Callout>
+
+- Chỉ có luồng từ thiết bị khi có người đang xem. go2rtc mở một kết nối khi có người xem đầu tiên và bỏ nó sau khi người cuối cùng rời đi, bất kể có bao nhiêu người xem.
+- Thiết bị cần vài giây giữa các kết nối. Mở lại luồng ngay sau khi đóng có thể thất bại một lần; hãy chờ một lát rồi thử lại.
+- Không có URL ảnh chụp nhanh. Thiết bị trả lời mọi đường dẫn bằng cùng một luồng video, nên thực thể camera MQTT vẫn trống và cảm biến mang URL thay thế.
+
+## Những gì không có trong Home Assistant
+
+Buộc tiếp tục và tự đóng túi cho máy dọn phân chỉ có trong bảng điều khiển và ứng dụng iOS, sau mật khẩu quản trị. Xem [Tự động hóa máy dọn phân](/vi/docs/guides/litter-box-automation).
+
+Nút Water Change của W7H đã bị gỡ vì mỗi lần nhấn đều làm máy lọc nước khởi động lại. Việc thay nước theo lịch vẫn hoạt động.

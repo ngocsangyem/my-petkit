@@ -2,6 +2,7 @@ import { Navigate, Outlet, createHashRouter } from 'react-router';
 import { AppFrame } from './app-frame';
 import { RouteError } from './route-error';
 import { SCREENS } from './routes-meta';
+import { unknownScreenRoute } from './unknown-screen-route';
 
 // Hash routing: the server only ever serves the document at `app/`, whatever
 // the screen, so a reload or a shared link works under any mount point.
@@ -47,19 +48,29 @@ export const router = createHashRouter([
       {
         path: SCREENS.setup.path,
         // Settings: the server setup lays out the screen; the paired phones (tokens), this
-        // browser's appearance and the account go in its right column.
+        // browser's appearance and language, and the account go in its right column.
         lazy: async () => {
-          const [{ SetupPage }, { TokensSection }, { AppearanceSection, AccountSection }] =
-            await Promise.all([
-              import('@/features/setup'),
-              import('@/features/tokens'),
-              import('./settings-appearance-and-account'),
-            ]);
+          const [
+            { SetupPage },
+            { TokensSection },
+            { AppearanceSection, AccountSection },
+            { LanguageSection },
+          ] = await Promise.all([
+            import('@/features/setup'),
+            import('@/features/tokens'),
+            import('./settings-appearance-and-account'),
+            import('./settings-language'),
+          ]);
           return {
             Component: () => (
               <SetupPage
                 phones={<TokensSection />}
-                appearance={<AppearanceSection />}
+                appearance={
+                  <>
+                    <AppearanceSection />
+                    <LanguageSection />
+                  </>
+                }
                 account={<AccountSection />}
               />
             ),
@@ -74,7 +85,7 @@ export const router = createHashRouter([
         path: SCREENS.patchers.path,
         lazy: async () => ({ Component: (await import('@/features/patchers')).PatchersPage }),
       },
-      { path: '*', element: <Navigate to={SCREENS.devices.path} replace /> },
+      unknownScreenRoute,
     ],
   },
 ]);

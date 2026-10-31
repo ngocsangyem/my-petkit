@@ -1,0 +1,49 @@
+---
+title: Video trực tiếp và đàm thoại
+description: Xem camera trong bảng điều khiển hoặc ứng dụng iOS, và nói qua loa của nó.
+---
+
+Khi camera phục vụ luồng cục bộ (patcher [Local Camera Streaming](/vi/docs/firmware/patchers#local-camera-streaming)), trang thiết bị trong bảng điều khiển và màn hình thiết bị trong ứng dụng iOS hiển thị chế độ xem **Trực tiếp** (Live).
+
+![Chế độ xem trực tiếp trong bảng điều khiển](/screenshots/web-live.webp)
+
+## Video đến với bạn thế nào
+
+Chế độ xem trực tiếp đi qua API có xác thực của chính máy chủ, phía trước go2rtc đi kèm. API riêng của go2rtc ở lại loopback, nên không cần mở thêm port nào.
+
+| Phương thức | Dùng bởi | Cần |
+|---|---|---|
+| MSE | Trình duyệt | Không cần gì thêm |
+| HLS | Trình duyệt và ứng dụng iOS | Không cần gì thêm. Một liên kết HLS trực tiếp kéo dài một phiên xem, khoảng một giờ, và các ứng dụng lấy liên kết mới khi nó hết hạn. |
+| WebRTC | Độ trễ thấp hơn; ứng dụng iOS ưu tiên dùng | Một port đã ánh xạ và `webrtc_candidates` |
+
+## Bật WebRTC
+
+WebRTC mang media của nó ra ngoài API, thẳng tới go2rtc, nên cần thêm một bước.
+
+<Steps>
+<Step>
+
+Ánh xạ `8555/tcp` và `8555/udp` tới cùng một host port còn trống, ví dụ `18555`. Với add-on, 8555 trên máy chủ xung đột với add-on go2rtc nếu bạn chạy nó.
+
+</Step>
+<Step>
+
+Đặt `webrtc_candidates` thành IP LAN của máy chủ và host port đó, ví dụ `192.168.1.20:18555`. Liệt kê nhiều địa chỉ, phân tách bằng dấu phẩy, nếu người xem vào máy chủ bằng các địa chỉ khác nhau. Trong Docker, đó là `MY_PETKIT_WEBRTC_CANDIDATES`.
+
+</Step>
+</Steps>
+
+Không có candidates, WebRTC không được cung cấp và port media vẫn đóng. WebRTC không đi qua Cloudflare Tunnel; MSE và HLS thì có.
+
+## Nói qua loa của thiết bị
+
+Ứng dụng của PetKit nói chuyện với thiết bị qua Agora, thứ mà bản vá camera thay thế, nên đàm thoại ngược ngừng hoạt động một khi bạn rời đám mây. Việc nghe vẫn hoạt động, vì micrô của thiết bị là một phần của luồng cục bộ. Patcher [Two-Way Talk](/vi/docs/firmware/patchers#two-way-talk-intercom) thêm nửa còn lại.
+
+- Bảng điều khiển gửi micrô của trình duyệt; máy chủ chuyển nó sang AAC đơn kênh 16 kHz cho thiết bị. Ứng dụng iOS gửi PCM thô 16-bit, 16 kHz đơn kênh.
+- Đàm thoại là bán song công. Hãy tắt tiếng phần nghe khi bạn nói, vì khử tiếng vọng của thiết bị nằm trên đường Agora.
+- Bản vá cần một mẫu camera có loa. Đàm thoại đã được xác minh đầu cuối trên D4SH.
+
+<Callout type="warn">
+Khi Two-Way Talk được áp dụng, listener của nó trên TCP 9010 không có xác thực và truy cập được từ toàn bộ LAN của bạn. Nó chỉ phát âm thanh và không bao giờ chạy shell, nhưng bất kỳ ai trong mạng đều có thể đẩy âm thanh vào loa. Chỉ áp dụng trên mạng đáng tin cậy.
+</Callout>

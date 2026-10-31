@@ -38,7 +38,7 @@ final class BleAccessoriesModel {
 
     init(parentDeviceID: String, accessories: Loadable<[BleAccessory]> = .loading, parent: BleParentInfo? = nil) {
         parentID = Int(parentDeviceID.trimmingCharacters(in: .whitespaces))
-        self.accessories = parentID == nil ? .failed("This device id is not a number.") : accessories
+        self.accessories = parentID == nil ? .failed(L10n.string("This device id is not a number.")) : accessories
         self.parent = parent
     }
 
@@ -83,7 +83,7 @@ final class BleAccessoriesModel {
         // generic wording rather than failing the block.
         if let detail = try? await session.client.getDevice(path: .init(id: parentID)).ok.body.json {
             parent = BleParentInfo(
-                name: detail.name.isEmpty ? "device" : detail.name,
+                name: detail.name.isEmpty ? L10n.string("device") : detail.name,
                 isLitterBox: Self.litterBoxTypes.contains(detail._type.lowercased()),
                 onMQTT: detail.mqttConnected
             )
@@ -95,7 +95,7 @@ final class BleAccessoriesModel {
     /// Pairs (or updates) from the sheet. Throws the server's refusal as is:
     /// a 400 names the bad type or MAC, a 409 the id or MAC already taken.
     func pair(_ request: Components.Schemas.BleAccessoryPairRequest, session: ServerSession) async throws {
-        let list = try await session.call(purpose: "Pair a Bluetooth accessory") {
+        let list = try await session.call(purpose: L10n.string("Pair a Bluetooth accessory")) {
             try await session.client.pairBleAccessory(body: .json(request)).ok.body.json
         }
         accessories = .loaded(list.accessories)
@@ -116,16 +116,16 @@ final class BleAccessoriesModel {
 
     /// Asks PetKit's cloud, as the parent, which accessories it owns.
     func importFromCloud(session: ServerSession) async throws -> BleImportOutcome {
-        guard let parentID else { throw APIError(status: 400, code: "bad_request", message: "No parent device.") }
+        guard let parentID else { throw APIError(status: 400, code: "bad_request", message: L10n.string("No parent device.")) }
         let reply: Operations.ImportBleAccessories.Output.Ok.Body.JsonPayload
         do {
-            reply = try await session.call(purpose: "Ask PetKit's cloud for this device's accessories") {
+            reply = try await session.call(purpose: L10n.string("Ask PetKit's cloud for this device's accessories")) {
                 try await session.client.importBleAccessories(body: .json(.init(deviceId: parentID))).ok.body.json
             }
         } catch {
             if let api = APIError.from(error), api.status == 502 {
                 throw APIError(status: 502, code: api.code,
-                               message: "PetKit's cloud did not answer, so nothing was imported. (\(api.message))")
+                               message: L10n.string("PetKit's cloud did not answer, so nothing was imported. (\(api.message))"))
             }
             throw error
         }
@@ -138,7 +138,7 @@ final class BleAccessoriesModel {
 
     private static func importTitle(_ result: Components.Schemas.BleImportResult) -> String {
         if let endpoint = result.endpoint { return endpoint }
-        let type = result.bleType?.uppercased() ?? "Accessory"
+        let type = result.bleType?.uppercased() ?? L10n.string("Accessory")
         let id = result.petkitId.map { " \($0)" } ?? ""
         let mac = result.mac.map { " · \(BleMACAddress.display($0))" } ?? ""
         return "\(type)\(id)\(mac)"
@@ -146,7 +146,7 @@ final class BleAccessoriesModel {
 
     /// Unpairs, keeping the server's note about Home Assistant for the section.
     func unpair(id: Int, session: ServerSession) async throws {
-        let reply = try await session.call(purpose: "Unpair a Bluetooth accessory") {
+        let reply = try await session.call(purpose: L10n.string("Unpair a Bluetooth accessory")) {
             try await session.client.deleteBleAccessory(path: .init(id: id)).ok.body.json
         }
         accessories = .loaded(reply.accessories)
@@ -156,7 +156,7 @@ final class BleAccessoriesModel {
     /// Sets one entity now through the parent, or throws why it could not.
     func send(entity: String, value: String?, to id: Int, session: ServerSession) async throws {
         do {
-            _ = try await session.call(purpose: "Send a command to a Bluetooth accessory") {
+            _ = try await session.call(purpose: L10n.string("Send a command to a Bluetooth accessory")) {
                 try await session.client.sendBleCommand(
                     path: .init(id: id), body: .json(.init(entity: entity, value: value))
                 ).ok.body.json
@@ -170,7 +170,7 @@ final class BleAccessoriesModel {
     /// Asks the parent to open a Bluetooth session to the accessory now.
     func poll(id: Int, session: ServerSession) async throws {
         do {
-            _ = try await session.call(purpose: "Ask the parent to read a Bluetooth accessory") {
+            _ = try await session.call(purpose: L10n.string("Ask the parent to read a Bluetooth accessory")) {
                 try await session.client.pollBleAccessory(path: .init(id: id)).ok.body.json
             }
         } catch {

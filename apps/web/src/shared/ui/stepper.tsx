@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from 'cn';
 import { IconButton } from './icon-button';
 
@@ -37,6 +38,8 @@ export function Stepper({
   disabled,
   className,
 }: StepperProps) {
+  const { t } = useTranslation('ui');
+  const named = label.toLowerCase();
   const canDown = !disabled && value !== null && value > min;
   const canUp = !disabled && (value === null || value < max);
   return (
@@ -47,7 +50,7 @@ export function Stepper({
     >
       <IconButton
         icon="minus"
-        aria-label={`Decrease ${label.toLowerCase()}`}
+        aria-label={t('stepper.decrease', { label: named })}
         disabled={!canDown}
         onClick={() => {
           if (value !== null) onValueChange(Math.max(min, tidy(value - step)));
@@ -70,7 +73,7 @@ export function Stepper({
       </output>
       <IconButton
         icon="plus"
-        aria-label={`Increase ${label.toLowerCase()}`}
+        aria-label={t('stepper.increase', { label: named })}
         disabled={!canUp}
         onClick={() => {
           onValueChange(value === null ? min : Math.min(max, tidy(value + step)));

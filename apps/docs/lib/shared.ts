@@ -1,6 +1,8 @@
 import { createGetUrl } from 'fumadocs-core/source';
+import { i18n } from './i18n';
 
 export const appName = 'MyPetKit';
+export const siteUrl = 'https://my-petkit.vercel.app';
 export const docsRoute = '/docs';
 export const docsImageRoute = '/og/docs';
 export const docsContentRoute = '/llms.mdx/docs';
@@ -13,7 +15,8 @@ export const gitConfig = {
   contentDir: 'apps/docs/content/docs',
 };
 
-const getContentUrl = createGetUrl(docsContentRoute);
+// Same locale rule as page URLs: English unprefixed, other languages under `/{lang}`.
+const getContentUrl = createGetUrl(docsContentRoute, i18n);
 
 export function getPageMarkdownUrl(page: { slugs: string[]; locale?: string }) {
   const segments = [...page.slugs, 'content.md'];
@@ -21,7 +24,7 @@ export function getPageMarkdownUrl(page: { slugs: string[]; locale?: string }) {
   return { segments, url: getContentUrl(segments, page.locale) };
 }
 
-const getImageUrl = createGetUrl(docsImageRoute);
+const getImageUrl = createGetUrl(docsImageRoute, i18n);
 
 export function getPageImageUrl(page: { slugs: string[]; locale?: string }) {
   const segments = [...page.slugs, 'image.png'];

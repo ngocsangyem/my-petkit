@@ -117,7 +117,8 @@ struct LiveView: View {
                     HoldToTalkButton(state: talk.state,
                                      press: { talk.press(session: session) },
                                      release: { talk.release() })
-                    Text(talk.failure ?? "Listening mutes while you talk. The box has no echo cancelling without PetKit's cloud.")
+                    Text(talk.failure
+                         ?? L10n.string("Listening mutes while you talk. The box has no echo cancelling without PetKit's cloud."))
                         .font(Theme.Font.extraSmall)
                         .foregroundStyle(talk.failure == nil ? Theme.Color.muted : Theme.Color.negative)
                         .multilineTextAlignment(.center)
@@ -156,7 +157,7 @@ private struct LiveVideoArea: View {
     private var labels: some View {
         VStack {
             HStack {
-                Pill(text: "Live", tone: .negative)
+                Pill(text: L10n.string("Live"), tone: .negative)
                 Spacer()
                 if let mode = model.mode {
                     Text(mode.title)

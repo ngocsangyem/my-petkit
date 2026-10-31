@@ -1,4 +1,5 @@
 import { cn } from 'cn';
+import { useTranslation } from 'react-i18next';
 import { SectionCard, Skeleton } from '@/shared/ui';
 import {
   VISIT_DAYS,
@@ -19,19 +20,26 @@ export interface PetVisitsCardProps {
  * day over the days that could be read. A day that could not be read draws no bar.
  */
 export function PetVisitsCard({ name, days, isPending }: PetVisitsCardProps) {
+  const { t } = useTranslation('pets');
   const week = days.slice(-VISIT_DAYS);
   const most = Math.max(1, ...week.map(d => d.visits ?? 0));
   const average = visitsPerDay(week);
-  const label = `${name}'s litter box visits, last ${String(VISIT_DAYS)} days: ${week
-    .map(d => `${shortDate(d.date)} ${d.visits === null ? 'unknown' : String(d.visits)}`)
-    .join(', ')}`;
+  const label = t('visits.label', {
+    name,
+    days: VISIT_DAYS,
+    list: week
+      .map(
+        d => `${shortDate(d.date)} ${d.visits === null ? t('visits.unknown') : String(d.visits)}`,
+      )
+      .join(', '),
+  });
   return (
     <SectionCard
-      title="Litter box visits"
+      title={t('visits.title')}
       end={
         average !== null && (
           <span className="text-sm text-muted-foreground tabular-nums">
-            {average.toFixed(1)} a day on average
+            {t('visits.average', { value: average.toFixed(1) })}
           </span>
         )
       }
@@ -58,7 +66,9 @@ export function PetVisitsCard({ name, days, isPending }: PetVisitsCardProps) {
             aria-hidden="true"
           >
             {week.map((d, i) => (
-              <span key={d.date}>{i === week.length - 1 ? 'Today' : weekdayLetter(d.date)}</span>
+              <span key={d.date}>
+                {i === week.length - 1 ? t('visits.today') : weekdayLetter(d.date)}
+              </span>
             ))}
           </div>
         </div>

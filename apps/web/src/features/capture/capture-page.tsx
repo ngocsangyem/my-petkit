@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { errorMessage } from '@/shared/api/errors';
 import { formatBytes } from '@/shared/format/format';
@@ -19,6 +20,7 @@ import { CaptureTail } from './components/capture-tail';
 import { saveBlob } from '@/shared/feedback/save-file';
 
 export function CapturePage() {
+  const { t } = useTranslation('capture');
   const listing = useCaptureListing();
   const remove = useDeleteCapture();
   const toast = useToast();
@@ -36,7 +38,7 @@ export function CapturePage() {
     try {
       saveBlob(await fetchCaptureFile(name), name);
     } catch (e) {
-      toast(`Download failed: ${errorMessage(e)}`, { error: true });
+      toast(t('downloadFailed', { error: errorMessage(e) }), { error: true });
     } finally {
       setDownloading(null);
     }
@@ -48,10 +50,10 @@ export function CapturePage() {
     remove.mutate(name, {
       onSuccess: () => {
         if (selected === name) setSelected(null);
-        toast(`Deleted ${name}`);
+        toast(t('deleted', { name }));
       },
       onError: e => {
-        toast(`Could not delete ${name}: ${errorMessage(e)}`, { error: true });
+        toast(t('deleteFailed', { name, error: errorMessage(e) }), { error: true });
       },
       onSettled: () => {
         setConfirming(null);
@@ -61,29 +63,26 @@ export function CapturePage() {
 
   const data = listing.data;
   const finding = data ? (
-    `Recording is ${data.enabled ? 'on' : 'off'}. ` +
-    `${data.files.length} ${data.files.length === 1 ? 'file' : 'files'} on the server, ${formatBytes(totalBytes(data))}.`
+    t(data.enabled ? 'findingOn' : 'findingOff', {
+      files: t('fileCount', { count: data.files.length }),
+      size: formatBytes(totalBytes(data)),
+    })
   ) : (
     <Skeleton width={420} height={14} />
   );
 
   return (
     <div className="flex w-full max-w-[980px] flex-col gap-5">
-      <PageHeader title="Capture" badge={<StepUpPill />} finding={finding} />
+      <PageHeader title={t('title')} badge={<StepUpPill />} finding={finding} />
       <Card className="flex items-start gap-2.5 text-lede">
         <Icon name="warning" size={18} strokeWidth={2} className="mt-0.5 flex-none text-negative" />
-        <p>
-          Every capture is sensitive. It is an exact recording of what your devices said and were
-          told, with nothing filtered: expect the Wi-Fi name, LAN addresses, the device serial and
-          its signing secret, and in proxy mode the exchanges with PetKit including your account
-          credentials. Read one before you send it anywhere. A deleted file cannot be restored.
-        </p>
+        <p>{t('warning')}</p>
       </Card>
 
       {listing.isPending && <Skeleton height={240} />}
       {listing.isError && (
         <ErrorBlock
-          message={`Could not list the capture files: ${errorMessage(listing.error)}`}
+          message={t('listFailed', { error: errorMessage(listing.error) })}
           onRetry={() => void listing.refetch()}
           retrying={listing.isFetching}
         />
@@ -92,22 +91,20 @@ export function CapturePage() {
         <>
           <Card
             as="section"
-            aria-label="Record traffic"
+            aria-label={t('record.title')}
             className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3"
           >
             <div className="flex min-w-0 flex-[1_1_240px] flex-col">
-              <span className="font-medium">Record traffic</span>
+              <span className="font-medium">{t('record.title')}</span>
               <span className="text-xs text-muted-foreground">
-                {data.enabled
-                  ? 'On. Every device request and broker frame is written as it happens.'
-                  : 'Off. It is a setting under Settings, and turning it on asks for your password.'}
+                {data.enabled ? t('record.on') : t('record.off')}
               </span>
             </div>
             <Link
               to="/setup"
               className={buttonClassName(data.enabled ? 'secondary' : 'primary', 'small')}
             >
-              {data.enabled ? 'Recording settings' : 'Start recording'}
+              {data.enabled ? t('record.settings') : t('record.start')}
             </Link>
           </Card>
           <CaptureFiles listing={data} selected={current} onSelect={setSelected} />
@@ -123,17 +120,18 @@ export function CapturePage() {
 
       <ConfirmDialog
         open={confirming !== null}
-        title={`Delete ${confirming ?? ''}?`}
-        confirmLabel="Delete"
+        title={t('confirm.title', { name: confirming ?? '' })}
+        confirmLabel={t('confirm.delete')}
         busy={remove.isPending}
         onConfirm={confirmDelete}
         onCancel={() => {
           setConfirming(null);
         }}
       >
-        {confirmFile ? `${formatBytes(confirmFile.size)}, ${confirmFile.lines} lines. ` : ''}
-        This cannot be undone: a capture is usually the only record of what it was recorded to
-        investigate.
+        {confirmFile
+          ? t('confirm.facts', { size: formatBytes(confirmFile.size), count: confirmFile.lines })
+          : ''}
+        {t('confirm.body')}
       </ConfirmDialog>
     </div>
   );

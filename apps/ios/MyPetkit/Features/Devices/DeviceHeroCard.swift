@@ -65,11 +65,13 @@ struct DeviceHeroCard: View {
     private func levelCaption(kind: DeviceKind, levels: (Double?, Double?)) -> String? {
         switch kind {
         case .feederDual:
-            let words = { (level: Double?) in level.map { $0 > DeviceFacts.lowFill ? "has food" : "low" } ?? "—" }
-            return "Hopper 1 · \(words(levels.0))    Hopper 2 · \(words(levels.1))"
+            let words = { (level: Double?) in
+                level.map { $0 > DeviceFacts.lowFill ? L10n.string("has food") : L10n.string("low") } ?? "—"
+            }
+            return L10n.string("Hopper 1 · \(words(levels.0))    Hopper 2 · \(words(levels.1))")
         case .litterBox:
             guard !device.online, let litter = levels.0 else { return nil }
-            return "Last known: \(Int((litter * 100).rounded()))% litter"
+            return L10n.string("Last known: \(Int((litter * 100).rounded()))% litter")
         default:
             return nil
         }
@@ -89,7 +91,7 @@ struct DeviceHeroCard: View {
                         QuickAction(title: action.name, symbol: CommandLayout.symbol(for: action.key)) { ask(action) }
                     }
                     if !commands.more.isEmpty {
-                        QuickAction(title: "More", symbol: "ellipsis") { showMore(commands.more) }
+                        QuickAction(title: L10n.string("More"), symbol: "ellipsis") { showMore(commands.more) }
                     }
                 }
             }
@@ -110,8 +112,11 @@ struct DeviceHeroCard: View {
     }
 
     private var footnote: String {
-        if !device.online { return "Commands wait until the \(DeviceFamily(deviceType: device.type).noun) reports again." }
-        return ["Each command asks before it runs.", lastCommand.map { "\($0)." }].compactMap { $0 }.joined(separator: " ")
+        if !device.online {
+            return L10n.string("Commands wait until the \(DeviceFamily(deviceType: device.type).noun) reports again.")
+        }
+        return [L10n.string("Each command asks before it runs."), lastCommand.map { "\($0)." }].compactMap { $0 }
+            .joined(separator: " ")
     }
 }
 

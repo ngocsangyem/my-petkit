@@ -1,4 +1,6 @@
+import type { TFunction } from 'i18next';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ApiError, errorMessage } from '@/shared/api/errors';
 import { formatDateTime } from '@/shared/format/format';
 import {
@@ -12,25 +14,30 @@ import {
 import { useBlocked } from '../api';
 import { BLOCKED_LIMIT, redactLabel, type BlockedAttempt } from '../retention-and-blocked-model';
 
-const COLUMNS: readonly TableColumn<BlockedAttempt>[] = [
+const columns = (t: TFunction<'setup'>): readonly TableColumn<BlockedAttempt>[] => [
   {
     key: 'when',
-    header: 'When',
+    header: t('blocked.when'),
     muted: true,
     nowrap: true,
     cell: b => formatDateTime(b.created_at),
   },
   {
     key: 'device',
-    header: 'Device',
+    header: t('blocked.device'),
     mono: true,
     cell: b => (b.device_id === null ? <ValueText value={null} /> : `#${b.device_id}`),
   },
-  { key: 'what', header: 'What the cloud tried', cell: b => redactLabel(b.kind) },
-  { key: 'endpoint', header: 'Endpoint', mono: true, cell: b => <ValueText value={b.endpoint} /> },
+  { key: 'what', header: t('blocked.what'), cell: b => redactLabel(b.kind) },
+  {
+    key: 'endpoint',
+    header: t('blocked.endpoint'),
+    mono: true,
+    cell: b => <ValueText value={b.endpoint} />,
+  },
   {
     key: 'payload',
-    header: 'Payload',
+    header: t('blocked.payload'),
     mono: true,
     muted: true,
     cell: b => <span className="break-all wrap-anywhere">{b.payload_json ?? ''}</span>,
@@ -44,6 +51,7 @@ const COLUMNS: readonly TableColumn<BlockedAttempt>[] = [
  * section is absent rather than saying so at length.
  */
 export function BlockedSection() {
+  const { t } = useTranslation(['setup', 'common']);
   const [reveal, setReveal] = useState(false);
   const blocked = useBlocked(reveal);
 
@@ -54,42 +62,39 @@ export function BlockedSection() {
   const rows = blocked.data?.records ?? [];
   if (!reveal && !blocked.isError && rows.length === 0) return null;
 
-  const count = rows.length >= BLOCKED_LIMIT ? `The newest ${BLOCKED_LIMIT}` : String(rows.length);
+  const count =
+    rows.length >= BLOCKED_LIMIT
+      ? t('blocked.newest', { count: BLOCKED_LIMIT })
+      : t('blocked.count', { count: rows.length });
   return (
     <SettingsSection
-      title="Blocked attempts"
+      title={t('blocked.title')}
       end={
         !blocked.isError && rows.length > 0 ? (
-          <span className="text-sm text-muted-foreground">
-            {count} {rows.length === 1 ? 'attempt' : 'attempts'}
-          </span>
+          <span className="text-sm text-muted-foreground">{count}</span>
         ) : undefined
       }
     >
-      <p className="pb-2 text-xs text-muted-foreground">
-        What the cloud tried to do and was stopped. Kept in the database, so the list outlives a
-        restart. Payloads can hold a real device secret, so they are masked; revealing them asks for
-        your password.
-      </p>
+      <p className="pb-2 text-xs text-muted-foreground">{t('blocked.intro')}</p>
       {blocked.isError ? (
         <ErrorBlock
           message={
             reveal
-              ? `Payloads were not revealed. ${errorMessage(blocked.error)}`
-              : `Blocked attempts could not be loaded. ${errorMessage(blocked.error)}`
+              ? t('blocked.revealFailed', { error: errorMessage(blocked.error) })
+              : t('blocked.loadFailed', { error: errorMessage(blocked.error) })
           }
           onRetry={() => void blocked.refetch()}
           retrying={blocked.isFetching}
         />
       ) : (
         <Table
-          label="Blocked attempts"
+          label={t('blocked.title')}
           variant="compact"
-          columns={COLUMNS}
+          columns={columns(t)}
           rows={rows}
           rowKey={b => String(b.id)}
           minWidth={640}
-          emptyText={blocked.isPending ? 'Loading…' : 'No blocked attempts.'}
+          emptyText={blocked.isPending ? t('common:loading') : t('blocked.empty')}
         />
       )}
       <div className="flex flex-wrap items-center gap-3 py-3">
@@ -99,10 +104,10 @@ export function BlockedSection() {
             setReveal(r => !r);
           }}
         >
-          {reveal ? 'Mask payloads' : 'Reveal payloads'}
+          {reveal ? t('blocked.mask') : t('blocked.reveal')}
         </Button>
         {reveal && !blocked.isError && rows.length > 0 && (
-          <span className="text-sm text-muted-foreground">Payloads shown in full.</span>
+          <span className="text-sm text-muted-foreground">{t('blocked.shown')}</span>
         )}
       </div>
     </SettingsSection>

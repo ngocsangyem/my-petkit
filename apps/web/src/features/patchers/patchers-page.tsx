@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { i18n } from '@/i18n';
 import { errorMessage } from '@/shared/api/errors';
 import {
   EmptyBlock,
@@ -18,15 +20,15 @@ function deviceLabel(d: DeviceSummary): string {
 
 /** "Root changes on the device itself · 2 of 6 patches applied". */
 function finding(status: PatcherStatus | undefined): string {
-  const base = 'Root changes on the device itself';
-  if (!status?.supported) return base;
+  if (!status?.supported) return i18n.t('patchers:finding');
   const all = Object.values(status.patchers);
   const applied = all.filter(p => p.applied || p.greyed).length;
-  return `${base} · ${applied} of ${all.length} patches applied`;
+  return i18n.t('patchers:findingApplied', { applied, count: all.length });
 }
 
 /** Root patches on the device itself: status per device, apply or remove, live progress. */
 export function PatchersPage() {
+  const { t } = useTranslation('patchers');
   const devices = usePatcherDevices();
   const progress = usePatcherProgress();
   const [chosen, setChosen] = usePersistedState<number | null>('patchers.device', null);
@@ -39,7 +41,7 @@ export function PatchersPage() {
   const picker =
     list.length > 1 && device ? (
       <label className="flex items-center gap-2 text-sm text-muted-foreground">
-        Device
+        {t('device')}
         <Select
           options={list.map(d => ({ value: String(d.id), label: deviceLabel(d) }))}
           value={String(device.id)}
@@ -53,7 +55,7 @@ export function PatchersPage() {
   return (
     <>
       <PageHeader
-        title="Patchers"
+        title={t('title')}
         badge={<StepUpPill />}
         finding={finding(status.data)}
         actions={picker}
@@ -62,14 +64,12 @@ export function PatchersPage() {
         <Skeleton height={280} />
       ) : devices.isError ? (
         <ErrorBlock
-          message={`Devices could not be loaded. ${errorMessage(devices.error)}`}
+          message={t('devicesFailed', { error: errorMessage(devices.error) })}
           onRetry={() => void devices.refetch()}
           retrying={devices.isFetching}
         />
       ) : !device ? (
-        <EmptyBlock>
-          No devices connected. Connect a device first, then come back to patch it.
-        </EmptyBlock>
+        <EmptyBlock>{t('noDevices')}</EmptyBlock>
       ) : (
         <DevicePatches key={device.id} device={device} progress={progress} />
       )}

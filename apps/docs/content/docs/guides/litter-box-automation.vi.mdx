@@ -1,0 +1,44 @@
+---
+title: Tự động hóa máy dọn phân
+description: Buộc tiếp tục trên T5, T6 và T7, tự đóng túi trên T6, và xoay camera T6.
+---
+
+## Buộc tiếp tục (T5, T6, T7) [#force-continue-t5-t6-t7]
+
+Khi máy dừng một chu trình vì thấy mèo ở gần cửa vào, bảng điều khiển và ứng dụng iOS đưa ra nút **Tiếp tục dọn** (Continue cleaning). Nó yêu cầu nhập lại mật khẩu quản trị.
+
+Máy chủ từ chối, và không gửi gì, trừ khi tất cả điều kiện sau đều đúng:
+
+- máy tạm dừng đúng vì lý do đó, mèo ở gần cửa vào;
+- nó báo không có ai bên trong;
+- không có lần ghé nào được để mở trong 10 phút qua;
+- nó không báo lỗi;
+- đã nghe tin từ nó trong 90 giây qua.
+
+Việc tạm dừng do mèo đã vào trong hoặc nắp đang mở không bao giờ bị ghi đè. Firmware giữ mọi kiểm tra của riêng nó: nếu mèo bước vào trong, máy dừng lại. Một lần nhấn gửi một lệnh, và không có gì lặp lại nó.
+
+![Một chiếc T6 tạm dừng vì mèo ở gần cửa vào](/screenshots/web-device-t6-paused.webp)
+
+Nút **Resume** gửi cùng lệnh đó, nên trên các mẫu này nó bị từ chối khi máy đang tạm dừng vì mèo ở gần, mèo ở trong hoặc nắp đang mở. Sau một lần Pause do chính bạn nhấn, Resume hoạt động như bình thường.
+
+Nếu máy cứ dừng vì mèo đi ngang qua, hãy tắt **Wander Detection**. Đó là cách riêng của máy để bớt nhạy hơn.
+
+## Tự đóng túi (T6, thử nghiệm) [#auto-pack-t6-experimental]
+
+Ứng dụng của PetKit chỉ đóng túi chất thải khi bạn chạm Pack. Trong mục **Tự động hóa** của thiết bị, bạn có thể để máy chủ nhấn thay bạn:
+
+- sau một số lần dọn,
+- khi thùng đầy,
+- hoặc vào một giờ trong ngày, theo múi giờ của thiết bị,
+
+với giờ yên tĩnh tùy chọn. Mặc định tắt.
+
+Máy chủ chờ khi máy đang bận, mèo đang ở trong hoặc gần nó, nó báo hết túi hoặc có lỗi, hoặc lần thử gần nhất cách chưa đến 30 phút. Một lỗi đóng túi sẽ tắt quy tắc, lần pack thứ hai mà máy không bao giờ trả lời cũng vậy. Hãy bật lại sau khi bạn đã kiểm tra máy.
+
+PetKit khuyến nghị có người ở gần khi nó đóng túi, và lấy túi ra kịp thời. Một giờ cố định hằng ngày khi bạn ở nhà là lựa chọn an toàn nhất.
+
+Cả buộc tiếp tục lẫn tự đóng túi đều không có dưới dạng nút Home Assistant.
+
+## Xoay camera T6
+
+Camera của Purobot Ultra xoay bằng một động cơ. Patcher [Camera Pan (T6)](/vi/docs/firmware/camera-pan-t6) thêm các nút **Pan Left**, **Pan Right** và **Pan Home** trong Home Assistant, và **Trái**, **Giữa**, **Phải** trong bảng điều khiển.

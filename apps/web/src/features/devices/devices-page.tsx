@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { serverUrl } from '@/shared/api/base-path';
 import { errorMessage } from '@/shared/api/errors';
@@ -39,9 +40,10 @@ const NO_PETS: readonly PetWithFaces[] = [];
 
 /** Home's loading state: grey bars at the final size of each block, no shimmer. */
 function HomeSkeleton() {
+  const { t } = useTranslation('devices');
   return (
     <>
-      <PageHeader title="Home" />
+      <PageHeader title={t('home.title')} />
       <div className="grid grid-cols-2 gap-3 min-[901px]:grid-cols-4 min-[901px]:gap-4">
         <Skeleton height={214} />
         <Skeleton height={214} />
@@ -61,6 +63,7 @@ function HomeSkeleton() {
  * between them never reloads, and an edit typed on a device page survives going back to Home.
  */
 export function DevicesPage() {
+  const { t } = useTranslation('devices');
   useLiveRefresh();
   const view = useDeviceView();
   const nowSeconds = useNowSeconds();
@@ -93,9 +96,9 @@ export function DevicesPage() {
   if (list.error) {
     return (
       <>
-        <PageHeader title="Home" />
+        <PageHeader title={t('home.title')} />
         <ErrorBlock
-          message={`Could not load the devices: ${errorMessage(list.error)}`}
+          message={t('page.loadDevicesFailed', { error: errorMessage(list.error) })}
           onRetry={() => void list.refetch()}
           retrying={list.isFetching}
         />
@@ -106,20 +109,18 @@ export function DevicesPage() {
   if (!devices.length && !accessories.length) {
     return (
       <>
-        <PageHeader title="Home" finding="No devices yet." />
+        <PageHeader title={t('home.title')} finding={t('empty.finding')} />
         <EmptyState
-          title="Add your first device"
+          title={t('empty.title')}
           art={<LitterBoxDrawing level={0} size={120} />}
           action={
             <Link className={buttonClassName('primary')} to="/provision">
               <Icon name="plus" size={16} />
-              Add a device
+              {t('home.addDevice')}
             </Link>
           }
         >
-          Keep this computer near a litter box, feeder or fountain: its Wi-Fi and this server's
-          address are sent over Bluetooth. A device already running can instead be pointed at this
-          server's address.
+          {t('empty.body')}
         </EmptyState>
       </>
     );
@@ -178,7 +179,7 @@ export function DevicesPage() {
             loading={recent.isPending || pets.isPending || detailQueries.some(q => q.isPending)}
             error={
               recent.error || pets.error
-                ? `Could not load today: ${errorMessage(recent.error ?? pets.error)}`
+                ? t('page.loadTodayFailed', { error: errorMessage(recent.error ?? pets.error) })
                 : null
             }
             onRetry={() => {
@@ -190,7 +191,7 @@ export function DevicesPage() {
       />
       {ble.error && (
         <ErrorBlock
-          message={`Could not load the Bluetooth accessories: ${errorMessage(ble.error)}`}
+          message={t('page.loadBleFailed', { error: errorMessage(ble.error) })}
           onRetry={() => void ble.refetch()}
         />
       )}

@@ -1,0 +1,57 @@
+---
+title: Tham chiếu thiết bị
+description: Sách hướng dẫn người dùng của chính PetKit nói gì về từng mẫu, và những gì chúng bỏ qua.
+---
+
+Phần này được xây dựng từ 24 sách hướng dẫn và tờ hướng dẫn của PetKit (các trang tiếng Anh của mỗi tài liệu, đọc toàn bộ). Mọi thông tin ở đây đều đến từ một sách hướng dẫn và nêu số trang chứa nó, viết dạng "T6 manual, p36". Khi sách hướng dẫn không nói gì, các trang này nói rõ thay vì lấp chỗ trống.
+
+Để biết một mẫu hoạt động ra sao với MyPetKit, xem [Thiết bị được hỗ trợ](/vi/docs/supported-devices). Phần này nói về chính phần cứng.
+
+## Những gì sách hướng dẫn không đề cập
+
+Hãy đọc mục này trước khi tìm bất cứ thứ gì bên dưới.
+
+- **Firmware.** Không sách hướng dẫn nào giải thích cách đọc, dump, vá hay flash firmware. Không sách nào nhắc đến cổng nối tiếp, UART, JTAG, bootloader, SSH, API cục bộ, MQTT, hay việc chạy mà không có đám mây của PetKit. Chỉ dẫn duy nhất về firmware, trong bốn sách hướng dẫn (T3-4, D4H, D4-SH, CT-W3), là giữ firmware luôn cập nhật trong ứng dụng PETKIT. Mọi điều trang này nói về firmware đều đến từ mã của MyPetKit: xem [Firmware và patcher](/vi/docs/firmware).
+- **Khôi phục cài đặt gốc.** Không sách hướng dẫn nào mô tả khôi phục cài đặt gốc hay cách xóa Wi-Fi đã lưu. Mục "Reset" trong menu của máy dọn phân chỉ xoay trống về vị trí ban đầu. Những thứ gần nhất với reset được liệt kê ở [Nút ghép nối và đèn báo](/vi/docs/devices/pairing-and-indicators#reset-and-power-buttons).
+- **Mã lỗi.** Không sách hướng dẫn nào định nghĩa mã lỗi dạng số. Máy dọn phân hiển thị lời nhắc dạng chữ, và "Device failure" bảo bạn xem ứng dụng để biết chi tiết.
+- **Giao thức ghép nối.** Các sách hướng dẫn chỉ mô tả ghép nối dưới dạng các bước trong ứng dụng PETKIT. Chúng không nêu dịch vụ Bluetooth, điểm truy cập, port hay máy chủ nào.
+- **Chip và bo mạch.** Không sách hướng dẫn nào nêu tên chipset, chip flash hay bố cục bo mạch.
+
+## Các mẫu được đề cập
+
+Cột "Mã MyPetKit" chỉ được điền khi tên sản phẩm trong sách hướng dẫn khớp với một dòng trong [Thiết bị được hỗ trợ](/vi/docs/supported-devices).
+
+| Tệp sách hướng dẫn | Tên sản phẩm (từ sách hướng dẫn) | Mã sản phẩm | Loại | Mã MyPetKit |
+|---|---|---|---|---|
+| T3-4 | PURAX | P9901 | Máy dọn phân | T3 |
+| T4 | PURA MAX | P9902 | Máy dọn phân | T4 |
+| T4-2 | PURA MAX 2 | P9902 | Máy dọn phân | không có trong danh sách |
+| T4-3 | PUROBOT MAX 3 | P9906, P9911 | Máy dọn phân | không có trong danh sách |
+| T5 | PUROBOT MAX PRO with Camera | P9904 | Máy dọn phân có camera | không có trong danh sách |
+| T5-2 | PUROBOT MAX PRO 2 with Camera | P9904 | Máy dọn phân có camera | T5 |
+| T6 | PUROBOT ULTRA with Camera | P9903 | Máy dọn phân có camera và đóng túi | T6 |
+| T7 | PUROBOT CRYSTAL DUO with Camera | P9905 | Máy dọn phân cát pha lê có camera | T7 |
+| TP | AUTOSEAL Cat Litter Disposal System | P9910, P9912 | Thùng rác ép nhiệt kín | không có trong danh sách |
+| D3-1 | FRESH ELEMENT 3 NEW | P560 | Máy cho ăn | không có trong danh sách |
+| D4 | FRESH ELEMENT SOLO | P570 | Máy cho ăn | D4 |
+| D4H | YUMSHARE SOLO with Camera | P571 | Máy cho ăn có camera | D4H |
+| D4H-2 | YUMSHARE SOLO 2 with Camera | P572 | Máy cho ăn có camera | D4H |
+| D4-SH | YUMSHARE DUAL-HOPPER with Camera | P591 | Máy cho ăn hai khoang có camera | D4SH |
+| D4SH-2 | YUMSHARE DUAL-HOPPER 2 with Camera | P592 | Máy cho ăn hai khoang có camera | D4SH |
+| CT-W1 | EVERSWEET SOLO | P4103 | Máy lọc nước | không có trong danh sách |
+| CT-W2 | EVERSWEET SOLO 2 | P4114 | Máy lọc nước, bơm không dây | CTW2 |
+| W4X | EVERSWEET WIRELESS (SUS304) | P4108 | Máy lọc nước, bơm không dây | họ W4 (W4X) |
+| CT-W3 | EVERSWEET MAX (CORDLESS) | P4115 | Máy lọc nước, chạy pin | CTW3 |
+| CT-W3-UV-100 | EVERSWEET MAX 2 (CORDLESS) | P4116 | Máy lọc nước, chạy pin | không có trong danh sách |
+| W7H | EVERSWEET ULTRA AI HEALTH CARE | P4117 | Máy lọc nước có camera | W7H |
+| HG | AIRSALON MAX | PD10 | Máy sấy thú cưng | không có trong danh sách |
+| K3 | PURA AIR SMART SPRAY | không nêu | Bình xịt không khí | K3 |
+
+T4 và T4-2 dùng chung mã sản phẩm P9902, còn T5 và T5-2 dùng chung P9904. Các sách hướng dẫn không giải thích lý do. Tên tệp `CT-W3-UV-100` có chữ "UV", nhưng sách hướng dẫn không hề nhắc đến UV. Việc ánh xạ K3 dựa trên tên tệp, vì tờ hướng dẫn không có mã sản phẩm.
+
+## Các trang
+
+- [Nút ghép nối và đèn báo](/vi/docs/devices/pairing-and-indicators): mỗi mẫu vào chế độ ghép nối thế nào, đèn của nó có nghĩa gì, băng tần Wi-Fi, và các nút reset và nguồn thực sự có.
+- [Máy dọn phân](/vi/docs/devices/litter-boxes)
+- [Máy cho ăn](/vi/docs/devices/feeders)
+- [Máy lọc nước và phụ kiện](/vi/docs/devices/fountains-and-accessories)

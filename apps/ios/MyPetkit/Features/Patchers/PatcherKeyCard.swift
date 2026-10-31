@@ -12,8 +12,8 @@ struct PatcherKeyCard: View {
     var body: some View {
         Card {
             if needsKey {
-                LabeledField(label: "SSH public key",
-                             footnote: "Root SSH on port 22 accepts this key only: ssh-ed25519, ssh-rsa or ecdsa-sha2.") {
+                LabeledField(label: L10n.string("SSH public key"),
+                             footnote: L10n.string("Root SSH on port 22 accepts this key only: ssh-ed25519, ssh-rsa or ecdsa-sha2.")) {
                     TextField("ssh-ed25519 AAAA… you@laptop", text: $run.pubkey, axis: .vertical)
                         .font(Theme.Font.mono)
                         .lineLimit(1...4)
@@ -30,7 +30,7 @@ struct PatcherKeyCard: View {
         let (text, color): (String, Color) = if let blocker {
             (blocker, Theme.Color.negative)
         } else {
-            ("The server knows the box at \(deviceIP) on the home network.", Theme.Color.positive)
+            (L10n.string("The server knows the box at \(deviceIP) on the home network."), Theme.Color.positive)
         }
         return HStack(alignment: .firstTextBaseline, spacing: 6) {
             Circle().fill(color).frame(width: 8, height: 8).accessibilityHidden(true)

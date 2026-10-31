@@ -1,4 +1,5 @@
 import { useId, useState, type ReactNode, type SyntheticEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button, Panel, PetAvatar, Switch } from '@/shared/ui';
 import { Checkbox } from '@/shared/ui/shadcn/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/shared/ui/shadcn/radio-group';
@@ -51,6 +52,7 @@ export function ChangeCatForm({
   onSave,
   onCancel,
 }: ChangeCatFormProps) {
+  const { t } = useTranslation(['timeline', 'common']);
   const [choice, setChoice] = useState(() => initialChoice(s));
   const [useWeight, setUseWeight] = useState(false);
   const [applyToRef, setApplyToRef] = useState(false);
@@ -73,7 +75,7 @@ export function ChangeCatForm({
       <p className="-mt-2 text-md text-lede">{changeCatContext(s)}</p>
       <Panel padding="none" className="px-4 py-1">
         <RadioGroup
-          aria-label="Cat"
+          aria-label={t('changeCat.cat')}
           className="gap-0"
           value={choice}
           onValueChange={value => {
@@ -87,7 +89,10 @@ export function ChangeCatForm({
               <span className="flex min-w-0 flex-col">
                 <span className="font-medium [overflow-wrap:anywhere]">{c.pet.name}</span>
                 <span className="text-xs text-muted-foreground tabular-nums">
-                  {[c.registered ?? 'No registered weight', c.closest ? 'closest weight' : null]
+                  {[
+                    c.registered ?? t('changeCat.noRegistered'),
+                    c.closest ? t('changeCat.closest') : null,
+                  ]
                     .filter(Boolean)
                     .join(' · ')}
                 </span>
@@ -96,7 +101,7 @@ export function ChangeCatForm({
           ))}
           <ChoiceRow value={PASSING}>
             <PetAvatar photoUrl={null} size={36} />
-            No cat, just passing
+            {t('changeCat.passing')}
           </ChoiceRow>
         </RadioGroup>
       </Panel>
@@ -104,9 +109,9 @@ export function ChangeCatForm({
       {picked && hasVisitWeight(s) && (
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 flex-col">
-            <label htmlFor={weightId}>Use this for {picked.name}&apos;s weight</label>
+            <label htmlFor={weightId}>{t('changeCat.useWeight', { name: picked.name })}</label>
             <span id={weightHintId} className="text-xs text-muted-foreground tabular-nums">
-              Updates the registered weight to {visitWeight}.
+              {t('changeCat.useWeightHint', { weight: visitWeight })}
             </span>
           </div>
           <Switch
@@ -131,10 +136,10 @@ export function ChangeCatForm({
           />
           <span className="flex min-w-0 flex-col">
             <span id={refId} className="text-sm">
-              Also use for later visits with this identity
+              {t('changeCat.applyRef')}
             </span>
             <span id={refHintId} className="text-xs text-muted-foreground">
-              The box reported an identity no cat holds yet; it will name {picked.name} from now on.
+              {t('changeCat.applyRefHint', { name: picked.name })}
             </span>
           </span>
         </label>
@@ -147,15 +152,13 @@ export function ChangeCatForm({
       )}
       <div className="flex flex-wrap justify-end gap-2">
         <Button onClick={onCancel} disabled={busy}>
-          Cancel
+          {t('common:cancel')}
         </Button>
         <Button type="submit" variant="primary" disabled={busy || choice === ''}>
-          Save
+          {t('common:save')}
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground">
-        Changes this record only. Nothing is sent to the litter box.
-      </p>
+      <p className="text-xs text-muted-foreground">{t('changeCat.note')}</p>
     </form>
   );
 }

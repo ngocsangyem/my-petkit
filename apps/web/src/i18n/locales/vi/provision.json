@@ -1,0 +1,66 @@
+{
+  "title": "Thêm thiết bị",
+  "finding": "Gửi Wi-Fi, địa chỉ máy chủ này và múi giờ qua Bluetooth. Trình duyệt của bạn nói chuyện trực tiếp với thiết bị; máy chủ không bao giờ thấy mật khẩu Wi-Fi, và không cần ứng dụng PetKit.",
+  "newDevice": "Thiết bị mới",
+  "noneChosen": "Chưa chọn thiết bị",
+  "findDevice": "Tìm thiết bị",
+  "networkAndServer": "Mạng và máy chủ",
+  "browserNote": "Web Bluetooth cần Chrome hoặc Edge trên máy tính hoặc Android, và một ngữ cảnh bảo mật: trang có chứng chỉ được tin cậy. Trên iPhone, hãy dùng ứng dụng MyPetKit.",
+  "status": {
+    "accessory": "Mẫu này không có Wi-Fi.",
+    "unknownDevice": "Thiết bị không xác định.",
+    "provisioned": "Đã cấu hình. Thiết bị sẽ khởi động lại và kết nối Wi-Fi.",
+    "unanswered": "Đã gửi, nhưng thiết bị không phản hồi.",
+    "connected": "Thiết bị đã kết nối. Xem trang Thiết bị.",
+    "requesting": "Đang yêu cầu thiết bị…",
+    "error": "Lỗi: {{error}}",
+    "missingWifi": "Cần nhập cả tên và mật khẩu Wi-Fi.",
+    "connecting": "Đang kết nối…",
+    "sending": "Đang gửi…"
+  },
+  "found": {
+    "legend": "Thiết bị tìm thấy",
+    "empty": "Chưa chọn thiết bị nào. Bấm Tìm thiết bị, rồi chọn nó trong danh sách của trình duyệt."
+  },
+  "environment": {
+    "insecureTooltip": "Web Bluetooth cần trang bảo mật, còn trang này dùng HTTP thường. Xem ghi chú ở trên.",
+    "noBluetoothTooltip": "Trình duyệt này không có Web Bluetooth. Hãy dùng Chrome hoặc Edge, trên máy tính hoặc Android.",
+    "insecure": "Web Bluetooth chỉ hoạt động trên trang bảo mật, còn trang này dùng HTTP thường. Hãy phục vụ Home Assistant qua HTTPS bằng chứng chỉ của riêng bạn; khi đó có thể cấu hình ngay từ trang này, kể cả qua Ingress. Bạn cũng cần Chrome hoặc Edge. Trang HTTP thường không biết bạn có trình duyệt đó hay không, vì trình duyệt ẩn hoàn toàn Web Bluetooth cho đến khi trang được bảo mật. Hoặc dùng trang cấu hình được lưu trữ sẵn tại <hosted>{{url}}</hosted>, chạy hoàn toàn trong trình duyệt của bạn và nói chuyện với thiết bị qua Bluetooth. Trang đó không bao giờ thấy mật khẩu Wi-Fi của bạn.",
+    "noBluetooth": "Trình duyệt này không có Web Bluetooth. Chỉ Chrome và Edge trên máy tính hoặc Android mới có; Firefox, Safari và iOS không thể cấu hình. Trên iPhone, hãy dùng ứng dụng MyPetKit."
+  },
+  "form": {
+    "network": "Mạng",
+    "wifiName": "Tên Wi-Fi",
+    "wifiNameHint": "Mạng mà thiết bị sẽ kết nối, không nhất thiết là mạng trình duyệt này đang dùng.",
+    "password": "Mật khẩu",
+    "passwordHint": "Bắt buộc: không thể cấu hình cho mạng mở theo cách này. Mật khẩu đi từ trang này tới thiết bị qua Bluetooth, không bao giờ tới máy chủ này hay PetKit.",
+    "server": "Máy chủ",
+    "serverUrl": "Máy chủ thiết bị sẽ dùng",
+    "serverUrlHint": "Được ghi cố định khi cấu hình: hãy dùng IP, hoặc tên mà chính thiết bị phân giải được.",
+    "serverFailed": "Không đọc được địa chỉ của máy chủ này ({{error}}). Hãy tự nhập, hoặc thử lại.",
+    "timeZone": "Múi giờ",
+    "timeZoneHint": "Thiết bị không có cài đặt đồng hồ riêng: nó giữ độ lệch cố định này, không theo giờ mùa hè. Muốn đổi về sau phải cấu hình lại.",
+    "detected": "{{label}}, đã phát hiện",
+    "detectedZone": "{{label}} · {{zone}}, đã phát hiện",
+    "note": "Địa chỉ lấy từ máy chủ của bạn, không phải từ trình duyệt này. Giữ nút trên thiết bị cho đến khi có tiếng bíp, rồi chọn nó trong danh sách của trình duyệt.",
+    "send": "Gửi tới thiết bị"
+  },
+  "warning": {
+    "mdnsHost": "Địa chỉ này dùng tên máy mDNS .local, mà hầu hết thiết bị PetKit không phân giải được. Hãy dùng IP của máy chủ, ví dụ http://<server-ip>/6/.",
+    "notPort80": "Thiết bị ESP32 như T4 và D4 cần máy chủ chạy ở cổng 80. Cấu hình chúng với địa chỉ này sẽ thất bại."
+  },
+  "progress": {
+    "label": "Tiến trình cấu hình",
+    "done": "Xong {{done}}/{{total}}",
+    "wifi": "Mạng Wi-Fi",
+    "server": "Máy chủ và múi giờ",
+    "send": "Gửi tới thiết bị",
+    "stepDone": ", đã xong",
+    "stepNext": ", tiếp theo",
+    "stepTodo": ", chưa làm"
+  },
+  "log": {
+    "title": "Nhật ký phiên · khung tin Bluetooth, mới nhất ở cuối",
+    "empty": "Chưa gửi gì. Mỗi bước và mọi phản hồi sẽ hiện ở đây."
+  }
+}

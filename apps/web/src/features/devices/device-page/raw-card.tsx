@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { SectionCard, Table } from '@/shared/ui';
 import type { DeviceDetail } from '../api';
@@ -11,22 +12,25 @@ import { type DeviceEntity, groupDeviceEntities } from '../lib/entity-sections';
 
 /** Entities this screen has no block for: a gap in ENTITY_SECTION, shown rather than hidden. */
 function Unrouted({ entities }: { entities: readonly DeviceEntity[] }) {
+  const { t } = useTranslation('devices');
   return (
-    <section className="flex min-w-0 flex-col gap-2.5" aria-label="Not shown above">
-      <BlockHeading title="Not shown above" />
-      <p className="text-sm text-muted-foreground">
-        These entities are published to Home Assistant but this screen has no block for them. Please
-        report it.
-      </p>
+    <section className="flex min-w-0 flex-col gap-2.5" aria-label={t('rawCard.unrouted')}>
+      <BlockHeading title={t('rawCard.unrouted')} />
+      <p className="text-sm text-muted-foreground">{t('rawCard.unroutedNote')}</p>
       <Table<DeviceEntity>
-        label="Entities with no block"
+        label={t('rawCard.unroutedLabel')}
         variant="compact"
         rows={entities}
         rowKey={e => e.key}
         columns={[
-          { key: 'name', header: 'Entity', cell: e => e.name },
-          { key: 'component', header: 'Component', cell: e => e.component, muted: true },
-          { key: 'key', header: 'Key', cell: e => e.key, mono: true },
+          { key: 'name', header: t('entityTable.entity'), cell: e => e.name },
+          {
+            key: 'component',
+            header: t('entityTable.component'),
+            cell: e => e.component,
+            muted: true,
+          },
+          { key: 'key', header: t('rawCard.key'), cell: e => e.key, mono: true },
         ]}
       />
     </section>
@@ -46,6 +50,7 @@ export function RawCard({
   isOpen: OpenState;
   setOpen: SetOpen;
 }) {
+  const { t } = useTranslation('devices');
   const groups = groupDeviceEntities(d.entities, d.supports_ai);
   const texts = d.entities.filter(e => e.component === 'text');
   const section = (key: string, summary: string, body: ReactNode) => (
@@ -61,14 +66,18 @@ export function RawCard({
   );
 
   return (
-    <SectionCard title="Entities and raw command" aside="What this device is reporting now">
+    <SectionCard title={t('rawCard.title')} aside={t('rawCard.aside')}>
       {groups.sensors.length > 0 && (
-        <section className="flex min-w-0 flex-col gap-2.5" aria-label="State">
-          <EntityTable label={`${d.name} state`} sensors={groups.sensors} all={d.entities} />
+        <section className="flex min-w-0 flex-col gap-2.5" aria-label={t('stateTitle')}>
+          <EntityTable
+            label={t('stateLabel', { name: d.name })}
+            sensors={groups.sensors}
+            all={d.entities}
+          />
           {section(
             'rawstate',
-            'Raw parsed state JSON',
-            <JsonBlock label="Parsed state" value={d.state} />,
+            t('rawStateJson'),
+            <JsonBlock label={t('parsedState')} value={d.state} />,
           )}
         </section>
       )}
@@ -77,37 +86,33 @@ export function RawCard({
       {texts.length > 0 &&
         section(
           'schedjson',
-          'Schedules as raw JSON',
+          t('rawCard.schedulesJson'),
           <ScheduleRawJson device={d} entities={texts} />,
         )}
       {section(
         'diag',
-        'Diagnostics and raw payloads',
+        t('rawCard.diagnostics'),
         <div className="flex min-w-0 flex-col gap-2.5">
-          <span className="text-sm font-medium">Last HTTP state report</span>
+          <span className="text-sm font-medium">{t('rawCard.lastState')}</span>
           <JsonBlock
-            label="Last HTTP state report"
-            value={d.diag.last_state_report ?? { note: 'none yet' }}
+            label={t('rawCard.lastState')}
+            value={d.diag.last_state_report ?? { note: t('rawCard.noneYet') }}
           />
-          <span className="text-sm font-medium">Last MQTT property post</span>
+          <span className="text-sm font-medium">{t('rawCard.lastProperty')}</span>
           <JsonBlock
-            label="Last MQTT property post"
-            value={d.diag.last_property ?? { note: 'none yet' }}
+            label={t('rawCard.lastProperty')}
+            value={d.diag.last_property ?? { note: t('rawCard.noneYet') }}
           />
-          <span className="text-sm font-medium">MQTT connection</span>
+          <span className="text-sm font-medium">{t('rawCard.connection')}</span>
           <JsonBlock
-            label="MQTT connection"
-            value={
-              d.diag.last_connect ?? {
-                note: 'no MQTT connect seen; the device is on HTTP heartbeat',
-              }
-            }
+            label={t('rawCard.connection')}
+            value={d.diag.last_connect ?? { note: t('rawCard.noConnect') }}
           />
         </div>,
       )}
-      {section('raw', 'Advanced: send a raw command', <RawCommand deviceId={d.id} />)}
+      {section('raw', t('rawCard.advanced'), <RawCommand deviceId={d.id} />)}
       <p className="text-sm text-muted-foreground">
-        Firmware changes for this device are on the <Link to="/patchers">Patchers</Link> screen.
+        <Trans t={t} i18nKey="rawCard.patchers" components={{ link: <Link to="/patchers" /> }} />
       </p>
     </SectionCard>
   );

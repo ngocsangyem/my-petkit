@@ -1,19 +1,16 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { type SyntheticEvent, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { api } from '@/shared/api/client';
 import { ApiError, errorMessage, toApiError } from '@/shared/api/errors';
 import { Button, Card, DrumMark, TextInput } from '@/shared/ui';
 import { AuthField } from './auth-field';
 import { AuthPage } from './auth-page';
 import { PasswordLengthMeter } from './password-length-meter';
+import { SignInLanguageRow } from './sign-in-language-row';
+import { FirstRunNote, SignInNote } from './sign-in-notes';
 
 type Mode = 'sign-in' | 'first-run';
-
-/** Muted 12px copy at the foot of the card. */
-const NOTE = 'text-xs text-muted-foreground';
-/** Mono for the host and the recovery command. */
-const CODE = 'font-mono text-foreground';
-const RECOVERY = 'my-petkit admin set-password';
 
 /**
  * Sign in with the admin password, or, on a server with no admin yet, create
@@ -21,6 +18,7 @@ const RECOVERY = 'my-petkit admin set-password';
  * the HttpOnly session cookie; the page never sees a credential it could keep.
  */
 export function SignInScreen() {
+  const { t } = useTranslation('auth');
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<Mode>('sign-in');
   const [password, setPassword] = useState('');
@@ -39,7 +37,7 @@ export function SignInScreen() {
     event.preventDefault();
     setError(null);
     if (!signIn && password !== confirm) {
-      setError('The two passwords are different.');
+      setError(t('firstRun.passwordsDiffer'));
       return;
     }
     setBusy(true);
@@ -63,7 +61,7 @@ export function SignInScreen() {
       setError(
         failure instanceof ApiError || failure instanceof Error
           ? errorMessage(failure)
-          : 'Could not sign in.',
+          : t('signIn.failed'),
       );
     } finally {
       setBusy(false);
@@ -95,15 +93,18 @@ export function SignInScreen() {
             </span>
             <div className="flex flex-col gap-1.5">
               <h1 id="auth-title" className="text-[26px]">
-                {signIn ? 'Sign in' : 'Set up your server'}
+                {signIn ? t('signIn.title') : t('firstRun.title')}
               </h1>
               <p className="text-md text-lede">
                 {signIn ? (
-                  <>
-                    Home server · <span className="font-mono text-sm">{window.location.host}</span>
-                  </>
+                  <Trans
+                    t={t}
+                    i18nKey="signIn.homeServer"
+                    values={{ host: window.location.host }}
+                    components={{ host: <span className="font-mono text-sm" /> }}
+                  />
                 ) : (
-                  'This server has no admin yet. It prints a one-time setup code in its log when it starts.'
+                  t('firstRun.lede')
                 )}
               </p>
             </div>
@@ -120,11 +121,13 @@ export function SignInScreen() {
                   tabIndex={-1}
                   aria-hidden="true"
                 />
-                <AuthField label="Admin password">{passwordInput('current-password')}</AuthField>
+                <AuthField label={t('signIn.adminPassword')}>
+                  {passwordInput('current-password')}
+                </AuthField>
               </>
             ) : (
               <>
-                <AuthField label="Setup code">
+                <AuthField label={t('firstRun.setupCode')}>
                   <TextInput
                     mono
                     autoComplete="off"
@@ -137,10 +140,12 @@ export function SignInScreen() {
                   />
                 </AuthField>
                 <div className="flex flex-col">
-                  <AuthField label="Admin password">{passwordInput('new-password')}</AuthField>
+                  <AuthField label={t('signIn.adminPassword')}>
+                    {passwordInput('new-password')}
+                  </AuthField>
                   <PasswordLengthMeter password={password} />
                 </div>
-                <AuthField label="Repeat the password">
+                <AuthField label={t('firstRun.repeatPassword')}>
                   <TextInput
                     type="password"
                     autoComplete="new-password"
@@ -165,50 +170,25 @@ export function SignInScreen() {
               className="w-full"
               disabled={busy || !password}
             >
-              {signIn ? 'Sign in' : 'Create admin'}
+              {signIn ? t('signIn.submit') : t('firstRun.submit')}
             </Button>
             {signIn ? (
-              <p className={NOTE}>
-                Too many tries make you wait a moment. Forgot it? Run{' '}
-                <code className={CODE}>{RECOVERY}</code> on the server. First time here?{' '}
-                <Button
-                  type="button"
-                  variant="text"
-                  size="small"
-                  className="h-auto px-0 text-xs"
-                  onClick={() => {
-                    switchTo('first-run');
-                  }}
-                >
-                  Set up the admin
-                </Button>
-              </p>
+              <SignInNote
+                onFirstRun={() => {
+                  switchTo('first-run');
+                }}
+              />
             ) : (
-              <>
-                <p className={NOTE}>
-                  The code works once, for 30 minutes. Restart the server for a new one, or run{' '}
-                  <code className={CODE}>{RECOVERY}</code> there.
-                </p>
-                <Button
-                  type="button"
-                  variant="text"
-                  size="small"
-                  className="self-start px-0"
-                  onClick={() => {
-                    switchTo('sign-in');
-                  }}
-                >
-                  I already have a password
-                </Button>
-              </>
+              <FirstRunNote
+                onSignIn={() => {
+                  switchTo('sign-in');
+                }}
+              />
             )}
           </form>
+          <SignInLanguageRow />
         </Card>
-        <p className="px-2 text-xs text-muted-foreground">
-          Your browser warns once about this server&apos;s certificate because the server made it
-          itself. Check that the fingerprint it shows matches the one in the server log before you
-          continue.
-        </p>
+        <p className="px-2 text-xs text-muted-foreground">{t('certificateNote')}</p>
       </div>
     </AuthPage>
   );

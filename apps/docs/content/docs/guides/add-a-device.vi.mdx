@@ -1,0 +1,64 @@
+---
+title: Thêm thiết bị
+description: Trao cho thiết bị thông tin Wi-Fi, địa chỉ máy chủ của bạn và múi giờ qua Bluetooth.
+---
+
+Màn hình **Thêm thiết bị** cấp phát cho thiết bị qua Web Bluetooth. Nó gửi tên và mật khẩu Wi-Fi, URL máy chủ mà thiết bị sẽ dùng (`apiServers`), và một múi giờ. Cấp phát là cách duy nhất để thiết bị có được múi giờ, nên một thiết bị được cấp phát mà không có múi giờ sẽ đóng dấu UTC lên video cho đến khi bạn cấp phát lại.
+
+Với các mẫu ESP32, bạn có thể dùng chuyển hướng DNS thay thế. Xem [Trỏ thiết bị về máy chủ](/vi/docs/configuration/networking).
+
+## Bạn cần gì
+
+- Chrome hoặc Edge, trên máy tính hoặc Android. Firefox, Safari và iOS không có Web Bluetooth.
+- Một trang an toàn. Web Bluetooth chỉ chạy qua HTTPS với chứng chỉ mà trình duyệt tin cậy, chẳng hạn reverse proxy hoặc TLS của chính Home Assistant. Việc trình duyệt có chấp nhận một chứng chỉ tự ký mà bạn đã bấm bỏ qua hay không vẫn chưa được xác minh.
+- Qua HTTP thuần, màn hình sẽ cho biết và dẫn tới một bản dựng được lưu trữ của cùng trang đó. Trang đó chạy hoàn toàn trong trình duyệt của bạn và nói chuyện với thiết bị qua Bluetooth. Mật khẩu Wi-Fi của bạn không bao giờ được gửi đi đâu cả.
+
+<Steps>
+<Step>
+
+### Kiểm tra địa chỉ máy chủ
+
+Màn hình hiển thị địa chỉ mà thiết bị sẽ dùng. Hãy dùng địa chỉ IP, hoặc một tên mà chính thiết bị phân giải được. Hầu hết thiết bị PetKit không phân giải được tên `.local`. Các thiết bị ESP32 như T4 và D4 cần máy chủ ở port 80; với port khác, việc cấp phát vẫn chạy rồi thiết bị không tới được máy chủ.
+
+</Step>
+<Step>
+
+### Nhập mạng
+
+Nhập mạng Wi-Fi mà thiết bị sẽ tham gia. Nó không nhất thiết là mạng mà trình duyệt này đang dùng. Bắt buộc có mật khẩu: không thể cấp phát một mạng mở bằng cách này.
+
+</Step>
+<Step>
+
+### Đặt múi giờ
+
+Thiết bị không có cài đặt đồng hồ riêng. Nó giữ độ lệch UTC cố định mà bạn gửi ở đây, không có giờ mùa hè. Đổi sau này nghĩa là phải cấp phát lại.
+
+</Step>
+<Step>
+
+### Kết nối và gửi
+
+Đưa thiết bị vào chế độ ghép nối (xem [Nút ghép nối và đèn báo](/vi/docs/devices/pairing-and-indicators)), chọn nó trong hộp thoại Bluetooth của trình duyệt và gửi. Mỗi bước và mọi phản hồi từ thiết bị đều hiển thị trong nhật ký tiến trình.
+
+</Step>
+<Step>
+
+### Tắt rồi bật lại nguồn thiết bị
+
+Sau khi tắt bật nguồn, thiết bị đăng ký với máy chủ và xuất hiện trên Trang chủ. Nếu đã kết nối Home Assistant, các thực thể của nó cũng xuất hiện ở đó.
+
+</Step>
+</Steps>
+
+![Màn hình Thêm thiết bị trong bảng điều khiển](/screenshots/web-provision.webp)
+
+Cách mỗi mẫu vào chế độ ghép nối, như sách hướng dẫn PetKit của nó mô tả, nằm trong [tham chiếu thiết bị](/vi/docs/devices/pairing-and-indicators).
+
+## Phụ kiện chỉ có Bluetooth
+
+Máy lọc nước và bình xịt không có Wi-Fi không được cấp phát. Chúng được ghép nối với một máy dọn phân hoặc máy cho ăn cha làm trung chuyển cho chúng. Hãy mở trang thiết bị của thiết bị cha và ghép nối phụ kiện ở đó: chọn loại phụ kiện, nhập địa chỉ Bluetooth (MAC) của nó, và secret ghép nối. **Nâng cao** (Advanced) có mã định danh, khoảng thời gian thăm dò và loại quét.
+
+Thiết bị cha hỏi máy chủ cần quét loại nào. Số loại quét đó chỉ được đọc từ lần ghép nối thực tế cho W5 và CTW3. Nếu một phụ kiện không bao giờ báo cáo, hãy đổi **Kiểu quét** (Scan type) trước.
+
+![Ghép nối phụ kiện Bluetooth từ trang của thiết bị cha](/screenshots/web-ble-pair.webp)

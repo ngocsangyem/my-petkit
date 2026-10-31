@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { currentLocale, i18n } from '@/i18n';
 import {
   DayStripLegend,
   ErrorBlock,
@@ -47,7 +49,7 @@ export function buildStripLanes(
       const key = pets.some(p => p.id === s.pet_id) ? s.pet_id : null;
       visits.set(key, [...(visits.get(key) ?? []), { minute, title: visitTitle(minute, s) }]);
     } else if (s.event_kind === 'feeding') {
-      const title = `${formatMinute(minute)} · ${s.label ?? 'Feeding'}`;
+      const title = `${formatMinute(minute)} · ${s.label ?? i18n.t('timeline:kind.feeding')}`;
       meals.set(s.device_id, [...(meals.get(s.device_id) ?? []), { minute, fed: true, title }]);
     }
   }
@@ -64,7 +66,7 @@ export function buildStripLanes(
     lanes.push({
       kind: 'pet',
       id: 'unrecognised',
-      name: 'Not recognised',
+      name: i18n.t('timeline:filter.unrecognised'),
       petIndex: pets.length,
       visits: unknown,
     });
@@ -78,7 +80,7 @@ export function buildStripLanes(
     lanes.push({
       kind: 'feeder',
       id: `feeder-${String(id)}`,
-      name: device?.name ?? 'Feeder',
+      name: device?.name ?? i18n.t('timeline:strip.feeder'),
       meals: meals.get(id) ?? [],
     });
   }
@@ -86,11 +88,11 @@ export function buildStripLanes(
 }
 
 function dayLabel(date: string, isToday: boolean): string {
-  if (isToday) return 'Today at home';
+  if (isToday) return i18n.t('timeline:strip.todayAtHome');
   const d = new Date(`${date}T00:00:00Z`);
   return Number.isNaN(d.getTime())
     ? date
-    : d.toLocaleDateString(undefined, {
+    : d.toLocaleDateString(currentLocale(), {
         weekday: 'short',
         day: 'numeric',
         month: 'short',
@@ -112,6 +114,7 @@ export interface TimelineDayStripProps {
 /** "Today at home": the whole household's day, never narrowed by the filters below it. */
 export function TimelineDayStrip(props: TimelineDayStripProps) {
   const { date, isToday, day, isLoading, error, onRetry, pets, devices } = props;
+  const { t } = useTranslation('timeline');
   const now = useClock();
   const title = dayLabel(date, isToday);
   const visitCount = day?.sessions.filter(s => s.kind === 'visit').length;
@@ -120,8 +123,8 @@ export function TimelineDayStrip(props: TimelineDayStripProps) {
     day && visitCount !== undefined
       ? [
           isToday ? dayLabel(date, false) : null,
-          `${String(visitCount)} litter-box visit${visitCount === 1 ? '' : 's'}`,
-          feedCount ? `${String(feedCount)} feeding${feedCount === 1 ? '' : 's'}` : null,
+          t('strip.visits', { count: visitCount }),
+          feedCount ? t('strip.feedings', { count: feedCount }) : null,
         ]
           .filter(Boolean)
           .join(' · ')
@@ -131,7 +134,7 @@ export function TimelineDayStrip(props: TimelineDayStripProps) {
   if (error) {
     body = (
       <ErrorBlock
-        message={`The day could not be loaded. ${errorMessage(error)}`}
+        message={t('strip.dayFailed', { error: errorMessage(error) })}
         onRetry={onRetry}
       />
     );
@@ -151,7 +154,7 @@ export function TimelineDayStrip(props: TimelineDayStripProps) {
         />
       </div>
     ) : (
-      <p className="text-muted-foreground">No pets or feeders to chart yet.</p>
+      <p className="text-muted-foreground">{t('strip.nothingToChart')}</p>
     );
   }
   return (

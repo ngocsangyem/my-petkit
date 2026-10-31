@@ -1,0 +1,37 @@
+---
+title: Port
+description: Cái gì lắng nghe ở đâu, port nào bạn có thể ánh xạ lại, và port nào nên để yên.
+---
+
+| Container port | Host port mặc định | Mục đích |
+|---|---|---|
+| 80 | 80 | Device HTTP API |
+| 443 | 443 | MQTT qua TLS cho thiết bị |
+| 1883 | không ánh xạ | MQTT thuần, nội bộ trong máy chủ và bind vào loopback |
+| 9000 | 9000 | Media bucket mà thiết bị tải ảnh và video lên |
+| 8099 | không ánh xạ | Bảng điều khiển qua HTTP thuần, cho Home Assistant Ingress |
+| 8443 | 8443 | Bảng điều khiển và ứng dụng iOS qua TLS, tự ký |
+| 8554 | không ánh xạ (add-on) | RTSP camera từ go2rtc đi kèm |
+| 8555 TCP và UDP | không ánh xạ (add-on) | Video trực tiếp WebRTC |
+
+## Để yên 80 và 443
+
+Việc ánh xạ lại được tôn trọng ở những nơi máy chủ có thể báo cho thiết bị biết. Host port mà 80/tcp được publish được đưa vào địa chỉ trao cho thiết bị, bucket trên 9000/tcp cũng vậy. Những thứ sau không thể theo kịp việc ánh xạ lại:
+
+- Thiết bị được chuyển hướng bằng DNS gọi port 80 và không có gì bảo nó khác đi.
+- Mẫu ESP32 được cấp phát với port khác sẽ vào được Wi-Fi rồi không tới được máy chủ. Một chiếc T4 cấp phát với `:8080` bị đúng như vậy.
+- Port MQTT được biên dịch cứng vào firmware.
+
+Vì vậy hãy giữ 80 và 443 trừ khi bạn biết rõ thiết bị nào của mình được cấp phát với cấu hình nào.
+
+## Hai broker không xung đột nhau
+
+Broker hướng tới thiết bị tách biệt với broker của Home Assistant. Listener thuần của nó không được ánh xạ và bind vào loopback, nên không thể xung đột với add-on Mosquitto.
+
+## Port xung đột với go2rtc
+
+Nếu bạn cũng chạy add-on go2rtc, nó chiếm 8554 và 8555 trên máy chủ. Hãy chọn host port khác cho các ánh xạ RTSP và WebRTC của MyPetKit.
+
+## Cố ý không có xác thực
+
+Port 9000 nhận tải lên mà không cần xác thực. Nó đóng vai Aliyun OSS, mà thông tin xác thực do chính máy chủ cấp cho thiết bị. Giống mọi port của device plane, hãy giữ nó trong mạng LAN của bạn.

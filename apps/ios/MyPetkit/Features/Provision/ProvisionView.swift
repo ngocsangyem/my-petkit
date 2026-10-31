@@ -27,7 +27,7 @@ struct ProvisionView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                PushedScreenHeader(title: "Add a device") {
+                PushedScreenHeader(title: L10n.string("Add a device")) {
                     Text(model.progressLabel).font(Theme.Font.small).monospacedDigit().foregroundStyle(Theme.Color.muted)
                 }
                 VStack(alignment: .leading, spacing: Theme.Space.gap) {

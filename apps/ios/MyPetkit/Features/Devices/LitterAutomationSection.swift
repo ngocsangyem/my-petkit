@@ -32,7 +32,7 @@ struct LitterAutomationSection: View {
 
     var body: some View {
         if !entities.isEmpty || autoPack != nil || failure != nil {
-            SectionHeader("Automation").accessibilityAddTraits(.isHeader)
+            SectionHeader(L10n.string("Automation")).accessibilityAddTraits(.isHeader)
             RowsCard {
                 if !entities.isEmpty {
                     EntityRows(entities: entities, enabled: device.online, labels: EntityGroups.automationLabels,
@@ -58,7 +58,7 @@ struct LitterAutomationSection: View {
     private func enableConfirmation(_ rule: AutoPackRule) -> CommandConfirmation {
         CommandConfirmation(question: AutoPackText.confirmQuestion,
                             detail: "\(AutoPackText.summary(rule)) \(AutoPackText.confirmDetail)",
-                            confirmTitle: "Turn on auto-pack") { [model, session] in
+                            confirmTitle: L10n.string("Turn on auto-pack")) { [model, session] in
             try await model.enableAutoPack(rule, session: session)
         }
     }

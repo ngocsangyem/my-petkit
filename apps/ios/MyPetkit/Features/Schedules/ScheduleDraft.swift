@@ -20,7 +20,7 @@ struct ScheduleRange: Equatable, Sendable {
     var isValid: Bool { (0...ScheduleClock.dayMinutes).contains(start) && (0...ScheduleClock.dayMinutes).contains(end) }
 
     var label: String {
-        isAllDay ? "All day"
+        isAllDay ? L10n.string("All day")
             : "\(ScheduleClock.format(minute: start)) – \(ScheduleClock.format(minute: end))"
     }
 }
@@ -73,7 +73,9 @@ enum ScheduleDraft: Equatable, Sendable {
     case feed([FeedGroup])
 
     /// Point types the editor names; any other is shown as "Other" and kept.
-    static let pointSections: [(type: Int, name: String)] = [(0, "Scheduled cleaning"), (1, "Periodic deodorizing")]
+    static var pointSections: [(type: Int, name: String)] {
+        [(0, L10n.string("Scheduled cleaning")), (1, L10n.string("Periodic deodorizing"))]
+    }
 
     /// The server's current value read as a working copy. Permissive about
     /// content like the server: a malformed row is read as best it can be and
@@ -121,22 +123,22 @@ enum ScheduleDraft: Equatable, Sendable {
     var problem: String? {
         switch self {
         case .ranges(let ranges):
-            return ranges.allSatisfy(\.isValid) ? nil : "A period has a time outside the day."
+            return ranges.allSatisfy(\.isValid) ? nil : L10n.string("A period has a time outside the day.")
         case .weekly(let entries):
-            if entries.contains(where: { $0.days.isEmpty }) { return "Pick at least one day for each entry." }
-            return entries.allSatisfy { $0.ranges.allSatisfy(\.isValid) } ? nil : "A period has a time outside the day."
+            if entries.contains(where: { $0.days.isEmpty }) { return L10n.string("Pick at least one day for each entry.") }
+            return entries.allSatisfy { $0.ranges.allSatisfy(\.isValid) } ? nil : L10n.string("A period has a time outside the day.")
         case .points(let points):
-            if points.contains(where: { $0.days.isEmpty }) { return "Pick at least one day for each time." }
+            if points.contains(where: { $0.days.isEmpty }) { return L10n.string("Pick at least one day for each time.") }
             return points.allSatisfy { (0..<ScheduleClock.dayMinutes).contains($0.minute) }
-                ? nil : "A time is outside the day."
+                ? nil : L10n.string("A time is outside the day.")
         case .feed(let groups):
-            if groups.contains(where: { $0.days.isEmpty }) { return "Pick at least one day for each set of meals." }
+            if groups.contains(where: { $0.days.isEmpty }) { return L10n.string("Pick at least one day for each set of meals.") }
             let meals = groups.flatMap(\.meals)
             if meals.contains(where: { !(0..<ScheduleClock.daySeconds).contains($0.second) }) {
-                return "A meal time is outside the day."
+                return L10n.string("A meal time is outside the day.")
             }
             return meals.allSatisfy { PortionRules.isSchedulePortion($0.hopper1) && PortionRules.isSchedulePortion($0.hopper2) }
-                ? nil : "Portions are whole numbers from 0 to \(PortionRules.scheduleMax)."
+                ? nil : L10n.string("Portions are whole numbers from 0 to \(PortionRules.scheduleMax).")
         }
     }
 
@@ -206,8 +208,8 @@ enum PortionRules {
 
     /// "Hopper 1 × 2 · Hopper 2 × 1" on a Dual-Hopper, "2 portions" otherwise.
     static func describe(hopper1: Int, hopper2: Int, dual: Bool) -> String {
-        guard dual else { return hopper1 == 1 ? "1 portion" : "\(hopper1) portions" }
-        let parts = [(1, hopper1), (2, hopper2)].filter { $0.1 > 0 }.map { "Hopper \($0.0) × \($0.1)" }
-        return parts.isEmpty ? "No portions" : parts.joined(separator: " · ")
+        guard dual else { return L10n.string("\(hopper1) portions") }
+        let parts = [(1, hopper1), (2, hopper2)].filter { $0.1 > 0 }.map { L10n.string("Hopper \($0.0) × \($0.1)") }
+        return parts.isEmpty ? L10n.string("No portions") : parts.joined(separator: " · ")
     }
 }

@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { type ReactNode, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ApiError, errorMessage } from '@/shared/api/errors';
 import { Button, ConfirmDialog, Icon, RiskNotice, StepUpPill, useToast } from '@/shared/ui';
 import { deviceKeys } from '../api';
@@ -40,6 +41,7 @@ export function useForceContinue(
   deviceId: number,
   forceContinue: ForceContinue | undefined,
 ): ForceContinueController {
+  const { t } = useTranslation('devices');
   const queryClient = useQueryClient();
   const toast = useToast();
   const [confirming, setConfirming] = useState(false);
@@ -54,7 +56,7 @@ export function useForceContinue(
     setBusy(true);
     try {
       const result = await sendForceContinue(deviceId);
-      toast(`Continue cleaning · ${actionDeliveryText(result.delivered)}`);
+      toast(t('force.sent', { result: actionDeliveryText(result.delivered) }));
     } catch (error) {
       // A cancelled password prompt is the person's own choice, not a refusal to show.
       const cancelled = error instanceof ApiError && error.code === 'step_up_required';
@@ -70,19 +72,19 @@ export function useForceContinue(
   const dialog = (
     <ConfirmDialog
       open={confirming}
-      title="Continue cleaning now?"
-      confirmLabel="Continue cleaning"
-      cancelLabel="Not now"
+      title={t('force.confirmTitle')}
+      confirmLabel={t('page.continueCleaning')}
+      cancelLabel={t('force.notNow')}
       confirmVariant="danger-final"
       busy={busy}
       confirmDisabled={!offered}
-      footnote="Asks for your password first. Refused while a cat is inside or the lid is open."
+      footnote={t('force.footnote')}
       onConfirm={() => void confirm()}
       onCancel={() => {
         setConfirming(false);
       }}
     >
-      <p>The drum turns again. The box paused because it saw a cat near the entrance.</p>
+      <p>{t('force.body')}</p>
       <ul className="m-0 flex list-none flex-col rounded-md bg-raised px-4 py-1 text-foreground">
         {FORCE_CONTINUE_CHECKLIST.map(item => {
           const ok = checklistPasses(item, blockers);
@@ -98,7 +100,7 @@ export function useForceContinue(
                 className={ok ? 'flex-none text-positive' : 'flex-none text-negative'}
               />
               <span>{item.label}</span>
-              <span className="sr-only">{ok ? '(checked)' : '(not met)'}</span>
+              <span className="sr-only">{ok ? t('force.checked') : t('force.notMet')}</span>
             </li>
           );
         })}
@@ -108,10 +110,7 @@ export function useForceContinue(
           {b.message}
         </p>
       ))}
-      <RiskNotice>
-        Look at the box before you continue. If a cat steps inside, the box stops again on its own;
-        this app never overrides that.
-      </RiskNotice>
+      <RiskNotice>{t('force.risk')}</RiskNotice>
     </ConfirmDialog>
   );
 
@@ -132,27 +131,26 @@ export function useForceContinue(
 
 /** The force-continue rows of the Automation card, and the confirm. */
 export function ForceContinueBlock({ controller: c }: { controller: ForceContinueController }) {
+  const { t } = useTranslation('devices');
   if (!c.visible) return null;
   return (
-    <section className="flex min-w-0 flex-col" aria-label="Force continue">
+    <section className="flex min-w-0 flex-col" aria-label={t('force.label')}>
       {c.offered && (
         <div className="flex min-h-13 flex-wrap items-center gap-3 py-2">
           <span className="flex min-w-0 flex-1 flex-col">
             <span className="flex flex-wrap items-center gap-2">
-              Paused <StepUpPill>Step-up</StepUpPill>
+              {t('force.paused')} <StepUpPill>{t('links.stepUp')}</StepUpPill>
             </span>
-            <span className="text-xs text-muted-foreground">
-              The box stopped because it saw a cat near the entrance.
-            </span>
+            <span className="text-xs text-muted-foreground">{t('force.pausedWhy')}</span>
           </span>
           <Button variant="secondary" size="small" disabled={c.busy} onClick={c.start}>
-            Force continue
+            {t('force.label')}
           </Button>
         </div>
       )}
       {c.quietBlockers && (
         <p className="py-2 text-sm text-muted-foreground">
-          Paused. Force continue is not offered: {c.blockers.map(b => b.message).join(' ')}
+          {t('force.notOffered', { reasons: c.blockers.map(b => b.message).join(' ') })}
         </p>
       )}
       {c.refusal && (

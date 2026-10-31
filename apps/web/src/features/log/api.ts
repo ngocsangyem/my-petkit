@@ -1,4 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { i18n } from '@/i18n';
 import { api, unwrap } from '@/shared/api/client';
 
 /** How many rows the live log keeps; also how many the backfill asks for. */
@@ -74,7 +75,7 @@ export interface DeviceLogWindow {
 // generated type is the union of both, so the JSON shape is checked once.
 function toWindow(data: unknown): DeviceLogWindow {
   if (typeof data !== 'object' || data === null || !('lines' in data)) {
-    throw new Error('The server sent something that is not a log window.');
+    throw new Error(i18n.t('log:device.badWindow'));
   }
   const raw = data as { lines: unknown; total?: unknown; matched?: unknown };
   const lines = Array.isArray(raw.lines)

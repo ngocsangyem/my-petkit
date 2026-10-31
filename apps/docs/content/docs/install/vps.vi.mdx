@@ -1,0 +1,92 @@
+---
+title: VPS với WireGuard
+description: Chạy máy chủ trên VPS, với các thiết bị tới nó qua một đường hầm từ router tại nhà.
+---
+
+Các thiết bị của bạn ở lại trong LAN tại nhà và tới VPS qua một đường hầm WireGuard kết thúc ở router nhà bạn. Bạn vào bảng điều khiển và ứng dụng iOS qua HTTPS công khai thông qua Caddy. Device plane không bao giờ lắng nghe trên internet. Công thức là [`deploy/cloud/`](https://github.com/ngocsangyem/my-petkit/tree/main/deploy/cloud).
+
+```text
+device 192.168.1.x ──LAN──► home router ══WireGuard══► VPS wg0 10.66.0.1 ──► MyPetKit (80, 443, 9000)
+phone / browser ──HTTPS──► VPS public IP :443 ──► Caddy ──► MyPetKit user plane (8443)
+phone / browser ──WebRTC──► VPS public IP :8555 (tcp/udp)
+```
+
+Router nhà không NAT vào đường hầm, nên máy chủ thấy địa chỉ thật của từng thiết bị. Máy chủ chỉ gọi tới thiết bị ở địa chỉ mà thiết bị đó báo về từ dải riêng, nên NAT sẽ làm hỏng camera, đàm thoại và các patcher.
+
+## Bạn cần gì
+
+- Một VPS có địa chỉ IPv4 công khai, Docker Engine 23 trở lên với compose plugin, và `wireguard-tools`.
+- Một tên DNS cho bảng điều khiển: bản ghi A trỏ tới VPS, và không có bản ghi AAAA. Ở đây không có gì lắng nghe trên IPv6.
+- Trên AWS, GCP, Azure hoặc Oracle, nơi địa chỉ công khai được NAT và không nằm trên interface nào, hãy đặt `MY_PETKIT_PUBLIC_BIND` trong tệp cài đặt thành địa chỉ riêng của instance.
+- Một router nhà chạy WireGuard và là gateway mặc định của các thiết bị.
+
+<Steps>
+<Step>
+
+### Dựng đường hầm
+
+1. Trên VPS và trên router, mỗi bên tạo một cặp khóa:
+   ```bash
+   umask 077; wg genkey | tee private.key | wg pubkey > public.key
+   ```
+2. Trên VPS, sao chép `wireguard/wg0.conf.example` sang `/etc/wireguard/wg0.conf`, điền các khóa và subnet nhà bạn, rồi chạy `systemctl enable --now wg-quick@wg0`.
+3. Trên router, nhập `wireguard/home-router.conf.example` và áp dụng ba thiết lập router liệt kê ở cuối tệp: không masquerade, các quy tắc forwarding, và MSS clamping.
+4. Cho Docker khởi động sau đường hầm, để các port đã publish có địa chỉ của chúng:
+   ```bash
+   sudo systemctl edit docker.service
+   # add:
+   # [Unit]
+   # After=wg-quick@wg0.service
+   # Requires=wg-quick@wg0.service
+   ```
+
+Kiểm tra từ VPS: `wg show wg0 latest-handshakes` hiển thị một dấu thời gian cũ chưa đến hai phút, và `ping -c3 192.168.1.1` nhận được phản hồi từ router. Bản thân thiết bị sẽ không trả lời ping, vì router chỉ chuyển tiếp các port mà máy chủ gọi tới.
+
+</Step>
+<Step>
+
+### Cài tường lửa cho máy chủ
+
+`nftables.conf.example` chặn mọi thứ mà máy chủ trả lời trừ SSH, WireGuard và ICMP, và chặn mọi thứ dành cho địa chỉ đường hầm mà không đến qua `wg0`. Hãy cài nó thành `/etc/nftables.conf`, giữ một phiên SSH thứ hai đang mở, chạy `nft -f /etc/nftables.conf`, rồi `systemctl enable nftables`.
+
+Đừng bao giờ chạy `systemctl restart nftables`. Unit xóa sạch mọi quy tắc khi dừng, kể cả của Docker, và các container ngừng trả lời cho đến khi bạn khởi động lại Docker. Hãy nạp lại bằng `nft -f /etc/nftables.conf`.
+
+Docker bỏ qua tường lửa của máy chủ đối với các port đã publish, đó là lý do `docker-compose.yml` bind từng port vào một địa chỉ cụ thể. Đừng bao giờ đổi một dòng thành `"80:80"` trần.
+
+</Step>
+<Step>
+
+### Khởi động các container
+
+```bash
+cp .env.example .env && $EDITOR .env
+docker compose pull
+docker compose up -d
+docker compose logs my-petkit | grep -i "setup token"
+```
+
+Mở `https://<your domain>/`, nhập token và đặt mật khẩu quản trị. Sau đó cấp phát các thiết bị với `http://<MY_PETKIT_WG_ADDRESS>/6/` làm địa chỉ máy chủ. Mã QR ghép nối iOS mang `https://<your domain>`.
+
+</Step>
+<Step>
+
+### Kiểm tra
+
+Từ VPS:
+
+| Lệnh | Kết quả mong đợi |
+|---|---|
+| `docker compose ps` | cả hai dịch vụ `running`, my-petkit `healthy` |
+| `curl -s -o /dev/null -w '%{http_code}\n' http://10.66.0.1/6/dev_signup` | `200` |
+| `curl -s -o /dev/null -w '%{http_code}\n' https://<domain>/api/info` | `401` |
+| `curl -s http://<device IP>:8889/` trên thiết bị đã áp dụng một patcher | phần đọc ngược của patcher, không phải timeout |
+| tải lên một clip lớn, rồi `ls -la` media volume | clip đến đầy đủ. Treo ở đây là vấn đề MTU/MSS. |
+
+Từ một máy ngoài mạng của bạn, `sudo nmap -sS -sU -p- <VPS public IP>` chỉ nên hiển thị 22/tcp, 80/tcp, 443/tcp, 8555/tcp và udp, và 51820/udp. Nếu port 9000, 1883, 8443, 8099, 8554 hoặc 1984 xuất hiện là cấu hình sai: hãy dừng stack và so các dòng `ports:` với bản của kho mã.
+
+</Step>
+</Steps>
+
+<Callout type="warn" title="Bị khóa đăng nhập phía sau Caddy">
+Phía sau Caddy, mọi lần thử đăng nhập đều đến từ địa chỉ của Caddy, nên giới hạn đăng nhập thất bại coi cả internet là một client. Năm lần sai mật khẩu từ bất kỳ ai sẽ khóa tất cả mọi người khỏi đăng nhập, xác nhận lại và ghép nối tới 15 phút. Các phiên và điện thoại đã ghép nối vẫn hoạt động. Hãy chờ hết, hoặc hạn chế ai tới được Caddy bằng VPN hoặc Cloudflare Access.
+</Callout>

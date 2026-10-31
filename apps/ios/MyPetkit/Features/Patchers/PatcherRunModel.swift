@@ -38,12 +38,12 @@ final class PatcherRunModel {
 
     func start(_ action: PatcherAction, needsKey: Bool, deviceName: String, patcherName: String) async {
         guard let patcher = Operations.ApplyDevicePatcher.Input.Body.JsonPayload.PatcherPayload(rawValue: patcherID) else {
-            error = "This app does not know the \(patcherID) patch."
+            error = L10n.string("This app does not know the \(patcherID) patch.")
             return
         }
         let key = pubkey.trimmingCharacters(in: .whitespacesAndNewlines)
         if action == .apply, needsKey, !PatcherRules.isValidPublicKey(key) {
-            error = "Paste an SSH public key that starts with ssh-ed25519, ssh-rsa or ecdsa-sha2."
+            error = L10n.string("Paste an SSH public key that starts with ssh-ed25519, ssh-rsa or ecdsa-sha2.")
             return
         }
         busy = true
@@ -54,8 +54,8 @@ final class PatcherRunModel {
             patcher: patcher, action: action.rawValue,
             pubkey: action == .apply && needsKey ? key : nil)
         let purpose = action == .apply
-            ? "Applying \(patcherName) runs commands as root on \(deviceName) and reboots it."
-            : "Removing \(patcherName) deletes its files from \(deviceName) and reboots it."
+            ? L10n.string("Applying \(patcherName) runs commands as root on \(deviceName) and reboots it.")
+            : L10n.string("Removing \(patcherName) deletes its files from \(deviceName) and reboots it.")
         do {
             _ = try await session.call(purpose: purpose) {
                 try await self.session.client.applyDevicePatcher(path: .init(id: self.deviceID), body: .json(body)).ok

@@ -1,8 +1,9 @@
+import { useTranslation } from 'react-i18next';
 import { Pill, SettingsSection, StepUpPill } from '@/shared/ui';
 import {
-  BLOCKING_GUARDS,
   CAPTURE_TOGGLE,
   GUARD_TOGGLES,
+  isBlockingGuard,
   PROXY_TOGGLE,
   type ServerInfo,
   type ToggleDef,
@@ -13,8 +14,8 @@ import { UpstreamFields } from './upstream-fields';
 import { UpstreamStatus } from './upstream-status';
 
 /** The guards that refuse something outright head the screen; the rest of the proxy options follow it. */
-const BLOCKING = GUARD_TOGGLES.filter(def => BLOCKING_GUARDS.includes(def.key));
-const PROXY_OPTIONS = GUARD_TOGGLES.filter(def => !BLOCKING_GUARDS.includes(def.key));
+const BLOCKING = GUARD_TOGGLES.filter(def => isBlockingGuard(def.key));
+const PROXY_OPTIONS = GUARD_TOGGLES.filter(def => !isBlockingGuard(def.key));
 
 interface CardProps {
   form: SettingsDraftState;
@@ -41,29 +42,32 @@ function Row({ form, def }: CardProps & { def: ToggleDef }) {
  * proxy is off would be worse than showing it inactive, so the guards stay listed and grey out.
  */
 export function CloudGuardsCard({ form }: CardProps) {
+  const { t } = useTranslation('setup');
   const off = BLOCKING.filter(def => !form.value[def.key]).length;
   return (
     <SettingsSection
-      title="Cloud guards"
+      title={t('guards.title')}
       end={
-        off === 0 ? <Pill tone="positive">All on</Pill> : <Pill tone="warning">{`${off} off`}</Pill>
+        off === 0 ? (
+          <Pill tone="positive">{t('guards.allOn')}</Pill>
+        ) : (
+          <Pill tone="warning">{t('guards.off', { n: off })}</Pill>
+        )
       }
     >
       {BLOCKING.map(def => (
         <Row key={def.key} form={form} def={def} />
       ))}
-      <p className="py-2 text-xs text-muted-foreground">
-        Turning a guard off asks first, and saving asks for your password. The guards act only while
-        proxy mode is on.
-      </p>
+      <p className="py-2 text-xs text-muted-foreground">{t('guards.note')}</p>
     </SettingsSection>
   );
 }
 
 /** Proxy mode, its other options, the upstream, what it forwarded, and traffic capture. */
 export function ProxyModeCard({ form, info }: CardProps & { info: ServerInfo }) {
+  const { t } = useTranslation('setup');
   return (
-    <SettingsSection title="Proxy mode" end={<StepUpPill>Step-up</StepUpPill>}>
+    <SettingsSection title={t('proxy.title')} end={<StepUpPill>{t('proxy.stepUp')}</StepUpPill>}>
       <Row form={form} def={PROXY_TOGGLE} />
       {PROXY_OPTIONS.map(def => (
         <Row key={def.key} form={form} def={def} />

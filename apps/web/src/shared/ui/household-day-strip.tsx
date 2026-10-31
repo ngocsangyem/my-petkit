@@ -1,4 +1,5 @@
 import { useId, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from 'cn';
 import { formatMinute, leftAt, spanAt } from './day-strip-geometry';
 
@@ -151,13 +152,14 @@ function NoReportHatch({
   patternId: string;
   top: string;
 }) {
+  const { t } = useTranslation('ui');
   const geo = spanAt(span.start, span.end);
   return (
     <svg
       className={cn('absolute h-3', top)}
       style={geo}
       role="img"
-      aria-label={span.title ?? 'No report'}
+      aria-label={span.title ?? t('dayStrip.noReport')}
     >
       {span.title && <title>{span.title}</title>}
       <defs>
@@ -185,6 +187,7 @@ function LaneMarks({
   patternId: string;
   geometry: LaneGeometry;
 }) {
+  const { t } = useTranslation('ui');
   switch (lane.kind) {
     case 'pet':
       return lane.visits.map((v, i) => (
@@ -198,7 +201,7 @@ function LaneMarks({
           style={{ left: leftAt(v.minute) }}
           title={v.title}
           role="img"
-          aria-label={v.title ?? `Visit at ${formatMinute(v.minute)}`}
+          aria-label={v.title ?? t('dayStrip.visitAt', { time: formatMinute(v.minute) })}
         />
       ));
     case 'feeder':
@@ -213,7 +216,10 @@ function LaneMarks({
           style={{ left: leftAt(m.minute) }}
           title={m.title}
           role="img"
-          aria-label={m.title ?? `${m.fed ? 'Fed' : 'Planned'} at ${formatMinute(m.minute)}`}
+          aria-label={
+            m.title ??
+            t(m.fed ? 'dayStrip.fedAt' : 'dayStrip.plannedAt', { time: formatMinute(m.minute) })
+          }
         />
       ));
     case 'fountain':
@@ -225,7 +231,13 @@ function LaneMarks({
             style={spanAt(s.start, s.end)}
             title={s.title}
             role="img"
-            aria-label={s.title ?? `Reporting ${formatMinute(s.start)}–${formatMinute(s.end)}`}
+            aria-label={
+              s.title ??
+              t('dayStrip.reportingSpan', {
+                start: formatMinute(s.start),
+                end: formatMinute(s.end),
+              })
+            }
           />
         ) : (
           <NoReportHatch
@@ -324,30 +336,31 @@ export function HouseholdDayStrip({
 
 /** Legend for the strip, drawn with the marks themselves; place it in the section header. */
 export function DayStripLegend() {
+  const { t } = useTranslation('ui');
   const patternId = `${svgSafeId(useId())}-legend`;
   return (
     <ul
       className="m-0 flex list-none flex-wrap items-center gap-4 p-0 text-xs text-muted-foreground max-[901px]:hidden [&>li]:inline-flex [&>li]:items-center [&>li]:gap-1.5"
-      aria-label="Legend"
+      aria-label={t('dayStrip.legend')}
     >
       <li>
         <span className={cn('h-3 w-[3px] bg-current', petInk(0))} aria-hidden="true" />
-        Visit
+        {t('dayStrip.visit')}
       </li>
       <li>
         <span
           className="size-2 border-[1.5px] border-foreground bg-foreground"
           aria-hidden="true"
         />
-        Meal fed
+        {t('dayStrip.mealFed')}
       </li>
       <li>
         <span className="size-2 border-[1.5px] border-foreground" aria-hidden="true" />
-        Meal planned
+        {t('dayStrip.mealPlanned')}
       </li>
       <li>
         <span className="h-2 w-3.5 bg-(--pk-fountain-reporting)" aria-hidden="true" />
-        Reporting
+        {t('dayStrip.reporting')}
       </li>
       <li>
         <svg width="14" height="8" aria-hidden="true">
@@ -364,7 +377,7 @@ export function DayStripLegend() {
           </defs>
           <rect width="14" height="8" fill={`url(#${patternId})`} />
         </svg>
-        No report
+        {t('dayStrip.noReport')}
       </li>
     </ul>
   );

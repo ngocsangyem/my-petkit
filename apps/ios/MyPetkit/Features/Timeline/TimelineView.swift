@@ -30,7 +30,7 @@ private struct TimelineScreen: View {
 
     var body: some View {
         ScreenScroll {
-            ScreenHeader(title: "Timeline", lede: lede) { dayPicker }
+            ScreenHeader(title: L10n.string("Timeline"), lede: lede) { dayPicker }
         } content: {
             chipRow
             LoadableBlock(state: model.day, loadingHeight: 200, retry: retryDay) { day in
@@ -116,8 +116,9 @@ private struct TimelineScreen: View {
         let rest = day.entries.filter { $0.id != latest?.id }
         if day.entries.isEmpty {
             Card {
-                EmptyBlock(title: "Nothing on this day",
-                           message: "No visits or events were stored for \(TimelineFormat.dayTitle(day.date, today: model.serverToday)).")
+                let title = TimelineFormat.dayTitle(day.date, today: model.serverToday)
+                EmptyBlock(title: L10n.string("Nothing on this day"),
+                           message: L10n.string("No visits or events were stored for \(title)."))
                     .padding(.vertical, 24)
             }
         }

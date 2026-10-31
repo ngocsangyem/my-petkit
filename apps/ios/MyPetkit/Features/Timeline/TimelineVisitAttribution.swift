@@ -12,7 +12,7 @@ struct TimelineMetaLine: View {
             Text(TimelineFormat.metaLine(entry, tzOffset: tzOffset)).font(Theme.Font.small)
                 .monospacedDigit().foregroundStyle(Theme.Color.muted)
             if entry.isMatchedByWeight {
-                Pill(text: "by weight", isCompact: true)
+                Pill(text: L10n.string("by weight"), isCompact: true)
             }
         }
     }

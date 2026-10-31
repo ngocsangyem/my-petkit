@@ -1,4 +1,6 @@
 import type { SyntheticEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+import { i18n } from '@/i18n';
 import type { TimezoneOption } from '@/ble/provisioning-payload';
 import { Button, ErrorBlock, Select, Skeleton, StackedField, TextInput } from '@/shared/ui';
 import { ServerUrlWarnings } from './server-url-warnings';
@@ -36,11 +38,14 @@ export const LEGEND = 'mb-3 p-0 text-lg font-semibold';
 /** "UTC+07:00", with the browser's zone named on the detected entry. */
 function timezoneLabel(o: TimezoneOption, detectedHours: number, zoneName: string): string {
   if (Math.abs(o.hours - detectedHours) >= 1e-9) return o.label;
-  return zoneName ? `${o.label} · ${zoneName}, detected` : `${o.label}, detected`;
+  return zoneName
+    ? i18n.t('provision:form.detectedZone', { label: o.label, zone: zoneName })
+    : i18n.t('provision:form.detected', { label: o.label });
 }
 
 /** The Network and Server card: Wi-Fi, server and time zone, then Send to device. */
 export function ProvisionForm(props: ProvisionFormProps) {
+  const { t } = useTranslation('provision');
   const { values, onChange, blocked, busy } = props;
   const off = blocked || busy;
   const submit = (e: SyntheticEvent) => {
@@ -54,12 +59,8 @@ export function ProvisionForm(props: ProvisionFormProps) {
   return (
     <form className="flex min-w-0 flex-col gap-5" onSubmit={submit} noValidate>
       <fieldset className={FIELDSET} disabled={blocked}>
-        <legend className={LEGEND}>Network</legend>
-        <StackedField
-          quiet
-          label="Wi-Fi name"
-          hint="The network the device will join, not necessarily the one this browser is on."
-        >
+        <legend className={LEGEND}>{t('form.network')}</legend>
+        <StackedField quiet label={t('form.wifiName')} hint={t('form.wifiNameHint')}>
           <TextInput
             value={values.ssid}
             autoComplete="off"
@@ -69,11 +70,7 @@ export function ProvisionForm(props: ProvisionFormProps) {
             }}
           />
         </StackedField>
-        <StackedField
-          quiet
-          label="Password"
-          hint="Required: an open network cannot be provisioned this way. It goes from this page to the device over Bluetooth, never to this server or to PetKit."
-        >
+        <StackedField quiet label={t('form.password')} hint={t('form.passwordHint')}>
           <TextInput
             type="password"
             value={values.pwd}
@@ -86,12 +83,8 @@ export function ProvisionForm(props: ProvisionFormProps) {
       </fieldset>
 
       <fieldset className={FIELDSET} disabled={blocked}>
-        <legend className={LEGEND}>Server</legend>
-        <StackedField
-          quiet
-          label="Server devices will use"
-          hint="Burned in at provisioning: use an IP, or a name the device itself can resolve."
-        >
+        <legend className={LEGEND}>{t('form.server')}</legend>
+        <StackedField quiet label={t('form.serverUrl')} hint={t('form.serverUrlHint')}>
           {props.serverLoading ? (
             <Skeleton height={32} />
           ) : (
@@ -108,16 +101,12 @@ export function ProvisionForm(props: ProvisionFormProps) {
         </StackedField>
         {props.serverError && (
           <ErrorBlock
-            message={`Could not read this server’s address (${props.serverError}). Type it in, or retry.`}
+            message={t('form.serverFailed', { error: props.serverError })}
             onRetry={props.onRetryServer}
           />
         )}
         <ServerUrlWarnings value={values.server} />
-        <StackedField
-          quiet
-          label="Time zone"
-          hint="The device has no clock settings of its own: it keeps this fixed offset, with no daylight saving. Changing it later means provisioning again."
-        >
+        <StackedField quiet label={t('form.timeZone')} hint={t('form.timeZoneHint')}>
           <Select
             className="w-full"
             value={values.tz}
@@ -130,10 +119,7 @@ export function ProvisionForm(props: ProvisionFormProps) {
       </fieldset>
 
       <div className="flex flex-col gap-3">
-        <p className="text-xs text-muted-foreground">
-          The address comes from your server, not from this browser. Hold the device’s button until
-          it beeps, then choose it from the browser’s list.
-        </p>
+        <p className="text-xs text-muted-foreground">{t('form.note')}</p>
         <Button
           type="submit"
           variant="primary"
@@ -141,7 +127,7 @@ export function ProvisionForm(props: ProvisionFormProps) {
           disabled={off}
           title={props.blockedReason}
         >
-          Send to device
+          {t('form.send')}
         </Button>
         <p role="status" className="min-h-[1.45em] text-sm">
           {props.status}
