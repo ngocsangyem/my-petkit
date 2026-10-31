@@ -92,9 +92,11 @@ struct ProvisionView: View {
     }
 }
 
+#if DEBUG
 #Preview("Joining Wi-Fi") {
     NavigationStack {
         ProvisionView(model: .fixture(done: 2, status: "Joining Wi-Fi… Keep the phone near the device."))
     }
     .environment(ServerPreviewFixtures.session)
 }
+#endif
