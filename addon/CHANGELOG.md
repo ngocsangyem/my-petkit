@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.2 — 2026-10-31
+
+- **The iOS app is called MyPetKit on the home screen**, and in AltStore and
+  SideStore, instead of the repository name `my-petkit`. Nothing the server
+  does changed.
+
 ## 0.0.1 — 2026-10-31
 
 The first release of my-petkit as its own app: an authenticated, TLS-only
