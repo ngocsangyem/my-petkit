@@ -91,7 +91,7 @@ export function SignInScreen() {
           <form className="flex flex-col gap-4.5" onSubmit={e => void submit(e)} noValidate>
             <span className="inline-flex items-center gap-2.5 text-base font-semibold">
               <DrumMark size={20} />
-              my-petkit
+              MyPetKit
             </span>
             <div className="flex flex-col gap-1.5">
               <h1 id="auth-title" className="text-[26px]">

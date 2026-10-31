@@ -115,7 +115,7 @@ export function ProvisionPage() {
         <Icon name="provision" size={18} className="mt-0.5 flex-none text-muted-foreground" />
         <p>
           Web Bluetooth needs Chrome or Edge on desktop or Android, and a secure context: a page
-          with a trusted certificate. On an iPhone, use the my-petkit app.
+          with a trusted certificate. On an iPhone, use the MyPetKit app.
         </p>
       </Card>
     </>

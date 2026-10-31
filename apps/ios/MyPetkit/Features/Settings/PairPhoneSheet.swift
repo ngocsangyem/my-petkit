@@ -33,7 +33,7 @@ struct PairPhoneSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Pair another phone").font(Theme.Font.section).accessibilityAddTraits(.isHeader)
-            Text("Open my-petkit on the other phone and scan this code. It works once.")
+            Text("Open MyPetKit on the other phone and scan this code. It works once.")
                 .font(Theme.Font.body).foregroundStyle(Theme.Color.lede)
                 .fixedSize(horizontal: false, vertical: true)
             SwiftUI.TimelineView(.periodic(from: .now, by: 1)) { context in

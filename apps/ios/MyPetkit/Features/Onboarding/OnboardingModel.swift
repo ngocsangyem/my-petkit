@@ -79,7 +79,7 @@ final class OnboardingModel {
             self.step = .confirmFingerprint(address, pin)
         } describing: { error in
             (error as? PairingError)?.localizedDescription
-                ?? "No my-petkit server answered at that address."
+                ?? "No MyPetKit server answered at that address."
         }
     }
 

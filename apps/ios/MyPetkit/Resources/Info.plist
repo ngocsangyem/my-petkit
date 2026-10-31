@@ -27,9 +27,9 @@
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Bluetooth sends a new device your Wi-Fi details and this server's address. Nothing else is sent.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>The camera reads the pairing code on your my-petkit dashboard.</string>
+	<string>The camera reads the pairing code on your MyPetKit dashboard.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>The app talks to your my-petkit server and streams camera video from devices on your home network.</string>
+	<string>The app talks to your MyPetKit server and streams camera video from devices on your home network.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>The microphone is used only while you hold Talk on a camera's live view, to speak through the device.</string>
 	<key>UIAppFonts</key>

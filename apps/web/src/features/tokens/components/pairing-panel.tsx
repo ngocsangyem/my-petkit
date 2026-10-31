@@ -80,7 +80,7 @@ export function PairingPanel({
           </div>
           <div className="flex min-w-0 flex-[1_1_220px] flex-col gap-1.5">
             <p className="text-sm">
-              Scan this code in the my-petkit app. It carries this server’s address and certificate
+              Scan this code in the MyPetKit app. It carries this server’s address and certificate
               fingerprint, so the app trusts this server only.{' '}
               <span role="timer" aria-live="off">
                 Single use. Expires in{' '}
