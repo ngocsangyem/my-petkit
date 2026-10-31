@@ -3,17 +3,17 @@
 import Link from 'next/link';
 import { animate, stagger } from 'motion';
 import { useRef, useState } from 'react';
+import { localizePath, type Locale } from '@/lib/i18n';
+import type { Dictionary } from '@/lib/i18n-dictionaries';
 import { gsap, navOffset, NARROW, prefersReducedMotion, useGSAP, WIDE } from './gsap-setup';
 
-const HEADLINE = ['Your', 'PetKit', 'devices,', 'talking', 'to'];
-const HEADLINE_ACCENT = ['your own', 'server.'];
 const MONO = 'IBM Plex Mono, monospace';
 
 /**
  * The page's thesis as one scrubbed scene: a litter box whose packets travel to
  * api.petkit.com, then, as the reader scrolls, to a server in the house instead.
  */
-export function HeroRedirectScene() {
+export function HeroRedirectScene({ t, lang }: { t: Dictionary['hero']; lang: Locale }) {
   const root = useRef<HTMLElement>(null);
   const [home, setHome] = useState(false);
 
@@ -93,34 +93,35 @@ export function HeroRedirectScene() {
     <section className="lp-hero" ref={root}>
       <div className="lp-wrap lp-hero-grid">
         <div>
-          <p className="lp-eyebrow">A local stand-in for the PetKit cloud</p>
+          <p className="lp-eyebrow">{t.eyebrow}</p>
           <h1>
-            {HEADLINE.map((w) => (
+            {t.headline.map((w) => (
               <span key={w}>
                 <span className="lp-word">{w}</span>{' '}
               </span>
             ))}
-            {HEADLINE_ACCENT.map((w) => (
+            {t.headlineAccent.map((w) => (
               <span key={w}>
                 <em className="lp-word">{w}</em>{' '}
               </span>
             ))}
+            {t.headlineTail.map((w) => (
+              <span key={w}>
+                <span className="lp-word">{w}</span>{' '}
+              </span>
+            ))}
           </h1>
-          <p className="lp-lede">
-            A litter box, feeder or fountain connects to MyPetKit instead of PetKit&apos;s servers and keeps working,
-            while its visits, photos and video stay on a machine you own. It runs with the internet unplugged and
-            publishes everything to Home Assistant over MQTT.
-          </p>
+          <p className="lp-lede">{t.lede}</p>
           <div className="lp-ctas">
-            <Link className="lp-btn lp-btn-primary" data-lp-magnet href="/docs/install/home-assistant-add-on">
-              Install the add-on
+            <Link className="lp-btn lp-btn-primary" data-lp-magnet href={localizePath('/docs/install/home-assistant-add-on', lang)}>
+              {t.ctaInstall}
             </Link>
-            <Link className="lp-btn lp-btn-secondary" data-lp-magnet href="/docs">
-              Read the docs
+            <Link className="lp-btn lp-btn-secondary" data-lp-magnet href={localizePath('/docs', lang)}>
+              {t.ctaDocs}
             </Link>
           </div>
           <div className="lp-facts">
-            {['Works offline', 'Home Assistant via MQTT', 'Web dashboard + iOS app'].map((f) => (
+            {t.facts.map((f) => (
               <span className="lp-chip" key={f}>
                 <i />
                 {f}
@@ -132,9 +133,9 @@ export function HeroRedirectScene() {
         <div className="lp-scene">
           <div className="lp-status" data-home={home}>
             <i />
-            <span>{home ? 'Online · MQTT · 12 s ago' : 'Online · api.petkit.com'}</span>
+            <span>{home ? t.statusHome : t.statusCloud}</span>
           </div>
-          <svg viewBox="0 0 640 400" role="img" aria-label="A litter box whose connection moves from the PetKit cloud to a server in your home">
+          <svg viewBox="0 0 640 400" role="img" aria-label={t.sceneLabel}>
             <g data-cloud="">
               <path
                 d="M470 118c-3-26 18-46 42-44 9-20 40-26 56-10 26-6 46 16 40 40 18 6 22 36 0 42H480c-18 0-26-22-10-28z"
@@ -177,21 +178,21 @@ export function HeroRedirectScene() {
           <div className="lp-caption">
             {home ? (
               <span>
-                <b>After.</b> Visits, photos and video stay on your server.
+                <b>{t.afterLabel}</b> {t.after}
               </span>
             ) : (
               <span>
-                <b>Before.</b> Every visit and every clip leaves the house.
+                <b>{t.beforeLabel}</b> {t.before}
               </span>
             )}
-            <span className="font-mono">{home ? '0 bytes to PetKit' : 'scroll ↓'}</span>
+            <span className="font-mono">{home ? t.afterNote : t.scrollCue}</span>
           </div>
         </div>
       </div>
       <div className="lp-wrap">
         <div className="lp-hint">
           <span data-hint="" />
-          Scroll to point the device home
+          {t.hint}
         </div>
       </div>
     </section>

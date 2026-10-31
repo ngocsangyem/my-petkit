@@ -128,6 +128,12 @@ stay on the baseline until they are tightened individually. Adding a new file to
 - Fixtures from captures must have secrets masked before commit (gitleaks scans `tests/` too).
 - Do not mock the thing under test. Fake only at the outer boundaries: devices, the PetKit cloud, the HA broker.
 
+### B4a. User-facing text (English + Vietnamese)
+- English is the default everywhere. Text the client writes is translated; text the server sends (event labels, API error messages, device logs) is shown as sent, in English.
+- Web: `useTranslation(ns)` with keys in `apps/web/src/i18n/locales/{en,vi}/{ns}.json`; a new namespace also needs its two lines in `src/i18n/i18next.d.ts`. Dates and numbers take `useLocale()` / `currentLocale()`, never `undefined`. `locale-keys.test.ts` fails when the two languages differ in keys, placeholders or tags.
+- iOS: SwiftUI literals come from `Resources/Localizable.xcstrings`; strings built outside a view go through `L10n.string(...)`, so they follow the in-app language rather than the phone's.
+- Vietnamese spelling uses the modern tone marks (xóa, hủy, khóa, hóa, tùy) and the same term in all three apps (e.g. Step-up "Xác nhận lại", pair "ghép nối").
+
 ### B5. Git
 - Conventional commits, no mention of AI.
 - One change per commit. Refactor commits are separate from behavior-changing commits.

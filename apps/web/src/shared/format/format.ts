@@ -1,20 +1,24 @@
 // Values rendered the way the old panel (and Home Assistant) rendered them,
-// as plain strings: components put them in text nodes, never markup.
+// as plain strings: components put them in text nodes, never markup. Words and
+// dates follow the active language; the component rendering them re-renders on
+// a change because it calls `useTranslation()` or `useLocale()`.
+
+import { currentLocale, i18n } from '@/i18n';
 
 export const MISSING = '—';
 
 export function formatTime(unixSeconds: number | null | undefined): string {
-  return unixSeconds ? new Date(unixSeconds * 1000).toLocaleTimeString() : MISSING;
+  return unixSeconds ? new Date(unixSeconds * 1000).toLocaleTimeString(currentLocale()) : MISSING;
 }
 
 export function relativeTime(unixSeconds: number | null | undefined, now = Date.now()): string {
-  if (!unixSeconds) return 'never';
+  if (!unixSeconds) return i18n.t('ui:format.never');
   const s = Math.max(0, Math.floor(now / 1000 - unixSeconds));
-  if (s < 2) return 'just now';
-  if (s < 60) return `${s}s ago`;
-  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
-  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
-  return `${Math.floor(s / 86400)}d ago`;
+  if (s < 2) return i18n.t('ui:format.justNow');
+  if (s < 60) return i18n.t('ui:format.secondsAgo', { n: s });
+  if (s < 3600) return i18n.t('ui:format.minutesAgo', { n: Math.floor(s / 60) });
+  if (s < 86400) return i18n.t('ui:format.hoursAgo', { n: Math.floor(s / 3600) });
+  return i18n.t('ui:format.daysAgo', { n: Math.floor(s / 86400) });
 }
 
 export function formatBytes(n: number | null | undefined): string {
@@ -31,15 +35,15 @@ export function formatDuration(seconds: unknown): string | null {
   const d = Math.floor(n / 86400);
   const h = Math.floor((n % 86400) / 3600);
   const m = Math.floor((n % 3600) / 60);
-  if (d) return `${d}d ${h}h`;
-  if (h) return `${h}h ${m}m`;
-  if (m) return `${m}m`;
-  return `${Math.floor(n)}s`;
+  if (d) return i18n.t('ui:format.daysHours', { d, h });
+  if (h) return i18n.t('ui:format.hoursMinutes', { h, m });
+  if (m) return i18n.t('ui:format.minutes', { m });
+  return i18n.t('ui:format.seconds', { s: Math.floor(n) });
 }
 
 export function formatDateTime(value: unknown): string {
   const t = typeof value === 'number' ? value * 1000 : Date.parse(String(value));
-  return Number.isFinite(t) ? new Date(t).toLocaleString() : String(value);
+  return Number.isFinite(t) ? new Date(t).toLocaleString(currentLocale()) : String(value);
 }
 
 /** Text of a scalar as JavaScript prints it; JSON for anything else. */
@@ -54,8 +58,8 @@ function plain(value: unknown): string {
 /** A raw value: `—` for missing, on/off for booleans, JSON for objects. */
 export function formatValue(value: unknown): string {
   if (value === null || value === undefined) return MISSING;
-  if (value === true) return 'on';
-  if (value === false) return 'off';
+  if (value === true) return i18n.t('ui:format.on');
+  if (value === false) return i18n.t('ui:format.off');
   return plain(value);
 }
 
@@ -80,7 +84,8 @@ export function formatEntityValue(entity: EntityLike): { text: string; unit: str
     if (i >= 0) return { text: plain(entity.options.at(i)), unit: null };
   }
   if (entity.component === 'binary_sensor') {
-    return { text: v === 0 || v === '0' || v === false ? 'off' : 'on', unit: null };
+    const on = !(v === 0 || v === '0' || v === false);
+    return { text: i18n.t(on ? 'ui:format.on' : 'ui:format.off'), unit: null };
   }
   // These carry their own units ("1d 15h", a date): appending the raw one reads "1d 15h s".
   if (entity.device_class === 'duration' && unit === 's') {

@@ -30,9 +30,9 @@ struct LogsScreen: View {
 
     var body: some View {
         ScreenScroll {
-            PushedScreenHeader(title: "Log") { livePill }
+            PushedScreenHeader(title: L10n.string("Log")) { livePill }
         } content: {
-            SegmentedPills(options: [(.server, "Server"), (.device, "Device logs")], selection: $segment)
+            SegmentedPills(options: [(.server, L10n.string("Server")), (.device, L10n.string("Device logs"))], selection: $segment)
             switch segment {
             case .server: ServerLogSection(model: model)
             case .device: DeviceLogListSection(model: model)
@@ -57,9 +57,9 @@ struct LogsScreen: View {
 
     @ViewBuilder private var livePill: some View {
         if session.connection == .live {
-            Pill(text: "Live", tone: .positive)
+            Pill(text: L10n.string("Live"), tone: .positive)
         } else {
-            Pill(text: "Reconnecting")
+            Pill(text: L10n.string("Reconnecting"))
         }
     }
 }
@@ -117,7 +117,7 @@ struct LogLineRow: View {
             Rectangle().fill(edge).frame(width: 2)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityHint(level == .info ? "" : (level == .error ? "Error" : "Warning"))
+        .accessibilityHint(level == .info ? "" : (level == .error ? L10n.string("Error") : L10n.string("Warning")))
     }
 
     private var edge: Color {

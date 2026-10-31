@@ -1,4 +1,5 @@
 import type { components } from '@/api/schema';
+import { i18n } from '@/i18n';
 import { api, unwrap } from '@/shared/api/client';
 import { actionDeliveryText, entityDeliveryText, timezoneDeliveryText } from './lib/delivery-text';
 
@@ -49,17 +50,17 @@ export async function sendRaw(id: number, body: Record<string, unknown>): Promis
       body: { transport: 'auto', ...body },
     }),
   );
-  return `Sent via ${r.delivered}`;
+  return i18n.t('devices:result.sentVia', { transport: r.delivered });
 }
 
 export async function pollBle(id: number): Promise<string> {
   await unwrap(api.POST('/api/ble/{id}/poll', path(id)));
-  return 'Asked the relay for a reading';
+  return i18n.t('devices:result.polled');
 }
 
 export async function pairBle(body: PairRequest): Promise<string> {
   await unwrap(api.POST('/api/ble', { body }));
-  return 'Paired — the device picks it up on its next poll';
+  return i18n.t('devices:result.paired');
 }
 
 /** Asks PetKit, once, which accessories this device owns. Every refusal is named. */
@@ -67,21 +68,27 @@ export async function importBle(deviceId: number): Promise<string> {
   const r = await unwrap(api.POST('/api/ble/import', { body: { device_id: deviceId } }));
   const refused = r.results.filter(x => !['imported', 'updated', 'unchanged'].includes(x.outcome));
   const head = r.imported
-    ? `Imported ${r.imported} ${r.imported === 1 ? 'accessory' : 'accessories'}`
-    : 'Nothing new to import';
+    ? i18n.t('devices:result.imported', { count: r.imported })
+    : i18n.t('devices:result.nothingToImport');
   return refused.length
-    ? `${head} — ${refused.length} skipped: ${refused.map(x => x.outcome).join('; ')}`
+    ? i18n.t('devices:result.skipped', {
+        head,
+        count: refused.length,
+        outcomes: refused.map(x => x.outcome).join('; '),
+      })
     : head;
 }
 
 export async function unpairBle(id: number): Promise<string> {
   const r = await unwrap(api.DELETE('/api/ble/{id}', path(id)));
-  return r.note ? `Unpaired. ${r.note}` : 'Unpaired';
+  return r.note
+    ? i18n.t('devices:result.unpairedNote', { note: r.note })
+    : i18n.t('devices:result.unpaired');
 }
 
 export async function deleteDevice(id: number): Promise<string> {
   await unwrap(api.DELETE('/api/devices/{id}', path(id)));
-  return 'Device removed';
+  return i18n.t('devices:result.removed');
 }
 
 /** `null` clears the override and hands the device back to what it reported. */
@@ -96,17 +103,17 @@ export async function setLogUpload(id: number, on: boolean): Promise<string> {
   await unwrap(
     api.POST('/api/devices/{id}/logs', { ...path(id), body: { log_upload_enabled: on } }),
   );
-  return 'Saved';
+  return i18n.t('devices:delivery.saved');
 }
 
 export async function setAi(id: number, on: boolean): Promise<string> {
   await unwrap(api.POST('/api/devices/{id}/ai', { ...path(id), body: { ai_enabled: on } }));
-  return 'Saved';
+  return i18n.t('devices:delivery.saved');
 }
 
 export async function setCapability(id: number, flag: CapabilityFlag, on: boolean) {
   await unwrap(api.POST('/api/devices/{id}/capabilities', { ...path(id), body: { [flag]: on } }));
-  return 'Saved — takes effect on the device’s next upload-credential poll';
+  return i18n.t('devices:result.capabilitySaved');
 }
 
 /** Uploads one sound as multipart field `file`, the first and only field. */
@@ -124,7 +131,7 @@ export async function uploadSound(id: number, file: File): Promise<string> {
       },
     }),
   );
-  return 'Uploaded';
+  return i18n.t('devices:result.uploaded');
 }
 
 const soundPath = (id: number, soundId: number) => ({
@@ -133,15 +140,15 @@ const soundPath = (id: number, soundId: number) => ({
 
 export async function playSound(id: number, soundId: number): Promise<string> {
   await unwrap(api.POST('/api/devices/{id}/sounds/{sound_id}/play', soundPath(id, soundId)));
-  return 'Playing';
+  return i18n.t('devices:result.playing');
 }
 
 export async function selectSound(id: number, soundId: number): Promise<string> {
   await unwrap(api.POST('/api/devices/{id}/sounds/{sound_id}/select', soundPath(id, soundId)));
-  return 'Selected';
+  return i18n.t('devices:result.selected');
 }
 
 export async function deleteSound(id: number, soundId: number): Promise<string> {
   await unwrap(api.DELETE('/api/devices/{id}/sounds/{sound_id}', soundPath(id, soundId)));
-  return 'Deleted';
+  return i18n.t('devices:result.deleted');
 }

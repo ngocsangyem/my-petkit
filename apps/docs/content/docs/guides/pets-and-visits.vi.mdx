@@ -1,0 +1,35 @@
+---
+title: Thú cưng và các lần ghé
+description: Mèo nào đã dùng máy, máy chủ quyết định thế nào, và cách chỉnh lại.
+---
+
+Các máy dọn phân có AI trên thiết bị (T5, T6, T7) đối chiếu khuôn mặt của chú mèo ghé thăm với các ảnh tham chiếu mà máy chủ giao cho chúng. Máy chủ sau đó ghi lần ghé lên dòng thời gian dưới tên chú mèo đó.
+
+## Thêm mèo của bạn
+
+Trong **Thú cưng** (Pets), thêm từng chú mèo với tên, ảnh tham chiếu và cân nặng đã đăng ký. Một máy nhận diện được tối đa 15 chú mèo.
+
+Nếu mèo của bạn đã được thiết lập trong ứng dụng của PetKit, bạn có thể nhập chúng. Máy chủ hỏi trực tiếp PetKit, ký như chính thiết bị, chỉ khi bạn bấm nút nhập. Không có gì trong MyPetKit thăm dò PetKit theo lịch.
+
+<div className="grid grid-cols-2 gap-4">
+  <img className="shot" src="/screenshots/web-pets.webp" alt="Màn hình Thú cưng" />
+  <img className="shot" src="/screenshots/ios-pet-edit.webp" alt="Chỉnh sửa một thú cưng trong ứng dụng iOS" />
+</div>
+
+## Một lần ghé được gán cho mèo nào
+
+1. Nếu camera nhận ra chú mèo, lần ghé thuộc về chú đó. Các lần ghé được nhận ra cũng giữ cân nặng đã đăng ký của chú mèo luôn cập nhật.
+2. Nếu camera không nhận ra ai, máy chủ thử dùng cân nặng. Nó chỉ gán lần ghé khi không có chú mèo nào khác ở gần: trong phạm vi hai lần dung sai của chú mèo đó, mặc định là ±300 g. Lần ghé như vậy được gắn nhãn "theo cân nặng".
+3. Các lần ghé nhẹ hơn mọi chú mèo đã đăng ký được ẩn sau bộ lọc **Lượt ghé nhẹ**. Chúng không bao giờ bị xóa.
+
+Một máy vẫn giữ các khuôn mặt được lưu đệm từ đám mây PetKit sẽ báo id của PetKit cho chú mèo. Các thú cưng đã nhập giữ id đó làm bí danh, nên các lần ghé đó cũng rơi đúng vào chú mèo.
+
+## Chỉnh một lần ghé
+
+Từ dòng thời gian, trong bảng điều khiển hoặc ứng dụng iOS, bạn có thể gán lần ghé cho chú mèo khác hoặc đánh dấu "Không có mèo, chỉ ghé qua". Chỉ bản ghi của máy chủ thay đổi, và không có gì máy gửi sau đó ghi đè được nó.
+
+![Đổi chú mèo của một lần ghé](/screenshots/web-change-cat.webp)
+
+## Khi nhận diện không hoạt động
+
+Báo cáo trạng thái của thiết bị mang `discernPic`: các id của ảnh tham chiếu mà nó đã tải xuống và xử lý. Việc đọc lại đó là bằng chứng duy nhất cho thấy ảnh được chấp nhận, nên hãy tìm nó đầu tiên trong trạng thái đã phân tích của thiết bị.

@@ -1,0 +1,48 @@
+{
+  "nav": {
+    "home": "Trang chủ",
+    "timeline": "Dòng thời gian",
+    "pets": "Thú cưng",
+    "provision": "Thêm thiết bị",
+    "log": "Nhật ký",
+    "setup": "Cài đặt",
+    "capture": "Ghi lưu lượng",
+    "patchers": "Trình vá",
+    "groupHome": "Trang chủ",
+    "groupServer": "Máy chủ",
+    "groupAdvanced": "Nâng cao · cần xác nhận lại"
+  },
+  "shell": {
+    "skipToContent": "Bỏ qua đến nội dung",
+    "mainMenu": "Menu chính",
+    "menu": "Menu",
+    "openMenu": "Mở menu",
+    "closeMenu": "Đóng menu",
+    "serverLine": "Máy chủ tại nhà · v{{version}}",
+    "notEncrypted": "Không mã hóa",
+    "unreachableTitle": "Không kết nối được máy chủ",
+    "unreachableBody": "Máy chủ không phản hồi. Đang thử lại; dữ liệu trên trang này không bị mất."
+  },
+  "outdated": {
+    "title": "Trang này đã cũ",
+    "routeBody": "Máy chủ đã có phiên bản ứng dụng mới hơn. Tải lại để mở màn hình này.",
+    "bannerBody": "Máy chủ đã có phiên bản mới hơn. Tải lại để dùng bảng điều khiển tương ứng."
+  },
+  "settings": {
+    "appearance": {
+      "title": "Giao diện",
+      "note": "Chỉ lưu trên trình duyệt này."
+    },
+    "language": {
+      "hint": "Mặc định là tiếng Anh",
+      "note": "Chỉ lưu trên trình duyệt này. Tên sự kiện, nhật ký thiết bị và thông báo từ máy chủ vẫn giữ tiếng Anh."
+    },
+    "account": {
+      "label": "Tài khoản",
+      "signedIn": "Đã đăng nhập vào máy chủ này",
+      "changePassword": "Đổi mật khẩu bằng lệnh <code>{{command}}</code>",
+      "signOut": "Đăng xuất",
+      "signOutFailed": "Không đăng xuất được. Máy chủ không phản hồi."
+    }
+  }
+}

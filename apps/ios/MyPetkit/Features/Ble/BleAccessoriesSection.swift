@@ -26,7 +26,7 @@ struct BleAccessoriesSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.gap) {
-            SectionHeader(title: "Bluetooth accessories") {
+            SectionHeader(title: L10n.string("Bluetooth accessories")) {
                 Button("Pair") { showsPair = true }
                     .foregroundStyle(Theme.Color.accent)
                     .disabled(model.parentID == nil)
@@ -60,8 +60,10 @@ struct BleAccessoriesSection: View {
     @ViewBuilder private var content: some View {
         VStack(alignment: .leading, spacing: 0) {
             if model.relayed.isEmpty {
-                Text("Nothing relays through this device yet. Pair an accessory by its MAC address, "
-                     + "or import the ones PetKit's app already knows.")
+                Text("""
+                    Nothing relays through this device yet. Pair an accessory by its MAC address, \
+                    or import the ones PetKit's app already knows.
+                    """)
                     .font(Theme.Font.small).foregroundStyle(Theme.Color.muted)
                     .padding(.bottom, 12)
             }
@@ -100,10 +102,12 @@ struct BleAccessoriesSection: View {
             BleAccessoryRow(summary: summary, stateLine: nil)
             Button("Link here") {
                 confirmation = CommandConfirmation(
-                    question: "Link the \(summary.name) to this litter box?",
-                    detail: "The litter box is told it owns this spray, so the spray runs after the box cleans. "
-                        + "The pairing secret already stored is kept.",
-                    confirmTitle: "Link",
+                    question: L10n.string("Link the \(summary.name) to this litter box?"),
+                    detail: L10n.string("""
+                        The litter box is told it owns this spray, so the spray runs after the box cleans. \
+                        The pairing secret already stored is kept.
+                        """),
+                    confirmTitle: L10n.string("Link"),
                     run: { try await model.link(accessory, session: session) }
                 )
             }
@@ -134,15 +138,15 @@ struct BleAccessoryRow: View {
                 HStack(spacing: 6) {
                     Text(summary.name).font(Theme.Font.body).foregroundStyle(Theme.Color.text)
                     if summary.scanTypeIsGuessed {
-                        Pill(text: "Scan type guessed", tone: .warning)
+                        Pill(text: L10n.string("Scan type guessed"), tone: .warning)
                     }
                 }
                 Text(summary.relayLine).font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted)
                 HStack(spacing: 0) {
                     if summary.isLinked {
-                        Text(summary.parentOnline ? "Parent online" : "Parent offline")
+                        Text(summary.parentOnline ? L10n.string("Parent online") : L10n.string("Parent offline"))
                             .foregroundStyle(summary.parentOnline ? Theme.Color.positive : Theme.Color.negative)
-                        Text(" · ").foregroundStyle(Theme.Color.muted)
+                        Text(verbatim: " · ").foregroundStyle(Theme.Color.muted)
                     }
                     Text(summary.lastReport()).foregroundStyle(Theme.Color.muted)
                 }
@@ -173,7 +177,7 @@ struct BleAccessoryRow: View {
                 guard let value = item.valueText else { return nil }
                 return "\(item.name) \(value)\(item.unit.map { " \($0)" } ?? "")"
             }
-        guard !readings.isEmpty else { return "Nothing reported yet" }
+        guard !readings.isEmpty else { return L10n.string("Nothing reported yet") }
         return readings.prefix(3).joined(separator: " · ")
     }
 }

@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { copyText } from '@/shared/format/copy-text';
 import { Button, Panel } from '@/shared/ui';
 import type { Pairing } from '../api';
@@ -18,6 +19,7 @@ interface PairingPanelProps {
  * since an inverted code fails in many scanners; the live view's constant pair supplies the two.
  */
 function PairingQr({ text }: { text: string }) {
+  const { t } = useTranslation('tokens');
   const { size, path } = useMemo(() => qrPath(text), [text]);
   return (
     <svg
@@ -26,7 +28,7 @@ function PairingQr({ text }: { text: string }) {
       width="140"
       height="140"
       role="img"
-      aria-label="QR code for pairing the iOS app"
+      aria-label={t('pairing.qrLabel')}
       shapeRendering="crispEdges"
     >
       <rect className="fill-live-text" x="-2" y="-2" width={size + 4} height={size + 4} />
@@ -46,6 +48,7 @@ export function PairingPanel({
   onClose,
   creating,
 }: PairingPanelProps) {
+  const { t } = useTranslation('tokens');
   const titleId = useId();
   const [now, setNow] = useState(() => Date.now());
   const [copied, setCopied] = useState<boolean | null>(null);
@@ -67,12 +70,12 @@ export function PairingPanel({
   return (
     <Panel className="flex flex-col gap-3" aria-labelledby={titleId} role="group">
       <h3 id={titleId} className="text-base font-semibold">
-        Pair the iOS app
+        {t('pairing.title')}
       </h3>
       {pairedName ? (
-        <p role="status">{pairedName} is paired. The code is used up.</p>
+        <p role="status">{t('pairing.paired', { name: pairedName })}</p>
       ) : expired ? (
-        <p role="status">This code has expired. Create a new one to pair a phone.</p>
+        <p role="status">{t('pairing.expired')}</p>
       ) : (
         <div className="flex flex-wrap items-start gap-4">
           <div className="flex-none rounded-md bg-live-text p-3.5">
@@ -80,24 +83,24 @@ export function PairingPanel({
           </div>
           <div className="flex min-w-0 flex-[1_1_220px] flex-col gap-1.5">
             <p className="text-sm">
-              Scan this code in the MyPetKit app. It carries this server’s address and certificate
-              fingerprint, so the app trusts this server only.{' '}
+              {t('pairing.scan')}{' '}
               <span role="timer" aria-live="off">
-                Single use. Expires in{' '}
-                <span className="tabular-nums">{countdown(pairing.expires_at, now)}</span>.
+                <Trans
+                  t={t}
+                  i18nKey="pairing.expires"
+                  values={{ time: countdown(pairing.expires_at, now) }}
+                  components={{ time: <span className="tabular-nums" /> }}
+                />
               </span>
             </p>
-            <span className="text-sm text-muted-foreground">Server and certificate SHA-256</span>
+            <span className="text-sm text-muted-foreground">{t('pairing.serverFacts')}</span>
             <span className="font-mono text-xs wrap-anywhere">{pairing.qr.url}</span>
             <span className="font-mono text-xs leading-relaxed wrap-anywhere tabular-nums [word-spacing:4px]">
               {fingerprint || '—'}
             </span>
-            <p className="text-xs text-muted-foreground">
-              The app shows the same fingerprint before it connects. If they differ, do not
-              continue.
-            </p>
+            <p className="text-xs text-muted-foreground">{t('pairing.compare')}</p>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <span className="text-xs text-muted-foreground">Code</span>
+              <span className="text-xs text-muted-foreground">{t('pairing.code')}</span>
               <span className="font-mono text-xs wrap-anywhere">{pairing.code}</span>
               <Button
                 size="small"
@@ -105,11 +108,11 @@ export function PairingPanel({
                   void copyText(pairing.code).then(setCopied);
                 }}
               >
-                Copy code
+                {t('pairing.copy')}
               </Button>
               <span role="status" className="text-sm text-muted-foreground">
-                {copied === true && 'Copied.'}
-                {copied === false && 'Copy failed; select the code instead.'}
+                {copied === true && t('pairing.copied')}
+                {copied === false && t('pairing.copyFailed')}
               </span>
             </div>
           </div>
@@ -118,11 +121,11 @@ export function PairingPanel({
       <div className="flex flex-wrap gap-2">
         {(expired || pairedName) && (
           <Button size="small" onClick={onNewCode} disabled={creating}>
-            {creating ? 'Creating…' : 'New code'}
+            {creating ? t('section.creating') : t('pairing.newCode')}
           </Button>
         )}
         <Button size="small" onClick={onClose}>
-          Done
+          {t('pairing.done')}
         </Button>
       </div>
     </Panel>

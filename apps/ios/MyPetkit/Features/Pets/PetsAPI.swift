@@ -123,7 +123,7 @@ struct PetsAPI {
 enum PetsError: LocalizedError {
     case photoTooLarge
 
-    var errorDescription: String? { "That photo is too large." }
+    var errorDescription: String? { L10n.string("That photo is too large.") }
 }
 
 /// One server day's visit count.

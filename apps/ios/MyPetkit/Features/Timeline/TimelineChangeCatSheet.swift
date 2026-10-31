@@ -104,12 +104,12 @@ struct TimelineChangeCatSheet: View {
     private var switches: some View {
         if TimelineChangeCatRules.offersWeight(choice, entry: entry),
            let reading = TimelineFormat.weight(TimelineChangeCatRules.visitGrams(entry)) {
-            SettingToggleRow(title: "Use this for \(chosenName)'s weight",
-                             footnote: "Updates the registered weight to \(reading).", isOn: $useWeight)
+            SettingToggleRow(title: L10n.string("Use this for \(chosenName)'s weight"),
+                             footnote: L10n.string("Updates the registered weight to \(reading)."), isOn: $useWeight)
         }
         if TimelineChangeCatRules.offersRef(choice, entry: entry) {
-            SettingToggleRow(title: "Also name its later visits",
-                             footnote: "The id the box gave this cat will mean \(chosenName) from now on.",
+            SettingToggleRow(title: L10n.string("Also name its later visits"),
+                             footnote: L10n.string("The id the box gave this cat will mean \(chosenName) from now on."),
                              isOn: $applyToRef)
         }
     }
@@ -121,7 +121,7 @@ struct TimelineChangeCatSheet: View {
         Task {
             defer { busy = false }
             do {
-                try await session.call(purpose: "Change the cat of this visit") { try await save(request) }
+                try await session.call(purpose: L10n.string("Change the cat of this visit")) { try await save(request) }
                 dismiss()
             } catch {
                 self.error = Loadable<Void>.message(for: error)

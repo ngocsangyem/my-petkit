@@ -1,4 +1,5 @@
 import { useId, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { cn } from 'cn';
 import { Card, Icon } from '@/shared/ui';
@@ -44,12 +45,13 @@ function Row({
  * week. Only what the device list, the details and the blocked log already say.
  */
 export function NeedsYouCard({ items, blocked, className }: NeedsYouCardProps) {
+  const { t } = useTranslation('devices');
   const headingId = useId();
   const links = useDeviceLinks();
   return (
     <Card as="section" aria-labelledby={headingId} className={cn('flex flex-col gap-1', className)}>
       <div className="mb-1 flex items-baseline justify-between gap-3">
-        <h2 id={headingId}>Needs you</h2>
+        <h2 id={headingId}>{t('needsYou.title')}</h2>
         <span className="text-sm text-muted-foreground">{items.length}</span>
       </div>
       <div className="flex flex-col">
@@ -58,7 +60,7 @@ export function NeedsYouCard({ items, blocked, className }: NeedsYouCardProps) {
             <span className="flex w-10 flex-none justify-center text-positive">
               <Icon name="check" size={20} />
             </span>
-            <span className="font-medium">Nothing needs you right now</span>
+            <span className="font-medium">{t('needsYou.nothing')}</span>
           </div>
         )}
         {items.map(item => (
@@ -80,12 +82,8 @@ export function NeedsYouCard({ items, blocked, className }: NeedsYouCardProps) {
           <Row
             to="/setup"
             art={<Icon name="shield" size={20} />}
-            title={
-              blocked
-                ? `${blocked} blocked cloud ${blocked === 1 ? 'attempt' : 'attempts'} this week`
-                : 'No blocked cloud attempts this week'
-            }
-            detail={<span className="text-muted-foreground">Cloud guards · in Settings</span>}
+            title={blocked ? t('needsYou.blocked', { count: blocked }) : t('needsYou.noneBlocked')}
+            detail={<span className="text-muted-foreground">{t('needsYou.cloudGuards')}</span>}
           />
         )}
       </div>

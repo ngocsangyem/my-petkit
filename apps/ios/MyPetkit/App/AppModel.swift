@@ -27,7 +27,7 @@ final class AppModel {
         do {
             phase = try store.load().map { .paired(ServerSession(paired: $0)) } ?? .unpaired
         } catch {
-            storageError = "The saved pairing could not be read. Pair this phone again."
+            storageError = L10n.string("The saved pairing could not be read. Pair this phone again.")
             phase = .unpaired
         }
     }
@@ -37,7 +37,7 @@ final class AppModel {
             try store.save(server)
             storageError = nil
         } catch {
-            storageError = "The pairing could not be saved to the Keychain; it lasts until the app quits."
+            storageError = L10n.string("The pairing could not be saved to the Keychain; it lasts until the app quits.")
         }
         phase = .paired(ServerSession(paired: server))
     }
@@ -47,7 +47,7 @@ final class AppModel {
     func signOut() async {
         if case .paired(let session) = phase {
             let id = session.paired.tokenID
-            _ = try? await session.call(purpose: "Signing out revokes this phone's token on the server.") {
+            _ = try? await session.call(purpose: L10n.string("Signing out revokes this phone's token on the server.")) {
                 try await session.client.authRevokeToken(path: .init(id: id)).ok
             }
         }

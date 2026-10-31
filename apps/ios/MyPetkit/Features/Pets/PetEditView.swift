@@ -28,7 +28,7 @@ struct PetEditView: View {
             if let pet {
                 content(pet)
             } else {
-                EmptyBlock(title: "This cat is gone", message: "It was removed or the list could not be read.")
+                EmptyBlock(title: L10n.string("This cat is gone"), message: L10n.string("It was removed or the list could not be read."))
                     .padding(.top, 80)
             }
         }
@@ -42,7 +42,7 @@ struct PetEditView: View {
         }
         .petFaceAdder(isChoosing: $choosingFace, petName: pet?.name ?? "") { jpeg in
             guard let pet else { return }
-            try await session.call(purpose: "Add a face photo") { try await model.addFace(to: pet, jpeg: jpeg) }
+            try await session.call(purpose: L10n.string("Add a face photo")) { try await model.addFace(to: pet, jpeg: jpeg) }
         }
         .confirmationDialog("Delete this face photo?", isPresented: Binding(
             get: { faceToDelete != nil }, set: { if !$0 { faceToDelete = nil } }
@@ -51,7 +51,7 @@ struct PetEditView: View {
         } message: {
             Text("The devices stop matching against it the next time they fetch.")
         }
-        .alert("Remove \(pet?.name ?? "this cat")?", isPresented: $confirmsRemove) {
+        .alert(L10n.string("Remove \(pet?.name ?? L10n.string("this cat"))?"), isPresented: $confirmsRemove) {
             Button("Remove", role: .destructive) { remove() }
             Button("Cancel", role: .cancel) {}
         } message: {
@@ -62,7 +62,7 @@ struct PetEditView: View {
     private func content(_ pet: PetRecord) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.gap) {
             HStack {
-                IconButton(systemImage: "chevron.left", label: "Back") { dismiss() }
+                IconButton(systemImage: "chevron.left", label: L10n.string("Back")) { dismiss() }
                 Spacer()
                 Button("Done") { save(pet) }
                     .font(Theme.Font.button)
@@ -75,7 +75,7 @@ struct PetEditView: View {
                     .clipShape(Circle())
                 VStack(alignment: .leading, spacing: 2) {
                     Text(pet.name).font(Theme.Font.title).accessibilityAddTraits(.isHeader)
-                    Text(pet.deviceIDs.isEmpty ? "No device assigned" : "on " + PetRules.plural(pet.deviceIDs.count, "device"))
+                    Text(PetRules.assignedLine(pet.deviceIDs.count))
                         .font(Theme.Font.small).foregroundStyle(Theme.Color.muted)
                 }
             }
@@ -88,7 +88,7 @@ struct PetEditView: View {
             PetDevicesSection(draft: binding(pet), pet: pet, pets: model.pets.value ?? [], devices: model.devices)
             Card(padding: 0) {
                 Button { confirmsRemove = true } label: {
-                    SettingsRow(title: "Remove \(pet.name)", isDestructive: true)
+                    SettingsRow(title: L10n.string("Remove \(pet.name)"), isDestructive: true)
                         .padding(.horizontal, Theme.Space.pad)
                 }
                 .buttonStyle(.plain)
@@ -123,7 +123,7 @@ struct PetEditView: View {
         Task {
             defer { busy = false }
             do {
-                try await session.call(purpose: "Save \(pet.name)") { try await model.update(pet, change) }
+                try await session.call(purpose: L10n.string("Save \(pet.name)")) { try await model.update(pet, change) }
                 dismiss()
             } catch {
                 self.error = PetWeightRules.saveErrorMessage(error, addedDevices: added)
@@ -135,7 +135,7 @@ struct PetEditView: View {
         guard let pet, let face = faceToDelete else { return }
         Task {
             do {
-                try await session.call(purpose: "Delete a face photo") { try await model.deleteFace(face, of: pet) }
+                try await session.call(purpose: L10n.string("Delete a face photo")) { try await model.deleteFace(face, of: pet) }
             } catch {
                 self.error = Loadable<Void>.message(for: error)
             }
@@ -148,7 +148,7 @@ struct PetEditView: View {
         Task {
             defer { busy = false }
             do {
-                try await session.call(purpose: "Remove \(pet.name)") { try await model.delete(pet) }
+                try await session.call(purpose: L10n.string("Remove \(pet.name)")) { try await model.delete(pet) }
                 dismiss()
             } catch {
                 self.error = Loadable<Void>.message(for: error)

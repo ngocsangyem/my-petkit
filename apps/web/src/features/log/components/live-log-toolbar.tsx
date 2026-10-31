@@ -1,16 +1,18 @@
+import { useTranslation } from 'react-i18next';
 import { Chip, InlineField, LiveIndicator, SearchField, Select } from '@/shared/ui';
 import { useStreamStatus } from '@/shared/ws/use-event-stream';
 import { ALL, type LiveLogFilters } from '../hooks/use-live-log-filters';
 
 /** Grep, the heartbeat and auto-scroll chips, kind and device filters, and the stream's state. */
 export function LiveLogToolbar({ filters }: { filters: LiveLogFilters }) {
+  const { t } = useTranslation('log');
   const status = useStreamStatus();
   return (
     <div className="flex flex-wrap items-center gap-2.5">
       <SearchField
         className="min-w-[220px] flex-[1_1_240px]"
-        aria-label="Filter the live log"
-        placeholder="Filter lines, for example 100155021"
+        aria-label={t('toolbar.filter')}
+        placeholder={t('toolbar.filterPlaceholder')}
         mono
         autoComplete="off"
         spellCheck={false}
@@ -18,31 +20,31 @@ export function LiveLogToolbar({ filters }: { filters: LiveLogFilters }) {
         onValueChange={filters.setGrep}
       />
       <Chip pressed={filters.hideHeartbeats} onPressedChange={filters.setHideHeartbeats}>
-        Hide heartbeats
+        {t('toolbar.hideHeartbeats')}
       </Chip>
       <Chip pressed={filters.autoscroll} onPressedChange={filters.setAutoscroll}>
-        Auto-scroll
+        {t('toolbar.autoscroll')}
       </Chip>
-      <InlineField label="Kind">
+      <InlineField label={t('toolbar.kind')}>
         <Select
           value={filters.kind}
           onChange={e => {
             filters.setKind(e.target.value);
           }}
           options={[
-            { value: ALL, label: 'All kinds' },
+            { value: ALL, label: t('toolbar.allKinds') },
             ...filters.kinds.map(k => ({ value: k, label: k })),
           ]}
         />
       </InlineField>
-      <InlineField label="Device">
+      <InlineField label={t('toolbar.device')}>
         <Select
           value={filters.device}
           onChange={e => {
             filters.setDevice(e.target.value);
           }}
           options={[
-            { value: ALL, label: 'All devices' },
+            { value: ALL, label: t('toolbar.allDevices') },
             ...filters.devices.map(d => ({ value: d, label: d })),
           ]}
         />

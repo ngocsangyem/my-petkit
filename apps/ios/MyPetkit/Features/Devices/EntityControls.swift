@@ -18,16 +18,17 @@ enum EntityWrite: Equatable {
 
     func question(_ entity: DeviceEntity) -> String {
         switch self {
-        case .toggle(let on): "Turn \(on ? "on" : "off") \(entity.name)?"
-        case .option(let label): "Set \(entity.name) to \(label)?"
-        case .number(let value): "Set \(entity.name) to \(DeviceFigures.format(value))\(entity.unit.map { " \($0)" } ?? "")?"
+        case .toggle(let on): L10n.string(on ? "Turn on \(entity.name)?" : "Turn off \(entity.name)?")
+        case .option(let label): L10n.string("Set \(entity.name) to \(label)?")
+        case .number(let value):
+            L10n.string("Set \(entity.name) to \(DeviceFigures.format(value))\(entity.unit.map { " \($0)" } ?? "")?")
         }
     }
 
     var confirmTitle: String {
         switch self {
-        case .toggle(let on): on ? "Turn on" : "Turn off"
-        case .option, .number: "Set"
+        case .toggle(let on): L10n.string(on ? "Turn on" : "Turn off")
+        case .option, .number: L10n.string("Set")
         }
     }
 
@@ -125,7 +126,7 @@ struct EntityRows: View {
                     Button(label) { ask(entity, .option(label)) }
                 }
             } label: {
-                SettingsRow(title: title(entity), value: DeviceFacts.label(entity) ?? "Not reported")
+                SettingsRow(title: title(entity), value: DeviceFacts.label(entity) ?? L10n.string("Not reported"))
             }
             .buttonStyle(.plain)
         default:
@@ -136,7 +137,7 @@ struct EntityRows: View {
                 .buttonStyle(.plain)
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(title(entity))
-                .accessibilityValue(EntityWrite.valueText(entity) == "—" ? "Not reported" : EntityWrite.valueText(entity))
+                .accessibilityValue(EntityWrite.valueText(entity) == "—" ? L10n.string("Not reported") : EntityWrite.valueText(entity))
                 .accessibilityAddTraits(.isButton)
             } else {
                 NumberEntityRow(entity: entity, title: title(entity)) { ask(entity, .number($0)) }
@@ -167,10 +168,10 @@ private struct NumberEntityRow: View {
                 }
             }
             Spacer(minLength: 8)
-            stepButton("minus", label: "Decrease \(entity.name)", direction: -1, from: shown)
+            stepButton("minus", label: L10n.string("Decrease \(entity.name)"), direction: -1, from: shown)
             Text(shown.map(DeviceFigures.format) ?? "—")
                 .font(Theme.Font.figureInRow).monospacedDigit().frame(minWidth: 32)
-            stepButton("plus", label: "Increase \(entity.name)", direction: 1, from: shown)
+            stepButton("plus", label: L10n.string("Increase \(entity.name)"), direction: 1, from: shown)
             if let pending, pending != current {
                 Button("Set") { set(pending) }
                     .font(Theme.Font.control.weight(.semibold)).foregroundStyle(Theme.Color.accent)

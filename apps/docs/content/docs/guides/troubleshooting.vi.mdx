@@ -1,0 +1,55 @@
+---
+title: Xử lý sự cố
+description: Những vấn đề thường gặp, nguyên nhân, và những gì cần gửi khi bạn nhờ giúp đỡ.
+---
+
+## Không có thực thể trong Home Assistant
+
+1. Kiểm tra thiết bị đã tới được máy chủ. Nhật ký hiển thị các dòng `Signup` và `State report` của nó.
+2. Kiểm tra tích hợp MQTT đã được thiết lập trong Home Assistant, và `ha_mqtt_host` đã được đặt nếu bạn không chạy add-on Mosquitto.
+
+## Điều khiển hiển thị "unknown"
+
+Các điều khiển được dựng từ cài đặt của thiết bị. Chúng bắt đầu từ giá trị mặc định và cập nhật ở lần thay đổi đầu tiên. Với các mẫu đánh dấu "Được hỗ trợ, chưa kiểm thử" trong [Thiết bị được hỗ trợ](/vi/docs/supported-devices), một số tên thực thể đến từ API đám mây của PetKit và có thể không khớp với những gì thiết bị gửi.
+
+## Thiết bị hiển thị là không khả dụng
+
+Nó chưa báo cáo trong `offline_timeout` (mặc định 180 giây).
+
+## Thiết bị kết nối nhưng sau đó không làm gì
+
+Hãy tắt bật nguồn nó trước khi điều tra bất cứ thứ gì khác. Firmware có thể tự hủy giữa chừng quá trình khởi động mà vẫn trông khỏe mạnh: tiến trình vẫn sống và phiên MQTT xác thực bình thường, nên từ phía máy chủ nó trông y hệt một thiết bị không có gì để nói. Điều này đã gặp trên một chiếc T5 và một chiếc W7H, và khởi động lại đã sửa cả hai.
+
+Nếu nó xảy ra lần nữa, `devRun.log` của chính thiết bị (trang thiết bị, **Nhật ký thiết bị**) nêu tên tệp và dòng đã xử lý mỗi phản hồi. Đó là cách nguyên nhân của T5 được tìm ra.
+
+## Thiết bị ESP32 vào Wi-Fi nhưng không bao giờ tới máy chủ
+
+Có lẽ nó được cấp phát với port khác 80. Hãy cấp phát lại với máy chủ ở port 80.
+
+## Dấu thời gian video theo UTC
+
+Thiết bị được cấp phát mà không có múi giờ. Hãy cấp phát lại từ **Thêm thiết bị**.
+
+## Lịch cho ăn kích hoạt sai giờ
+
+Kiểm tra tùy chọn `timezone`. Nếu trống, máy chủ dùng locale của chính thiết bị, rồi đến UTC. Xem [Múi giờ](/vi/docs/configuration#time-zones).
+
+## Mở luồng camera thất bại một lần
+
+Thiết bị cần vài giây giữa các kết nối. Hãy chờ một lát rồi thử lại.
+
+## Bị khóa khỏi đăng nhập
+
+Năm lần sai mật khẩu khóa đăng nhập và ghép nối tới 15 phút. Phía sau proxy, mọi người bị tính là một client. Hãy chờ, hoặc đặt lại mật khẩu bằng `my-petkit admin set-password --data-dir /data`.
+
+## Nhờ giúp đỡ
+
+- **Nhật ký** (Logs) hiển thị mọi yêu cầu mà thiết bị gửi và có thể lưu ra tệp.
+- **Cài đặt → Kết nối** (Settings → Connection) hiển thị các giá trị chính xác mà thiết bị cần và chẩn đoán kết nối.
+- Bật thu thập lưu lượng trong Cài đặt. Nó ghi payload thô vào `/data/capture/*.jsonl`, là thứ hữu ích nhất để đính kèm cho một mẫu mà dự án chưa xác minh, hoặc khi giá trị cảm biến trông sai.
+
+<Callout type="warn">
+Hãy đọc một bản thu thập trước khi đăng nó. Nó có thể chứa SSID Wi-Fi, địa chỉ LAN, số sê-ri thiết bị và secret ký của nó. Khi bật chế độ proxy, các tệp proxy còn chứa thông tin đăng nhập tài khoản PetKit của bạn.
+</Callout>
+
+Báo lỗi dưới dạng [GitHub issue](https://github.com/ngocsangyem/my-petkit/issues). Báo vấn đề bảo mật một cách riêng tư, như mô tả trong [Bảo mật](/vi/docs/configuration/security#reporting-a-vulnerability).

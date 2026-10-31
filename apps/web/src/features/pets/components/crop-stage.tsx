@@ -7,6 +7,7 @@ import {
   type RefObject,
   type SetStateAction,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   drawRect,
   FACE_SIZE,
@@ -39,6 +40,7 @@ function paint(canvas: HTMLCanvasElement | null, source: CropSource, view: CropV
 
 /** The working canvas with the guide over it, and the device-size preview beside it. */
 export function CropStage({ source, view, setView, previewRef }: CropStageProps) {
+  const { t } = useTranslation('pets');
   const stage = useRef<HTMLCanvasElement>(null);
   const drag = useRef<{ x: number; y: number } | null>(null);
 
@@ -124,7 +126,7 @@ export function CropStage({ source, view, setView, previewRef }: CropStageProps)
         className="relative aspect-square w-full max-w-[360px] touch-none overflow-hidden rounded-lg bg-rule focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-data"
         role="group"
         tabIndex={0}
-        aria-label="Photo under the crop frame. Drag or use the arrow keys to move it; plus and minus zoom."
+        aria-label={t('crop.stage')}
         onKeyDown={onKeyDown}
       >
         <canvas
@@ -141,14 +143,14 @@ export function CropStage({ source, view, setView, previewRef }: CropStageProps)
       </div>
       <figure className="m-0 flex flex-col gap-1.5">
         <figcaption className="text-xs font-medium text-muted-foreground">
-          What the device sees
+          {t('crop.preview')}
         </figcaption>
         <canvas
           ref={previewRef}
           width={FACE_SIZE}
           height={FACE_SIZE}
           className="aspect-square h-auto w-full max-w-[224px] rounded-lg border border-border"
-          aria-label={`The ${FACE_SIZE} by ${FACE_SIZE} crop that will be uploaded`}
+          aria-label={t('crop.previewLabel', { size: FACE_SIZE })}
           role="img"
         />
       </figure>

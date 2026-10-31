@@ -1,0 +1,215 @@
+{
+  "title": "Cài đặt",
+  "readOnly": "Chỉ đọc",
+  "loadFailed": "Không tải được cài đặt của máy chủ. {{error}}",
+  "finding": {
+    "guardsOn": "Các lớp chặn đám mây đang bật.",
+    "guardsOff": "{{off}}/{{total}} lớp chặn đám mây đang tắt.",
+    "proxyOn": "<b>Chuyển tiếp tới đám mây PetKit đang bật</b>.",
+    "proxyOff": "<b>Chuyển tiếp tới đám mây PetKit đang tắt</b>.",
+    "blocked_one": "Đã ghi nhận {{count}} lần bị chặn.",
+    "blocked_other": "Đã ghi nhận {{count}} lần bị chặn.",
+    "blockedMany": "Đã ghi nhận từ {{count}} lần bị chặn trở lên.",
+    "capture": "Lưu lượng đang được ghi xuống đĩa.",
+    "readOnly": "Ở chế độ này, cài đặt chỉ đọc."
+  },
+  "summary": {
+    "label": "Máy chủ này",
+    "title": "Máy chủ tại nhà",
+    "running": "Đang chạy",
+    "runningTls": "Đang chạy · TLS",
+    "proxyMode": "chế độ proxy",
+    "localMode": "chế độ cục bộ",
+    "settingsReadOnly": "cài đặt chỉ đọc",
+    "figures": "Số liệu máy chủ",
+    "devices": "Thiết bị",
+    "blocked": "Bị chặn"
+  },
+  "guards": {
+    "title": "Lớp chặn đám mây",
+    "allOn": "Bật hết",
+    "off": "{{n}} đang tắt",
+    "note": "Tắt một lớp chặn sẽ được hỏi trước, và khi lưu cần nhập mật khẩu. Các lớp chặn chỉ có tác dụng khi chế độ proxy đang bật."
+  },
+  "proxy": {
+    "title": "Chế độ proxy",
+    "stepUp": "Xác nhận lại"
+  },
+  "toggle": {
+    "inactive": "Không có tác dụng khi proxy đang tắt.",
+    "notSaved": "Chưa lưu.",
+    "proxy_mode": {
+      "label": "Chuyển tiếp tới đám mây PetKit",
+      "description": "Chuyển mọi yêu cầu của thiết bị tới đám mây PetKit thật và trả lời bằng phản hồi của nó. Chỉ dùng để thêm một mẫu máy chưa ai ghi lại."
+    },
+    "proxy_block_run_cmd": {
+      "label": "Chặn lệnh shell từ xa",
+      "description": "Loại bỏ các lệnh shell mà đám mây định chạy trên thiết bị.",
+      "offWarning": "Khi proxy đang bật, đám mây PetKit thật có thể chạy lệnh shell trên thiết bị của bạn với quyền root."
+    },
+    "proxy_block_ota": {
+      "label": "Chặn cập nhật firmware",
+      "description": "Trả lời các endpoint OTA tại chỗ và loại bỏ ảnh firmware tìm thấy ở bất kỳ đâu khác.",
+      "offWarning": "Khi proxy đang bật, đám mây PetKit thật có thể đẩy ảnh firmware xuống thiết bị của bạn."
+    },
+    "proxy_block_log_upload": {
+      "label": "Chặn tải nhật ký lên",
+      "description": "Giữ lại token mà thiết bị cần để gửi nhật ký gỡ lỗi tới PetKit.",
+      "offWarning": "Khi proxy đang bật, thiết bị của bạn có thể gửi nhật ký gỡ lỗi tới PetKit."
+    },
+    "proxy_mqtt_bridge": {
+      "label": "Cầu nối MQTT lên upstream",
+      "description": "Nối thêm phiên MQTT của thiết bị tới broker Aliyun thật."
+    },
+    "proxy_media_real_oss": {
+      "label": "Gửi media tới OSS thật",
+      "description": "Cho phép thiết bị tải bản ghi lên PetKit thay vì máy chủ này. Không có gì được lưu tại chỗ."
+    },
+    "proxy_local_cvr_window": {
+      "label": "Tiếp tục ghi hình tại chỗ",
+      "description": "Bỏ qua thời hạn gói đăng ký trên đám mây và báo cho camera rằng bộ nhớ vẫn hoạt động. Nếu không, gói PetKit hết hạn sẽ dừng ghi hình mà không báo lỗi ở đâu cả."
+    },
+    "capture": {
+      "label": "Ghi lưu lượng",
+      "description": "Ghi mọi yêu cầu HTTP và tin nhắn MQTT vào tệp JSONL, kể cả khóa ký. Xem chúng trong mục Ghi lưu lượng."
+    }
+  },
+  "problem": {
+    "dns": "Trình phân giải upstream phải là địa chỉ IPv4, có thể kèm cổng.",
+    "upstream": "Máy chủ upstream phải là một mục có sẵn hoặc một URL http(s)."
+  },
+  "save": {
+    "region": "Cài đặt chưa lưu",
+    "failed": "Chưa lưu gì: {{error}}",
+    "unsaved_one": "{{count}} thay đổi chưa lưu: <keys>{{keys}}</keys>. Khi lưu cần nhập mật khẩu.",
+    "unsaved_other": "{{count}} thay đổi chưa lưu: <keys>{{keys}}</keys>. Khi lưu cần nhập mật khẩu.",
+    "saved_one": "Đã lưu {{count}} cài đặt.",
+    "saved_other": "Đã lưu {{count}} cài đặt.",
+    "discard": "Bỏ thay đổi",
+    "saving": "Đang lưu…",
+    "submit": "Lưu thay đổi"
+  },
+  "guardOff": {
+    "title": "Tắt “{{label}}”?",
+    "confirm": "Tắt",
+    "note": "Chưa có gì thay đổi cho tới khi bạn lưu."
+  },
+  "upstream": {
+    "none": "Chưa chuyển tiếp cuộc gọi nào. Thiết bị thăm dò khoảng 10 giây một lần.",
+    "forwarded_one": "Đã chuyển tiếp <n>{{count}}</n> cuộc gọi",
+    "forwarded_other": "Đã chuyển tiếp <n>{{count}}</n> cuộc gọi",
+    "answered": "{{n}} được trả lời",
+    "refused": "{{n}} bị từ chối ({{code}})",
+    "refusedNote": "Đám mây từ chối mọi cuộc gọi có mang phiên. Điều này là bình thường khi máy chủ này đã tiếp quản thiết bị, vì phiên mà thiết bị đưa ra là do chúng ta cấp; thiết bị luôn nhận câu trả lời của chính máy chủ này.",
+    "presetDefault": "{{key}} (mặc định)",
+    "custom": "Tùy chỉnh…",
+    "host": "Máy chủ upstream",
+    "hostNote": "URL PetKit hoặc Aliyun IoT. Mọi yêu cầu của thiết bị được chuyển tới đó kèm thông tin xác thực.",
+    "customUrl": "URL upstream tùy chỉnh",
+    "resolver": "Trình phân giải upstream",
+    "resolverNote": "Chỉ dùng để tìm máy chủ ở trên. Để trống trừ khi router hoặc Pi-hole của bạn trỏ các tên miền PetKit về máy chủ này: khi đó nó cũng trỏ chúng về đây cho chúng ta, và proxy sẽ tự gọi chính nó thay vì đám mây.",
+    "systemResolver": "Trình phân giải hệ thống"
+  },
+  "retention": {
+    "title": "Lưu giữ",
+    "caps": "Giới hạn lưu giữ",
+    "category": "Loại",
+    "maxSize": "Dung lượng tối đa (MB)",
+    "maxAge": "Thời gian tối đa (ngày)",
+    "maxSizeOf": "{{label}}, dung lượng tối đa tính bằng MB",
+    "maxAgeOf": "{{label}}, thời gian tối đa tính bằng ngày",
+    "description": "Vượt giới hạn dung lượng thì tệp cũ nhất bị xóa trước; quá giới hạn thời gian thì tệp bị xóa bất kể dung lượng. Việc dọn dẹp chạy khoảng 10 phút một lần. Để trống ô nếu không muốn giới hạn: 0 cũng là không giới hạn, không phải \"xóa hết\". Các lần bị chặn rất nhỏ và hiếm, nên giữ lâu gần như không tốn gì.",
+    "saving": "Đang lưu…",
+    "save": "Lưu giới hạn",
+    "failed": "Chưa lưu: {{error}}",
+    "saved": "Đã lưu giới hạn lưu giữ.",
+    "loadFailed": "Không tải được giới hạn lưu giữ. {{error}}",
+    "kind": {
+      "fullVideo": "Bản ghi hình",
+      "eventImage": "Ảnh chụp",
+      "highLight": "Điểm nổi bật",
+      "dynamicVideo": "Đoạn chuyển động",
+      "cloudDouble": "Tua nhanh",
+      "wasteCheck": "Ảnh chất thải",
+      "healthPic": "Ảnh sức khoẻ",
+      "deviceLog": "Nhật ký thiết bị",
+      "thumbnail": "Bộ nhớ đệm ảnh thu nhỏ",
+      "events": "Sự kiện (lịch sử)",
+      "blocked": "Lần bị chặn"
+    }
+  },
+  "blocked": {
+    "title": "Lần bị chặn",
+    "count_one": "{{count}} lần",
+    "count_other": "{{count}} lần",
+    "newest_one": "{{count}} lần mới nhất",
+    "newest_other": "{{count}} lần mới nhất",
+    "intro": "Những gì đám mây định làm và đã bị chặn. Được lưu trong cơ sở dữ liệu nên danh sách vẫn còn sau khi khởi động lại. Payload có thể chứa khóa bí mật thật của thiết bị nên được che đi; để hiện chúng cần nhập mật khẩu.",
+    "revealFailed": "Không hiện được payload. {{error}}",
+    "loadFailed": "Không tải được các lần bị chặn. {{error}}",
+    "empty": "Không có lần bị chặn nào.",
+    "mask": "Che payload",
+    "reveal": "Hiện payload",
+    "shown": "Đang hiện đầy đủ payload.",
+    "when": "Thời điểm",
+    "device": "Thiết bị",
+    "what": "Đám mây định làm gì",
+    "endpoint": "Endpoint",
+    "payload": "Payload",
+    "unknown": "Không rõ",
+    "kind": {
+      "rce": "Lệnh shell",
+      "ota": "Đẩy firmware",
+      "secret": "Tráo thông tin xác thực",
+      "log_upload": "Tải nhật ký lên",
+      "server": "Địa chỉ máy chủ",
+      "mqtt": "Địa chỉ broker",
+      "oss_sts": "Tải media lên",
+      "locale": "Múi giờ"
+    }
+  },
+  "connection": {
+    "title": "Kết nối",
+    "intro": "Cố định khi khởi động. Hãy đổi trong cấu hình máy chủ rồi khởi động lại.",
+    "automatic": "Tự động",
+    "present": "Có",
+    "missing": "Thiếu",
+    "strictHmac": "HMAC nghiêm ngặt",
+    "acceptAll": "Chấp nhận tất cả",
+    "disabled": "Đã tắt",
+    "publishing": "Đang phát",
+    "down": "Mất kết nối",
+    "version": {
+      "label": "Phiên bản",
+      "note": "Mã đang thực sự chạy. Nếu một bản cập nhật chưa có hiệu lực, ở đây vẫn hiện số cũ: cách nhanh nhất để phân biệt bản dựng cũ với lỗi thật."
+    },
+    "apiUrl": {
+      "label": "URL API",
+      "note": "URL mà thiết bị gọi tới. Hầu hết các mẫu nhận nó qua Bluetooth từ mục Thêm thiết bị; các mẫu cũ nhất không có cài đặt qua Bluetooth thì cần chuyển hướng DNS."
+    },
+    "mqttHost": {
+      "label": "Máy chủ MQTT",
+      "note": "Mỗi thiết bị được giao broker riêng của máy chủ này, lấy từ host của URL API. Thiết bị đã vá kết nối qua MQTT; thiết bị chưa vá vẫn dùng heartbeat HTTP và lệnh sẽ đi qua đó."
+    },
+    "mqttPort": {
+      "label": "Cổng broker MQTT",
+      "note": "Cổng thường, và cổng TLS khi TLS đang bật."
+    },
+    "cert": {
+      "label": "Chứng chỉ TLS",
+      "note": "Chứng chỉ tự ký mà broker đưa ra. Thiếu nghĩa là tệp do cert_path chỉ định không tồn tại, và thiết bị cần TLS sẽ không kết nối được."
+    },
+    "auth": {
+      "label": "Xác thực MQTT",
+      "note": "Chấp nhận tất cả là ổn trong mạng LAN tin cậy; chế độ nghiêm ngặt bắt buộc chữ ký Aliyun HMAC-SHA256."
+    },
+    "bridge": {
+      "label": "Cầu nối tới Home Assistant",
+      "note": "Kết nối tới broker của Home Assistant, không phải broker mà thiết bị dùng: thiết bị vẫn có thể ổn khi kết nối này mất. Đã tắt nghĩa là việc phát đã bị tắt, một cách chạy hợp lệ."
+    },
+    "devices": {
+      "label": "Thiết bị",
+      "note": "Các thiết bị mà máy chủ này biết."
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { errorMessage } from '@/shared/api/errors';
 import { formatBytes } from '@/shared/format/format';
 import {
@@ -7,11 +8,9 @@ import {
   ConfirmDialog,
   ErrorBlock,
   Icon,
-  OverlayTitleRow,
   Panel,
   Skeleton,
 } from '@/shared/ui';
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/shared/ui/shadcn/dialog';
 import { type Sound, deviceKeys, useSounds } from '../api';
 import { deleteSound, playSound, selectSound, uploadSound } from '../api-calls';
 import { useDeviceCall } from '../hooks/use-device-call';
@@ -23,7 +22,8 @@ export const MAX_SOUND_BYTES = 2 * 1024 * 1024;
 export const MAX_SOUNDS = 10;
 
 /** Custom sounds on a camera feeder: upload, list, play, select, delete. */
-function SoundsBody({ deviceId }: { deviceId: number }) {
+export function SoundsBody({ deviceId }: { deviceId: number }) {
+  const { t } = useTranslation('devices');
   const sounds = useSounds(deviceId, true);
   const call = useDeviceCall();
   const [deleting, setDeleting] = useState<Sound | null>(null);
@@ -33,12 +33,12 @@ function SoundsBody({ deviceId }: { deviceId: number }) {
   const upload = (file: File | undefined) => {
     if (!file) return;
     if (file.size > MAX_SOUND_BYTES) {
-      call.say({ text: `${file.name} is larger than 2 MB`, tone: 'error' });
+      call.say({ text: t('sounds.tooLarge', { name: file.name }), tone: 'error' });
       return;
     }
     if (list.length >= MAX_SOUNDS) {
       call.say({
-        text: `A device holds at most ${MAX_SOUNDS} sounds; delete one first`,
+        text: t('sounds.tooMany', { max: MAX_SOUNDS }),
         tone: 'error',
       });
       return;
@@ -50,7 +50,7 @@ function SoundsBody({ deviceId }: { deviceId: number }) {
   if (sounds.error) {
     return (
       <ErrorBlock
-        message={`Could not load the sounds: ${errorMessage(sounds.error)}`}
+        message={t('sounds.loadFailed', { error: errorMessage(sounds.error) })}
         onRetry={() => void sounds.refetch()}
         retrying={sounds.isFetching}
       />
@@ -60,10 +60,10 @@ function SoundsBody({ deviceId }: { deviceId: number }) {
   return (
     <>
       <Panel padding="none" className="px-4 py-1">
-        <ul className="m-0 flex list-none flex-col p-0" aria-label="Custom sounds">
+        <ul className="m-0 flex list-none flex-col p-0" aria-label={t('sounds.custom')}>
           {list.length === 0 && (
             <li className="flex min-h-13 items-center text-muted-foreground">
-              No custom sounds uploaded.
+              {t('sounds.empty')}
             </li>
           )}
           {list.map(s => (
@@ -72,7 +72,7 @@ function SoundsBody({ deviceId }: { deviceId: number }) {
               className="flex min-h-13 flex-wrap items-center gap-2 py-1.5 [&+&]:border-t [&+&]:border-rule"
             >
               <span className="flex min-w-40 flex-1 flex-col">
-                <span className="truncate">{s.name || `Sound ${s.id}`}</span>
+                <span className="truncate">{s.name || t('sounds.fallbackName', { id: s.id })}</span>
                 <span className="text-xs text-muted-foreground">
                   <span className="font-mono">{s.filename}</span> · {formatBytes(s.size)}
                 </span>
@@ -83,14 +83,14 @@ function SoundsBody({ deviceId }: { deviceId: number }) {
                 onClick={() => void call.run(() => playSound(deviceId, s.id), refresh)}
               >
                 <Icon name="play" size={14} />
-                Play
+                {t('sounds.play')}
               </Button>
               <Button
                 size="small"
                 disabled={call.busy}
                 onClick={() => void call.run(() => selectSound(deviceId, s.id), refresh)}
               >
-                Select
+                {t('sounds.select')}
               </Button>
               <Button
                 size="small"
@@ -101,7 +101,7 @@ function SoundsBody({ deviceId }: { deviceId: number }) {
                   setDeleting(s);
                 }}
               >
-                Delete
+                {t('sounds.delete')}
               </Button>
             </li>
           ))}
@@ -115,7 +115,7 @@ function SoundsBody({ deviceId }: { deviceId: number }) {
         )}
       >
         <Icon name="upload" size={16} />
-        Upload a sound
+        {t('sounds.upload')}
         <input
           type="file"
           className="sr-only"
@@ -129,13 +129,12 @@ function SoundsBody({ deviceId }: { deviceId: number }) {
       </label>
       <FeedbackLine feedback={call.feedback} />
       <p className="text-xs text-muted-foreground">
-        Up to {MAX_SOUNDS} uploads ({list.length} stored), 2 MB each. Play sends the sound to the
-        device once, so you hear it there; Select makes it the one the device uses.
+        {t('sounds.note', { max: MAX_SOUNDS, stored: list.length })}
       </p>
       <ConfirmDialog
         open={deleting !== null}
-        title="Delete this sound?"
-        confirmLabel="Delete"
+        title={t('sounds.deleteTitle')}
+        confirmLabel={t('sounds.delete')}
         busy={call.busy}
         onCancel={() => {
           setDeleting(null);
@@ -150,51 +149,8 @@ function SoundsBody({ deviceId }: { deviceId: number }) {
             });
         }}
       >
-        <p>
-          “{deleting?.name || 'This sound'}” is removed from this server and from the device’s list.
-        </p>
+        <p>{t('sounds.deleteBody', { name: deleting?.name || t('sounds.thisSound') })}</p>
       </ConfirmDialog>
-    </>
-  );
-}
-
-/**
- * The "Sounds" row of a device's settings, and the dialog it opens. The list is read only while
- * the dialog is open.
- */
-export function SoundsRow({ deviceId, deviceNoun }: { deviceId: number; deviceNoun: string }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <>
-      <button
-        type="button"
-        className="flex min-h-13 w-full items-center gap-3 border-0 border-t border-rule bg-transparent p-0 text-left text-foreground"
-        onClick={() => {
-          setOpen(true);
-        }}
-      >
-        <span className="flex-1">Sounds</span>
-        <span className="text-muted-foreground">Custom sounds</span>
-        <Icon name="forward" size={16} className="text-muted-foreground" />
-      </button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent
-          showCloseButton={false}
-          className="max-h-[calc(100vh-32px)] w-[calc(100%-32px)] max-w-[520px] gap-4 overflow-y-auto sm:max-w-[520px]"
-        >
-          <OverlayTitleRow
-            onClose={() => {
-              setOpen(false);
-            }}
-          >
-            <DialogTitle>Sounds</DialogTitle>
-          </OverlayTitleRow>
-          <DialogDescription className="-mt-2">
-            Custom sounds the {deviceNoun} can play, stored on this server.
-          </DialogDescription>
-          {open && <SoundsBody deviceId={deviceId} />}
-        </DialogContent>
-      </Dialog>
     </>
   );
 }

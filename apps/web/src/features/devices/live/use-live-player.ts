@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { type RefObject, useEffect, useState } from 'react';
+import { i18n } from '@/i18n';
 import { fetchLiveInfo, hlsPlaylistUrl, liveKeys, type LiveMode } from './live-api';
 import { MODE_LABEL, reasonSentence } from './live-copy';
 import { startHls } from './live-hls';
@@ -50,7 +51,12 @@ export function useLivePlayer(
       onFailure: failure => {
         if (!active) return;
         if (failure.fallback && fallbackFor) {
-          setMessage(`${failure.message} Using ${MODE_LABEL[fallbackFor]} instead.`);
+          setMessage(
+            i18n.t('devices:live.fallback', {
+              message: failure.message,
+              mode: MODE_LABEL[fallbackFor],
+            }),
+          );
           setChosen(fallbackFor);
           return;
         }

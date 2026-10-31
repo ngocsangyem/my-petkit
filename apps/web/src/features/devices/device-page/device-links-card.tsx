@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { copyText } from '@/shared/format/copy-text';
 import { Card, Icon, type IconName, IconButton, StepUpPill } from '@/shared/ui';
@@ -34,26 +35,27 @@ interface DeviceLinksCardProps {
  * raw command for debugging, and removing it.
  */
 export function DeviceLinksCard({ device, rawOpen, onRawOpenChange }: DeviceLinksCardProps) {
+  const { t } = useTranslation('devices');
   const links = useDeviceLinks();
   const navigate = useNavigate();
   const [copied, setCopied] = useState<string | null>(null);
   return (
-    <Card as="section" aria-label="Device tools" className="flex flex-col py-2">
+    <Card as="section" aria-label={t('links.tools')} className="flex flex-col py-2">
       <LinkRow to="/patchers" icon="wrench">
-        <span className="flex-1">Device patches</span>
-        <StepUpPill>Step-up</StepUpPill>
+        <span className="flex-1">{t('links.patches')}</span>
+        <StepUpPill>{t('links.stepUp')}</StepUpPill>
       </LinkRow>
       <div className={ROW}>
         <RowIcon name="key" />
-        <span className="flex-1">Device ID</span>
+        <span className="flex-1">{t('links.deviceId')}</span>
         <span className="font-mono text-sm text-muted-foreground">{device.id}</span>
         <IconButton
           icon="copy"
           variant="ghost"
-          aria-label="Copy the device ID"
+          aria-label={t('links.copyId')}
           onClick={() => {
             void copyText(String(device.id)).then(ok => {
-              setCopied(ok ? 'Copied' : 'Could not copy');
+              setCopied(ok ? t('stream.copied') : t('links.copyFailed'));
             });
           }}
         />
@@ -62,8 +64,8 @@ export function DeviceLinksCard({ device, rawOpen, onRawOpenChange }: DeviceLink
         </span>
       </div>
       <LinkRow to="/log" icon="log">
-        <span className="flex-1">Logs</span>
-        <span className="text-sm text-muted-foreground">Server and device logs</span>
+        <span className="flex-1">{t('links.logs')}</span>
+        <span className="text-sm text-muted-foreground">{t('links.logsHint')}</span>
       </LinkRow>
       <button
         type="button"
@@ -74,8 +76,8 @@ export function DeviceLinksCard({ device, rawOpen, onRawOpenChange }: DeviceLink
         }}
       >
         <RowIcon name="file" />
-        <span className="flex-1">Entities and raw command</span>
-        <span className="text-sm text-muted-foreground">For debugging</span>
+        <span className="flex-1">{t('rawCard.title')}</span>
+        <span className="text-sm text-muted-foreground">{t('links.forDebugging')}</span>
         <Icon
           name="chevron"
           size={16}

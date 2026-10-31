@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import {
   DayStripLegend,
@@ -34,12 +35,13 @@ export function DayStripCard({
   error,
   onRetry,
 }: DayStripCardProps) {
+  const { t } = useTranslation('devices');
   const aside =
     strip && zone
       ? [
           localDayLabel(nowSeconds, zone),
-          `${strip.visitCount} litter-box ${strip.visitCount === 1 ? 'visit' : 'visits'}`,
-          fedGrams !== null && `${fedGrams} g fed`,
+          t('today.visits', { count: strip.visitCount }),
+          fedGrams !== null && t('today.fedGrams', { grams: fedGrams }),
           zoneLabel(zone),
         ]
           .filter(Boolean)
@@ -49,15 +51,13 @@ export function DayStripCard({
   let body;
   if (error) body = <ErrorBlock message={error} onRetry={onRetry} />;
   else if (loading) body = <Skeleton height={176} />;
-  else if (!strip || !zone)
-    body = <EmptyBlock>No device has said which time zone it is in yet.</EmptyBlock>;
-  else if (!strip.lanes.length)
-    body = <EmptyBlock>No pets, feeders or fountains to draw yet.</EmptyBlock>;
+  else if (!strip || !zone) body = <EmptyBlock>{t('today.noZone')}</EmptyBlock>;
+  else if (!strip.lanes.length) body = <EmptyBlock>{t('today.noLanes')}</EmptyBlock>;
   else {
     body = (
       <div className="overflow-x-auto">
         <HouseholdDayStrip
-          label={`Today at home, ${aside ?? ''}`}
+          label={t('today.stripLabel', { aside: aside ?? '' })}
           lanes={strip.lanes}
           nowMinute={strip.nowMinute}
         />
@@ -67,11 +67,11 @@ export function DayStripCard({
 
   return (
     <SectionCard
-      title="Today"
+      title={t('today.title')}
       aside={aside}
       end={
         <Link to="/timeline" className="text-base font-medium">
-          Open timeline
+          {t('today.openTimeline')}
         </Link>
       }
     >

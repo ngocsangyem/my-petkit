@@ -27,34 +27,36 @@ struct CaptureScreen: View {
 
     var body: some View {
         ScreenScroll {
-            PushedScreenHeader(title: "Capture", lede: lede) { StepUpPill() }
+            PushedScreenHeader(title: L10n.string("Capture"), lede: lede) { StepUpPill() }
         } content: {
-            WarningPanel(text: "Captures are exact copies of traffic. They hold your Wi-Fi name, device secrets and, "
-                + "in proxy mode, cloud credentials. Read one before you share it.")
+            WarningPanel(text: L10n.string("""
+                Captures are exact copies of traffic. They hold your Wi-Fi name, device secrets and, \
+                in proxy mode, cloud credentials. Read one before you share it.
+                """))
             if let error = model.error {
                 Text(error).font(Theme.Font.small).foregroundStyle(Theme.Color.negative)
             }
             LoadableBlock(state: model.listing, retry: { Task { await model.load() } }, content: { listing in
                 RowsCard {
                     SettingToggleRow(
-                        title: "Record traffic", footnote: "Turning on asks for your password.",
+                        title: L10n.string("Record traffic"), footnote: L10n.string("Turning on asks for your password."),
                         isOn: Binding(get: { listing.recording },
                                       set: { value in Task { await model.setRecording(value) } }),
                         isBusy: model.savingRecord)
                 }
-                SectionHeader(title: "Files") {
+                SectionHeader(title: L10n.string("Files")) {
                     Text(ByteSize.format(listing.totalBytes)).font(Theme.Font.small).monospacedDigit()
                         .foregroundStyle(Theme.Color.muted)
                 }
                 .accessibilityAddTraits(.isHeader)
                 if listing.files.isEmpty {
-                    Card { EmptyBlock(title: "No captures", message: "Files appear here while recording is on.") }
+                    Card { EmptyBlock(title: L10n.string("No captures"), message: L10n.string("Files appear here while recording is on.")) }
                 } else {
                     CaptureFilesCard(model: model, files: listing.files) { confirmDelete = [$0] }
                     tailSection
                     RowsCard {
                         Button { confirmDelete = listing.files.map(\.name) } label: {
-                            SettingsRow(title: "Delete all captures", isDestructive: true)
+                            SettingsRow(title: L10n.string("Delete all captures"), isDestructive: true)
                         }
                         .buttonStyle(.plain)
                     }
@@ -83,8 +85,8 @@ struct CaptureScreen: View {
     }
 
     private var deleteTitle: String {
-        guard let names = confirmDelete else { return "Delete?" }
-        return names.count == 1 ? "Delete \(names[0])?" : "Delete all \(names.count) captures?"
+        guard let names = confirmDelete else { return L10n.string("Delete?") }
+        return names.count == 1 ? L10n.string("Delete \(names[0])?") : L10n.string("Delete all \(names.count) captures?")
     }
 
     @ViewBuilder private var tailSection: some View {
@@ -96,7 +98,7 @@ struct CaptureScreen: View {
                     if let name = model.tailName { Task { await model.showTail(of: name) } }
                 }
             case .loaded(let value):
-                SectionHeader("Last lines of \(value.name)").accessibilityAddTraits(.isHeader)
+                SectionHeader(L10n.string("Last lines of \(value.name)")).accessibilityAddTraits(.isHeader)
                 ScrollView(.horizontal) {
                     VStack(alignment: .leading, spacing: 4) {
                         ForEach(Array(value.lines.enumerated()), id: \.offset) { _, line in
@@ -177,7 +179,7 @@ private struct CaptureFilesCard: View {
     }
 
     private func subtitle(_ file: CaptureModel.File) -> String {
-        let parts = [ByteSize.format(file.size), "\(file.lines) lines", CaptureRules.describe(file.name)]
+        let parts = [ByteSize.format(file.size), L10n.string("\(file.lines) lines"), CaptureRules.describe(file.name)]
         return parts.compactMap { $0 }.joined(separator: " · ")
     }
 }

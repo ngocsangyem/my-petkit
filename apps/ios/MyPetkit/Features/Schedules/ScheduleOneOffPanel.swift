@@ -16,8 +16,8 @@ struct OneOffFeedsPanel: View {
         LoadableBlock(state: feeds, retry: retry) { list in
             if list.isEmpty {
                 Card {
-                    EmptyBlock(title: "No one-off feeds",
-                               message: "A one-off feed dispenses once, at a date and time you pick.")
+                    EmptyBlock(title: L10n.string("No one-off feeds"),
+                               message: L10n.string("A one-off feed dispenses once, at a date and time you pick."))
                 }
             } else {
                 Card(padding: 4) {
@@ -31,7 +31,7 @@ struct OneOffFeedsPanel: View {
                 }
             }
         }
-        AddRowButton(title: "Schedule a one-off feed", action: onAdd)
+        AddRowButton(title: L10n.string("Schedule a one-off feed"), action: onAdd)
     }
 
     private func row(_ feed: DeferredFeedItem) -> some View {
@@ -63,17 +63,17 @@ struct OneOffFeedSheet: View {
     @State private var scheduled = false
 
     var body: some View {
-        ScheduleSheetFrame(title: "Schedule a one-off feed", problem: problem, doneTitle: "Continue",
+        ScheduleSheetFrame(title: L10n.string("Schedule a one-off feed"), problem: problem, doneTitle: L10n.string("Continue"),
                            dismissesOnDone: false, onDone: ask) {
             DatePicker("When", selection: $form.moment, in: Date.now..., displayedComponents: [.date, .hourAndMinute])
                 .font(Theme.Font.body)
                 .environment(\.timeZone, zone.clock.timeZone)
                 .environment(\.calendar, zone.clock.calendar)
             HStack(alignment: .top, spacing: 10) {
-                PortionField(label: form.dual ? "Hopper 1 portions" : "Portions", text: $form.hopper1,
+                PortionField(label: form.dual ? L10n.string("Hopper 1 portions") : L10n.string("Portions"), text: $form.hopper1,
                              max: PortionRules.oneOffMax)
                 if form.dual {
-                    PortionField(label: "Hopper 2 portions", text: $form.hopper2, max: PortionRules.oneOffMax)
+                    PortionField(label: L10n.string("Hopper 2 portions"), text: $form.hopper2, max: PortionRules.oneOffMax)
                 }
             }
             Text("On the feeder's clock (\(zone.label)).")
@@ -91,9 +91,10 @@ struct OneOffFeedSheet: View {
         guard case .success(let draft) = form.validated(clock: zone.clock, now: .now) else { return }
         let portions = PortionRules.describe(hopper1: draft.hopper1, hopper2: draft.hopper2, dual: form.dual)
         confirmation = CommandConfirmation(
-            question: "Feed on \(draft.date) at \(draft.time)?",
-            detail: "\(portions), once, on the feeder's clock (\(zone.label)). The feeder picks it up on its next check-in.",
-            confirmTitle: "Schedule feed"
+            question: L10n.string("Feed on \(draft.date) at \(draft.time)?"),
+            detail: L10n.string("\(portions), once, on the feeder's clock (\(zone.label)).")
+                + " " + L10n.string("The feeder picks it up on its next check-in."),
+            confirmTitle: L10n.string("Schedule feed")
         ) {
             try await submit(draft)
             scheduled = true

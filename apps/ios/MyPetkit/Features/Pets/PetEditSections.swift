@@ -11,11 +11,11 @@ struct PetProfileCard: View {
 
     var body: some View {
         Card {
-            LabeledField(label: "Name") {
+            LabeledField(label: L10n.string("Name")) {
                 TextField("Name", text: $draft.name).textInputAutocapitalization(.words).submitLabel(.done)
                     .onSubmit(submit)
             }
-            LabeledField(label: "Registered weight") {
+            LabeledField(label: L10n.string("Registered weight")) {
                 HStack(spacing: 4) {
                     TextField("0.00", text: $draft.weightText)
                         .keyboardType(.decimalPad)
@@ -30,8 +30,8 @@ struct PetProfileCard: View {
                     }
                 }
             }
-            Text("Visits the camera recognised, or that you assigned, keep this up to date. "
-                + "Visits matched only by weight never change it.")
+            Text(L10n.string("Visits the camera recognised, or that you assigned, keep this up to date.")
+                + " " + L10n.string("Visits matched only by weight never change it."))
                 .font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -44,9 +44,9 @@ struct PetRecognitionSection: View {
     let pickTolerance: () -> Void
 
     var body: some View {
-        SectionHeader("Recognition")
+        SectionHeader(L10n.string("Recognition"))
         RowsCard {
-            SettingToggleRow(title: "Match by weight when the camera cannot",
+            SettingToggleRow(title: L10n.string("Match by weight when the camera cannot"),
                              footnote: PetWeightRules.matchSentence(toleranceG: draft.toleranceG),
                              isOn: $draft.matchesByWeight)
                 // Held at its ideal height: the title wraps to two lines, and a
@@ -55,7 +55,7 @@ struct PetRecognitionSection: View {
                 .fixedSize(horizontal: false, vertical: true)
             RowRule()
             Button(action: pickTolerance) {
-                SettingsRow(title: "Weight tolerance", value: PetWeightRules.toleranceText(draft.toleranceG))
+                SettingsRow(title: L10n.string("Weight tolerance"), value: PetWeightRules.toleranceText(draft.toleranceG))
                     .monospacedDigit()
             }
             .buttonStyle(.plain)
@@ -75,7 +75,7 @@ struct PetDevicesSection: View {
 
     var body: some View {
         if !devices.isEmpty {
-            SectionHeader(title: "Devices") {
+            SectionHeader(title: L10n.string("Devices")) {
                 if recognising.count == 1, let box = recognising.first {
                     Text(PetWeightRules.capacityLine(count(on: box)))
                         .font(Theme.Font.small).monospacedDigit().foregroundStyle(Theme.Color.muted)
@@ -87,8 +87,8 @@ struct PetDevicesSection: View {
                     row(device)
                 }
             }
-            Text("A box recognises up to \(PetWeightRules.maxPetsPerDevice) cats. "
-                + "Turning a box off here stops sending \(pet.name)'s photos to it.")
+            Text(L10n.string("A box recognises up to \(PetWeightRules.maxPetsPerDevice) cats.")
+                + " " + L10n.string("Turning a box off here stops sending \(pet.name)'s photos to it."))
                 .font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 4)
@@ -118,7 +118,7 @@ struct PetDevicesSection: View {
                     .frame(width: 44)
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(device.name.isEmpty ? "Device \(device.id)" : device.name).font(Theme.Font.body)
+                    Text(device.name.isEmpty ? L10n.string("Device \(device.id)") : device.name).font(Theme.Font.body)
                         .foregroundStyle(Theme.Color.text)
                     Text(line(device)).font(Theme.Font.extraSmall).monospacedDigit()
                         .foregroundStyle(Theme.Color.muted)

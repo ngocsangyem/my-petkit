@@ -52,7 +52,7 @@ final class OnboardingModel {
             step = .found(payload, try payload.server())
             error = nil
         } catch {
-            self.error = error.localizedDescription
+            self.error = (error as? PairingError)?.localizedSentence ?? error.localizedDescription
         }
     }
 
@@ -78,8 +78,8 @@ final class OnboardingModel {
             guard case .pinned(let pin) = address.trust else { return }
             self.step = .confirmFingerprint(address, pin)
         } describing: { error in
-            (error as? PairingError)?.localizedDescription
-                ?? "No MyPetKit server answered at that address."
+            (error as? PairingError)?.localizedSentence
+                ?? L10n.string("No MyPetKit server answered at that address.")
         }
     }
 
@@ -95,7 +95,7 @@ final class OnboardingModel {
             _ = try await client.authLogin(body: .json(.init(password: password))).ok
             try await self.pairSignedIn(password: password, at: address, with: client)
         } describing: { error in
-            APIError.from(error)?.status == 401 ? "That password is not right." : nil
+            APIError.from(error)?.status == 401 ? L10n.string("That password is not right.") : nil
         }
     }
 

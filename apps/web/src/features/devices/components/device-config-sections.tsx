@@ -1,20 +1,28 @@
 import { cn } from 'cn';
+import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
+import { i18n } from '@/i18n';
 import { Button, SettingsRow, SettingsSection, Switch } from '@/shared/ui';
 import { Input } from '@/shared/ui/shadcn/input';
 import { type DeviceDetail, deviceKeys } from '../api';
 import { setLogUpload, setTimezone } from '../api-calls';
 import { usePendingEdit } from '../hooks/pending-edits';
 import { useDeviceCall } from '../hooks/use-device-call';
-import { LOG_REASONS } from '../lib/delivery-text';
+import { logReasonText } from '../lib/delivery-text';
 import { dirtyClass, FeedbackLine } from './panel-parts';
 
-const SOURCE_TEXT: Readonly<Record<string, string>> = {
-  override: 'this override',
-  locale: 'the zone name the device reported',
-  device: 'the offset the device reported',
-  server: "this server's clock",
-};
+/** Where the effective offset came from, in words; the server's code when unknown. */
+function sourceText(source: string): string {
+  switch (source) {
+    case 'override':
+    case 'locale':
+    case 'device':
+    case 'server':
+      return i18n.t(`devices:timezone.source.${source}`);
+    default:
+      return source;
+  }
+}
 
 const refreshFor = (id: number) => [deviceKeys.detail(id), deviceKeys.list];
 
@@ -25,6 +33,7 @@ const refreshFor = (id: number) => [deviceKeys.detail(id), deviceKeys.list];
  * back to what it reported. The device reports back to one decimal (5.75 reads 5.8).
  */
 export function TimezoneSection({ device }: { device: DeviceDetail }) {
+  const { t } = useTranslation('devices');
   const call = useDeviceCall();
   const tz = device.timezoneInfo;
   const deviceValue = tz.override === null ? '' : String(tz.override);
@@ -35,7 +44,7 @@ export function TimezoneSection({ device }: { device: DeviceDetail }) {
     const raw = shown.trim();
     const offset = raw === '' ? null : Number(raw);
     if (offset !== null && (!Number.isFinite(offset) || offset < -12 || offset > 14)) {
-      call.say({ text: 'Must be between -12 and 14 hours', tone: 'error' });
+      call.say({ text: t('timezone.outOfRange'), tone: 'error' });
       return;
     }
     void call
@@ -46,17 +55,20 @@ export function TimezoneSection({ device }: { device: DeviceDetail }) {
   };
 
   const facts = [
-    `Effective UTC${tz.effective >= 0 ? '+' : ''}${tz.effective}, from ${SOURCE_TEXT[tz.source] ?? tz.source}`,
+    t('timezone.effective', {
+      offset: `${tz.effective >= 0 ? '+' : ''}${tz.effective}`,
+      source: sourceText(tz.source),
+    }),
     tz.locale && tz.locale,
-    tz.reported !== null && `device said ${tz.reported}`,
+    tz.reported !== null && t('timezone.reported', { value: tz.reported }),
   ].filter(Boolean);
 
   return (
-    <SettingsSection title="Timezone" description={facts.join(' · ')}>
+    <SettingsSection title={t('timezone.title')} description={facts.join(' · ')}>
       <SettingsRow
-        label="Offset from UTC"
+        label={t('timezone.offset')}
         kind="field"
-        description={`Hours, -12 to 14 in quarter steps. Empty for automatic.${pending !== undefined ? ' Not sent yet.' : ''}`}
+        description={pending !== undefined ? t('timezone.hintPending') : t('timezone.hint')}
         control={props => (
           <span className="flex min-w-0 gap-1.5">
             <Input
@@ -66,7 +78,7 @@ export function TimezoneSection({ device }: { device: DeviceDetail }) {
               min={-12}
               max={14}
               step={0.25}
-              placeholder="auto"
+              placeholder={t('timezone.auto')}
               value={shown}
               disabled={call.busy}
               onChange={e => {
@@ -77,9 +89,9 @@ export function TimezoneSection({ device }: { device: DeviceDetail }) {
               size="small"
               onClick={submit}
               disabled={call.busy}
-              aria-label="Set timezone offset"
+              aria-label={t('timezone.setLabel')}
             >
-              Set
+              {t('set')}
             </Button>
           </span>
         )}
@@ -95,20 +107,21 @@ export function TimezoneSection({ device }: { device: DeviceDetail }) {
  * decides when to send one (a reboot is the usual trigger).
  */
 export function LogUploadSection({ device }: { device: DeviceDetail }) {
+  const { t } = useTranslation('devices');
   const call = useDeviceCall();
   const { log_upload_enabled: on, reason } = device.logInfo;
   return (
     <SettingsSection
-      title="Debug log collection"
+      title={t('logs.title')}
       description={
         <>
-          The firmware’s own view of what it was doing, in the <Link to="/log">Log</Link> screen.
-          {reason && ` Cannot collect right now: ${LOG_REASONS[reason] ?? reason}.`}
+          <Trans t={t} i18nKey="logs.description" components={{ log: <Link to="/log" /> }} />
+          {reason && ` ${t('logs.cannotCollect', { reason: logReasonText(reason) })}`}
         </>
       }
     >
       <SettingsRow
-        label="Collect debug logs"
+        label={t('logs.collect')}
         control={props => (
           <Switch
             {...props}

@@ -64,8 +64,8 @@ final class CaptureModel {
         error = nil
         defer { savingRecord = false }
         let purpose = on
-            ? "Recording saves every request, secrets included, to files on the server."
-            : "Stopping recording leaves the files already written on the server."
+            ? L10n.string("Recording saves every request, secrets included, to files on the server.")
+            : L10n.string("Stopping recording leaves the files already written on the server.")
         do {
             let result = try await session.call(purpose: purpose) {
                 try await self.session.client.updateLiveSettings(body: .json(.init(capture: on))).ok.body.json
@@ -105,7 +105,8 @@ final class CaptureModel {
         error = nil
         defer { downloading = nil }
         do {
-            let data = try await session.call(purpose: "Downloading \(file.name) copies it, secrets included, to this phone.") {
+            let purpose = L10n.string("Downloading \(file.name) copies it, secrets included, to this phone.")
+            let data = try await session.call(purpose: purpose) {
                 let body = try await self.session.client.downloadCaptureFile(path: .init(name: file.name)).ok.body.binary
                 return try await Data(collecting: body, upTo: 512 * 1024 * 1024)
             }
@@ -127,7 +128,7 @@ final class CaptureModel {
                     tailName = nil
                 }
             } catch {
-                self.error = "\(name) was not deleted: \(Loadable<Void>.message(for: error))"
+                self.error = L10n.string("\(name) was not deleted: \(Loadable<Void>.message(for: error))")
                 break
             }
         }

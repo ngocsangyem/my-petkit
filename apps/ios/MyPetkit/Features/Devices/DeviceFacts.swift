@@ -19,11 +19,11 @@ enum DeviceFamily: Hashable, Sendable {
 
     var noun: String {
         switch self {
-        case .litter: "litter box"
-        case .feeder: "feeder"
-        case .fountain: "water fountain"
-        case .spray: "spray"
-        case .other: "device"
+        case .litter: L10n.string("litter box")
+        case .feeder: L10n.string("feeder")
+        case .fountain: L10n.string("water fountain")
+        case .spray: L10n.string("spray")
+        case .other: L10n.string("device")
         }
     }
 }

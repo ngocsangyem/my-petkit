@@ -1,0 +1,64 @@
+---
+title: Ứng dụng iOS
+description: Cài ứng dụng MyPetKit bằng sideload, và ghép nối nó với máy chủ của bạn qua mã QR.
+---
+
+Mỗi bản phát hành đều kèm ứng dụng iOS cùng với máy chủ. Nó hiển thị tên MyPetKit trên màn hình chính. Phiên bản ứng dụng bằng phiên bản máy chủ, nên hãy giữ hai bên đi cùng nhau.
+
+## Cài đặt
+
+GitHub Release kèm một IPA chưa ký, nên công cụ sideload sẽ ký nó bằng Apple ID của chính bạn.
+
+| Tệp | Là gì |
+|---|---|
+| `MyPetkit-<version>.ipa` | Ứng dụng, chưa ký |
+| `apps.json` | Một nguồn AltStore / SideStore cho bản phát hành này |
+| `SHA256SUMS` | Checksum của IPA và nguồn |
+
+Với [AltStore](https://altstore.io) hoặc [SideStore](https://sidestore.io), hãy thêm nguồn này một lần:
+
+```text
+https://github.com/ngocsangyem/my-petkit/releases/latest/download/apps.json
+```
+
+Mỗi bản phát hành ổn định mới sau đó sẽ xuất hiện dưới dạng một bản cập nhật. Sideloadly cũng có thể cài IPA thủ công.
+
+Apple ID miễn phí phải ký lại ứng dụng mỗi 7 ngày (AltStore và SideStore làm việc này ở nền) và cho phép ba ứng dụng sideload cùng lúc.
+
+TestFlight đã được nối dây trong workflow phát hành nhưng đang tắt, vì nó cần tài khoản Apple Developer trả phí.
+
+## Ghép nối
+
+<Steps>
+<Step>
+
+Trong bảng điều khiển, mở **Cài đặt → Điện thoại và ứng dụng** (Settings → Phones and apps) và chọn **Ghép nối điện thoại** (Pair a phone). Bước này yêu cầu nhập lại mật khẩu quản trị.
+
+</Step>
+<Step>
+
+Quét mã QR bằng ứng dụng. Mã mang địa chỉ máy chủ và vân tay chứng chỉ của nó, và ứng dụng ghim chứng chỉ đó. Nếu mã đã hết hạn, hãy tạo mã mới.
+
+</Step>
+</Steps>
+
+<div className="grid grid-cols-2 gap-4">
+  <img className="shot" src="/screenshots/ios-pairing.webp" alt="Ghép nối ứng dụng iOS" />
+  <img className="shot" src="/screenshots/ios-devices.webp" alt="Danh sách thiết bị trong ứng dụng iOS" />
+</div>
+
+Để hủy ghép nối một điện thoại, hãy xóa nó khỏi danh sách. Ứng dụng trên điện thoại đó bị đăng xuất ngay và phải ghép nối lại.
+
+## Ghép nối từ ngoài mạng LAN
+
+Mã QR gửi điện thoại tới `https://<host>:<user_port>` trừ khi `user_url` được đặt. Nếu điện thoại vào máy chủ qua một proxy có chứng chỉ được tin cậy, chẳng hạn `tailscale serve` hoặc Cloudflare Tunnel, hãy đặt `user_url` thành địa chỉ `https://` của proxy đó. Xem [Truy cập từ xa](/vi/docs/configuration/remote-access) để biết iOS chấp nhận những tên nào.
+
+## Ứng dụng làm được gì
+
+Ứng dụng bao quát cùng phạm vi với bảng điều khiển: thiết bị và các điều khiển của chúng, dòng thời gian, thú cưng, lịch, âm thanh, patcher, video trực tiếp (ưu tiên WebRTC và dự phòng bằng HLS), và nói qua loa của camera.
+
+<div className="grid grid-cols-3 gap-4">
+  <img className="shot" src="/screenshots/ios-device-t6.webp" alt="Một chiếc T6 trong ứng dụng iOS" />
+  <img className="shot" src="/screenshots/ios-timeline.webp" alt="Dòng thời gian trong ứng dụng iOS" />
+  <img className="shot" src="/screenshots/ios-live.webp" alt="Chế độ xem trực tiếp trong ứng dụng iOS" />
+</div>

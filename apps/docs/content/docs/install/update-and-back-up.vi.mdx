@@ -1,0 +1,38 @@
+---
+title: Cập nhật và sao lưu
+description: Cách cập nhật từng kiểu cài đặt, nên sao lưu gì trước, và cách quay lui.
+---
+
+Thư mục `/data` chứa danh tính thiết bị, khóa TLS và các secret của user plane. Nếu mất nó, mọi thiết bị phải cấp phát lại và mọi điện thoại phải ghép nối lại. Hãy sao lưu trước mỗi lần cập nhật, và đối xử với tệp lưu trữ như một mật khẩu.
+
+## Add-on Home Assistant
+
+Supervisor xóa image cũ trước khi kéo image mới, nên một bản phát hành lỗi không thể quay lui bằng cách cài lại phiên bản cũ.
+
+- Chọn **Create a backup before updating** trong hộp thoại cập nhật, hoặc chạy `ha backups new --addons <slug>`.
+- Để quay lui, hãy khôi phục bản sao lưu đó. Nó đưa add-on về phiên bản cũ cùng với `/data` của nó.
+
+## Docker và VPS
+
+Sao lưu data volume:
+
+```bash
+docker run --rm -v my-petkit_data:/data:ro -v "$PWD":/backup alpine \
+  tar czf /backup/my-petkit-data-$(date +%F).tgz -C /data .
+```
+
+Cập nhật lên tag trong tệp cài đặt của bạn:
+
+```bash
+docker compose pull && docker compose up -d
+```
+
+Để quay lui, hãy đặt `MY_PETKIT_TAG` về bản phát hành trước, hoặc một digest chính xác như `ghcr.io/ngocsangyem/my-petkit@sha256:...`, rồi chạy lại `docker compose up -d`.
+
+## Giữ ứng dụng iOS đồng bộ
+
+Phiên bản ứng dụng bằng phiên bản máy chủ. Hãy cập nhật cả hai cùng nhau. Xem [Ứng dụng iOS](/vi/docs/guides/ios-app).
+
+## Phiên bản được hỗ trợ
+
+Chỉ bản phát hành mới nhất được sửa lỗi. Không có nhánh backport.

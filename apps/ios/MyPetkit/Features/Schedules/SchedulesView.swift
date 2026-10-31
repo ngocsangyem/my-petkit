@@ -55,7 +55,7 @@ struct SchedulesView: View {
 
     private var title: String {
         model.currentTarget?.kind == .feed || model.currentTab == SchedulesModel.oneOffTab
-            ? "Feeding schedule" : "Schedules"
+            ? L10n.string("Feeding schedule") : L10n.string("Schedules")
     }
 
     private func lede(now: Date) -> Text? {
@@ -67,16 +67,16 @@ struct SchedulesView: View {
                                                  nowSecond: clock.minuteOfDay(now) * 60)
             return Text(ScheduleFeedPlan.sentence(for: next) + " \(device.name).")
         }
-        return Text("\(device.name) runs these on its own clock.")
+        return Text(L10n.string("\(device.name) runs these on its own clock."))
     }
 
     private var addLabel: String {
         switch model.currentTarget?.kind {
-        case .feed: "Add a meal"
-        case .ranges: "Add a period"
-        case .weekly: "Add an entry"
-        case .points: "Add a cleaning time"
-        case nil: "Schedule a one-off feed"
+        case .feed: L10n.string("Add a meal")
+        case .ranges: L10n.string("Add a period")
+        case .weekly: L10n.string("Add an entry")
+        case .points: L10n.string("Add a cleaning time")
+        case nil: L10n.string("Schedule a one-off feed")
         }
     }
 
@@ -100,8 +100,8 @@ struct SchedulesView: View {
         LoadableBlock(state: model.device, retry: retryAll) { device in
             if model.tabs.isEmpty {
                 Card {
-                    EmptyBlock(title: "No schedules",
-                               message: "\(device.name) has no schedule this server can serve.")
+                    EmptyBlock(title: L10n.string("No schedules"),
+                               message: L10n.string("\(device.name) has no schedule this server can serve."))
                 }
             } else {
                 SchedulesTabs(tabs: model.tabs, selection: Binding(get: { model.currentTab },
@@ -129,9 +129,12 @@ struct SchedulesView: View {
 
     private func footnote(device: SchedulesDevice) -> some View {
         let zone = model.zone.value.map { ", \($0.label)" } ?? ""
-        let noun = device.isFeeder ? "feeder" : "device"
-        return Text("Times use the \(noun)'s own time zone\(zone), never this phone's. "
-                    + "An empty schedule does not restrict the \(noun); a period that ends before it starts runs through midnight.")
+        let text = device.isFeeder
+            ? L10n.string("Times use the feeder's own time zone\(zone), never this phone's.") + " "
+                + L10n.string("An empty schedule does not restrict the feeder; a period that ends before it starts runs through midnight.")
+            : L10n.string("Times use the device's own time zone\(zone), never this phone's.") + " "
+                + L10n.string("An empty schedule does not restrict the device; a period that ends before it starts runs through midnight.")
+        return Text(text)
             .font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted)
             .padding(.horizontal, 4)
     }
@@ -169,9 +172,10 @@ struct SchedulesView: View {
 
     private func deleteConfirmation(_ feed: DeferredFeedItem, zone: DeviceZone) -> CommandConfirmation {
         CommandConfirmation(
-            question: "Delete the feed at \(zone.clock.formatMoment(feed.fireAt))?",
-            detail: "The feeder will not dispense this one-off feed. Scheduled meals are not affected.",
-            confirmTitle: "Delete feed"
+            question: L10n.string("Delete the feed at \(zone.clock.formatMoment(feed.fireAt))?"),
+            detail: L10n.string("The feeder will not dispense this one-off feed.") + " "
+                + L10n.string("Scheduled meals are not affected."),
+            confirmTitle: L10n.string("Delete feed")
         ) { [session, model] in
             guard let session else { throw APIError.notPaired }
             try await model.deleteDeferred(feed, using: session)

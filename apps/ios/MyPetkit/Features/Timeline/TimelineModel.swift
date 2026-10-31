@@ -56,7 +56,7 @@ final class TimelineModel {
     var isToday: Bool { shownDate != nil && shownDate == serverToday }
 
     var dayTitle: String {
-        guard let shown = shownDate else { return "Today" }
+        guard let shown = shownDate else { return L10n.string("Today") }
         return TimelineFormat.dayTitle(shown, today: serverToday)
     }
 

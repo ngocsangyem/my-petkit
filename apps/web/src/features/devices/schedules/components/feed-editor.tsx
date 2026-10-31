@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { i18n } from '@/i18n';
 import { Button, Card, EmptyBlock, Icon, IconButton } from '@/shared/ui';
-import { EVERY_DAY, parseDays, secToClock, WEEKDAYS } from '../schedule-clock';
+import { EVERY_DAY, parseDays, secToClock, WEEKDAYS, weekdayName } from '../schedule-clock';
 import { edited, type FeedGroup, type FeedValue, nextId } from '../schedule-model';
 import { MealSheet } from './meal-sheet';
 import { WeekdayBar } from './weekday-bar';
@@ -12,18 +14,22 @@ interface FeedEditorProps {
   dual: boolean;
 }
 
-/** "Every day", "Weekdays", or the day names, for a set's `re`. */
+/** "Every day", "Weekdays", or the day names, for a set's `re`, in the active language. */
 export function daysText(re: string): string {
   const on = parseDays(re);
-  if (on.size === 7) return 'Every day';
-  if (on.size === 5 && [2, 3, 4, 5, 6].every(d => on.has(d))) return 'Weekdays';
-  if (on.size === 0) return 'No days';
-  return WEEKDAYS.filter((_, i) => on.has(i + 1)).join(', ');
+  if (on.size === 7) return i18n.t('devices:feedEditor.everyDay');
+  if (on.size === 5 && [2, 3, 4, 5, 6].every(d => on.has(d))) {
+    return i18n.t('devices:feedEditor.weekdays');
+  }
+  if (on.size === 0) return i18n.t('devices:feedEditor.noDays');
+  return WEEKDAYS.filter((_, i) => on.has(i + 1))
+    .map(weekdayName)
+    .join(', ');
 }
 
 function portions(a1: number, a2: number, dual: boolean): string {
-  if (dual) return `Hopper 1 × ${a1} · Hopper 2 × ${a2}`;
-  return `${a1} ${a1 === 1 ? 'portion' : 'portions'}`;
+  if (dual) return i18n.t('devices:feedEditor.dualPortions', { a1, a2 });
+  return i18n.t('devices:meal.portions', { count: a1 });
 }
 
 /**
@@ -32,6 +38,7 @@ function portions(a1: number, a2: number, dual: boolean): string {
  * with the schedule.
  */
 export function FeedEditor({ value, onChange, dual }: FeedEditorProps) {
+  const { t } = useTranslation('devices');
   const groups = value.schedule;
   const [editing, setEditing] = useState<{ gi: number; mi: number } | null>(null);
   const change = (gi: number, fn: (group: FeedGroup) => void) => {
@@ -50,15 +57,10 @@ export function FeedEditor({ value, onChange, dual }: FeedEditorProps) {
       }}
     >
       <Icon name="plus" size={14} />
-      Add days
+      {t('feedEditor.addDays')}
     </Button>
   );
-  if (!groups.length)
-    return (
-      <EmptyBlock action={addSet}>
-        No meals set. The feeder dispenses only when you press Feed.
-      </EmptyBlock>
-    );
+  if (!groups.length) return <EmptyBlock action={addSet}>{t('feedEditor.empty')}</EmptyBlock>;
 
   const open = editing ? groups[editing.gi]?.it[editing.mi] : undefined;
 
@@ -68,7 +70,7 @@ export function FeedEditor({ value, onChange, dual }: FeedEditorProps) {
         <Card
           as="section"
           key={gi}
-          aria-label={`Meal set ${gi + 1}`}
+          aria-label={t('feedEditor.set', { n: gi + 1 })}
           className="flex flex-col gap-1 py-3"
         >
           <div className="flex flex-col gap-1.5 pb-2">
@@ -77,7 +79,7 @@ export function FeedEditor({ value, onChange, dual }: FeedEditorProps) {
               <IconButton
                 icon="close"
                 variant="ghost"
-                aria-label={`Remove meal set ${gi + 1}`}
+                aria-label={t('feedEditor.removeSet', { n: gi + 1 })}
                 className="-my-2"
                 onClick={() => {
                   onChange({ ...value, schedule: groups.filter((_, j) => j !== gi) });
@@ -85,7 +87,7 @@ export function FeedEditor({ value, onChange, dual }: FeedEditorProps) {
               />
             </div>
             <WeekdayBar
-              label={`Days of meal set ${gi + 1}`}
+              label={t('feedEditor.setDays', { n: gi + 1 })}
               days={group.re}
               onChange={days => {
                 change(gi, g => {
@@ -106,25 +108,25 @@ export function FeedEditor({ value, onChange, dual }: FeedEditorProps) {
                   </span>
                   <Button
                     size="small"
-                    aria-label={`Edit meal ${mi + 1} of set ${gi + 1}`}
+                    aria-label={t('feedEditor.editMeal', { meal: mi + 1, set: gi + 1 })}
                     onClick={() => {
                       setEditing({ gi, mi });
                     }}
                   >
-                    Edit
+                    {t('feedEditor.edit')}
                   </Button>
                 </li>
               ))}
             </ul>
           ) : (
             <p className="border-t border-rule py-3 text-sm text-muted-foreground">
-              No meals on these days.
+              {t('feedEditor.noMeals')}
             </p>
           )}
           <div className="border-t border-rule pt-2">
             <Button
               variant="text"
-              aria-label={`Add a meal to set ${gi + 1}`}
+              aria-label={t('feedEditor.addMealTo', { n: gi + 1 })}
               onClick={() => {
                 // Ids only have to be distinct within the schedule the device is
                 // handed; the server turns a numeric id into its `n_<seconds>` form.
@@ -136,7 +138,7 @@ export function FeedEditor({ value, onChange, dual }: FeedEditorProps) {
               }}
             >
               <Icon name="plus" size={14} />
-              Add a meal
+              {t('feedEditor.addMeal')}
             </Button>
           </div>
         </Card>
@@ -144,8 +146,9 @@ export function FeedEditor({ value, onChange, dual }: FeedEditorProps) {
       <div>{addSet}</div>
       {editing && open && (
         <MealSheet
-          name={`Meal ${editing.mi + 1} of set ${editing.gi + 1}`}
+          name={t('feedEditor.mealName', { meal: editing.mi + 1, set: editing.gi + 1 })}
           days={daysText(groups[editing.gi]?.re ?? '')}
+          everyDay={parseDays(groups[editing.gi]?.re ?? '').size === 7}
           meal={open}
           dual={dual}
           onClose={() => {

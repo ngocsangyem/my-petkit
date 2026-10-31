@@ -1,0 +1,759 @@
+{
+  "pair": {
+    "enterMac": "Enter the Bluetooth address",
+    "type": "Type",
+    "typeLabel": "Accessory type",
+    "mac": "Bluetooth address (MAC)",
+    "secret": "Pairing secret",
+    "secretHint": "Eight bytes kept by the accessory until a factory reset. One set up in PetKit's app needs that secret; a factory-fresh one accepts eight zero bytes.",
+    "secretPlaceholder": "from the accessory",
+    "name": "Name it (optional)",
+    "namePlaceholder": "serial or a label",
+    "advanced": "Advanced",
+    "identifier": "Identifier",
+    "identifierHint": "Becomes its Home Assistant device id. Leave blank unless you want the id PetKit's app gave it.",
+    "identifierPlaceholder": "chosen for you",
+    "interval": "Poll interval (s)",
+    "intervalHint": "How often the relay opens a Bluetooth session to read it.",
+    "scanType": "Scan type",
+    "scanTypeHint": "14 is the only value read off a real pairing (a W5). If an accessory never reports, try another number here.",
+    "scanTypePlaceholder": "default",
+    "submit": "Pair accessory"
+  },
+  "ble": {
+    "unpairTitle": "Unpair the {{name}}?",
+    "unpairTitleAccessory": "Unpair the accessory?",
+    "unpair": "Unpair",
+    "unpairBody": "The relay stops reading it. Its Home Assistant entities stay until you delete the device there.",
+    "pairTitle": "Pair an accessory",
+    "pairDescription": "It talks to the server through the <b>{{name}}</b>, which must stay on and nearby.",
+    "importing": "Asking PetKit…",
+    "import": "Import from PetKit",
+    "importNote": "Asks PetKit once, signed as the {{name}}, which accessories it owns, and copies each one’s Bluetooth address and pairing secret across. Nothing is sent to PetKit until you press it.",
+    "title": "Bluetooth accessories",
+    "pair": "Pair",
+    "pairedLabel": "Paired accessories",
+    "nothingPaired": "Nothing paired.",
+    "relayedBy": "{{type}} · relayed by this device · <mono>{{mac}}</mono>",
+    "noReportYet": "No report yet",
+    "openLabel": "Open {{name}}",
+    "open": "Open"
+  },
+  "entity": {
+    "pickTime": "Pick a time first",
+    "enterNumber": "Enter a number",
+    "outOfRange": "Must be between {{min}} and {{max}}",
+    "range": "Range {{range}}",
+    "setLabel": "Set {{name}}"
+  },
+  "entityTable": {
+    "entity": "Entity",
+    "value": "Value",
+    "component": "Component",
+    "readsFrom": "Reads from",
+    "empty": "Nothing reported yet.",
+    "showAll_one": "Show every entity ({{count}})",
+    "showAll_other": "Show every entity ({{count}})"
+  },
+  "figure": {
+    "visitsToday": "Visits today",
+    "bagsLeft": "Bags left",
+    "litterLevel": "Litter level",
+    "wasteBin": "Waste bin",
+    "notFull": "Not full",
+    "full": "Full",
+    "inBowl": "In the bowl",
+    "eatenToday": "Eaten today",
+    "fedToday": "Fed today",
+    "hopper": "Hopper",
+    "hasFood": "Has food",
+    "low": "Low",
+    "water": "Water",
+    "filter": "Filter",
+    "drinksToday": "Drinks today",
+    "waterLevel": "Water level",
+    "ok": "OK"
+  },
+  "consumables": {
+    "title": "Consumables",
+    "usedUp": "Used up",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "remaining": "{{label}} remaining",
+    "filterLeft": "Filter left",
+    "filterRemaining": "Filter remaining"
+  },
+  "needsYou": {
+    "title": "Needs you",
+    "nothing": "Nothing needs you right now",
+    "blocked_one": "{{count}} blocked cloud attempt this week",
+    "blocked_other": "{{count}} blocked cloud attempts this week",
+    "noneBlocked": "No blocked cloud attempts this week",
+    "cloudGuards": "Cloud guards · in Settings",
+    "notReporting": "{{name}} is not reporting"
+  },
+  "raw": {
+    "example": {
+      "changeSetting": "Change a setting",
+      "startAction": "Start an action",
+      "resetN60": "Reset the N60 deodorant"
+    },
+    "invalidJson": "Invalid JSON — not sent",
+    "needsObject": "Send an object with suffix and payload",
+    "note": "Publishes verbatim; nothing is added. Sent over MQTT if the device has a session, else queued for its heartbeat. Needs step-up.",
+    "label": "Raw command JSON",
+    "send": "Send raw",
+    "loadExample": "Load an example:",
+    "entityJson": "{{name}} JSON",
+    "save": "Save {{name}}"
+  },
+  "remove": {
+    "button": "Remove device",
+    "title": "Delete {{label}}?",
+    "confirm": "Delete device",
+    "body": "This permanently deletes the device from the registry and removes all its Home Assistant entities. Events and media are kept. A device that is still running signs up again on its own."
+  },
+  "stream": {
+    "copyLabel": "Copy {{label}} URL",
+    "copied": "Copied",
+    "copyFailed": "Could not copy; select the address instead",
+    "copy": "Copy",
+    "none": "No live stream. The device is checked for one every few minutes, and it answers once Local Camera Streaming is applied on the Patchers screen.",
+    "noneNoIp": "No live stream. The device is checked for one every few minutes, and it answers once Local Camera Streaming is applied on the Patchers screen, and it has not reported an IP yet either.",
+    "camera": "Camera stream",
+    "rtspNote": "Give this one to Home Assistant as a Generic Camera. This app’s go2rtc stands between it and the device.",
+    "direct": "Straight from the device (VLC, ffmpeg; not Home Assistant):"
+  },
+  "sounds": {
+    "title": "Sounds",
+    "custom": "Custom sounds",
+    "description": "Custom sounds the {{noun}} can play, stored on this server.",
+    "tooLarge": "{{name}} is larger than 2 MB",
+    "tooMany": "A device holds at most {{max}} sounds; delete one first",
+    "loadFailed": "Could not load the sounds: {{error}}",
+    "empty": "No custom sounds uploaded.",
+    "fallbackName": "Sound {{id}}",
+    "play": "Play",
+    "select": "Select",
+    "delete": "Delete",
+    "upload": "Upload a sound",
+    "note": "Up to {{max}} uploads ({{stored}} stored), 2 MB each. Play sends the sound to the device once, so you hear it there; Select makes it the one the device uses.",
+    "deleteTitle": "Delete this sound?",
+    "deleteBody": "“{{name}}” is removed from this server and from the device’s list.",
+    "thisSound": "This sound"
+  },
+  "set": "Set",
+  "notSentYet": "Not sent yet",
+  "notReported": "Not reported",
+  "commands": {
+    "last": "Last command: {{name}} · {{result}}",
+    "confirmTitle": "{{name}} on the {{target}}?",
+    "send": "Send",
+    "confirmBody": "This sends “{{name}}” to the {{target}}. {{route}}",
+    "destructiveNote": "The device acts on it at once and it cannot be called back.",
+    "label": "Commands",
+    "cannotUndo": "Cannot be undone",
+    "note": "Each command asks before it runs."
+  },
+  "capabilities": {
+    "title": "Media capabilities",
+    "description": "Turns an upload off at the source: nothing to prune and no bandwidth spent. Takes effect on the device's next upload-credential poll.",
+    "fullVideo": "Recordings",
+    "eventImage": "Snapshots",
+    "highLight": "Highlights",
+    "dynamicVideo": "Motion clips"
+  },
+  "faces": {
+    "none": "No mugshots cached on the device yet. It re-reads them at boot and about once an hour; a reboot forces it.",
+    "head_one": "Cached on the device: {{count}} mugshot ({{ids}})",
+    "head_other": "Cached on the device: {{count}} mugshots ({{ids}})",
+    "unknown": "{{head}}.",
+    "ours": "{{head}}: yours, so the device is matching against your mugshots.",
+    "foreign": "{{head}}: not yours. It is still using photos from PetKit's cloud, which proxy mode hands it. Turn proxy off and reboot the device to switch it to your {{yours}}.",
+    "mugshots_one": "{{count}} mugshot",
+    "mugshots_other": "{{count}} mugshots"
+  },
+  "ai": {
+    "title": "On-device AI",
+    "description": "What this device's camera watches and listens for.",
+    "recognisePets": "Recognise pets"
+  },
+  "timezone": {
+    "source": {
+      "override": "this override",
+      "locale": "the zone name the device reported",
+      "device": "the offset the device reported",
+      "server": "this server's clock"
+    },
+    "outOfRange": "Must be between -12 and 14 hours",
+    "effective": "Effective UTC{{offset}}, from {{source}}",
+    "reported": "device said {{value}}",
+    "title": "Timezone",
+    "offset": "Offset from UTC",
+    "hint": "Hours, -12 to 14 in quarter steps. Empty for automatic.",
+    "hintPending": "Hours, -12 to 14 in quarter steps. Empty for automatic. Not sent yet.",
+    "auto": "auto",
+    "setLabel": "Set timezone offset"
+  },
+  "logs": {
+    "title": "Debug log collection",
+    "description": "The firmware’s own view of what it was doing, in the <log>Log</log> screen.",
+    "cannotCollect": "Cannot collect right now: {{reason}}.",
+    "collect": "Collect debug logs"
+  },
+  "facts": {
+    "serial": "Serial",
+    "mac": "MAC",
+    "firmware": "Firmware",
+    "lastHeartbeat": "Last heartbeat",
+    "lastState": "Last state",
+    "lastMqtt": "Last MQTT",
+    "queued": "Queued commands",
+    "messages": "HTTP / MQTT messages",
+    "productKey": "Product key",
+    "deviceName": "Device name"
+  },
+  "today": {
+    "title": "Today",
+    "visits_one": "{{count}} litter-box visit",
+    "visits_other": "{{count}} litter-box visits",
+    "fedGrams": "{{grams}} g fed",
+    "noZone": "No device has said which time zone it is in yet.",
+    "noLanes": "No pets, feeders or fountains to draw yet.",
+    "stripLabel": "Today at home, {{aside}}",
+    "openTimeline": "Open timeline"
+  },
+  "delivery": {
+    "saved": "Saved",
+    "action": {
+      "mqtt": "Sent over MQTT",
+      "queued": "Queued — delivers on the next heartbeat (about 10 s)"
+    },
+    "entity": {
+      "mqtt": "Updated over MQTT",
+      "ble": "Sent over Bluetooth",
+      "queued": "Queued for the next heartbeat"
+    },
+    "timezone": {
+      "mqtt": "Sent to the device",
+      "queued": "Saved — applies on its next check-in"
+    },
+    "logReason": {
+      "noLogRoot": "no log directory is configured",
+      "noBucketEndpoint": "this app has no bucket address, so there is nowhere to send the device",
+      "authorityNotSplittable": "the bucket address cannot be split into a host the device can build; it needs a dotted name or IP"
+    }
+  },
+  "family": {
+    "litter": "Litter box",
+    "feeder": "Feeder",
+    "fountain": "Water fountain",
+    "purifier": "Air purifier",
+    "other": "Device"
+  },
+  "consumable": {
+    "n60_spray_days": "N60 deodorizer",
+    "n50_durability": "N50 deodorant",
+    "desiccant_days": "Desiccant",
+    "filter_days": "Filter",
+    "usedUp": "{{label}} used up",
+    "inDays_one": "{{label}} in {{count}} day",
+    "inDays_other": "{{label}} in {{count}} days",
+    "runsOutIn_one": "{{label}} runs out in {{count}} day",
+    "runsOutIn_other": "{{label}} runs out in {{count}} days"
+  },
+  "problem": {
+    "waste_bin": "Waste bin full",
+    "food_low": "Food low",
+    "water_lack": "Water low",
+    "replace_filter": "Replace the filter",
+    "noReportSince": "No report since {{when}}"
+  },
+  "status": {
+    "unknown": "Unknown",
+    "offline": "Offline",
+    "onlineMqtt": "Online · MQTT",
+    "polling": "Polling · heartbeat",
+    "noParent": "No parent",
+    "onlineBluetooth": "Online · Bluetooth",
+    "neverReported": "Never reported"
+  },
+  "now": {
+    "nextMeal": "Next meal {{clock}}",
+    "statusCleaned": "{{status}}, cleaned {{clock}}",
+    "cleaned": "Cleaned {{clock}}"
+  },
+  "meal": {
+    "dualPortions": "{{a1}} + {{a2}} portions",
+    "portions_one": "{{count}} portion",
+    "portions_other": "{{count}} portions"
+  },
+  "strip": {
+    "reporting": "Reporting",
+    "noReportToday": "No report today",
+    "reportingUntil": "Reporting until {{clock}}",
+    "unrecognised": "Unrecognised",
+    "fed": "{{clock}} · fed",
+    "planned": "{{clock}} · {{portions}} planned"
+  },
+  "entityHelp": {
+    "yowlingDetection": "Listens for meowing while a cat is in the box and records when it heard some. PetKit frames repeated yowling as a possible sign of discomfort. Beta in PetKit's app.",
+    "phDetection": "Reads the colour of PetKit's own pH-indicator litter from the camera. With ordinary litter it measures nothing at all. Beta in PetKit's app.",
+    "vomitDetection": "Watches for vomiting. A detection result carries a vomit_info list, which stays empty while this is off."
+  },
+  "force": {
+    "check": {
+      "noPet": "No pet in the box",
+      "noVisit": "No visit in progress",
+      "lidClosed": "Lid closed, no fault"
+    },
+    "sent": "Continue cleaning · {{result}}",
+    "confirmTitle": "Continue cleaning now?",
+    "notNow": "Not now",
+    "footnote": "Asks for your password first. Refused while a cat is inside or the lid is open.",
+    "body": "The drum turns again. The box paused because it saw a cat near the entrance.",
+    "checked": "(checked)",
+    "notMet": "(not met)",
+    "risk": "Look at the box before you continue. If a cat steps inside, the box stops again on its own; this app never overrides that.",
+    "label": "Force continue",
+    "paused": "Paused",
+    "pausedWhy": "The box stopped because it saw a cat near the entrance.",
+    "notOffered": "Paused. Force continue is not offered: {{reasons}}",
+    "readFailed": "Force continue and auto-pack could not be read. {{error}}"
+  },
+  "autoPack": {
+    "title": "Auto-pack",
+    "experimental": "Experimental",
+    "intro": "The box packs and seals the waste bag on its own when the rule says so. The server turns the rule off after a pack error or two unanswered packs, and never turns it on.",
+    "switchLabel": "Pack automatically",
+    "turnedOff": "Auto-pack turned off",
+    "turnedOn": "Auto-pack turned on",
+    "saved": "Auto-pack rule saved",
+    "save": "Save rule",
+    "discard": "Discard changes",
+    "notSaved": "Not saved: {{error}}",
+    "confirmTitle": "Turn on auto-pack?",
+    "turnOn": "Turn on",
+    "advice": "PetKit’s own advice for automatic packing: have someone nearby when the box packs, and take the bag out promptly.",
+    "countedFrom": "Cleanings are counted from the moment it is turned on.",
+    "trigger": {
+      "after_cleanings": "After a number of cleanings",
+      "bin_full": "When the bin is full",
+      "daily_at": "Every day at a set time"
+    },
+    "heldBack": {
+      "not_due": "not due yet",
+      "quiet_hours": "inside quiet hours",
+      "cooldown": "waiting a little after the last attempt",
+      "not_delivered": "the last pack command could not be sent",
+      "state_stale": "the box has not sent a state report in the last 2 minutes",
+      "presence_unknown": "the box has not said whether a pet is inside",
+      "device_offline": "the box has not been heard from in the last 90 seconds",
+      "not_on_mqtt": "the box is not connected over MQTT",
+      "pet_in_box": "the box reports a pet inside",
+      "visit_open": "a pet entered in the last 10 minutes and has not left",
+      "pet_nearby": "a pet was near the box in the last 2 minutes",
+      "device_fault": "the box reports an error",
+      "device_busy": "the box is running a cycle",
+      "no_bags": "the box reports no bags left, or has not reported a bag count",
+      "history_unavailable": "the visit history could not be read"
+    },
+    "disabled": {
+      "noResponse": "the box did not answer two packs in a row",
+      "packError": "the box reported a packing error: {{detail}}",
+      "noDetail": "no detail"
+    },
+    "status": {
+      "turnedOff": "Turned off by the server because {{reason}}",
+      "pending": "Pack sent at {{at}}, waiting for the box",
+      "awaitingBinClear": "Waiting for the bin to be emptied before it counts again",
+      "heldBack": "Held back: {{reason}}",
+      "lastPacked": "Last packed {{at}}",
+      "notYet": "Not packed by this rule yet",
+      "noAnswer": "the last pack got no answer"
+    },
+    "summary": {
+      "afterCleanings_one": "after every {{count}} cleaning",
+      "afterCleanings_other": "after every {{count}} cleanings",
+      "binFull": "whenever the bin reports full",
+      "dailyAt": "every day at {{at}}, in the device's time zone",
+      "plain": "The box packs and seals the waste bag on its own {{when}}.",
+      "withQuiet": "The box packs and seals the waste bag on its own {{when}}, never between {{start}} and {{end}}."
+    },
+    "fields": {
+      "pack": "Pack",
+      "after": "After",
+      "cleanings": "cleanings",
+      "cleaningsHint": "{{min}} to {{max}}, counted from the last pack or from turning the rule on.",
+      "at": "At",
+      "atHint": "In the device's own time zone.",
+      "quietHours": "Quiet hours",
+      "from": "From",
+      "to": "to",
+      "quietHint": "No automatic pack inside this window. An end before the start runs past midnight."
+    }
+  },
+  "live": {
+    "mode": {
+      "webrtc": "WebRTC: lowest delay, straight from the server.",
+      "mse": "MSE: about a second behind, over the same connection as this page.",
+      "hls": "HLS: works everywhere, a few seconds behind."
+    },
+    "reason": {
+      "notACamera": "This device has no camera.",
+      "deviceUnreachable": "The camera has not reported its network address yet, so it cannot be reached.",
+      "noStream": "The camera has no live stream yet. Apply Local Camera Streaming on the Patchers screen.",
+      "sidecarDown": "The video relay (go2rtc) is not running on the server. Restart the add-on.",
+      "unknown": "The live stream is not available right now."
+    },
+    "fail": {
+      "hlsUnsupported": "This browser cannot play HLS.",
+      "hlsStopped": "The HLS stream stopped and did not come back. Press Watch to try again.",
+      "decodeDetail": "The live video could not be decoded: {{detail}}",
+      "decode": "The live video could not be decoded.",
+      "refused": "The live stream refused the connection.",
+      "format": "This browser cannot play the stream's format ({{format}}).",
+      "mseUnsupported": "This browser cannot play MSE. Choose HLS instead.",
+      "noCodecs": "This browser plays none of the codecs the stream offers. Choose HLS instead.",
+      "closed": "The live stream closed. Press Watch to start it again.",
+      "socket": "Could not open the live stream connection.",
+      "webrtcUnsupported": "This browser cannot play WebRTC.",
+      "webrtcDropped": "The WebRTC connection dropped. Check that this device can reach the server.",
+      "noOffer": "No local WebRTC offer was created.",
+      "webrtcUnavailable": "WebRTC is not set up on this server."
+    },
+    "fallback": "{{message}} Using {{mode}} instead.",
+    "frame": {
+      "playing": "Live over {{mode}}",
+      "connecting": "Connecting over {{mode}}…",
+      "idle": "Not playing",
+      "videoLabel": "Live video from {{name}}",
+      "live": "Live",
+      "fullScreen": "Full screen",
+      "sound": "Sound",
+      "stop": "Stop"
+    },
+    "watch": "Watch",
+    "page": {
+      "lastClip": "Last clip <code>{{path}}</code>",
+      "entities": "Entities: {{keys}}.",
+      "clipsOnTimeline": "Clips are on the Timeline",
+      "talk": "Talk",
+      "talkNote": "Hold to talk is in the iPhone app. The web dashboard plays the picture and sound only.",
+      "panNote": "The box turns the camera with its own tool. Home returns it to the centre. Each move asks before it runs.",
+      "noCamera": "This device has no camera to watch."
+    },
+    "stream": "Stream",
+    "nothingUntilWatch": "Nothing connects until you press Watch.",
+    "checkFailed": "Could not check the live stream: {{error}}",
+    "modeLabel": "Live mode"
+  },
+  "overview": {
+    "relayedBy": "{{type}} · relayed by {{parent}}",
+    "noParent": "No parent relays for it"
+  },
+  "result": {
+    "sentVia": "Sent via {{transport}}",
+    "polled": "Asked the relay for a reading",
+    "paired": "Paired — the device picks it up on its next poll",
+    "imported_one": "Imported {{count}} accessory",
+    "imported_other": "Imported {{count}} accessories",
+    "nothingToImport": "Nothing new to import",
+    "skipped_one": "{{head}} — {{count}} skipped: {{outcomes}}",
+    "skipped_other": "{{head}} — {{count}} skipped: {{outcomes}}",
+    "unpairedNote": "Unpaired. {{note}}",
+    "unpaired": "Unpaired",
+    "removed": "Device removed",
+    "capabilitySaved": "Saved — takes effect on the device’s next upload-credential poll",
+    "uploaded": "Uploaded",
+    "playing": "Playing",
+    "selected": "Selected",
+    "deleted": "Deleted"
+  },
+  "page": {
+    "loadDevicesFailed": "Could not load the devices: {{error}}",
+    "loadTodayFailed": "Could not load today: {{error}}",
+    "loadBleFailed": "Could not load the Bluetooth accessories: {{error}}",
+    "routeMqtt": "It has a live MQTT session, so it runs now.",
+    "routeHeartbeat": "It is not on MQTT, so it waits for its next HTTP heartbeat, about 10 seconds.",
+    "openLog": "Open its log",
+    "schedule": "Schedule",
+    "continueCleaning": "Continue cleaning",
+    "valuesFrom": "Values from the last report at {{clock}}.",
+    "commandsOffline": "Each command asks before it runs, then waits until the {{noun}} reports again.",
+    "unrecognised": "This device type ({{type}}) is not recognised, so no Home Assistant entities are defined for it. It still connects, appears here and its traffic is logged; raw commands are under Entities and raw command.",
+    "liveCaption": "Camera stream · WebRTC, MSE or HLS, also in Home Assistant",
+    "timesOfDay": "Times of day",
+    "timesOfDayHint": "A single time each, in the device's own day."
+  },
+  "empty": {
+    "finding": "No devices yet.",
+    "title": "Add your first device",
+    "body": "Keep this computer near a litter box, feeder or fountain: its Wi-Fi and this server's address are sent over Bluetooth. A device already running can instead be pointed at this server's address."
+  },
+  "never": "never",
+  "settings": "Settings",
+  "liveView": "Live view",
+  "stateTitle": "State",
+  "stateLabel": "{{name}} state",
+  "atAGlance": "{{name}} at a glance",
+  "figuresLabel": "{{name}} figures",
+  "rawStateJson": "Raw parsed state JSON",
+  "parsedState": "Parsed state",
+  "card": {
+    "pill": {
+      "online": "Online",
+      "polling": "Polling",
+      "offline": "Offline",
+      "unknown": "Unknown"
+    },
+    "heartbeat": "Heartbeat · {{ago}}",
+    "lastReport": "Last report {{ago}}",
+    "neverReported": "never reported",
+    "via": "Via the {{parent}} · {{ago}}"
+  },
+  "home": {
+    "title": "Home",
+    "allFine": "Everything is fine.",
+    "lead": "{{title}}.",
+    "leadWithDetail": "{{title}} ({{detail}}).",
+    "restFine": "Everything else is fine.",
+    "more_one": "{{count}} more thing needs you below.",
+    "more_other": "{{count}} more things need you below.",
+    "timeline": "Timeline",
+    "addDevice": "Add a device",
+    "catsAndAttention": "Cats and attention",
+    "cats": "Cats",
+    "devices": "Devices",
+    "reporting": "{{total}} · {{reporting}} reporting"
+  },
+  "petCard": {
+    "visits_one": "{{count}} visit",
+    "visits_other": "{{count}} visits",
+    "visitsLast_one": "{{count}} visit · last {{clock}}",
+    "visitsLast_other": "{{count}} visits · last {{clock}}"
+  },
+  "accessory": {
+    "route": "It travels over Bluetooth through its parent, which must be on MQTT.",
+    "relayedBy": "Relayed by the <link>{{parent}}</link> over Bluetooth.",
+    "noRelay": "No device relays for it.",
+    "factsLabel": "{{name}} facts",
+    "lastReading": "Last reading",
+    "neverRead": "Never",
+    "interval": "Poll interval",
+    "notSet": "Not set",
+    "readNote": "Read now asks the relay to open a Bluetooth session; otherwise that happens on a timer up to the poll interval away. Each command asks before it runs.",
+    "readNow": "Read now",
+    "scanGuess": "The scan type for this model is a guess. Nobody has captured what a real {{type}} pairing carries, so {{scan}} is borrowed from its product line. If this accessory never reports, unpair it and pair again with a different scan type under Advanced, and please say which value worked.",
+    "nothingYet": "Nothing reported yet. An accessory only speaks when its parent is asked to open a Bluetooth session to it.",
+    "settingsNote": "Settings travel as one block, so a change needs a reading first; before the accessory has reported, a write is refused rather than guessed at.",
+    "tools": "Accessory tools",
+    "mac": "Bluetooth address",
+    "id": "Accessory ID",
+    "unpair": "Unpair accessory"
+  },
+  "automation": {
+    "title": "Automation",
+    "schedules": "Schedules",
+    "oneOffFeeds": "One-off feeds"
+  },
+  "pan": {
+    "camera": "Camera",
+    "left": "Left",
+    "home": "Home",
+    "right": "Right"
+  },
+  "headline": {
+    "online": "Online · MQTT · {{ago}}",
+    "polling": "Polling · heartbeat {{ago}}",
+    "offline": "Offline · no report since {{since}}",
+    "paused": "Paused while cleaning.",
+    "pausedWhy": "The box saw a cat near the entrance.",
+    "silent": "Silent for {{span}}.",
+    "silentHint": "Check that it has power and is on Wi-Fi.",
+    "sentence": "{{text}}.",
+    "nextMeal": "Next meal at {{clock}}.",
+    "noMoreMeals": "No more meals today.",
+    "fedToday": "Fed {{grams}} g today."
+  },
+  "links": {
+    "tools": "Device tools",
+    "patches": "Device patches",
+    "stepUp": "Step-up",
+    "deviceId": "Device ID",
+    "copyId": "Copy the device ID",
+    "copyFailed": "Could not copy",
+    "logs": "Logs",
+    "logsHint": "Server and device logs",
+    "forDebugging": "For debugging"
+  },
+  "screen": {
+    "goneTitle": "This device is not here any more",
+    "backHome": "Back to Home",
+    "goneBody": "It was removed, or the link names a device this server never registered.",
+    "loadFailed": "Could not load this device: {{error}}"
+  },
+  "feeder": {
+    "hopper": "Hopper {{n}}",
+    "levelUnknown": "Food level not reported",
+    "low": "Food is low",
+    "hasFood": "Food in the hopper",
+    "feedNow": "Feed now",
+    "portionsHint": "Portions a feed dispenses",
+    "portionsLabel": "{{label}} portions",
+    "noFeed": "This feeder takes no feed command.",
+    "asks": "Asks before it runs. A running meal can be cancelled."
+  },
+  "feederToday": {
+    "editSchedule": "Edit schedule",
+    "noZone": "The feeder has not said which time zone it is in.",
+    "none": "No meals planned today.",
+    "label": "Today's meals",
+    "inSpan": "In {{span}}",
+    "past": "Past",
+    "planned": "Planned"
+  },
+  "hero": {
+    "firmware": "· firmware <mono>{{firmware}}</mono>",
+    "noFigures": "This model publishes no figures."
+  },
+  "rawCard": {
+    "title": "Entities and raw command",
+    "aside": "What this device is reporting now",
+    "unrouted": "Not shown above",
+    "unroutedNote": "These entities are published to Home Assistant but this screen has no block for them. Please report it.",
+    "unroutedLabel": "Entities with no block",
+    "key": "Key",
+    "schedulesJson": "Schedules as raw JSON",
+    "diagnostics": "Diagnostics and raw payloads",
+    "lastState": "Last HTTP state report",
+    "lastProperty": "Last MQTT property post",
+    "connection": "MQTT connection",
+    "noneYet": "none yet",
+    "noConnect": "no MQTT connect seen; the device is on HTTP heartbeat",
+    "advanced": "Advanced: send a raw command",
+    "patchers": "Firmware changes for this device are on the <link>Patchers</link> screen."
+  },
+  "weekday": {
+    "Sun": "Sun",
+    "Mon": "Mon",
+    "Tue": "Tue",
+    "Wed": "Wed",
+    "Thu": "Thu",
+    "Fri": "Fri",
+    "Sat": "Sat"
+  },
+  "schedules": {
+    "invalid": {
+      "periodOutside": "A period has a time outside the day.",
+      "entryDays": "Pick at least one day for each entry.",
+      "timeDays": "Pick at least one day for each time.",
+      "timeOutside": "A time is outside the day.",
+      "mealDays": "Pick at least one day for each set of meals.",
+      "mealOutside": "A meal time is outside the day.",
+      "portions": "Portions are whole numbers from 0 to 255."
+    },
+    "unsaved": "{{name}} (unsaved)",
+    "note": "The device runs these on its own clock, in its own time zone. Nothing is set for you: an empty schedule does not restrict the device. A period that ends before it starts runs through midnight, which is how PetKit's own app writes quiet hours.",
+    "nextMeal": "Next meal at {{clock}}, in {{span}}.",
+    "feedingTitle": "Feeding schedule",
+    "gFedToday": "g fed today",
+    "gEaten": "{{grams}} g eaten",
+    "eatenOfFed": "Eaten of what was fed today",
+    "zoneNote": "Times use the device's own time zone, {{zone}}."
+  },
+  "deferred": {
+    "pickDateTime": "Pick a date and a time.",
+    "scheduled": "Feed scheduled.",
+    "formLabel": "Schedule a one-off feed",
+    "date": "Date",
+    "time": "Time",
+    "portions": "Portions",
+    "scheduling": "Scheduling…",
+    "schedule": "Schedule feed",
+    "notScheduled": "Not scheduled: {{error}}",
+    "loadFailed": "One-off feeds could not be loaded: {{error}}",
+    "title": "Deferred feed",
+    "aside": "Sent when the feeder next polls",
+    "dualPortions": "Hopper 1: {{a1}}, Hopper 2: {{a2}}",
+    "singlePortions": "Portions: {{a1}}",
+    "waiting": "Waiting",
+    "empty": "No one-off feeds scheduled.",
+    "notRemoved": "Not removed: {{error}}",
+    "note": "Date and time are on the feeder's own clock ({{zone}}). The feeder picks the meal up on its next check-in."
+  },
+  "feedEditor": {
+    "everyDay": "Every day",
+    "weekdays": "Weekdays",
+    "noDays": "No days",
+    "dualPortions": "Hopper 1 × {{a1}} · Hopper 2 × {{a2}}",
+    "addDays": "Add days",
+    "empty": "No meals set. The feeder dispenses only when you press Feed.",
+    "set": "Meal set {{n}}",
+    "removeSet": "Remove meal set {{n}}",
+    "setDays": "Days of meal set {{n}}",
+    "editMeal": "Edit meal {{meal}} of set {{set}}",
+    "edit": "Edit",
+    "noMeals": "No meals on these days.",
+    "addMealTo": "Add a meal to set {{n}}",
+    "addMeal": "Add a meal",
+    "mealName": "Meal {{meal}} of set {{set}}"
+  },
+  "mealSheet": {
+    "title": "Edit meal",
+    "repeatsEveryDay": "{{name}}. Repeats every day, the days of its set.",
+    "repeatsOn": "{{name}}. Repeats on {{days}}, the days of its set.",
+    "timeLabel": "{{name}} time",
+    "done": "Done",
+    "delete": "Delete meal",
+    "kept": "Changes are kept in this schedule until you save it."
+  },
+  "points": {
+    "cleaning": {
+      "title": "Scheduled cleaning",
+      "job": "scheduled cleaning"
+    },
+    "deodorizing": {
+      "title": "Periodic deodorizing",
+      "job": "periodic deodorizing"
+    },
+    "other": {
+      "title": "Other",
+      "job": "other"
+    },
+    "timeLabel": "{{name}} time {{n}}",
+    "daysLabel": "Days of {{job}} time {{n}}",
+    "type": "type {{type}}",
+    "removeLabel": "Remove {{job}} time {{n}}",
+    "empty": "No times set.",
+    "addLabel": "Add {{job}} time",
+    "add": "Add time"
+  },
+  "ranges": {
+    "empty": "Not set. Nothing here restricts the device; add a period to change that.",
+    "period": "period {{n}}",
+    "periodIn": "{{entry}}, period {{n}}",
+    "add": "Add period",
+    "allDay": "All day",
+    "start": "{{name}} start",
+    "end": "{{name}} end",
+    "nextDay": "next day",
+    "pickTimesFor": "Pick times for {{name}}",
+    "makeAllDay": "Make all day: {{name}}",
+    "pickTimes": "Pick times",
+    "remove": "Remove {{name}}"
+  },
+  "scheduleEditor": {
+    "savedSent": "Saved and sent to the device.",
+    "savedQueued": "Saved. The device picks it up on its next poll.",
+    "saving": "Saving…",
+    "discard": "Discard"
+  },
+  "weekly": {
+    "add": "Add entry",
+    "enabled": "Enabled",
+    "days": "Days of entry {{n}}",
+    "remove": "Remove entry {{n}}",
+    "entry": "Entry {{n}}"
+  }
+}

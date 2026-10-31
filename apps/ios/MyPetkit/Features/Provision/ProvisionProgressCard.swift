@@ -16,7 +16,7 @@ struct ProvisionProgressCard: View {
         Card {
             illustration
             VStack(alignment: .leading, spacing: 2) {
-                Text(status.isEmpty ? "Put the device in pairing mode, then choose it below." : status)
+                Text(status.isEmpty ? L10n.string("Put the device in pairing mode, then choose it below.") : status)
                     .font(Theme.Font.bodyMedium)
                     .foregroundStyle(failed ? Theme.Color.negative : Theme.Color.text)
                     .fixedSize(horizontal: false, vertical: true)
@@ -91,7 +91,7 @@ struct StageRow: View {
                 .foregroundStyle(state == .waiting ? Theme.Color.muted : Theme.Color.text)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityValue(state == .done ? "Done" : state == .active ? "In progress" : "Waiting")
+        .accessibilityValue(state == .done ? L10n.string("Done") : state == .active ? L10n.string("In progress") : L10n.string("Waiting"))
     }
 }
 

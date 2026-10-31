@@ -23,9 +23,9 @@ struct FeedEditor: View {
     var body: some View {
         if groups.isEmpty {
             Card {
-                EmptyBlock(title: "No meals set",
-                           message: "The feeder dispenses only when you press Feed.",
-                           actionTitle: "Add a meal") { onEdit(.meal(group: 0, index: nil)) }
+                EmptyBlock(title: L10n.string("No meals set"),
+                           message: L10n.string("The feeder dispenses only when you press Feed."),
+                           actionTitle: L10n.string("Add a meal")) { onEdit(.meal(group: 0, index: nil)) }
             }
         } else {
             ForEach(Array(groups.enumerated()), id: \.element.id) { index, group in
@@ -44,7 +44,7 @@ struct FeedEditor: View {
     private func groupView(index: Int, group: FeedGroup) -> some View {
         Card {
             HStack {
-                Text(groups.count > 1 ? "Meals on \(group.days.summary)" : group.days.summary)
+                Text(groups.count > 1 ? L10n.string("Meals on \(group.days.summary)") : group.days.summary)
                     .font(Theme.Font.section).accessibilityAddTraits(.isHeader)
                 Spacer()
                 if groups.count > 1 {
@@ -77,7 +77,7 @@ struct FeedEditor: View {
             if runsToday, let now, line == order.count, !order.isEmpty {
                 NowLine(second: now.second)
             }
-            AddRowButton(title: "Add a meal") { onEdit(.meal(group: index, index: nil)) }
+            AddRowButton(title: L10n.string("Add a meal")) { onEdit(.meal(group: index, index: nil)) }
         }
     }
 }
@@ -102,14 +102,14 @@ struct MealCard: View {
                 .frame(minWidth: 64, alignment: .leading)
                 VStack(alignment: .leading, spacing: 2) {
                     let total = meal.hopper1 + (dual ? meal.hopper2 : 0)
-                    Text(total == 1 ? "1 portion" : "\(total) portions").font(Theme.Font.body).monospacedDigit()
+                    Text(L10n.string("\(total) portions")).font(Theme.Font.body).monospacedDigit()
                     if dual {
                         Text(PortionRules.describe(hopper1: meal.hopper1, hopper2: meal.hopper2, dual: true))
                             .font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted).monospacedDigit()
                     }
                 }
                 Spacer(minLength: 8)
-                if isNext { Pill(text: "Next") }
+                if isNext { Pill(text: L10n.string("Next")) }
                 Image(systemName: "chevron.right").font(Theme.Font.chevron)
                     .foregroundStyle(Theme.Color.muted).accessibilityHidden(true)
             }

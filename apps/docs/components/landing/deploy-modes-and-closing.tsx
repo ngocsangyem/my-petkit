@@ -1,34 +1,36 @@
 import Link from 'next/link';
+import { localizePath, type Locale } from '@/lib/i18n';
+import type { Dictionary } from '@/lib/i18n-dictionaries';
 import { gitConfig } from '@/lib/shared';
 import { SectionHead } from './section-head';
 
 const MODES = [
-  { title: 'Home Assistant add-on', body: 'Add the repository in the add-on store. The dashboard opens through Ingress; the iOS app pairs with a QR code.', where: 'HAOS / Supervised' },
-  { title: 'Local container', body: 'Any Docker host on your LAN. Self-signed TLS, pinned by the iOS app through the pairing QR.', where: 'deploy/local/' },
-  { title: 'Cloud / VPS', body: "Reached over WireGuard. Only the user plane is public, behind Caddy and Let's Encrypt.", where: 'deploy/cloud/' },
-];
+  { id: 'addon', where: 'HAOS / Supervised' },
+  { id: 'container', where: 'deploy/local/' },
+  { id: 'cloud', where: 'deploy/cloud/' },
+] as const;
 
 const DOCS = [
-  { href: '/docs/install', title: 'Install', hint: 'HA, container, VPS' },
-  { href: '/docs/guides/add-a-device', title: 'Add a device', hint: 'Wi-Fi and server address' },
-  { href: '/docs/configuration', title: 'Configure', hint: 'Every option and port' },
-  { href: '/docs/firmware', title: 'Firmware and patchers', hint: 'What changes, how to undo' },
-  { href: '/docs/devices', title: 'Device reference', hint: 'Buttons, lights, limits' },
-  { href: '/docs/contributing', title: 'Contribute', hint: 'Tests and protocol rules' },
-];
+  { id: 'install', href: '/docs/install' },
+  { id: 'addDevice', href: '/docs/guides/add-a-device' },
+  { id: 'configure', href: '/docs/configuration' },
+  { id: 'firmware', href: '/docs/firmware' },
+  { id: 'devices', href: '/docs/devices' },
+  { id: 'contribute', href: '/docs/contributing' },
+] as const;
 
-export function DeployModes() {
+export function DeployModes({ t }: { t: Dictionary['deploy'] }) {
   return (
     <section className="lp-block lp-block-tight" id="install">
       <div className="lp-wrap">
-        <SectionHead eyebrow="Install" title="Same signed image, three places to run it.">
-          Every mode runs the same multi-architecture image. Pick the one that matches the machine you already have.
+        <SectionHead eyebrow={t.eyebrow} title={t.title}>
+          {t.lede}
         </SectionHead>
         <div className="lp-modes" data-lp-reveal="">
           {MODES.map((m) => (
-            <article className="lp-mode" key={m.title}>
-              <h3>{m.title}</h3>
-              <p>{m.body}</p>
+            <article className="lp-mode" key={m.id}>
+              <h3>{t.modes[m.id].title}</h3>
+              <p>{t.modes[m.id].body}</p>
               <code>{m.where}</code>
             </article>
           ))}
@@ -38,35 +40,32 @@ export function DeployModes() {
   );
 }
 
-export function ClosingCta() {
+export function ClosingCta({ t, lang }: { t: Dictionary['closing']; lang: Locale }) {
   return (
     <section className="lp-block lp-block-tight">
       <div className="lp-wrap">
         <div className="lp-closing" data-lp-scale-in="">
           <div>
-            <h2>Unplug the internet. The litter box keeps cleaning.</h2>
+            <h2>{t.title}</h2>
             <div className="lp-ctas">
-              <Link className="lp-btn lp-btn-primary" data-lp-magnet href="/docs/install/home-assistant-add-on">
-                Install the add-on
+              <Link className="lp-btn lp-btn-primary" data-lp-magnet href={localizePath('/docs/install/home-assistant-add-on', lang)}>
+                {t.ctaInstall}
               </Link>
               <a className="lp-btn lp-btn-secondary" data-lp-magnet href={`https://github.com/${gitConfig.user}/${gitConfig.repo}`}>
-                View on GitHub
+                {t.ctaGithub}
               </a>
             </div>
           </div>
-          <nav className="lp-docs-list" aria-label="Documentation">
+          <nav className="lp-docs-list" aria-label={t.docsLabel}>
             {DOCS.map((d) => (
-              <Link key={d.href} href={d.href}>
-                {d.title}
-                <span>{d.hint}</span>
+              <Link key={d.id} href={localizePath(d.href, lang)}>
+                {t.docs[d.id].title}
+                <span>{t.docs[d.id].hint}</span>
               </Link>
             ))}
           </nav>
         </div>
-        <p className="lp-warning">
-          Pointing a device at MyPetKit, and above all applying the firmware patchers, is done at your own risk. A
-          patched or misconfigured device can stop working and falls outside its warranty and PetKit&apos;s update path.
-        </p>
+        <p className="lp-warning">{t.warning}</p>
       </div>
     </section>
   );

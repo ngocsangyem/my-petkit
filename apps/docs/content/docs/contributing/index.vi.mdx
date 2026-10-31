@@ -1,0 +1,104 @@
+---
+title: Đóng góp
+description: Thiết lập kho mã, chạy kiểm thử và kiểm tra, và gửi thay đổi.
+---
+
+MyPetKit là một monorepo:
+
+```text
+addon/              Home Assistant add-on manifest and docs
+services/api/       Python package my_petkit: the device protocol core and the user-plane API
+packages/contracts  OpenAPI spec and the WebSocket event contract
+apps/web/           React dashboard
+apps/ios/           SwiftUI app and the PetkitKit Swift package
+apps/docs/          this documentation site
+deploy/             local and cloud deploy recipes
+docs/               architecture, code standards, security rules, design reference
+```
+
+Hãy đọc [Kiến trúc](/vi/docs/contributing/architecture) trước, rồi đến [Quy tắc](/vi/docs/contributing/rules). Các quy tắc tồn tại vì, trong một giao thức không ai ghi tài liệu, thay đổi trông tự nhiên thường lại là thay đổi sai.
+
+## API
+
+Python 3.11 trở lên. Bộ kiểm thử không cần thiết bị hay broker.
+
+```bash
+cd services/api
+pip install -e '.[dev]'
+pytest
+```
+
+| Lệnh | Kiểm tra gì |
+|---|---|
+| `pytest` | Toàn bộ bộ kiểm thử |
+| `pytest --firmware` | Cả các kiểm thử patcher với firmware thật, nếu `tests/firmware/` có dữ liệu. Xem [Tự đọc một firmware image](/vi/docs/firmware/how-patching-works#reading-a-firmware-image-yourself). |
+| `python ../../scripts/lint-baseline-gate.py ruff ruff ruff-baseline.txt src tests` | ruff, so với baseline đã ghi |
+| `python ../../scripts/lint-baseline-gate.py mypy mypy mypy-baseline.txt src/my_petkit` | mypy, so với baseline đã ghi |
+| `lint-imports` | Các quy tắc phụ thuộc giữa các package |
+| `HYPOTHESIS_PROFILE=nightly pytest tests/fuzz` | Lượt fuzz dài |
+
+Từ thư mục gốc của kho mã:
+
+```bash
+python scripts/golden_device_responses.py --against "$(cat scripts/golden-baseline.sha)"
+python scripts/golden_device_responses.py --against-self --tz UTC --tz Pacific/Kiritimati
+gitleaks git --config .gitleaks.toml --redact .
+```
+
+Lệnh đầu chứng minh các byte thiết bị nhận được không đổi. Lệnh thứ hai chứng minh múi giờ của máy chủ không tạo ra khác biệt. Hãy chạy gitleaks trước mỗi lần push; CI cũng quét toàn bộ lịch sử.
+
+CI cài ffmpeg trước khi chạy kiểm thử API, nên bạn cũng hãy cài nó trên máy.
+
+## Bảng điều khiển web
+
+Node 22 trở lên, và pnpm.
+
+```bash
+cd apps/web
+pnpm install
+pnpm dev
+```
+
+`pnpm lint` chạy ESLint, `tsc`, Prettier và hai kiểm tra thiết kế (không có màu hex trong mã nguồn, và các quy tắc thiết kế). `pnpm test` chạy vitest. `pnpm build` build bundle mà máy chủ phục vụ.
+
+## Ứng dụng iOS
+
+Xcode 26 và Swift 6.2. Dự án Xcode được tạo ra, không commit.
+
+```bash
+swift build --package-path apps/ios/PetkitKit
+swift test --package-path apps/ios/PetkitKit
+cd apps/ios && xcodegen generate && swiftlint lint --strict
+xcodebuild test -project apps/ios/MyPetkit.xcodeproj -scheme MyPetkit -skipPackagePluginValidation \
+  -destination 'platform=iOS Simulator,name=iPhone 17'
+```
+
+## Các cổng CI
+
+Mỗi cổng dưới đây đều chặn việc merge:
+
+| Cổng | Công cụ |
+|---|---|
+| Kiểm thử API | pytest, với test ID khớp baseline |
+| Kiểm tra golden của thiết bị | `scripts/golden_device_responses.py` |
+| Lint, định dạng, kiểu | ruff, ruff format cho mã mới, mypy |
+| Quy tắc phụ thuộc | import-linter |
+| Web | ESLint, tsc, vitest, build |
+| iOS | SwiftLint, swift test, xcodebuild |
+| Hợp đồng | spec khớp với router; client được sinh ra không bị lệch |
+| Phân tích tĩnh | CodeQL, Semgrep (high và critical) |
+| Phụ thuộc | pip-audit, osv-scanner, pnpm audit (high và critical) |
+| Bí mật | gitleaks và GitHub push protection |
+| Image | Grype, critical có bản sửa sẵn, khi phát hành |
+| Fuzz | hypothesis, chạy ngắn ở mỗi PR |
+
+## Gửi thay đổi
+
+- Conventional commit, mỗi commit một thay đổi, và tách refactor khỏi thay đổi hành vi.
+- Mỗi bản sửa lỗi đi kèm một kiểm thử tái hiện lỗi trước khi sửa.
+- Che bí mật trong mọi fixture dựa trên bản thu thập trước khi commit; gitleaks cũng quét `tests/`.
+- Chỉ merge vào `main` qua pull request khi CI xanh.
+
+## Thêm một mẫu thiết bị [#adding-a-device-model]
+
+Thứ hữu ích nhất bạn có thể gửi là một bản thu thập. Bật chế độ proxy và thu thập lưu lượng trong Cài đặt, dùng thiết bị bình thường, và đính kèm các tệp `*.jsonl` liên quan vào một issue. Hãy đọc [Bản thu thập chứa bí mật](/vi/docs/configuration/security#captures-contain-secrets) trước, và gỡ bỏ những gì câu hỏi không cần.

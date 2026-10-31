@@ -1,4 +1,5 @@
 import type { components } from '@/api/schema';
+import { i18n } from '@/i18n';
 import type { EntityLike } from '@/shared/format/format';
 
 export type DeviceEntity = components['schemas']['DeviceEntity'];
@@ -45,15 +46,19 @@ export const AI_ENTITY_KEYS: readonly string[] = [
   'vomit_detection',
 ];
 
-/** Explanations shown under a control, only where the label is not enough. */
-export const ENTITY_HELP: Readonly<Record<string, string>> = {
-  yowling_detection:
-    "Listens for meowing while a cat is in the box and records when it heard some. PetKit frames repeated yowling as a possible sign of discomfort. Beta in PetKit's app.",
-  ph_detection:
-    "Reads the colour of PetKit's own pH-indicator litter from the camera. With ordinary litter it measures nothing at all. Beta in PetKit's app.",
-  vomit_detection:
-    'Watches for vomiting. A detection result carries a vomit_info list, which stays empty while this is off.',
-};
+/** Explanation shown under a control, only where the label is not enough; else undefined. */
+export function entityHelp(key: string): string | undefined {
+  switch (key) {
+    case 'yowling_detection':
+      return i18n.t('devices:entityHelp.yowlingDetection');
+    case 'ph_detection':
+      return i18n.t('devices:entityHelp.phDetection');
+    case 'vomit_detection':
+      return i18n.t('devices:entityHelp.vomitDetection');
+    default:
+      return undefined;
+  }
+}
 
 /** `option_values` as a list; the contract allows an object, which no entity uses as a map. */
 export function optionValues(entity: AnyEntity): readonly unknown[] | null {

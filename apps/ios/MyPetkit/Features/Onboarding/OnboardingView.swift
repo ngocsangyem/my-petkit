@@ -28,7 +28,7 @@ struct OnboardingView: View {
     @ViewBuilder private var header: some View {
         HStack {
             if model.step != .scan {
-                IconButton(systemImage: "chevron.left", label: "Back") { model.back() }
+                IconButton(systemImage: "chevron.left", label: L10n.string("Back")) { model.back() }
             }
             HStack(spacing: 8) {
                 DrumMark()
@@ -57,8 +57,8 @@ struct OnboardingView: View {
             ServerFoundCard(address: address)
         case .manualAddress:
             Card {
-                LabeledField(label: "Server address",
-                             footnote: "The https address on the dashboard, with its port, such as 192.168.1.20:8443.") {
+                LabeledField(label: L10n.string("Server address"),
+                             footnote: L10n.string("The https address on the dashboard, with its port, such as 192.168.1.20:8443.")) {
                     TextField("192.168.1.20:8443", text: $model.addressText)
                         .font(Theme.Font.mono)
                         .keyboardType(.URL)
@@ -84,15 +84,15 @@ struct OnboardingView: View {
             Button("Enter address manually") { model.step = .manualAddress }
                 .buttonStyle(SecondaryButtonStyle(fill: Theme.Color.surface))
         case .found:
-            busyButton("Trust this server") { model.trustScanned() }
+            busyButton(L10n.string("Trust this server")) { model.trustScanned() }
             Button("Enter address manually") { model.step = .manualAddress }
                 .font(Theme.Font.button).foregroundStyle(Theme.Color.text)
                 .frame(maxWidth: .infinity, minHeight: Theme.Space.control)
         case .manualAddress:
-            busyButton("Continue") { model.submitAddress() }
+            busyButton(L10n.string("Continue")) { model.submitAddress() }
                 .disabled(model.addressText.trimmingCharacters(in: .whitespaces).isEmpty)
         case .confirmFingerprint:
-            busyButton("Trust this server") { model.trustFingerprint() }
+            busyButton(L10n.string("Trust this server")) { model.trustFingerprint() }
         case .signIn, .firstRun:
             EmptyView()
         }
@@ -118,25 +118,27 @@ struct OnboardingView: View {
 
     private var title: String {
         switch model.step {
-        case .scan, .found, .confirmFingerprint: "Is this your server?"
-        case .manualAddress: "Enter the server address"
-        case .signIn: "Sign in to pair"
-        case .firstRun: "Set up your server"
+        case .scan, .found, .confirmFingerprint: L10n.string("Is this your server?")
+        case .manualAddress: L10n.string("Enter the server address")
+        case .signIn: L10n.string("Sign in to pair")
+        case .firstRun: L10n.string("Set up your server")
         }
     }
 
     private var lede: String {
         switch model.step {
         case .scan, .found:
-            "On the dashboard, open Setup › Phones and scan the code. It carries the server address and its certificate fingerprint."
+            L10n.string(
+                "On the dashboard, open Setup › Phones and scan the code. It carries the server address and its certificate fingerprint."
+            )
         case .manualAddress:
-            "Use this when you cannot scan. The next step shows the server's certificate so you can check it."
+            L10n.string("Use this when you cannot scan. The next step shows the server's certificate so you can check it.")
         case .confirmFingerprint:
-            "The server's log prints its certificate SHA-256 at start-up. Compare every block before you trust it."
+            L10n.string("The server's log prints its certificate SHA-256 at start-up. Compare every block before you trust it.")
         case .signIn:
-            "Enter the admin password. This phone gets its own token; the password is not stored."
+            L10n.string("Enter the admin password. This phone gets its own token; the password is not stored.")
         case .firstRun:
-            "This server has no admin yet. The setup code is printed once in the server's log."
+            L10n.string("This server has no admin yet. The setup code is printed once in the server's log.")
         }
     }
 }
@@ -156,7 +158,8 @@ private struct ScannerCard: View {
                     .frame(maxHeight: .infinity)
                     .accessibilityHidden(true)
             }
-            Text(QRScannerView.isAvailable ? "Point the camera at the code" : "No camera available. Enter the address manually.")
+            Text(QRScannerView.isAvailable ? L10n.string("Point the camera at the code")
+                 : L10n.string("No camera available. Enter the address manually."))
                 .font(Theme.Font.smallMedium)
                 .foregroundStyle(Theme.Color.liveText)
                 .padding(.horizontal, 10).padding(.vertical, 4)
@@ -196,7 +199,7 @@ private struct ServerFoundCard: View {
                 Text("Server found").font(Theme.Font.section)
                 Spacer()
                 if scanned, case .pinned = address.trust {
-                    Pill(text: "Certificate in code", tone: .positive)
+                    Pill(text: L10n.string("Certificate in code"), tone: .positive)
                 }
             }
             VStack(alignment: .leading, spacing: 2) {
@@ -229,7 +232,7 @@ private struct SignInCard: View {
 
     var body: some View {
         Card {
-            LabeledField(label: "Admin password") {
+            LabeledField(label: L10n.string("Admin password")) {
                 SecureField("", text: $password).textContentType(.password)
                     .submitLabel(.go).onSubmit { submit(password) }
             }
@@ -252,13 +255,13 @@ private struct FirstRunCard: View {
 
     var body: some View {
         Card {
-            LabeledField(label: "Setup code") {
+            LabeledField(label: L10n.string("Setup code")) {
                 TextField("", text: $setupToken)
                     .font(Theme.Font.mono)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
             }
-            LabeledField(label: "Password", footnote: "At least 10 characters.") {
+            LabeledField(label: L10n.string("Password"), footnote: L10n.string("At least 10 characters.")) {
                 SecureField("", text: $password).textContentType(.newPassword)
             }
             RatioBar(ratio: PasswordStrength.ratio(password), label: PasswordStrength.label(password),
@@ -298,9 +301,9 @@ enum PasswordStrength {
     static func label(_ password: String) -> String {
         switch ratio(password) {
         case 0: ""
-        case ..<0.5: "Weak"
-        case ..<0.8: "Fair"
-        default: "Strong"
+        case ..<0.5: L10n.string("Weak")
+        case ..<0.8: L10n.string("Fair")
+        default: L10n.string("Strong")
         }
     }
 }

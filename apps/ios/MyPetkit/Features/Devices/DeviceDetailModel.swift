@@ -39,7 +39,7 @@ final class DeviceDetailModel {
         self.automation = .loaded(automation)
         self.device = .loaded(device)
         self.sessions = .loaded(sessions)
-        timezone = device.timezoneInfo.map(Loadable.loaded) ?? .failed("No timezone yet.")
+        timezone = device.timezoneInfo.map(Loadable.loaded) ?? .failed(L10n.string("No timezone yet."))
         aiEnabled = .loaded(true)
         capabilities = .loaded(Capabilities(fullVideo: true, eventImage: true, highLight: false, dynamicVideo: true))
         logSettings = .loaded((false, ""))
@@ -66,7 +66,7 @@ final class DeviceDetailModel {
 
     func loadSessions(_ session: ServerSession) async {
         do { sessions = .loaded(try await DevicesAPI(session: session).recentSessions(device: deviceID)) } catch {
-            sessions = .failed("Could not load today's activity. \(Loadable<Void>.message(for: error))")
+            sessions = .failed(L10n.string("Could not load today's activity. \(Loadable<Void>.message(for: error))"))
         }
     }
 
@@ -115,17 +115,17 @@ final class DeviceDetailModel {
     /// A named action (R2). Throws the refusal for the confirm sheet to show.
     func run(_ action: DeviceAction, session: ServerSession) async throws {
         let id = deviceID
-        let said = try await session.call(purpose: "Send \(action.name) to the device") {
+        let said = try await session.call(purpose: L10n.string("Send \(action.name) to the device")) {
             try await DevicesAPI(session: session).runAction(id, action: action.key)
         }
-        lastCommand = "Last: \(action.name) · \(said)"
+        lastCommand = L10n.string("Last: \(action.name) · \(said)")
         await loadDevice(session)
     }
 
     /// An entity write (R2).
     func set(_ entity: DeviceEntity, to value: String, session: ServerSession) async throws {
         let id = deviceID
-        let said = try await session.call(purpose: "Change \(entity.name) on the device") {
+        let said = try await session.call(purpose: L10n.string("Change \(entity.name) on the device")) {
             try await DevicesAPI(session: session).setEntity(id, entity: entity.key, value: value)
         }
         lastCommand = "\(entity.name) · \(said)"
@@ -135,16 +135,16 @@ final class DeviceDetailModel {
     /// The fixed UTC offset override (R2); nil hands the device back to what it reported.
     func setTimezone(_ offset: Double?, session: ServerSession) async throws {
         let id = deviceID
-        let said = try await session.call(purpose: "Change the device's timezone") {
+        let said = try await session.call(purpose: L10n.string("Change the device's timezone")) {
             try await DevicesAPI(session: session).setTimezone(id, offset: offset)
         }
-        lastCommand = "Timezone · \(said)"
+        lastCommand = L10n.string("Timezone · \(said)")
         await loadTimezone(session)
         await loadDevice(session)
     }
 
     func setAI(_ on: Bool, session: ServerSession) async {
-        await write(session, purpose: "Change pet recognition") {
+        await write(session, purpose: L10n.string("Change pet recognition")) {
             _ = try await session.client.setDeviceAi(path: .init(id: self.deviceID), body: .json(.init(aiEnabled: on))).ok
         }
         await loadAI(session)
@@ -158,14 +158,14 @@ final class DeviceDetailModel {
         case .highLight: request.highLight = on
         case .dynamicVideo: request.dynamicVideo = on
         }
-        await write(session, purpose: "Change what the camera uploads") {
+        await write(session, purpose: L10n.string("Change what the camera uploads")) {
             _ = try await session.client.setDeviceCapabilities(path: .init(id: self.deviceID), body: .json(request)).ok
         }
         await loadCapabilities(session)
     }
 
     func setLogUpload(_ on: Bool, session: ServerSession) async {
-        await write(session, purpose: "Change debug log collection") {
+        await write(session, purpose: L10n.string("Change debug log collection")) {
             _ = try await session.client.setDeviceLogSettings(
                 path: .init(id: self.deviceID), body: .json(.init(logUploadEnabled: on))).ok
         }
@@ -175,7 +175,7 @@ final class DeviceDetailModel {
     /// Removes the device from the registry. Throws the refusal.
     func delete(session: ServerSession) async throws {
         let id = deviceID
-        _ = try await session.call(purpose: "Remove this device") {
+        _ = try await session.call(purpose: L10n.string("Remove this device")) {
             try await session.client.deleteDevice(path: .init(id: id)).ok
         }
     }
@@ -197,10 +197,10 @@ enum CapabilityFlag: CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .fullVideo: "Recordings"
-        case .eventImage: "Snapshots"
-        case .highLight: "Highlights"
-        case .dynamicVideo: "Motion clips"
+        case .fullVideo: L10n.string("Recordings")
+        case .eventImage: L10n.string("Snapshots")
+        case .highLight: L10n.string("Highlights")
+        case .dynamicVideo: L10n.string("Motion clips")
         }
     }
 

@@ -1,5 +1,6 @@
 // Words for the force-continue checklist and the auto-pack status line. The API
-// sends stable codes; the person reads these sentences.
+// sends stable codes; the person reads these sentences, in the active language.
+import { i18n } from '@/i18n';
 import { formatDateTime } from '@/shared/format/format';
 import type {
   AutoPackRule,
@@ -15,11 +16,29 @@ export interface ChecklistItem {
   blockedBy: readonly ForceContinueReason[];
 }
 
-/** No gram reading on purpose: the box's live weight is not something this app has. */
+/**
+ * No gram reading on purpose: the box's live weight is not something this app has. Labels are
+ * getters, so each read is in the active language.
+ */
 export const FORCE_CONTINUE_CHECKLIST: readonly ChecklistItem[] = [
-  { label: 'No pet in the box', blockedBy: ['pet_in_box', 'pet_entered', 'presence_unknown'] },
-  { label: 'No visit in progress', blockedBy: ['visit_open', 'history_unavailable'] },
-  { label: 'Lid closed, no fault', blockedBy: ['cover_open', 'device_fault'] },
+  {
+    get label() {
+      return i18n.t('devices:force.check.noPet');
+    },
+    blockedBy: ['pet_in_box', 'pet_entered', 'presence_unknown'],
+  },
+  {
+    get label() {
+      return i18n.t('devices:force.check.noVisit');
+    },
+    blockedBy: ['visit_open', 'history_unavailable'],
+  },
+  {
+    get label() {
+      return i18n.t('devices:force.check.lidClosed');
+    },
+    blockedBy: ['cover_open', 'device_fault'],
+  },
 ];
 
 /** True when none of the item's reasons is among the current blockers. */
@@ -45,36 +64,48 @@ export function uncoveredBlockers(
   return blockers.filter(b => !FORCE_CONTINUE_CHECKLIST.some(i => i.blockedBy.includes(b.reason)));
 }
 
-export const TRIGGER_LABELS: Readonly<Record<AutoPackTrigger, string>> = {
-  after_cleanings: 'After a number of cleanings',
-  bin_full: 'When the bin is full',
-  daily_at: 'Every day at a set time',
-};
+/** The triggers a rule can use, in the order the picker lists them. */
+export const TRIGGERS: readonly AutoPackTrigger[] = ['after_cleanings', 'bin_full', 'daily_at'];
+
+/** A trigger's name in the picker. */
+export function triggerLabel(trigger: AutoPackTrigger): string {
+  return i18n.t(`devices:autoPack.trigger.${trigger}`);
+}
 
 /** Guard reasons the auto-pack evaluation can be held back by, besides its own three. */
-const HELD_BACK: Readonly<Record<string, string>> = {
-  not_due: 'not due yet',
-  quiet_hours: 'inside quiet hours',
-  cooldown: 'waiting a little after the last attempt',
-  not_delivered: 'the last pack command could not be sent',
-  state_stale: 'the box has not sent a state report in the last 2 minutes',
-  presence_unknown: 'the box has not said whether a pet is inside',
-  device_offline: 'the box has not been heard from in the last 90 seconds',
-  not_on_mqtt: 'the box is not connected over MQTT',
-  pet_in_box: 'the box reports a pet inside',
-  visit_open: 'a pet entered in the last 10 minutes and has not left',
-  pet_nearby: 'a pet was near the box in the last 2 minutes',
-  device_fault: 'the box reports an error',
-  device_busy: 'the box is running a cycle',
-  no_bags: 'the box reports no bags left, or has not reported a bag count',
-  history_unavailable: 'the visit history could not be read',
-};
+const HELD_BACK = [
+  'not_due',
+  'quiet_hours',
+  'cooldown',
+  'not_delivered',
+  'state_stale',
+  'presence_unknown',
+  'device_offline',
+  'not_on_mqtt',
+  'pet_in_box',
+  'visit_open',
+  'pet_nearby',
+  'device_fault',
+  'device_busy',
+  'no_bags',
+  'history_unavailable',
+] as const;
+
+/** A held-back reason as a clause; the server's code when this client does not know it. */
+function heldBackText(reason: string): string {
+  const known = HELD_BACK.find(r => r === reason);
+  return known ? i18n.t(`devices:autoPack.heldBack.${known}`) : reason;
+}
 
 /** Why the server turned the rule off, as a clause. */
 export function disabledText(reason: string): string {
-  if (reason === 'no_response') return 'the box did not answer two packs in a row';
+  if (reason === 'no_response') return i18n.t('devices:autoPack.disabled.noResponse');
   const packError = /^pack_error:\s*(.*)$/s.exec(reason);
-  if (packError) return `the box reported a packing error: ${packError[1] || 'no detail'}`;
+  if (packError) {
+    return i18n.t('devices:autoPack.disabled.packError', {
+      detail: packError[1] || i18n.t('devices:autoPack.disabled.noDetail'),
+    });
+  }
   return reason;
 }
 
@@ -82,18 +113,29 @@ export function disabledText(reason: string): string {
 export function autoPackStatusLine(rule: AutoPackRule, status: AutoPackStatus): string {
   const parts: string[] = [];
   if (status.disabledReason) {
-    parts.push(`Turned off by the server because ${disabledText(status.disabledReason)}`);
+    parts.push(
+      i18n.t('devices:autoPack.status.turnedOff', {
+        reason: disabledText(status.disabledReason),
+      }),
+    );
   } else if (status.pendingSince) {
-    parts.push(`Pack sent at ${formatDateTime(status.pendingSince)}, waiting for the box`);
+    parts.push(
+      i18n.t('devices:autoPack.status.pending', { at: formatDateTime(status.pendingSince) }),
+    );
   } else if (rule.enabled && rule.trigger === 'bin_full' && status.awaitingBinClear) {
-    parts.push('Waiting for the bin to be emptied before it counts again');
+    parts.push(i18n.t('devices:autoPack.status.awaitingBinClear'));
   } else if (rule.enabled && status.heldBackBy) {
-    parts.push(`Held back: ${HELD_BACK[status.heldBackBy] ?? status.heldBackBy}`);
+    parts.push(
+      i18n.t('devices:autoPack.status.heldBack', { reason: heldBackText(status.heldBackBy) }),
+    );
   }
-  if (status.lastPackedAt) parts.push(`Last packed ${formatDateTime(status.lastPackedAt)}`);
-  else if (rule.enabled) parts.push('Not packed by this rule yet');
+  if (status.lastPackedAt) {
+    parts.push(
+      i18n.t('devices:autoPack.status.lastPacked', { at: formatDateTime(status.lastPackedAt) }),
+    );
+  } else if (rule.enabled) parts.push(i18n.t('devices:autoPack.status.notYet'));
   if (status.lastResult === 'no_response' && !status.disabledReason) {
-    parts.push('the last pack got no answer');
+    parts.push(i18n.t('devices:autoPack.status.noAnswer'));
   }
   return parts.join(' · ');
 }
@@ -102,12 +144,15 @@ export function autoPackStatusLine(rule: AutoPackRule, status: AutoPackStatus): 
 export function ruleSummary(rule: AutoPackRule): string {
   const when =
     rule.trigger === 'after_cleanings'
-      ? `after every ${rule.cleanings} ${rule.cleanings === 1 ? 'cleaning' : 'cleanings'}`
+      ? i18n.t('devices:autoPack.summary.afterCleanings', { count: rule.cleanings })
       : rule.trigger === 'bin_full'
-        ? 'whenever the bin reports full'
-        : `every day at ${rule.at}, in the device's time zone`;
-  const quiet = rule.quietHours
-    ? `, never between ${rule.quietHours.start} and ${rule.quietHours.end}`
-    : '';
-  return `The box packs and seals the waste bag on its own ${when}${quiet}.`;
+        ? i18n.t('devices:autoPack.summary.binFull')
+        : i18n.t('devices:autoPack.summary.dailyAt', { at: rule.at });
+  return rule.quietHours
+    ? i18n.t('devices:autoPack.summary.withQuiet', {
+        when,
+        start: rule.quietHours.start,
+        end: rule.quietHours.end,
+      })
+    : i18n.t('devices:autoPack.summary.plain', { when });
 }

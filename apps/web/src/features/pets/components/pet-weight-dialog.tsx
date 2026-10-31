@@ -1,4 +1,5 @@
 import { useId, useState, type SyntheticEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button, Switch } from '@/shared/ui';
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/shared/ui/shadcn/field';
 import {
@@ -36,6 +37,7 @@ interface PetWeightDialogProps {
 
 /** A pet's registered weight, whether visits may be matched to it by weight, and how loosely. */
 export function PetWeightDialog({ pet, devices, load, onClose, notify }: PetWeightDialogProps) {
+  const { t } = useTranslation(['pets', 'common']);
   const [draft, setDraft] = useState<WeightDraft>(() => weightDraft(pet));
   const [error, setError] = useState<string | null>(null);
   const save = useUpdatePetWeight();
@@ -68,7 +70,7 @@ export function PetWeightDialog({ pet, devices, load, onClose, notify }: PetWeig
       { id: pet.id, body },
       {
         onSuccess: () => {
-          notify(`Saved ${pet.name}'s weight settings`);
+          notify(t('profile.savedWeight', { name: pet.name }));
           onClose();
         },
         onError: e => {
@@ -79,10 +81,15 @@ export function PetWeightDialog({ pet, devices, load, onClose, notify }: PetWeig
   };
 
   return (
-    <PetsModal open title={`${pet.name}'s weight`} onClose={onClose} busy={busy}>
+    <PetsModal
+      open
+      title={t('weight.dialogTitle', { name: pet.name })}
+      onClose={onClose}
+      busy={busy}
+    >
       <form className="flex flex-col gap-5" onSubmit={submit} noValidate>
         <Field className="gap-1.5" data-invalid={!weight.ok || undefined}>
-          <FieldLabel htmlFor={weightId}>Registered weight</FieldLabel>
+          <FieldLabel htmlFor={weightId}>{t('profile.registeredWeight')}</FieldLabel>
           <div className="flex flex-wrap items-center gap-3">
             <InputGroup className="max-w-40">
               <InputGroupInput
@@ -104,20 +111,17 @@ export function PetWeightDialog({ pet, devices, load, onClose, notify }: PetWeig
             {updated && <span className="text-sm text-muted-foreground">{updated}</span>}
           </div>
           {!weight.ok && <FieldError>{weight.error}</FieldError>}
-          <FieldDescription id={weightHintId}>
-            Visits the camera recognised, or that you assigned, keep this up to date. Visits matched
-            only by weight never change it.
-          </FieldDescription>
+          <FieldDescription id={weightHintId}>{t('weight.hint')}</FieldDescription>
         </Field>
 
         <section className="flex flex-col gap-4" aria-labelledby={`${matchId}-h`}>
           <h3 id={`${matchId}-h`} className="text-lg font-semibold">
-            Recognition
+            {t('weight.recognition')}
           </h3>
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 flex-col">
               <label htmlFor={matchId} className="font-medium">
-                Match by weight when the camera cannot
+                {t('profile.matchByWeight')}
               </label>
               <span id={matchHintId} className="text-sm text-muted-foreground tabular-nums">
                 {matchGuardSentence(guardTolerance)}
@@ -134,7 +138,7 @@ export function PetWeightDialog({ pet, devices, load, onClose, notify }: PetWeig
             />
           </div>
           <Field className="gap-1.5" data-invalid={!tolerance.ok || undefined}>
-            <FieldLabel htmlFor={toleranceId}>Weight tolerance</FieldLabel>
+            <FieldLabel htmlFor={toleranceId}>{t('profile.tolerance')}</FieldLabel>
             <InputGroup className="max-w-40">
               <InputGroupAddon>
                 <InputGroupText>±</InputGroupText>
@@ -158,8 +162,7 @@ export function PetWeightDialog({ pet, devices, load, onClose, notify }: PetWeig
             </InputGroup>
             {!tolerance.ok && <FieldError>{tolerance.error}</FieldError>}
             <FieldDescription id={toleranceHintId}>
-              How far a visit may sit from the registered weight. Empty uses{' '}
-              {`${DEFAULT_TOLERANCE_G}\u00a0g`}.
+              {t('weight.toleranceHint', { grams: DEFAULT_TOLERANCE_G })}
             </FieldDescription>
           </Field>
         </section>
@@ -184,10 +187,10 @@ export function PetWeightDialog({ pet, devices, load, onClose, notify }: PetWeig
         )}
         <div className="flex flex-wrap justify-end gap-2">
           <Button onClick={onClose} disabled={busy}>
-            Cancel
+            {t('common:cancel')}
           </Button>
           <Button type="submit" variant="primary" disabled={busy || !weight.ok || !tolerance.ok}>
-            Save
+            {t('common:save')}
           </Button>
         </div>
       </form>

@@ -1,0 +1,215 @@
+{
+  "title": "Settings",
+  "readOnly": "Read-only",
+  "loadFailed": "The server's settings could not be loaded. {{error}}",
+  "finding": {
+    "guardsOn": "Cloud guards are on.",
+    "guardsOff": "{{off}} of {{total}} cloud guards are off.",
+    "proxyOn": "<b>Proxying to PetKit’s cloud is on</b>.",
+    "proxyOff": "<b>Proxying to PetKit’s cloud is off</b>.",
+    "blocked_one": "{{count}} blocked attempt is on record.",
+    "blocked_other": "{{count}} blocked attempts are on record.",
+    "blockedMany": "{{count}} or more blocked attempts are on record.",
+    "capture": "Traffic is being saved to disk.",
+    "readOnly": "Settings are read-only in this mode."
+  },
+  "summary": {
+    "label": "This server",
+    "title": "Home server",
+    "running": "Running",
+    "runningTls": "Running · TLS",
+    "proxyMode": "proxy mode",
+    "localMode": "local mode",
+    "settingsReadOnly": "settings read-only",
+    "figures": "Server figures",
+    "devices": "Devices",
+    "blocked": "Blocked"
+  },
+  "guards": {
+    "title": "Cloud guards",
+    "allOn": "All on",
+    "off": "{{n}} off",
+    "note": "Turning a guard off asks first, and saving asks for your password. The guards act only while proxy mode is on."
+  },
+  "proxy": {
+    "title": "Proxy mode",
+    "stepUp": "Step-up"
+  },
+  "toggle": {
+    "inactive": "Inactive while the proxy is off.",
+    "notSaved": "Not saved yet.",
+    "proxy_mode": {
+      "label": "Proxy to PetKit's cloud",
+      "description": "Forwards every device request to the real PetKit cloud and answers with its reply. Only for adding a model nobody has captured yet."
+    },
+    "proxy_block_run_cmd": {
+      "label": "Block remote shell commands",
+      "description": "Strips shell commands the cloud tries to run on the device.",
+      "offWarning": "While the proxy is on, the real PetKit cloud could run shell commands on your device as root."
+    },
+    "proxy_block_ota": {
+      "label": "Block firmware updates",
+      "description": "Answers the OTA endpoints locally and drops firmware images found anywhere else.",
+      "offWarning": "While the proxy is on, the real PetKit cloud could push a firmware image to your device."
+    },
+    "proxy_block_log_upload": {
+      "label": "Block log uploads",
+      "description": "Withholds the token the device needs to send its debug log to PetKit.",
+      "offWarning": "While the proxy is on, your device could send its debug log to PetKit."
+    },
+    "proxy_mqtt_bridge": {
+      "label": "Upstream MQTT bridge",
+      "description": "Also bridges the device's MQTT session to the real Aliyun broker."
+    },
+    "proxy_media_real_oss": {
+      "label": "Media to the real OSS",
+      "description": "Lets the device upload recordings to PetKit instead of this server. Nothing lands locally."
+    },
+    "proxy_local_cvr_window": {
+      "label": "Keep recording locally",
+      "description": "Ignores the cloud's subscription window and tells the camera its storage is active. A lapsed PetKit plan otherwise stops recording with no error anywhere."
+    },
+    "capture": {
+      "label": "Save traffic",
+      "description": "Records every HTTP request and MQTT message to JSONL files, signing secrets included. Read them under Capture."
+    }
+  },
+  "problem": {
+    "dns": "The upstream resolver must be an IPv4 address, optionally with a port.",
+    "upstream": "The upstream host must be a preset or an http(s) URL."
+  },
+  "save": {
+    "region": "Unsaved settings",
+    "failed": "Nothing was saved: {{error}}",
+    "unsaved_one": "{{count}} unsaved change: <keys>{{keys}}</keys>. Saving asks for your password.",
+    "unsaved_other": "{{count}} unsaved changes: <keys>{{keys}}</keys>. Saving asks for your password.",
+    "saved_one": "Saved {{count}} setting.",
+    "saved_other": "Saved {{count}} settings.",
+    "discard": "Discard",
+    "saving": "Saving…",
+    "submit": "Save changes"
+  },
+  "guardOff": {
+    "title": "Turn off “{{label}}”?",
+    "confirm": "Turn off",
+    "note": "Nothing changes until you save."
+  },
+  "upstream": {
+    "none": "No calls forwarded yet. A device polls about every 10 seconds.",
+    "forwarded_one": "Forwarded <n>{{count}}</n> call",
+    "forwarded_other": "Forwarded <n>{{count}}</n> calls",
+    "answered": "{{n}} answered",
+    "refused": "{{n}} refused ({{code}})",
+    "refusedNote": "The cloud refuses every session-bearing call. That is expected once this server has taken the device over, since the session it presents is one we issued; the device is served our own answers throughout.",
+    "presetDefault": "{{key}} (default)",
+    "custom": "Custom…",
+    "host": "Upstream host",
+    "hostNote": "A PetKit or Aliyun IoT URL. Every device request is forwarded there with its credential.",
+    "customUrl": "Custom upstream URL",
+    "resolver": "Upstream resolver",
+    "resolverNote": "Only used to find the server above. Leave empty unless your router or Pi-hole points PetKit's names at this server: then it would point them here for us too, and the proxy would reach itself instead of the cloud.",
+    "systemResolver": "System resolver"
+  },
+  "retention": {
+    "title": "Keep",
+    "caps": "Retention caps",
+    "category": "Category",
+    "maxSize": "Max size (MB)",
+    "maxAge": "Max age (days)",
+    "maxSizeOf": "{{label}}, max size in MB",
+    "maxAgeOf": "{{label}}, max age in days",
+    "description": "Over the size cap the oldest files go first; past the age cap they go regardless of size. The sweep runs about every 10 minutes. Leave a field blank for no cap: 0 also means no cap, not \"delete everything\". Blocked attempts are tiny and rare, so a long window costs almost nothing.",
+    "saving": "Saving…",
+    "save": "Save retention",
+    "failed": "Not saved: {{error}}",
+    "saved": "Retention saved.",
+    "loadFailed": "Retention could not be loaded. {{error}}",
+    "kind": {
+      "fullVideo": "Recordings",
+      "eventImage": "Snapshots",
+      "highLight": "Highlights",
+      "dynamicVideo": "Motion clips",
+      "cloudDouble": "Timelapses",
+      "wasteCheck": "Waste photos",
+      "healthPic": "Health photos",
+      "deviceLog": "Device logs",
+      "thumbnail": "Thumbnail cache",
+      "events": "Events (history)",
+      "blocked": "Blocked attempts"
+    }
+  },
+  "blocked": {
+    "title": "Blocked attempts",
+    "count_one": "{{count}} attempt",
+    "count_other": "{{count}} attempts",
+    "newest_one": "The newest {{count}} attempt",
+    "newest_other": "The newest {{count}} attempts",
+    "intro": "What the cloud tried to do and was stopped. Kept in the database, so the list outlives a restart. Payloads can hold a real device secret, so they are masked; revealing them asks for your password.",
+    "revealFailed": "Payloads were not revealed. {{error}}",
+    "loadFailed": "Blocked attempts could not be loaded. {{error}}",
+    "empty": "No blocked attempts.",
+    "mask": "Mask payloads",
+    "reveal": "Reveal payloads",
+    "shown": "Payloads shown in full.",
+    "when": "When",
+    "device": "Device",
+    "what": "What the cloud tried",
+    "endpoint": "Endpoint",
+    "payload": "Payload",
+    "unknown": "Unknown",
+    "kind": {
+      "rce": "Shell command",
+      "ota": "Firmware push",
+      "secret": "Credential swap",
+      "log_upload": "Log upload",
+      "server": "Server address",
+      "mqtt": "Broker address",
+      "oss_sts": "Media upload",
+      "locale": "Timezone"
+    }
+  },
+  "connection": {
+    "title": "Connection",
+    "intro": "Bound at startup. Change these in the server configuration, then restart.",
+    "automatic": "Automatic",
+    "present": "Present",
+    "missing": "Missing",
+    "strictHmac": "Strict HMAC",
+    "acceptAll": "Accept-all",
+    "disabled": "Disabled",
+    "publishing": "Publishing",
+    "down": "Down",
+    "version": {
+      "label": "Version",
+      "note": "The code actually running. If an update did not take effect this still shows the old number, the quickest way to tell a stale build from a real bug."
+    },
+    "apiUrl": {
+      "label": "API URL",
+      "note": "The URL a device calls. Most models take it over Bluetooth from Provision; the oldest, which have no Bluetooth setup, need a DNS redirect."
+    },
+    "mqttHost": {
+      "label": "MQTT host",
+      "note": "Every device is handed this server’s own broker, derived from the API URL host. A patched device connects over MQTT; an unpatched one keeps to the HTTP heartbeat, and commands fall back to it."
+    },
+    "mqttPort": {
+      "label": "MQTT broker port",
+      "note": "The plain port, and the TLS port when TLS is on."
+    },
+    "cert": {
+      "label": "TLS certificate",
+      "note": "The self-signed certificate the broker presents. Missing means the file named by cert_path is not there, and a device that expects TLS will not connect."
+    },
+    "auth": {
+      "label": "MQTT auth",
+      "note": "Accept-all is fine on a trusted LAN; strict enforces the Aliyun HMAC-SHA256 sign."
+    },
+    "bridge": {
+      "label": "Bridge to Home Assistant",
+      "note": "The connection to Home Assistant’s broker, not the one devices talk to: a device can be healthy while this is down. Disabled means publishing was switched off, a valid way to run."
+    },
+    "devices": {
+      "label": "Devices",
+      "note": "Devices this server knows."
+    }
+  }
+}

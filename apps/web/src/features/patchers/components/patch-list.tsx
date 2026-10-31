@@ -1,4 +1,5 @@
 import { cn } from 'cn';
+import { useTranslation } from 'react-i18next';
 import { Icon, Pill, type IconName } from '@/shared/ui';
 import type { PatcherEntry, PatcherId } from '../api';
 import { isFinalLine, primaryAction, statusOf, type StatusTone } from '../patcher-model';
@@ -42,8 +43,9 @@ function running(lines: readonly string[] | undefined): boolean {
  * what is not.
  */
 export function PatchList({ patchers, deviceName, linesOf, selected, onPick }: PatchListProps) {
+  const { t } = useTranslation('patchers');
   return (
-    <ul className="m-0 flex list-none flex-col p-0" aria-label="Patches">
+    <ul className="m-0 flex list-none flex-col p-0" aria-label={t('list.label')}>
       {patchers.map(p => {
         const action = primaryAction(p);
         const status = statusOf(p);
@@ -53,7 +55,7 @@ export function PatchList({ patchers, deviceName, linesOf, selected, onPick }: P
           <li key={p.id} className="[&+&]:border-t [&+&]:border-rule">
             <button
               type="button"
-              aria-label={`${action === 'apply' ? 'Apply' : 'Remove'} ${p.name}…`}
+              aria-label={t(action === 'apply' ? 'list.apply' : 'list.remove', { name: p.name })}
               aria-current={current || undefined}
               onClick={() => {
                 onPick(p, action);
@@ -72,9 +74,9 @@ export function PatchList({ patchers, deviceName, linesOf, selected, onPick }: P
                   {busy ? (
                     <>
                       {' · '}
-                      <span className="text-data">Running…</span>
+                      <span className="text-data">{t('status.running')}</span>
                     </>
-                  ) : status.text === 'Applied' ? null : (
+                  ) : status.applied ? null : (
                     <>
                       {' · '}
                       <span className={TONE[status.tone]}>{status.text}</span>
@@ -83,7 +85,7 @@ export function PatchList({ patchers, deviceName, linesOf, selected, onPick }: P
                 </span>
               </span>
               {action === 'remove' && !busy ? (
-                <Pill tone="positive">Applied</Pill>
+                <Pill tone="positive">{t('status.applied')}</Pill>
               ) : (
                 <Icon
                   name="chevron"

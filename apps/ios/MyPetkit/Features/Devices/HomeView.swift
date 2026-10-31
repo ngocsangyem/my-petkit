@@ -54,8 +54,8 @@ struct HomeView: View {
     private func content(now: Date) -> some View {
         let day = model.day(now: now)
         return ScreenScroll {
-            ScreenHeader(title: "Home", finding: finding(day: day, now: now)) {
-                IconButton(systemImage: "plus", label: "Add a device") { addingDevice = true }
+            ScreenHeader(title: L10n.string("Home"), finding: finding(day: day, now: now)) {
+                IconButton(systemImage: "plus", label: L10n.string("Add a device")) { addingDevice = true }
             }
         } content: {
             PetTiles(pets: model.pets, days: day.petDays) { Task { await model.loadPets(api) } }
@@ -69,7 +69,7 @@ struct HomeView: View {
     @ViewBuilder
     private func devices(day: HouseholdDay, now: Date) -> some View {
         let accessories = model.accessories.value ?? []
-        SectionHeader(title: "Devices") {
+        SectionHeader(title: L10n.string("Devices")) {
             if let list = model.devices.value {
                 Text("\(list.count + accessories.count)").foregroundStyle(Theme.Color.muted).monospacedDigit()
             }
@@ -99,7 +99,7 @@ struct HomeView: View {
                 }
             }
             if case .failed(let message) = model.accessories {
-                BlockError(message: "Bluetooth accessories: \(message)") {
+                BlockError(message: L10n.string("Bluetooth accessories: \(message)")) {
                     Task { await model.loadAccessories(api) }
                 }
             }

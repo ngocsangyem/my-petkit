@@ -117,7 +117,7 @@ final class ServerModel {
     func revoke(_ token: Token) async {
         tokenError = nil
         do {
-            _ = try await session.call(purpose: "Revoking signs \(token.name) out of this server.") {
+            _ = try await session.call(purpose: L10n.string("Revoking signs \(token.name) out of this server.")) {
                 try await self.session.client.authRevokeToken(path: .init(id: token.id)).ok
             }
             if case .loaded(let list) = tokens {

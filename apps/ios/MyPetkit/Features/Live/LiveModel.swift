@@ -191,7 +191,7 @@ final class LiveModel {
                 await failed(mode, error: error)
             } else {
                 stop()
-                phase = .failed("The live picture stopped.")
+                phase = .failed(L10n.string("The live picture stopped."))
             }
         }
     }
@@ -212,7 +212,7 @@ final class LiveModel {
     }
 
     nonisolated static func message(for error: any Error) -> String {
-        if error is LiveStreamError { return "The live picture did not start." }
+        if error is LiveStreamError { return L10n.string("The live picture did not start.") }
         return Loadable<Void>.message(for: error)
     }
 }

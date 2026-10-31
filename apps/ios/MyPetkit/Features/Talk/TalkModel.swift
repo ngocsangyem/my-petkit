@@ -17,7 +17,9 @@ final class TalkModel {
         case failed(String)
     }
 
-    nonisolated static let deniedSentence = "Turn on microphone access for MyPetKit in Settings to talk."
+    nonisolated static var deniedSentence: String {
+        L10n.string("Turn on microphone access for MyPetKit in Settings to talk.")
+    }
 
     let deviceID: Int
     private(set) var state: State
@@ -143,11 +145,11 @@ final class TalkModel {
     nonisolated static func message(for error: any Error) -> String {
         switch error {
         case TalkError.refused(let reason) where !reason.isEmpty:
-            "The server could not start talk: \(reason)."
+            L10n.string("The server could not start talk: \(reason).")
         case TalkError.refused, TalkError.noAnswer:
-            "The server did not start talk. Try again."
+            L10n.string("The server did not start talk. Try again.")
         case is TalkPCMError:
-            "The microphone could not start on this phone."
+            L10n.string("The microphone could not start on this phone.")
         default:
             Loadable<Void>.message(for: error)
         }

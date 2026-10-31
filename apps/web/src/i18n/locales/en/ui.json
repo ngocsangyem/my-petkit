@@ -1,0 +1,63 @@
+{
+  "noValue": "No value",
+  "dismiss": "Dismiss",
+  "spinner": "Loading",
+  "tableEmpty": "Nothing to show yet.",
+  "stepUpRequired": "Step-up required",
+  "stepper": {
+    "decrease": "Decrease {{label}}",
+    "increase": "Increase {{label}}"
+  },
+  "deviceStatus": {
+    "online": "Online · MQTT",
+    "polling": "Polling · heartbeat",
+    "offline": "Offline",
+    "unknown": "Unknown"
+  },
+  "live": {
+    "live": "Live",
+    "connecting": "Connecting",
+    "offline": "Offline"
+  },
+  "theme": {
+    "label": "Appearance",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "dayStrip": {
+    "legend": "Legend",
+    "visit": "Visit",
+    "mealFed": "Meal fed",
+    "mealPlanned": "Meal planned",
+    "reporting": "Reporting",
+    "noReport": "No report",
+    "visitAt": "Visit at {{time}}",
+    "fedAt": "Fed at {{time}}",
+    "plannedAt": "Planned at {{time}}",
+    "reportingSpan": "Reporting {{start}}–{{end}}"
+  },
+  "sidebar": {
+    "title": "Sidebar",
+    "description": "Displays the mobile sidebar.",
+    "toggle": "Toggle Sidebar"
+  },
+  "error": {
+    "generic": "Something went wrong.",
+    "withReference": "{{message}} (reference {{reference}})"
+  },
+  "format": {
+    "never": "never",
+    "justNow": "just now",
+    "secondsAgo": "{{n}}s ago",
+    "minutesAgo": "{{n}}m ago",
+    "hoursAgo": "{{n}}h ago",
+    "daysAgo": "{{n}}d ago",
+    "daysHours": "{{d}}d {{h}}h",
+    "hoursMinutes": "{{h}}h {{m}}m",
+    "minutes": "{{m}}m",
+    "seconds": "{{s}}s",
+    "on": "on",
+    "off": "off"
+  }
+}

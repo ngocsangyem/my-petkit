@@ -14,7 +14,7 @@ struct PushedScreenHeader<Trailing: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                IconButton(systemImage: "chevron.left", label: "Back") { dismiss() }
+                IconButton(systemImage: "chevron.left", label: L10n.string("Back")) { dismiss() }
                 Spacer()
                 trailing
             }
@@ -45,7 +45,7 @@ struct StepUpPill: View {
     var short = false
 
     var body: some View {
-        Pill(text: short ? "Step-up" : "Step-up required", tone: .negative)
+        Pill(text: short ? L10n.string("Step-up") : L10n.string("Step-up required"), tone: .negative)
             .accessibilityLabel("Needs your password again")
     }
 }

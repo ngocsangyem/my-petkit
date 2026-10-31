@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import type { PatcherEntry } from './api';
 
 /** A run's progress lines are keyed by device and patcher. */
@@ -38,12 +39,16 @@ export function firstParagraph(text: string): string {
 
 export type StatusTone = 'positive' | 'warning' | 'muted';
 
-/** The status word of a patcher, and its colour. */
-export function statusOf(p: PatcherEntry): { text: string; tone: StatusTone } {
-  if (p.unavailable) return { text: p.unavailable, tone: 'warning' };
-  if (p.greyed) return { text: 'Active · MQTT connected', tone: 'positive' };
-  if (p.applied) return { text: 'Applied', tone: 'positive' };
-  return { text: 'Not applied', tone: 'muted' };
+/**
+ * The status word of a patcher, its colour, and whether it is the plain "Applied" state (which
+ * the row shows as a pill instead). Why a patch is unavailable is the server's own text.
+ */
+export function statusOf(p: PatcherEntry): { text: string; tone: StatusTone; applied: boolean } {
+  if (p.unavailable) return { text: p.unavailable, tone: 'warning', applied: false };
+  if (p.greyed) return { text: i18n.t('patchers:status.active'), tone: 'positive', applied: false };
+  if (p.applied)
+    return { text: i18n.t('patchers:status.applied'), tone: 'positive', applied: true };
+  return { text: i18n.t('patchers:status.notApplied'), tone: 'muted', applied: false };
 }
 
 /** The row's one action: remove what is in place, apply what is not. */
@@ -53,16 +58,10 @@ export function primaryAction(p: PatcherEntry): 'apply' | 'remove' {
 
 /** Why Apply cannot run right now, or null. */
 export function applyBlocker(p: PatcherEntry, deviceIp: string): string | null {
-  if (p.greyed)
-    return 'The device already holds an MQTT session, which proves this patch is in place.';
-  if (!deviceIp)
-    return 'Device IP unknown. Wait for the device to send a state report before patching.';
+  if (p.greyed) return i18n.t('patchers:blocker.greyed');
+  if (!deviceIp) return i18n.t('patchers:blocker.noIp');
   return null;
 }
 
 /** Lines kept per run; a run writes a few dozen. */
 export const MAX_LINES = 300;
-
-/** The warning every patch carries, shown until one is picked and then inside it. */
-export const PATCH_RISK =
-  'Each patch runs shell commands on the device as root, at your own risk: it can brick the device and leaves it outside its warranty. Patches live only on the writable /system partition; the read-only /app partition is never modified.';

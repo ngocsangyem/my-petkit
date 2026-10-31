@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from './button';
 import { Card } from './card-and-panel';
 import { Icon } from './icons';
@@ -16,10 +17,11 @@ export function isMissing(value: MaybeValue): boolean {
 
 /** Muted em dash for a missing value; screen readers hear "No value". */
 export function Missing() {
+  const { t } = useTranslation('ui');
   return (
     <span className="text-muted-foreground">
       <span aria-hidden="true">—</span>
-      <span className="sr-only">No value</span>
+      <span className="sr-only">{t('noValue')}</span>
     </span>
   );
 }
@@ -108,6 +110,7 @@ export interface ErrorBlockProps {
   /** One sentence saying what failed and when the data was last good. */
   message: string;
   onRetry?: () => void;
+  /** Defaults to "Retry" in the active language. */
   retryLabel?: string;
   /** Disables Retry while a retry is in flight. */
   retrying?: boolean;
@@ -117,12 +120,8 @@ export interface ErrorBlockProps {
  * An error kept inside the block that failed (web-states): a `raised` panel with one red warning
  * icon, the sentence, and a white Retry button.
  */
-export function ErrorBlock({
-  message,
-  onRetry,
-  retryLabel = 'Retry',
-  retrying = false,
-}: ErrorBlockProps) {
+export function ErrorBlock({ message, onRetry, retryLabel, retrying = false }: ErrorBlockProps) {
+  const { t } = useTranslation('common');
   return (
     <Alert className="col-span-full flex min-h-11 flex-wrap items-center gap-x-3 gap-y-2 rounded-md border-0 bg-raised px-4 py-3 text-base text-foreground [--pk-fill-secondary:var(--pk-surface)]">
       <span className="flex flex-none text-negative">
@@ -131,7 +130,7 @@ export function ErrorBlock({
       <span className="min-w-0 flex-1">{message}</span>
       {onRetry && (
         <Button variant="secondary" onClick={onRetry} disabled={retrying}>
-          {retryLabel}
+          {retryLabel ?? t('retry')}
         </Button>
       )}
     </Alert>

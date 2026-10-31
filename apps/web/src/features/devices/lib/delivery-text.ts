@@ -1,36 +1,45 @@
 // What a command result means to the person who pressed the button. A device on
 // MQTT gets it now; one polling the HTTP heartbeat takes it on its next poll.
+import { i18n } from '@/i18n';
 
 /** After a named device action (`{action}`). */
 export function actionDeliveryText(delivered: string): string {
-  if (delivered === 'mqtt') return 'Sent over MQTT';
-  if (delivered === 'local') return 'Saved';
-  return 'Queued — delivers on the next heartbeat (about 10 s)';
+  if (delivered === 'mqtt') return i18n.t('devices:delivery.action.mqtt');
+  if (delivered === 'local') return i18n.t('devices:delivery.saved');
+  return i18n.t('devices:delivery.action.queued');
 }
 
 /** After an entity write (`{entity, value}`), device or accessory. */
 export function entityDeliveryText(delivered: string): string {
   switch (delivered) {
     case 'mqtt':
-      return 'Updated over MQTT';
+      return i18n.t('devices:delivery.entity.mqtt');
     case 'local':
-      return 'Saved';
+      return i18n.t('devices:delivery.saved');
     case 'ble':
-      return 'Sent over Bluetooth';
+      return i18n.t('devices:delivery.entity.ble');
     default:
-      return 'Queued for the next heartbeat';
+      return i18n.t('devices:delivery.entity.queued');
   }
 }
 
 /** After a timezone write: "sent" is not "visible" until the next property post. */
 export function timezoneDeliveryText(delivered: string): string {
-  return delivered === 'mqtt' ? 'Sent to the device' : 'Saved — applies on its next check-in';
+  return delivered === 'mqtt'
+    ? i18n.t('devices:delivery.timezone.mqtt')
+    : i18n.t('devices:delivery.timezone.queued');
 }
 
-/** Why debug-log collection cannot work, from `logInfo.reason`. */
-export const LOG_REASONS: Readonly<Record<string, string>> = {
-  no_log_root: 'no log directory is configured',
-  no_bucket_endpoint: 'this app has no bucket address, so there is nowhere to send the device',
-  authority_not_splittable:
-    'the bucket address cannot be split into a host the device can build; it needs a dotted name or IP',
-};
+/** Why debug-log collection cannot work, from `logInfo.reason`; the server's code when unknown. */
+export function logReasonText(reason: string): string {
+  switch (reason) {
+    case 'no_log_root':
+      return i18n.t('devices:delivery.logReason.noLogRoot');
+    case 'no_bucket_endpoint':
+      return i18n.t('devices:delivery.logReason.noBucketEndpoint');
+    case 'authority_not_splittable':
+      return i18n.t('devices:delivery.logReason.authorityNotSplittable');
+    default:
+      return reason;
+  }
+}

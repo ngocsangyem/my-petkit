@@ -1,0 +1,32 @@
+---
+title: Cài đặt
+description: Chọn nơi máy chủ chạy. Cả ba lựa chọn dùng cùng một image đã ký.
+---
+
+Có một image duy nhất, `ghcr.io/ngocsangyem/my-petkit`, được dựng cho amd64, arm64 và armv7. Bạn có thể chạy nó theo ba cách:
+
+| Chế độ | Chạy ở đâu | Chọn khi |
+|---|---|---|
+| [Add-on Home Assistant](/vi/docs/install/home-assistant-add-on) | Home Assistant OS hoặc Supervised | Bạn đã chạy Home Assistant với add-on store |
+| [Docker trong mạng LAN](/vi/docs/install/docker) | Bất kỳ máy Docker nào cùng mạng với các thiết bị | Bạn chạy HA Container, HA Core, hoặc hoàn toàn không có Home Assistant |
+| [VPS](/vi/docs/install/vps) | Một máy chủ đám mây tới nhà bạn qua WireGuard | Bạn muốn bảng điều khiển trên tên miền công khai với chứng chỉ thật |
+
+armv7 được dựng trong CI ở mỗi lần push nhưng chưa bao giờ được chạy trên phần cứng ARM 32-bit thật.
+
+## Tag của image
+
+| Tag | Trỏ tới |
+|---|---|
+| một phiên bản, như `0.0.2` | Một bản phát hành, được cắt bởi git tag `v0.0.2` tương ứng. Add-on kéo đúng cái này. |
+| `latest` | Bản phát hành ổn định mới nhất. Bản prerelease không dời nó. |
+| `dev` | Commit cuối trên `main`. Theo định nghĩa là chưa kiểm thử. |
+
+Để giữ một bản dựng chính xác, hãy dùng digest của một bản phát hành (`ghcr.io/ngocsangyem/my-petkit@sha256:...`). Đừng ghim digest của `dev`: khi `dev` đã chuyển sang bản mới, digest cũ của nó bị xóa sau 14 ngày.
+
+Trước khi chạy phiên bản mới, bạn có thể [xác minh chữ ký của nó](/vi/docs/install/verify-image).
+
+## Trước khi bắt đầu
+
+- Các port thiết bị 80 và 443 phải trống trên máy chủ. Bản thân Home Assistant thường chạy ở 8123 nên không sao, nhưng một web server khác ở 80 thì không được.
+- Máy chủ cần IP LAN cố định. Thiết bị được trao IP đó khi được cấp phát, và các thiết bị PetKit nhúng không phân giải được tên `.local`.
+- Lên kế hoạch cách thiết bị tìm thấy máy chủ: [cấp phát qua Bluetooth hoặc chuyển hướng DNS](/vi/docs/configuration/networking).

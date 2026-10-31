@@ -1,0 +1,59 @@
+---
+title: Add-on Home Assistant
+description: Cài MyPetKit từ kho add-on của nó và mở từ thanh bên.
+---
+
+Kho mã cũng là một kho add-on của Home Assistant. Add-on kéo image đã phát hành thay vì dựng image trên máy của bạn.
+
+<Steps>
+<Step>
+
+### Thêm kho add-on
+
+Trong Home Assistant, mở **Settings → Apps → Install app → ⋮ → Repositories** và thêm:
+
+```text
+https://github.com/ngocsangyem/my-petkit
+```
+
+Các bản Home Assistant cũ hơn gọi nơi này là **Settings → Add-ons → Add-on Store**.
+
+</Step>
+<Step>
+
+### Cài đặt và cấu hình
+
+Cài **My PetKit**. Phần lớn tùy chọn có thể để trống: `api_url` và `bucket_endpoint` được phát hiện từ IP LAN của máy chủ và các port đã publish. Hãy đọc [Cấu hình](/vi/docs/configuration) để xem danh sách đầy đủ.
+
+Nếu bạn không chạy add-on Mosquitto, hãy đặt `ha_mqtt_host` (cùng tên người dùng và mật khẩu nếu broker của bạn cần). Không có gì cảnh báo bạn nếu bỏ qua bước này. Phía thiết bị và bảng điều khiển vẫn hoạt động, và Home Assistant không bao giờ thấy dù chỉ một thực thể.
+
+</Step>
+<Step>
+
+### Khởi động và đặt mật khẩu quản trị
+
+Khởi động add-on. Ở lần khởi động đầu, nhật ký add-on in ra một **setup token** dùng một lần, có hiệu lực 30 phút. Tiếp tục với [Đăng nhập lần đầu](/vi/docs/guides/first-sign-in).
+
+</Step>
+<Step>
+
+### Trỏ thiết bị về nó
+
+Làm theo [Thêm thiết bị](/vi/docs/guides/add-a-device), rồi tắt bật nguồn thiết bị. Nó tự đăng ký, và các thực thể của nó xuất hiện trong Home Assistant.
+
+</Step>
+</Steps>
+
+## Cách vào bảng điều khiển
+
+Mục **My PetKit** trên thanh bên đi qua Ingress, và Home Assistant xác thực nó. Add-on chỉ tin một yêu cầu trên port Ingress (8099) khi nó đến từ địa chỉ riêng của Supervisor, `172.30.32.2`, không bao giờ vì một header.
+
+Ở mọi nơi khác, tức là port 8443 hoặc 8099 nếu bạn ánh xạ nó, bạn cần mật khẩu quản trị trong trình duyệt hoặc token của client đã ghép nối trong ứng dụng iOS.
+
+## Vì sao add-on chạy với quyền root
+
+Supervisor sở hữu `/data` và `/media` và không cho container cách nào chạy bằng người dùng khác trên chúng. Các cách cài Docker và VPS thì chạy bằng người dùng không có đặc quyền. Xem phần so sánh ở [trang Docker](/vi/docs/install/docker#container-privileges).
+
+<Callout type="warn" title="Sao lưu trước mỗi lần cập nhật">
+Supervisor xóa image cũ trước khi kéo image mới, nên bạn không thể quay lui bằng cách cài lại phiên bản cũ. Hãy chọn "Create a backup before updating" trong hộp thoại cập nhật. Xem [Cập nhật và sao lưu](/vi/docs/install/update-and-back-up).
+</Callout>

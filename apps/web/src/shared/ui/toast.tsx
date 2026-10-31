@@ -1,5 +1,6 @@
 import { Toast } from '@base-ui/react/toast';
 import { useCallback, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Icon } from './icons';
 
 // Built on the Base UI primitive rather than shadcn's Sonner: Sonner injects
@@ -26,6 +27,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 }
 
 function Toasts() {
+  const { t } = useTranslation('ui');
   const { toasts } = Toast.useToastManager();
   return toasts.map(toast => (
     <Toast.Root
@@ -42,7 +44,7 @@ function Toasts() {
       {/* Titles are plain strings rendered as text, never markup. */}
       <Toast.Title className="min-w-0 flex-1 break-words" />
       <Toast.Close
-        aria-label="Dismiss"
+        aria-label={t('dismiss')}
         className="-my-1 flex size-8 flex-none items-center justify-center rounded-full border-0 bg-transparent p-0 text-primary-foreground hover:bg-ink-hover focus-visible:outline-2 focus-visible:outline-ring"
       >
         <Icon name="close" size={16} strokeWidth={2} />

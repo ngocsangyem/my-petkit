@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { i18n } from '@/i18n';
 import { errorMessage } from '@/shared/api/errors';
 import { OverlayTitleRow, useToast } from '@/shared/ui';
 import { Dialog, DialogContent, DialogTitle } from '@/shared/ui/shadcn/dialog';
@@ -15,10 +17,12 @@ export interface ChangeCatDialogProps {
 }
 
 function savedSentence(body: VisitPetRequest, pets: readonly TimelinePet[], s: TimelineSession) {
-  if (body.passing) return 'Marked as just passing';
-  const name = pets.find(p => p.id === body.pet_id)?.name ?? 'the cat';
+  if (body.passing) return i18n.t('timeline:changeCat.savedPassing');
+  const name = pets.find(p => p.id === body.pet_id)?.name ?? i18n.t('timeline:changeCat.theCat');
   const weight = body.use_weight ? formatWeight(s.weight) : null;
-  return weight ? `Assigned to ${name}; registered weight now ${weight}` : `Assigned to ${name}`;
+  return weight
+    ? i18n.t('timeline:changeCat.savedWeight', { name, weight })
+    : i18n.t('timeline:changeCat.saved', { name });
 }
 
 /**
@@ -26,6 +30,8 @@ function savedSentence(body: VisitPetRequest, pets: readonly TimelinePet[], s: T
  * server's record of this visit; a refusal stays inside the dialog, success is a toast.
  */
 export function ChangeCatDialog({ session, pets, onClose }: ChangeCatDialogProps) {
+  // Subscribes so the title follows a language change.
+  useTranslation('timeline');
   const toast = useToast();
   const save = useSetVisitPet();
   const [error, setError] = useState<string | null>(null);

@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TextInput } from '@/shared/ui';
 
 interface PetNameEditorProps {
@@ -16,6 +17,7 @@ export function PetNameEditor({ name, onDone }: PetNameEditorProps) {
   // Enter, Escape and blur can all arrive for one edit (blur fires again when
   // the input unmounts), so the first one to finish wins and the rest are
   // no-ops. Without the latch a rename saves twice and Escape saves anyway.
+  const { t } = useTranslation('pets');
   const done = useRef(false);
   const finish = (value: string | null) => {
     if (done.current) return;
@@ -27,7 +29,7 @@ export function PetNameEditor({ name, onDone }: PetNameEditorProps) {
   return (
     <TextInput
       className="max-w-[260px] min-w-0 flex-1"
-      aria-label="Pet name"
+      aria-label={t('nameField')}
       defaultValue={name}
       autoFocus
       onFocus={e => {

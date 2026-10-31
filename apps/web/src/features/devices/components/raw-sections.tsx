@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from 'cn';
 import { Button } from '@/shared/ui';
 import { Textarea } from '@/shared/ui/shadcn/textarea';
@@ -13,9 +14,12 @@ import { dirtyClass, FeedbackLine } from './panel-parts';
  * you type, which is exactly when the envelope shape is needed. Each is a shape
  * this server really sends (ha/commands.py).
  */
-const RAW_EXAMPLES: readonly { label: string; body: unknown }[] = [
+const RAW_EXAMPLES: readonly {
+  label: 'changeSetting' | 'startAction' | 'resetN60';
+  body: unknown;
+}[] = [
   {
-    label: 'Change a setting',
+    label: 'changeSetting',
     body: {
       suffix: 'property/set',
       payload: {
@@ -27,7 +31,7 @@ const RAW_EXAMPLES: readonly { label: string; body: unknown }[] = [
     },
   },
   {
-    label: 'Start an action',
+    label: 'startAction',
     body: {
       suffix: 'start',
       payload: {
@@ -39,7 +43,7 @@ const RAW_EXAMPLES: readonly { label: string; body: unknown }[] = [
     },
   },
   {
-    label: 'Reset the N60 deodorant',
+    label: 'resetN60',
     body: {
       suffix: 'start',
       payload: {
@@ -58,6 +62,7 @@ const RAW_EXAMPLES: readonly { label: string; body: unknown }[] = [
  * asks for step-up before it runs.
  */
 export function RawCommand({ deviceId }: { deviceId: number }) {
+  const { t } = useTranslation('devices');
   const call = useDeviceCall();
   const [text, setText] = useState('');
   const send = () => {
@@ -65,11 +70,11 @@ export function RawCommand({ deviceId }: { deviceId: number }) {
     try {
       body = JSON.parse(text);
     } catch {
-      call.say({ text: 'Invalid JSON — not sent', tone: 'error' });
+      call.say({ text: t('raw.invalidJson'), tone: 'error' });
       return;
     }
     if (typeof body !== 'object' || body === null || Array.isArray(body)) {
-      call.say({ text: 'Send an object with suffix and payload', tone: 'error' });
+      call.say({ text: t('raw.needsObject'), tone: 'error' });
       return;
     }
     void call.run(
@@ -79,15 +84,12 @@ export function RawCommand({ deviceId }: { deviceId: number }) {
   };
   return (
     <div className="flex min-w-0 flex-col gap-2.5">
-      <p className="text-sm text-muted-foreground">
-        Publishes verbatim; nothing is added. Sent over MQTT if the device has a session, else
-        queued for its heartbeat. Needs step-up.
-      </p>
+      <p className="text-sm text-muted-foreground">{t('raw.note')}</p>
       <Textarea
         className="field-sizing-fixed resize-y p-2 font-mono text-xs"
         rows={6}
         spellCheck={false}
-        aria-label="Raw command JSON"
+        aria-label={t('raw.label')}
         value={text}
         onChange={e => {
           setText(e.target.value);
@@ -95,9 +97,9 @@ export function RawCommand({ deviceId }: { deviceId: number }) {
       />
       <div className="flex flex-wrap items-center gap-2">
         <Button onClick={send} disabled={call.busy}>
-          Send raw
+          {t('raw.send')}
         </Button>
-        <span className="text-muted-foreground">Load an example:</span>
+        <span className="text-muted-foreground">{t('raw.loadExample')}</span>
         {RAW_EXAMPLES.map(x => (
           <Button
             key={x.label}
@@ -107,7 +109,7 @@ export function RawCommand({ deviceId }: { deviceId: number }) {
               setText(JSON.stringify(x.body, null, 2));
             }}
           >
-            {x.label}
+            {t(`raw.example.${x.label}`)}
           </Button>
         ))}
       </div>
@@ -122,6 +124,7 @@ function textOf(value: unknown): string {
 }
 
 function ScheduleJson({ device, entity }: { device: DeviceDetail; entity: DeviceEntity }) {
+  const { t } = useTranslation('devices');
   const call = useDeviceCall();
   const [draft, setDraft] = useState<string | null>(null);
   const shown = draft ?? textOf(entity.value);
@@ -129,7 +132,7 @@ function ScheduleJson({ device, entity }: { device: DeviceDetail; entity: Device
     try {
       JSON.parse(shown);
     } catch {
-      call.say({ text: 'Invalid JSON — not sent', tone: 'error' });
+      call.say({ text: t('raw.invalidJson'), tone: 'error' });
       return;
     }
     void call
@@ -147,7 +150,7 @@ function ScheduleJson({ device, entity }: { device: DeviceDetail; entity: Device
         )}
         rows={4}
         spellCheck={false}
-        aria-label={`${entity.name} JSON`}
+        aria-label={t('raw.entityJson', { name: entity.name })}
         value={shown}
         onChange={e => {
           setDraft(e.target.value);
@@ -155,9 +158,9 @@ function ScheduleJson({ device, entity }: { device: DeviceDetail; entity: Device
       />
       <div className="flex flex-wrap items-center gap-2">
         <Button size="small" onClick={save} disabled={call.busy}>
-          Save {entity.name}
+          {t('raw.save', { name: entity.name })}
         </Button>
-        {draft !== null && <span className="text-muted-foreground">Not sent yet</span>}
+        {draft !== null && <span className="text-muted-foreground">{t('notSentYet')}</span>}
       </div>
       <FeedbackLine feedback={call.feedback} />
     </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from 'cn';
 import { errorMessage } from '@/shared/api/errors';
 import {
@@ -18,7 +19,8 @@ import {
   type RetentionCaps,
 } from '../retention-and-blocked-model';
 
-type Category = keyof RetentionCaps;
+/** The categories this screen edits (`rawUpload` keeps its server default). */
+type Category = (typeof RETENTION_SIZED)[number] | (typeof RETENTION_AGE_ONLY)[number];
 
 interface Caps {
   mb: number | null;
@@ -27,13 +29,12 @@ interface Caps {
 
 interface Row {
   key: Category;
-  label: string;
   sized: boolean;
 }
 
 const ROWS: readonly Row[] = [
-  ...RETENTION_SIZED.map(([key, label]) => ({ key, label, sized: true })),
-  ...RETENTION_AGE_ONLY.map(([key, label]) => ({ key, label, sized: false })),
+  ...RETENTION_SIZED.map(key => ({ key, sized: true })),
+  ...RETENTION_AGE_ONLY.map(key => ({ key, sized: false })),
 ];
 
 function fromServer(data: RetentionCaps): Partial<Record<Category, Caps>> {
@@ -55,15 +56,14 @@ function toPatch(caps: Partial<Record<Category, Caps>>): RetentionPatch {
   return body;
 }
 
-const DESCRIPTION =
-  'Over the size cap the oldest files go first; past the age cap they go regardless of size. The sweep runs about every 10 minutes. Leave a field blank for no cap: 0 also means no cap, not "delete everything". Blocked attempts are tiny and rare, so a long window costs almost nothing.';
-
 interface RetentionTableProps {
   data: RetentionCaps;
   save: ReturnType<typeof useSaveRetention>;
 }
 
 function RetentionTable({ data, save }: RetentionTableProps) {
+  const { t } = useTranslation('setup');
+  const name = (key: Category) => t(`retention.kind.${key}`);
   const [caps, setCaps] = useState(() => fromServer(data));
 
   const set = (key: Category, part: keyof Caps, value: number | null) => {
@@ -72,10 +72,10 @@ function RetentionTable({ data, save }: RetentionTableProps) {
   };
 
   const columns: TableColumn<Row>[] = [
-    { key: 'label', header: 'Category', cell: r => r.label },
+    { key: 'label', header: t('retention.category'), cell: r => name(r.key) },
     {
       key: 'mb',
-      header: 'Max size (MB)',
+      header: t('retention.maxSize'),
       numeric: true,
       width: '100px',
       cell: r =>
@@ -83,7 +83,7 @@ function RetentionTable({ data, save }: RetentionTableProps) {
           <NumberInput
             className="w-22"
             min={0}
-            aria-label={`${r.label}, max size in MB`}
+            aria-label={t('retention.maxSizeOf', { label: name(r.key) })}
             value={caps[r.key]?.mb ?? null}
             onValueChange={v => {
               set(r.key, 'mb', v);
@@ -95,14 +95,14 @@ function RetentionTable({ data, save }: RetentionTableProps) {
     },
     {
       key: 'days',
-      header: 'Max age (days)',
+      header: t('retention.maxAge'),
       numeric: true,
       width: '100px',
       cell: r => (
         <NumberInput
           className="w-22"
           min={0}
-          aria-label={`${r.label}, max age in days`}
+          aria-label={t('retention.maxAgeOf', { label: name(r.key) })}
           value={caps[r.key]?.days ?? null}
           onValueChange={v => {
             set(r.key, 'days', v);
@@ -115,14 +115,14 @@ function RetentionTable({ data, save }: RetentionTableProps) {
   return (
     <>
       <Table
-        label="Retention caps"
+        label={t('retention.caps')}
         variant="compact"
         columns={columns}
         rows={ROWS}
         rowKey={r => r.key}
         minWidth={300}
       />
-      <p className="pt-3 text-xs text-muted-foreground">{DESCRIPTION}</p>
+      <p className="pt-3 text-xs text-muted-foreground">{t('retention.description')}</p>
       <div className="flex flex-wrap items-center gap-3 py-3">
         <Button
           size="small"
@@ -131,14 +131,14 @@ function RetentionTable({ data, save }: RetentionTableProps) {
           }}
           disabled={save.isPending}
         >
-          {save.isPending ? 'Saving…' : 'Save retention'}
+          {save.isPending ? t('retention.saving') : t('retention.save')}
         </Button>
         <span
           role="status"
           className={cn('text-sm', save.isError ? 'text-negative' : 'text-muted-foreground')}
         >
-          {save.isError && `Not saved: ${errorMessage(save.error)}`}
-          {save.isSuccess && 'Retention saved.'}
+          {save.isError && t('retention.failed', { error: errorMessage(save.error) })}
+          {save.isSuccess && t('retention.saved')}
         </span>
       </div>
     </>
@@ -147,12 +147,13 @@ function RetentionTable({ data, save }: RetentionTableProps) {
 
 /** Keep: per-category media caps, events history and how long blocked attempts are kept. */
 export function RetentionSection() {
+  const { t } = useTranslation('setup');
   const retention = useRetention();
   // Owned here, not by the table: a save replaces the cached caps, which
   // remounts the table with them, and the "saved" line must survive that.
   const save = useSaveRetention();
   return (
-    <SettingsSection title="Keep">
+    <SettingsSection title={t('retention.title')}>
       {retention.isPending ? (
         <div className="flex flex-col gap-3" aria-busy="true">
           {ROWS.map(r => (
@@ -161,7 +162,7 @@ export function RetentionSection() {
         </div>
       ) : retention.isError ? (
         <ErrorBlock
-          message={`Retention could not be loaded. ${errorMessage(retention.error)}`}
+          message={t('retention.loadFailed', { error: errorMessage(retention.error) })}
           onRetry={() => void retention.refetch()}
           retrying={retention.isFetching}
         />

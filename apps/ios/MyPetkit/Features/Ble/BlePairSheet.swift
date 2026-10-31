@@ -47,12 +47,12 @@ struct BlePairSheet: View {
         .interactiveDismissDisabled(busy)
     }
 
-    private var parentWord: String { model.parent?.isLitterBox == true ? "litter box" : "device" }
+    private var parentWord: String { model.parent?.isLitterBox == true ? L10n.string("litter box") : L10n.string("device") }
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                IconButton(systemImage: "xmark", label: "Close") { dismiss() }
+                IconButton(systemImage: "xmark", label: L10n.string("Close")) { dismiss() }
                 Spacer()
             }
             .frame(minHeight: Theme.Space.control)
@@ -97,7 +97,7 @@ struct BlePairSheet: View {
                     }
                 }
             }
-            LabeledField(label: "MAC address",
+            LabeledField(label: L10n.string("MAC address"),
                          footnote: problem == .mac ? BlePairDraft.Problem.mac.message : nil) {
                 TextField("AA:BB:CC:DD:EE:FF", text: $draft.mac)
                     .font(Theme.Font.monoMedium)
@@ -105,12 +105,12 @@ struct BlePairSheet: View {
                     .autocorrectionDisabled()
                     .keyboardType(.asciiCapable)
             }
-            LabeledField(label: "Secret",
-                         footnote: "From PetKit's app. A factory-fresh accessory accepts eight zero bytes.") {
+            LabeledField(label: L10n.string("Secret"),
+                         footnote: L10n.string("From PetKit's app. A factory-fresh accessory accepts eight zero bytes.")) {
                 SecureField("Optional", text: $draft.secret)
                     .textInputAutocapitalization(.never).autocorrectionDisabled()
             }
-            LabeledField(label: "Serial number") {
+            LabeledField(label: L10n.string("Serial number")) {
                 TextField("Optional", text: $draft.serialNumber)
                     .textInputAutocapitalization(.never).autocorrectionDisabled()
             }
@@ -132,20 +132,22 @@ struct BlePairSheet: View {
                     .frame(minHeight: Theme.Space.rowHeight)
                     RowRule()
                 }
-                numberRow(title: "Report interval", unit: "s", text: $draft.interval,
+                numberRow(title: L10n.string("Report interval"), unit: "s", text: $draft.interval,
                           placeholder: String(BlePairDraft.defaultInterval), problem: .interval)
                 RowRule()
                 DisclosureGroup(isExpanded: $showsAdvanced) {
                     VStack(alignment: .leading, spacing: 0) {
-                        numberRow(title: "Scan type", unit: nil, text: $draft.scanType,
-                                  placeholder: "Default", problem: .scanType)
-                        Text("Change this first if the \(draft.type.noun) never reports. "
-                             + "Only some types have a captured value; the others are a guess.")
+                        numberRow(title: L10n.string("Scan type"), unit: nil, text: $draft.scanType,
+                                  placeholder: L10n.string("Default"), problem: .scanType)
+                        Text("""
+                            Change this first if the \(draft.type.noun) never reports. \
+                            Only some types have a captured value; the others are a guess.
+                            """)
                             .font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted)
                             .padding(.bottom, 8)
                         RowRule()
-                        numberRow(title: "Accessory id", unit: nil, text: $draft.accessoryID,
-                                  placeholder: "Server assigns", problem: .accessoryID)
+                        numberRow(title: L10n.string("Accessory id"), unit: nil, text: $draft.accessoryID,
+                                  placeholder: L10n.string("Server assigns"), problem: .accessoryID)
                     }
                 } label: {
                     Text("Advanced").font(Theme.Font.body).foregroundStyle(Theme.Color.text)

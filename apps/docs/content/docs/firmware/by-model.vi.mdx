@@ -1,0 +1,103 @@
+---
+title: Firmware theo mẫu
+description: CPU, nơi lưu bản vá, các bản build firmware mà patcher đã được kiểm tra, và những gì đã đo được trên từng mẫu.
+---
+
+Mọi thứ trên trang này đến từ mã patcher và các kiểm thử firmware trong kho mã. Sách hướng dẫn của PetKit không nói gì về firmware ngoài câu "nâng cấp qua ứng dụng", nên chúng không phải nguồn ở đây. Khi mã không có gì về một mẫu, trang này nói rõ.
+
+## Tóm tắt
+
+| Mẫu | Sản phẩm | CPU | Nơi lưu bản vá | Bản build SSH | Firmware image trong bộ kiểm thử |
+|---|---|---|---|---|---|
+| T5 | Purobot Max Pro 2 | Ingenic MIPS32r2 LE | `/system` | `dropbear-mipsel` | `t5/943/app_261463.bin` |
+| T6 | Purobot Ultra | Ingenic MIPS32r2 LE | `/system` | `dropbear-mipsel` | `t6/daniel/app.bin` |
+| T7 | Purobot Crystal Duo | Ingenic MIPS32r2 LE | `/system` | `dropbear-mipsel` | không có |
+| D4H | YumShare Solo, Solo 2 | Ingenic MIPS32r2 LE | `/system` | `dropbear-mipsel` | không có |
+| D4SH | YumShare Dual-Hopper, Dual-Hopper 2 | Ingenic MIPS hoặc Axera ARM, tùy từng chiếc | `/system` hoặc `/opt` | khớp với từng chiếc | `d4sh/867/app_261301.bin` |
+| W7H | EverSweet Ultra AI | ARMv7-A hard-float | được dò | `dropbear-armv7` | `w7h/456/app_262863.bin` |
+
+Cột CPU theo các comment trong `patchers/ssh.py`, `patchers/common.py` và `patchers/mqtt.py`. Máy chủ không tin nó khi chạy: trước mỗi bản vá, nó kiểm tra `/system/user.conf` hay `/opt/user.conf` tồn tại, và đọc ELF header của `ctrl` của chính thiết bị để chọn bản vá byte hoặc bản build dropbear. Mã gọi các bo ARM của mình là Axera và mong đợi `/opt` trên chúng.
+
+Các image kiểm thử nằm trong `services/api/tests/firmware/`, thư mục mà git bỏ qua, nên chúng không có trong kho mã. Bảng cho biết tên thư mục và tên tệp mà `test_patcher_firmware.py` mong đợi.
+
+## Đọc firmware của thiết bị bạn
+
+Có hai cách vào, và cả hai được mô tả trong [Cách vá hoạt động](/vi/docs/firmware/how-patching-works).
+
+Từ một thiết bị đang chạy, các tệp mà patcher đụng tới nằm trong `/app/bin`: `ctrl` (tiến trình chính), `cloud` (bộ tải media lên), `ca.crt` (bộ CA), `tserver` và `agora` (video), và `pktool` (một công cụ factory). Persistent SSH Access cho bạn một shell để đọc chúng. Không có nó, các patcher lấy một tệp bằng cách khởi động một `busybox httpd` tạm thời trên port 8888 phục vụ `/app/bin`.
+
+Từ một tệp image, app image là một uImage. Bốn byte đầu là `27 05 19 56`, rồi đến phần còn lại của header 64 byte, rồi một hệ thống tệp squashfs:
+
+```bash
+dd if=app.bin of=app.sqfs bs=64 skip=1
+unsquashfs -d root app.sqfs
+file root/bin/ctrl   # ELF 32-bit LSB, MIPS (Ingenic) or ARM (W7H)
+```
+
+Thư mục `bin/` của image chứa `ctrl`, `cloud` và `ca.crt`, cùng tên mà các patcher tải từ `/app/bin` trên thiết bị đang chạy. Bộ kiểm thử làm thất bại một image không bắt đầu bằng magic uImage hoặc không có `bin/ctrl`.
+
+## T5
+
+Ingenic MIPS, bản vá lưu trong `/system`. Đây là mẫu mà phần lớn các phép đo phần cứng trong mã được thực hiện.
+
+| Tệp | Kích thước trên T5 |
+|---|---|
+| `ctrl` | 1,420,656 byte |
+| `cloud` | 304,204 byte |
+| `ca.crt` | 226,168 byte |
+
+Đo trên một chiếc T5, như được ghi trong mã:
+
+- Nó chạy một lệnh shell `run_cmd` gửi từ máy chủ (2026-07-29). Mọi patcher đều phụ thuộc vào điều này.
+- Khi áp dụng MQTT TLS Bypass, nó hoàn tất một TLS CONNECT tới broker nhúng, với keep-alive 62 giây. Chữ ký HMAC của nó khớp với của máy chủ, trừ việc nó được gửi dưới dạng hex chữ hoa. Nó chỉ đưa ra các cipher suite RSA và PSK.
+- Nó không gửi MQTT SUBSCRIBE nào của riêng mình, nên broker subscribe thay cho nó. Nó ngừng thăm dò heartbeat HTTP khoảng 40 giây sau khi kết nối qua MQTT.
+- `ctrl` của nó chỉ nhúng GlobalSign Root CA, và rootfs không có bản sao của root Aliyun mà broker MQTT của PetKit nối chuỗi tới.
+- `tserver` phát H.264 ở 1056×1056 (`main.flv`) và 528×528 (`sub.flv`) với AAC đơn kênh 16 kHz, và cần vài giây giữa các kết nối (2026-07-31).
+- Với Local Camera Streaming, watchdog ghi nhật ký "kill agora" mỗi phút một lần nhưng không bao giờ kill `tserver`; đo trong 16 phút.
+
+## T6
+
+Ingenic MIPS, bản vá lưu trong `/system`. Image kiểm thử nằm trong thư mục tên `daniel` chứ không phải số phiên bản.
+
+Camera nằm trên một động cơ bước ngang phía sau `/dev/motor`, được điều khiển bởi `pk_motor.ko`, mà `app_init.sh` gốc nạp với `maxstep=2500`. Trên firmware 951 (app `T6-262561`, 2026-10-29), `pktool motor_test` đưa camera tới đúng bước được yêu cầu: 2500 hướng vào trống, 1250 là một phần tư vòng sang trái. Camera Pan chỉ chạy nếu MD5 của `pktool` là `626fce2bb4febf259e2a8490af3c17b5`, bản build mà các lệnh được đọc từ đó. Xem [Camera Pan (T6)](/vi/docs/firmware/camera-pan-t6).
+
+Với Two-Way Talk, script sink tìm các thư viện của `pktool` ở nhiều nơi; mã ghi chú rằng T6 giữ chúng bên ngoài `/app/bin`.
+
+## T7
+
+Ingenic MIPS theo patcher SSH, patcher này cấp cho nó bản build `dropbear-mipsel`. Không có image T7 trong bộ kiểm thử và không có phép đo T7 nào trong mã. Các patcher áp dụng được cho nó vì nó là một trong các mẫu Linux nhúng, không phải vì đã có chiếc nào được vá.
+
+## D4H
+
+Ingenic MIPS theo patcher SSH. Không có image D4H trong bộ kiểm thử, và chưa có chiếc D4H nào từng báo cáo về một máy chủ MyPetKit, nên chưa có gì về firmware của nó được xác nhận.
+
+## D4SH
+
+D4SH được bán với hai họ bo mạch dưới cùng một tên mẫu: Ingenic MIPS với bản vá trong `/system`, và Axera ARM với bản vá trong `/opt`. Đây là lý do máy chủ dò bộ nhớ thay vì quyết định từ tên mẫu. Các kích thước dưới đây lấy từ image kiểm thử, có `ctrl` mà bộ kiểm thử coi là MIPS.
+
+| Tệp | Kích thước trên image kiểm thử D4SH |
+|---|---|
+| `ctrl` | 903,148 byte |
+| `cloud` | 188,452 byte |
+| `ca.crt` | 11,171 byte |
+
+`pktool` nạp `libbase.so` từ `/app/bin`; tiến trình `media` của chính firmware chạy với `LD_LIBRARY_PATH=/app/bin:/usr/lib`. Không có đường dẫn đó `pktool` không khởi động được, đó là lý do sink Two-Way Talk đặt `/app/bin` lên đầu.
+
+## W7H
+
+ARMv7-A, máy lọc nước duy nhất có Wi-Fi riêng. Các bản vá ARM được viết dựa trên firmware của nó:
+
+- MQTT TLS Bypass tìm hàm xác minh chứng chỉ bằng một prologue Thumb-2 lấy từ firmware W7H 456. Bộ kiểm thử kiểm tra prologue này xuất hiện đúng một lần trong `ctrl`, và bản vá đổi 8 byte thay vì 16 như trên MIPS.
+- Local Storage áp dụng sáu bản vá cho `cloud` ARM (một trong `isCClassIP` và năm chốt chặn `CURLOPT_CONNECT_TO`), trong khi MIPS cần hai.
+- Persistent SSH Access cài `dropbear-armv7`, 128 KB.
+
+Tài liệu riêng của add-on vẫn gọi một số patcher này là chỉ dành cho MIPS. Xem ghi chú ở [Firmware và patcher](/vi/docs/firmware#two-cpu-families).
+
+## Các mẫu không có dữ liệu firmware
+
+| Mẫu | Vì sao ở đây không có gì |
+|---|---|
+| T3, T4, D3, D4, D4S, Feeder, Feeder Mini | Các mẫu Wi-Fi dùng HTTP thuần. Một comment trong `utils/const.py` mô tả các máy cho ăn không camera là ESP32, dựa trên các image D4, Feeder Mini và T4. Chúng không phải Linux nhúng, và màn hình Patchers báo chúng là không được hỗ trợ. |
+| W4, W5, CTW2, CTW3, K2, K3 | Chỉ Bluetooth. Chúng không bao giờ tự tới máy chủ; một máy dọn phân hoặc máy cho ăn làm trung chuyển cho chúng. |
+
+Nếu bạn có một image hoặc bản thu thập từ một trong số này, hãy mở một issue. Xem [Thêm một mẫu thiết bị](/vi/docs/contributing#adding-a-device-model).

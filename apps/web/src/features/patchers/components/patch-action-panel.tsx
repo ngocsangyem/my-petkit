@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { errorMessage } from '@/shared/api/errors';
 import { formatBytes } from '@/shared/format/format';
 import { Button, Card, Panel, RiskNotice } from '@/shared/ui';
@@ -6,7 +7,7 @@ import { Field, FieldDescription, FieldLabel } from '@/shared/ui/shadcn/field';
 import { Textarea } from '@/shared/ui/shadcn/textarea';
 import { useRunPatcher, type PatcherEntry } from '../api';
 import type { PatcherProgress } from '../hooks/use-patcher-progress';
-import { applyBlocker, normaliseDescription, PATCH_RISK } from '../patcher-model';
+import { applyBlocker, normaliseDescription } from '../patcher-model';
 
 interface PatchActionPanelProps {
   deviceId: number;
@@ -40,6 +41,7 @@ export function PatchActionPanel({
   onSwitch,
   onClose,
 }: PatchActionPanelProps) {
+  const { t } = useTranslation(['patchers', 'common']);
   const titleId = useId();
   const keyId = useId();
   const keyHintId = useId();
@@ -57,11 +59,13 @@ export function PatchActionPanel({
 
   function start() {
     run.reset();
-    note(deviceId, patcher.id, applying ? 'Starting…' : 'Removing…', true);
+    note(deviceId, patcher.id, applying ? t('action.starting') : t('action.removing'), true);
     run.mutate(
       { deviceId, patcher: patcher.id, action, pubkey: needsKey ? pubkey.trim() : undefined },
       {
         onError: error => {
+          // A progress-log marker like the server's own lines, read by the list's "Running"
+          // check; it stays English in every language.
           note(deviceId, patcher.id, `ERROR: ${errorMessage(error)}`);
         },
       },
@@ -72,9 +76,10 @@ export function PatchActionPanel({
     <Card as="section" aria-labelledby={titleId} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
         <h2 id={titleId} className="text-xl">
-          {applying
-            ? `Apply ${patcher.name} to ${deviceName}?`
-            : `Remove ${patcher.name} from ${deviceName}?`}
+          {t(applying ? 'action.applyTitle' : 'action.removeTitle', {
+            name: patcher.name,
+            device: deviceName,
+          })}
         </h2>
         <p className="text-md whitespace-pre-line text-lede">
           {normaliseDescription(patcher.description)}
@@ -94,21 +99,15 @@ export function PatchActionPanel({
           <span className="font-mono">#{deviceId}</span>
         </span>
       </div>
-      <RiskNotice>{PATCH_RISK}</RiskNotice>
+      <RiskNotice>{t('risk')}</RiskNotice>
       <dl className="m-0 grid grid-cols-1 gap-x-4 gap-y-1.5 min-[901px]:grid-cols-[160px_minmax(0,1fr)] [&_dt]:text-muted-foreground">
-        <dt>How to undo</dt>
-        <dd className="m-0">
-          {applying
-            ? 'Remove undoes it: the files are deleted from /system and the device reboots without the patch.'
-            : 'The device reboots without this patch. Other patches stay active; with none left it boots stock firmware.'}
-        </dd>
+        <dt>{t('action.howToUndo')}</dt>
+        <dd className="m-0">{applying ? t('action.undoApply') : t('action.undoRemove')}</dd>
         {applying && (
           <>
-            <dt>Space on the box</dt>
+            <dt>{t('action.space')}</dt>
             <dd className="m-0">
-              Needs about {formatBytes(patcher.needs_bytes)} free. Free space is checked on the
-              device before anything is written; the exact need is measured then and is usually
-              smaller.
+              {t('action.spaceBody', { size: formatBytes(patcher.needs_bytes) })}
             </dd>
           </>
         )}
@@ -117,7 +116,7 @@ export function PatchActionPanel({
       {needsKey && (
         <Field className="gap-1.5">
           <FieldLabel htmlFor={keyId} className="ml-1 text-sm font-normal text-muted-foreground">
-            SSH public key
+            {t('action.sshKey')}
           </FieldLabel>
           <Textarea
             id={keyId}
@@ -130,9 +129,7 @@ export function PatchActionPanel({
               setPubkey(e.target.value);
             }}
           />
-          <FieldDescription id={keyHintId}>
-            Root SSH on port 22 accepts this key only: ssh-ed25519, ssh-rsa or ecdsa-sha2.
-          </FieldDescription>
+          <FieldDescription id={keyHintId}>{t('action.sshKeyHint')}</FieldDescription>
         </Field>
       )}
 
@@ -144,7 +141,7 @@ export function PatchActionPanel({
             ref={log}
             className="m-0 max-h-50 overflow-auto px-3.5 py-2.5 font-mono text-xs leading-normal wrap-anywhere whitespace-pre-wrap"
             role="log"
-            aria-label="Progress"
+            aria-label={t('action.progress')}
             tabIndex={0}
           >
             {lines.join('\n')}
@@ -153,7 +150,7 @@ export function PatchActionPanel({
       )}
       {run.isSuccess && (
         <p role="status" className="text-sm text-muted-foreground">
-          Accepted. Progress comes from the server over the live connection; a run takes minutes.
+          {t('action.accepted')}
         </p>
       )}
 
@@ -164,9 +161,9 @@ export function PatchActionPanel({
           onClick={start}
           disabled={run.isPending || blocker !== null || keyMissing}
         >
-          {applying ? `Apply ${patcher.name}` : `Remove ${patcher.name}`}
+          {t(applying ? 'action.apply' : 'action.remove', { name: patcher.name })}
         </Button>
-        <Button onClick={onClose}>Close</Button>
+        <Button onClick={onClose}>{t('common:close')}</Button>
         <Button
           variant="text"
           onClick={() => {
@@ -174,15 +171,15 @@ export function PatchActionPanel({
             onSwitch(applying ? 'remove' : 'apply');
           }}
         >
-          {applying ? 'Remove instead' : 'Apply again'}
+          {applying ? t('action.removeInstead') : t('action.applyAgain')}
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground">
-        Asks for your password, then shows progress here step by step.
-      </p>
+      <p className="text-xs text-muted-foreground">{t('action.stepUp')}</p>
       {run.isError && (
         <p role="alert" className="text-sm text-negative">
-          {applying ? 'Not applied' : 'Not removed'}: {errorMessage(run.error)}
+          {t(applying ? 'action.notApplied' : 'action.notRemoved', {
+            error: errorMessage(run.error),
+          })}
         </p>
       )}
     </Card>

@@ -1,7 +1,10 @@
+import { i18n } from '@/i18n';
 import { clockTime, type TimelineDay, type TimelineSession } from './timeline-model';
 
 function times(n: number): string {
-  return n === 1 ? 'once' : n === 2 ? 'twice' : `${String(n)} times`;
+  if (n === 1) return i18n.t('timeline:summary.once');
+  if (n === 2) return i18n.t('timeline:summary.twice');
+  return i18n.t('timeline:summary.times', { n });
 }
 
 /**
@@ -12,7 +15,7 @@ export function visitSummary(day: TimelineDay | undefined, isToday: boolean): st
   if (!day) return null;
   const visits = day.sessions.filter(s => s.kind === 'visit');
   if (!visits.length) {
-    return isToday ? 'No litter-box visits yet today.' : 'No litter-box visits on this day.';
+    return i18n.t(isToday ? 'timeline:summary.noneToday' : 'timeline:summary.noneDay');
   }
   const byPet = new Map<string, number>();
   let unknown = 0;
@@ -21,20 +24,24 @@ export function visitSummary(day: TimelineDay | undefined, isToday: boolean): st
     else unknown += 1;
   }
   const parts = [...byPet].map(([name, n], i) =>
-    i === 0 ? `${name} used the litter box ${times(n)}` : `${name} ${times(n)}`,
+    i18n.t(i === 0 ? 'timeline:summary.first' : 'timeline:summary.next', { name, times: times(n) }),
   );
   if (unknown) {
-    parts.push(
-      parts.length
-        ? `an unrecognised cat ${times(unknown)}`
-        : `The litter box was used ${times(unknown)}`,
-    );
+    const key = parts.length ? 'timeline:summary.unknownAfter' : 'timeline:summary.unknownOnly';
+    parts.push(i18n.t(key, { times: times(unknown) }));
   }
   const head =
-    parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${String(parts.at(-1))}` : parts[0];
+    parts.length > 1
+      ? i18n.t('timeline:summary.join', {
+          rest: parts.slice(0, -1).join(', '),
+          last: String(parts.at(-1)),
+        })
+      : String(parts[0]);
   const last = latest(visits);
   const at = last ? clockTime(last.display_ts ?? last.ts) : null;
-  return at ? `${String(head)}. The last visit was ${at}.` : `${String(head)}.`;
+  return at
+    ? i18n.t('timeline:summary.sentenceLast', { head, at })
+    : i18n.t('timeline:summary.sentence', { head });
 }
 
 function latest(sessions: TimelineSession[]): TimelineSession | undefined {

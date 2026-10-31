@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { usePersistedState } from './persisted-state';
 import { Segmented } from './chips-and-segmented';
 
@@ -57,15 +58,11 @@ export function useThemeMode(): [ThemeMode, (mode: ThemeMode) => void] {
   return value;
 }
 
-const OPTIONS = [
-  { id: 'system', label: 'System' },
-  { id: 'light', label: 'Light' },
-  { id: 'dark', label: 'Dark' },
-] as const;
+const MODES = ['system', 'light', 'dark'] as const;
 
 /** Props for {@link ThemeModeControl}. */
 export interface ThemeModeControlProps {
-  /** Accessible name of the control; defaults to "Appearance". */
+  /** Accessible name of the control; defaults to "Appearance" in the active language. */
   label?: string;
 }
 
@@ -73,7 +70,16 @@ export interface ThemeModeControlProps {
  * System / Light / Dark as a segmented control, for Settings › Appearance. The choice is stored in
  * this browser only and applied before the first paint on the next load.
  */
-export function ThemeModeControl({ label = 'Appearance' }: ThemeModeControlProps) {
+export function ThemeModeControl({ label }: ThemeModeControlProps) {
+  const { t } = useTranslation('ui');
   const [mode, setMode] = useThemeMode();
-  return <Segmented label={label} options={OPTIONS} value={mode} onChange={setMode} />;
+  const options = MODES.map(id => ({ id, label: t(`theme.${id}`) }));
+  return (
+    <Segmented
+      label={label ?? t('theme.label')}
+      options={options}
+      value={mode}
+      onChange={setMode}
+    />
+  );
 }

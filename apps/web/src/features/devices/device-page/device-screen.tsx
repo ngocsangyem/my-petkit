@@ -1,4 +1,5 @@
 import type { UseQueryResult } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { errorMessage } from '@/shared/api/errors';
 import { buttonClassName, ErrorBlock, NoticeCard, PageHeader, Skeleton } from '@/shared/ui';
@@ -26,23 +27,24 @@ interface DeviceScreenProps {
 /** The page of one device or accessory, its live view or its schedules, by the view's key. */
 export function DeviceScreen(props: DeviceScreenProps) {
   const { view, entries, details, isOpen, setOpen } = props;
+  const { t } = useTranslation('devices');
   const links = useDeviceLinks();
   const entry = entries.find(e => panelKey(e) === view.key);
-  const back = { to: links.home, label: 'Home' };
+  const back = { to: links.home, label: t('home.title') };
 
   if (!entry) {
     return (
       <>
-        <PageHeader title="Device" back={back} />
+        <PageHeader title={t('family.other')} back={back} />
         <NoticeCard
-          title="This device is not here any more"
+          title={t('screen.goneTitle')}
           action={
             <Link className={buttonClassName('secondary')} to={links.home}>
-              Back to Home
+              {t('screen.backHome')}
             </Link>
           }
         >
-          It was removed, or the link names a device this server never registered.
+          {t('screen.goneBody')}
         </NoticeCard>
       </>
     );
@@ -70,7 +72,7 @@ export function DeviceScreen(props: DeviceScreenProps) {
       <>
         <PageHeader title={summary.name} back={back} />
         <ErrorBlock
-          message={`Could not load this device: ${errorMessage(query.error)}`}
+          message={t('screen.loadFailed', { error: errorMessage(query.error) })}
           onRetry={() => void query.refetch()}
           retrying={query.isFetching}
         />

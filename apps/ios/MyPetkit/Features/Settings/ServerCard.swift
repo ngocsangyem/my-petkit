@@ -33,7 +33,8 @@ struct ServerCard: View {
                 if case .failed(let message) = model.facts {
                     Text(message).font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted)
                 } else if let facts = model.facts.value {
-                    Text("MyPetKit \(facts.version) · \(facts.proxyMode ? "proxy mode" : "local mode")")
+                    Text(verbatim: "MyPetKit \(facts.version) · "
+                         + (facts.proxyMode ? L10n.string("proxy mode") : L10n.string("local mode")))
                         .font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted)
                 }
             }
@@ -45,23 +46,23 @@ struct ServerCard: View {
     }
 
     private var stateLine: some View {
-        let trust = session.isPinned ? "TLS pinned" : "TLS, system-trusted"
+        let trust = session.isPinned ? L10n.string("TLS pinned") : L10n.string("TLS, system-trusted")
         let (word, color): (String, Color) = switch (session.connection, model.facts) {
-        case (_, .failed): ("Not answering", Theme.Color.negative)
-        case (.live, _): ("Running", Theme.Color.positive)
-        default: ("Reconnecting", Theme.Color.muted)
+        case (_, .failed): (L10n.string("Not answering"), Theme.Color.negative)
+        case (.live, _): (L10n.string("Running"), Theme.Color.positive)
+        default: (L10n.string("Reconnecting"), Theme.Color.muted)
         }
         return HStack(spacing: 6) {
             Circle().fill(color).frame(width: 8, height: 8)
-            Text("\(word) · \(trust)").font(Theme.Font.small).foregroundStyle(color)
+            Text(verbatim: "\(word) · \(trust)").font(Theme.Font.small).foregroundStyle(color)
         }
     }
 
     private func figuresPanel(_ figures: ServerModel.DeviceFigures) -> some View {
         HStack(spacing: 0) {
-            figure("Devices", value: figures.total, color: Theme.Color.text)
+            figure(L10n.string("Devices"), value: figures.total, color: Theme.Color.text)
             Rectangle().fill(Theme.Color.segment).frame(width: 1)
-            figure("Need you", value: figures.needYou,
+            figure(L10n.string("Need you"), value: figures.needYou,
                    color: figures.needYou > 0 ? Theme.Color.negative : Theme.Color.text)
         }
         .fixedSize(horizontal: false, vertical: true)

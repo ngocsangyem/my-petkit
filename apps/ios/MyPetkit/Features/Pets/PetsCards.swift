@@ -20,7 +20,7 @@ struct PetHeroCard: View {
                     Text(line).font(Theme.Font.small).foregroundStyle(Theme.Color.muted)
                 }
                 Spacer(minLength: 8)
-                Pill(text: pet.faces.isEmpty ? "No face photos" : PetRules.plural(pet.faces.count, "face photo"),
+                Pill(text: pet.faces.isEmpty ? L10n.string("No face photos") : L10n.string("\(pet.faces.count) face photos"),
                      tone: pet.faces.isEmpty ? .neutral : .positive)
                     .padding(.top, 6)
             }
@@ -43,7 +43,7 @@ struct PetWeightCard: View {
         Card {
             Text("Weight").font(Theme.Font.section).accessibilityAddTraits(.isHeader)
             FigureGrid(figures: [
-                Figure(label: "Registered", value: kilograms(pet.weightG.map(Double.init) ?? pet.weight), unit: "kg"),
+                Figure(label: L10n.string("Registered"), value: kilograms(pet.weightG.map(Double.init) ?? pet.weight), unit: "kg"),
                 Figure(label: lastLabel, value: kilograms(week?.lastWeight), unit: "kg"),
             ])
         }
@@ -51,9 +51,9 @@ struct PetWeightCard: View {
 
     private var lastLabel: String {
         guard let week, let time = TimelineFormat.clock(week.lastVisit, tzOffset: week.tzOffset) else {
-            return "Last visit today"
+            return L10n.string("Last visit today")
         }
-        return "Last visit, \(time)"
+        return L10n.string("Last visit, \(time)")
     }
 
     private func kilograms(_ grams: Double?) -> String? {
@@ -72,7 +72,7 @@ struct PetVisitsCard: View {
                 Text("Litter box visits").font(Theme.Font.section).accessibilityAddTraits(.isHeader)
                 Spacer()
                 if let average = state?.value.flatMap({ PetRules.averagePerDay($0.days.map(\.count)) }) {
-                    Text(String(format: "%.1f a day on average", average))
+                    Text(L10n.string("\(PetRules.oneDecimal(average)) a day on average"))
                         .font(Theme.Font.small).monospacedDigit().foregroundStyle(Theme.Color.muted)
                 }
             }
@@ -93,7 +93,7 @@ struct PetVisitsCard: View {
                     RoundedRectangle(cornerRadius: 6)
                         .fill(isToday ? Theme.Color.accent : Theme.Color.litter)
                         .frame(height: max(4, 96 * CGFloat(day.count) / CGFloat(peak)))
-                    Text(isToday ? "Today" : TimelineFormat.weekdayInitial(day.date))
+                    Text(isToday ? L10n.string("Today") : TimelineFormat.weekdayInitial(day.date))
                         .font(isToday ? Theme.Font.extraSmall.weight(.semibold) : Theme.Font.extraSmall)
                         .foregroundStyle(isToday ? Theme.Color.text : Theme.Color.muted)
                         .lineLimit(1)
@@ -101,7 +101,7 @@ struct PetVisitsCard: View {
                 }
                 .frame(maxWidth: .infinity)
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel("\(TimelineFormat.dayTitle(day.date, today: week.today)): \(day.count) visits")
+                .accessibilityLabel(L10n.string("\(TimelineFormat.dayTitle(day.date, today: week.today)): \(day.count) visits"))
             }
         }
     }
@@ -168,7 +168,7 @@ struct UnboundRefRow: View {
                 Text("A face not bound to a cat").font(Theme.Font.body).foregroundStyle(Theme.Color.text)
                 HStack(spacing: 0) {
                     Text("ref \(String(ref.ref))").font(Theme.Font.mono)
-                    Text(" · seen \(PetRules.plural(ref.count, "time"))").font(Theme.Font.extraSmall).monospacedDigit()
+                    Text(" · " + L10n.string("seen \(ref.count) times")).font(Theme.Font.extraSmall).monospacedDigit()
                 }
                 .foregroundStyle(Theme.Color.muted)
             }

@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import type { BleDeviceLike } from '@/ble/gatt-types';
+import { currentLocale, i18n } from '@/i18n';
 import {
   bluetoothErrorLogLine,
   bluetoothErrorText,
@@ -25,12 +26,36 @@ export interface FoundDevice {
   device: BleDeviceLike;
 }
 
-const STATUS_BY_OUTCOME: Record<ProvisionOutcome, string> = {
-  accessory: 'This model has no Wi-Fi.',
-  'unknown-device': 'Unknown device.',
-  provisioned: 'Provisioned. The device will restart and join Wi-Fi.',
-  unanswered: 'Sent, but the device never answered.',
+/** The status line's message, kept as a key so it follows a language change. */
+type StatusKey =
+  | 'accessory'
+  | 'unknownDevice'
+  | 'provisioned'
+  | 'unanswered'
+  | 'connected'
+  | 'requesting'
+  | 'error'
+  | 'missingWifi'
+  | 'connecting'
+  | 'sending';
+
+interface Status {
+  key: StatusKey;
+  /** The browser's Bluetooth error, for `error`. */
+  error?: string;
+}
+
+const STATUS_BY_OUTCOME: Record<ProvisionOutcome, StatusKey> = {
+  accessory: 'accessory',
+  'unknown-device': 'unknownDevice',
+  provisioned: 'provisioned',
+  unanswered: 'unanswered',
 };
+
+function statusText(status: Status | null): string {
+  if (!status) return '';
+  return i18n.t(`provision:status.${status.key}`, { error: status.error ?? '' });
+}
 
 const sleep = (ms: number) =>
   new Promise<void>(resolve => {
@@ -38,13 +63,16 @@ const sleep = (ms: number) =>
   });
 
 function clockTime(): string {
-  return new Date().toLocaleTimeString('en-GB', { hour12: false });
+  return new Date().toLocaleTimeString(currentLocale(), { hour12: false });
 }
 
-/** Everything the page drives: the chooser, the send, the session log and status line. */
+/**
+ * Everything the page drives: the chooser, the send, the session log and status line. The
+ * session log is a protocol trace, like the Bluetooth lines it interleaves with, and stays English.
+ */
 export function useProvisionSession() {
   const [lines, setLines] = useState<LogLine[]>([]);
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState<Status | null>(null);
   const [busy, setBusy] = useState(false);
   const [found, setFound] = useState<FoundDevice[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -58,25 +86,25 @@ export function useProvisionSession() {
   const watch = useWatchForNewDevice({
     log,
     onConnected: () => {
-      setStatus('Device connected. See the Devices page.');
+      setStatus({ key: 'connected' });
     },
   });
 
   /** Open the browser's chooser; the picked device joins the list and is selected. */
   const choose = useCallback(async (): Promise<FoundDevice | null> => {
-    setStatus('Requesting device…');
+    setStatus({ key: 'requesting' });
     const device = await navigator.bluetooth.requestDevice(REQUEST_DEVICE_OPTIONS);
     const entry = { id: device.id, name: deviceLabel(device), device };
     setFound(prev => [...prev.filter(d => d.id !== entry.id), entry]);
     setSelectedId(entry.id);
     log(`selected: ${entry.name}`);
-    setStatus('');
+    setStatus(null);
     return entry;
   }, [log]);
 
   const fail = useCallback(
     (err: unknown) => {
-      setStatus(`Error: ${bluetoothErrorText(err)}`);
+      setStatus({ key: 'error', error: bluetoothErrorText(err) });
       log(bluetoothErrorLogLine(err));
     },
     [log],
@@ -86,7 +114,8 @@ export function useProvisionSession() {
     setBusy(true);
     try {
       const entry = await choose();
-      if (entry && refuseAccessory(entry.device, log)) setStatus(STATUS_BY_OUTCOME.accessory);
+      if (entry && refuseAccessory(entry.device, log))
+        setStatus({ key: STATUS_BY_OUTCOME.accessory });
     } catch (err) {
       fail(err);
     } finally {
@@ -97,7 +126,7 @@ export function useProvisionSession() {
   const send = useCallback(
     async (input: ProvisionInput) => {
       if (!input.ssid || !input.pwd) {
-        setStatus('The Wi-Fi name and password are both required.');
+        setStatus({ key: 'missingWifi' });
         return;
       }
       setBusy(true);
@@ -115,11 +144,11 @@ export function useProvisionSession() {
           sleep,
           now: () => Date.now(),
           onPhase: phase => {
-            setStatus(phase === 'connecting' ? 'Connecting…' : 'Sending…');
+            setStatus({ key: phase === 'connecting' ? 'connecting' : 'sending' });
           },
         });
         setOutcome(result);
-        setStatus(STATUS_BY_OUTCOME[result]);
+        setStatus({ key: STATUS_BY_OUTCOME[result] });
         if (result === 'provisioned' || result === 'unanswered') void watch.start();
       } catch (err) {
         fail(err);
@@ -130,5 +159,16 @@ export function useProvisionSession() {
     [choose, fail, found, log, selectedId, watch],
   );
 
-  return { lines, status, busy, found, selectedId, setSelectedId, outcome, findDevice, send };
+  return {
+    lines,
+    // Translated at render: the page re-renders on a language change.
+    status: statusText(status),
+    busy,
+    found,
+    selectedId,
+    setSelectedId,
+    outcome,
+    findDevice,
+    send,
+  };
 }

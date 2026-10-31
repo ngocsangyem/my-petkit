@@ -87,7 +87,7 @@ struct TimelinePlayerScreen: View {
             .aspectRatio(16 / 9, contentMode: .fit)
             Spacer(minLength: 0)
             if sources.count > 1 {
-                SegmentedPills(options: sources.map { ($0.label, $0.label.rawValue) }, selection: $selected)
+                SegmentedPills(options: sources.map { ($0.label, $0.label.title) }, selection: $selected)
                     .padding(.horizontal, Theme.Space.headerEdge)
             }
         }
@@ -105,7 +105,7 @@ struct TimelinePlayerScreen: View {
         do {
             let url = try await session.signedMediaURL(path: source.path)
             guard let asset = session.playerAsset(for: url) else {
-                error = "This video cannot be played on this phone."
+                error = L10n.string("This video cannot be played on this phone.")
                 return
             }
             let next = AVPlayer(playerItem: AVPlayerItem(asset: asset))

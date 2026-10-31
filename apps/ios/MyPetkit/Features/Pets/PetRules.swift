@@ -87,9 +87,17 @@ enum PetRules {
         return ids.contains(ref) ? ids : ids + [ref]
     }
 
-    /// "1 pet", "2 pets".
-    static func plural(_ count: Int, _ word: String, _ many: String? = nil) -> String {
-        "\(count) \(count == 1 ? word : (many ?? word + "s"))"
+    /// "on 2 devices", or "No device assigned".
+    static func assignedLine(_ count: Int) -> String {
+        count == 0 ? L10n.string("No device assigned") : L10n.string("on \(count) devices")
+    }
+
+    /// "3.4": one decimal. English keeps the point whatever the phone's
+    /// region; another language takes the phone region's separator ("3,4"
+    /// in vi_VN, "3.4" in vi_US).
+    static func oneDecimal(_ value: Double) -> String {
+        guard AppLanguageStore.shared.language != .english else { return String(format: "%.1f", value) }
+        return value.formatted(.number.precision(.fractionLength(1)).grouping(.never).locale(L10n.locale))
     }
 
     /// The face ids in a device's `discernPic` readback, as strings, or nil
@@ -116,26 +124,25 @@ enum PetRules {
 
     /// The line under a device in the edit screen.
     static func deviceFaceLine(device: PetDevice, faceIDs: [Int]) -> String {
-        guard device.supportsAI else { return "No face recognition on this model" }
-        if faceIDs.isEmpty { return "No face photos yet" }
+        guard device.supportsAI else { return L10n.string("No face recognition on this model") }
+        if faceIDs.isEmpty { return L10n.string("No face photos yet") }
         guard let loaded = loadedCount(faceIDs: faceIDs, cached: device.cachedFaceIDs) else {
-            return "Face photos sent · not confirmed yet"
+            return L10n.string("Face photos sent · not confirmed yet")
         }
-        return "Face photos sent · \(loaded) of \(faceIDs.count) loaded"
+        return L10n.string("Face photos sent · \(loaded) of \(faceIDs.count) loaded")
     }
 
     /// The sentence under the pet's name on the Pets screen.
     static func recognitionLine(pet: PetRecord, devices: [PetDevice]) -> String {
         let assigned = devices.filter { pet.deviceIDs.contains($0.id) }
-        var onDevices = "No device assigned"
-        if !pet.deviceIDs.isEmpty { onDevices = "on " + plural(pet.deviceIDs.count, "device") }
-        if pet.faces.isEmpty { return "\(onDevices) · no face photos yet" }
+        let onDevices = assignedLine(pet.deviceIDs.count)
+        if pet.faces.isEmpty { return L10n.string("\(onDevices) · no face photos yet") }
         let faceIDs = pet.faces.map(\.id)
         let holding = assigned.filter { device in
             device.supportsAI && loadedCount(faceIDs: faceIDs, cached: device.cachedFaceIDs) == faceIDs.count
         }
-        if !holding.isEmpty { return "\(onDevices) · recognised on the device" }
-        if assigned.contains(where: \.supportsAI) { return "\(onDevices) · waiting for the device to fetch" }
+        if !holding.isEmpty { return L10n.string("\(onDevices) · recognised on the device") }
+        if assigned.contains(where: \.supportsAI) { return L10n.string("\(onDevices) · waiting for the device to fetch") }
         return onDevices
     }
 
@@ -144,18 +151,21 @@ enum PetRules {
     static func importSummary(_ results: [PetImportOutcome]) -> String {
         let imported = results.filter(\.imported)
         let full = results.filter(\.deviceFull).count
+        let leftOut = L10n.string("\(full) pets left out")
         let fullNote = full > 0
-            ? " \(plural(full, "pet")) left out: the device already holds \(PetWeightRules.maxPetsPerDevice) cats."
+            ? " " + L10n.string("\(leftOut): the device already holds \(PetWeightRules.maxPetsPerDevice) cats.")
             : ""
         guard !imported.isEmpty else {
-            if full > 0 { return "Nothing imported." + fullNote }
-            return "Nothing new: PetKit lists no pets this device does not already have."
+            if full > 0 { return L10n.string("Nothing imported.") + fullNote }
+            return L10n.string("Nothing new: PetKit lists no pets this device does not already have.")
         }
         let photos = imported.reduce(0) { $0 + $1.facesImported }
-        let offered = imported.reduce(0) { $0 + $1.facesOffered }
+        let offeredCount = imported.reduce(0) { $0 + $1.facesOffered }
+        let offered = L10n.string("\(offeredCount) photos")
         let named = imported.reduce(0) { $0 + $1.boundEvents }
-        let head = "Imported \(plural(imported.count, "pet")), \(photos) of \(plural(offered, "photo"))"
-        return (named > 0 ? "\(head), named \(plural(named, "past event"))." : "\(head).") + fullNote
+        var parts = [L10n.string("Imported \(imported.count) pets"), L10n.string("\(photos) of \(offered)")]
+        if named > 0 { parts.append(L10n.string("named \(named) past events")) }
+        return parts.joined(separator: ", ") + "." + fullNote
     }
 
     /// Visits per day on average over the days that have a count.

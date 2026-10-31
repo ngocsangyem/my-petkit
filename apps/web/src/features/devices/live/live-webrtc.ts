@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import { ApiError, errorMessage } from '@/shared/api/errors';
 import { postWebrtcOffer } from './live-api';
 import {
@@ -56,7 +57,7 @@ export function startWebrtc(
   if (typeof RTCPeerConnection === 'undefined') {
     // Not a server problem: the next offered mode may well work here.
     queueMicrotask(() => {
-      fail('This browser cannot play WebRTC.', true);
+      fail(i18n.t('devices:live.fail.webrtcUnsupported'), true);
     });
     return { stop };
   }
@@ -74,7 +75,7 @@ export function startWebrtc(
   });
   peer.addEventListener('connectionstatechange', () => {
     if (peer.connectionState === 'failed') {
-      fail('The WebRTC connection dropped. Check that this device can reach the server.');
+      fail(i18n.t('devices:live.fail.webrtcDropped'));
     }
   });
 
@@ -86,13 +87,13 @@ export function startWebrtc(
       await iceGathered(peer, ICE_GATHER_TIMEOUT_MS);
       if (isStopped()) return;
       const sdp = peer.localDescription?.sdp;
-      if (!sdp) throw new Error('No local WebRTC offer was created.');
+      if (!sdp) throw new Error(i18n.t('devices:live.fail.noOffer'));
       const answer = await postWebrtcOffer(deviceId, sdp);
       if (isStopped()) return;
       await peer.setRemoteDescription({ type: 'answer', sdp: answer });
     } catch (error) {
       if (error instanceof ApiError && error.code === 'webrtc_unavailable') {
-        fail('WebRTC is not set up on this server.', true);
+        fail(i18n.t('devices:live.fail.webrtcUnavailable'), true);
       } else {
         fail(errorMessage(error));
       }

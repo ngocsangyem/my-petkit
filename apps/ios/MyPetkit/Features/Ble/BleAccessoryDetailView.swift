@@ -17,7 +17,8 @@ struct BleAccessoryDetailView: View {
             if let accessory = model.accessory(id: accessoryID) {
                 content(accessory)
             } else {
-                EmptyBlock(title: "Not paired", message: "This accessory is no longer paired with the server.")
+                EmptyBlock(title: L10n.string("Not paired"),
+                           message: L10n.string("This accessory is no longer paired with the server."))
                     .frame(maxHeight: .infinity)
                     .background(Theme.Color.ground.ignoresSafeArea())
             }
@@ -44,19 +45,23 @@ struct BleAccessoryDetailView: View {
                 FigureGrid(figures: sensors.map { Figure(label: $0.name, value: $0.valueText, unit: $0.unit) })
             }
             if !controls.isEmpty {
-                SectionHeader("Controls")
+                SectionHeader(L10n.string("Controls"))
                 BleEntityControlsCard(items: controls) { change in confirm(change, summary: summary) }
-                Text("Settings travel as one block, so a change needs a reading first; "
-                     + "before the accessory has reported, the server refuses the write.")
+                Text("""
+                    Settings travel as one block, so a change needs a reading first; \
+                    before the accessory has reported, the server refuses the write.
+                    """)
                     .font(Theme.Font.extraSmall).foregroundStyle(Theme.Color.muted).padding(.horizontal, 4)
             }
             if summary.type?.isSpray == true { linkCard(accessory, summary: summary) }
-            SectionHeader("Pairing")
+            SectionHeader(L10n.string("Pairing"))
             BlePairingFactsCard(summary: summary)
             if summary.scanTypeIsGuessed {
-                WarningPanel(text: "The scan type for a \(summary.typeCode) is a guess, borrowed from its product line. "
-                             + "If this accessory never reports, unpair it and pair it again with another scan type "
-                             + "under Advanced.")
+                WarningPanel(text: L10n.string("""
+                    The scan type for a \(summary.typeCode) is a guess, borrowed from its product line. \
+                    If this accessory never reports, unpair it and pair it again with another scan type \
+                    under Advanced.
+                    """))
             }
             unpairCard(summary)
         }
@@ -69,7 +74,8 @@ struct BleAccessoryDetailView: View {
         }
         if !summary.parentOnline {
             return Text("Unreachable. ").foregroundStyle(Theme.Color.negative)
-                + Text("\(summary.parentName.isEmpty ? "Its parent" : "The " + summary.parentName) is offline.")
+                + Text(summary.parentName.isEmpty ? L10n.string("Its parent is offline.")
+                       : L10n.string("The \(summary.parentName) is offline."))
                 .foregroundStyle(Theme.Color.text)
         }
         if summary.lastSeen == nil {
@@ -77,7 +83,7 @@ struct BleAccessoryDetailView: View {
                 + Text("Read now, then check the scan type if it stays silent.").foregroundStyle(Theme.Color.text)
         }
         return Text("Reporting. ").foregroundStyle(Theme.Color.positive)
-            + Text("\(summary.lastReport()).").foregroundStyle(Theme.Color.text)
+            + Text(verbatim: "\(summary.lastReport()).").foregroundStyle(Theme.Color.text)
     }
 
     private func hero(_ summary: BleAccessorySummary, actions: [BleEntityItem]) -> some View {
@@ -88,10 +94,12 @@ struct BleAccessoryDetailView: View {
                 .accessibilityHidden(true)
             Button("Read now") {
                 confirmation = CommandConfirmation(
-                    question: "Read the \(summary.name) now?",
-                    detail: "The \(parentLabel(summary)) opens a Bluetooth session to it now instead of waiting up to "
-                        + "\(summary.interval) s. It is sent now or refused; nothing is queued.",
-                    confirmTitle: "Read now",
+                    question: L10n.string("Read the \(summary.name) now?"),
+                    detail: L10n.string("""
+                        The \(parentLabel(summary)) opens a Bluetooth session to it now instead of waiting up to \
+                        \(summary.interval) s. It is sent now or refused; nothing is queued.
+                        """),
+                    confirmTitle: L10n.string("Read now"),
                     run: { try await model.poll(id: summary.id, session: session) }
                 )
             }
@@ -101,15 +109,17 @@ struct BleAccessoryDetailView: View {
                 HStack(spacing: 8) {
                     ForEach(actions) { action in
                         Button(action.name) {
-                            confirm(BleEntityChange(item: action, value: "", description: "\(action.name) runs now."),
+                            confirm(BleEntityChange(item: action, value: "", description: L10n.string("\(action.name) runs now.")),
                                     summary: summary)
                         }
                         .buttonStyle(SecondaryButtonStyle(fill: Theme.Color.raised))
                     }
                 }
             }
-            Text("Each command asks before it runs. It travels over Bluetooth through the \(parentLabel(summary)), "
-                 + "which must be on MQTT.")
+            Text("""
+                Each command asks before it runs. It travels over Bluetooth through the \(parentLabel(summary)), \
+                which must be on MQTT.
+                """)
                 .font(Theme.Font.small).foregroundStyle(Theme.Color.muted)
                 .multilineTextAlignment(.center).frame(maxWidth: .infinity)
         }
@@ -119,16 +129,18 @@ struct BleAccessoryDetailView: View {
         Card {
             Text("Litter box link").font(Theme.Font.section).accessibilityAddTraits(.isHeader)
             if summary.isLinked {
-                Text("Linked to the \(parentLabel(summary)); the spray runs after the box cleans. "
-                     + "To unlink it, unpair it: the server then tells the litter box to forget the spray.")
+                Text("""
+                    Linked to the \(parentLabel(summary)); the spray runs after the box cleans. \
+                    To unlink it, unpair it: the server then tells the litter box to forget the spray.
+                    """)
                     .font(Theme.Font.small).foregroundStyle(Theme.Color.lede)
             } else if model.parent?.isLitterBox == true {
                 Text("No litter box owns this spray yet.").font(Theme.Font.small).foregroundStyle(Theme.Color.lede)
                 Button("Link to this litter box") {
                     confirmation = CommandConfirmation(
-                        question: "Link the \(summary.name) to this litter box?",
-                        detail: "The litter box is told it owns this spray. The stored pairing secret is kept.",
-                        confirmTitle: "Link",
+                        question: L10n.string("Link the \(summary.name) to this litter box?"),
+                        detail: L10n.string("The litter box is told it owns this spray. The stored pairing secret is kept."),
+                        confirmTitle: L10n.string("Link"),
                         run: { try await model.link(accessory, session: session) }
                     )
                 }
@@ -144,14 +156,16 @@ struct BleAccessoryDetailView: View {
         Card(padding: 0) {
             Button {
                 confirmation = CommandConfirmation(
-                    question: "Unpair the \(summary.name)?",
-                    detail: "The \(parentLabel(summary)) stops reading it. Its old Home Assistant entities stay "
-                        + "until you delete the device there.",
-                    confirmTitle: "Unpair",
+                    question: L10n.string("Unpair the \(summary.name)?"),
+                    detail: L10n.string("""
+                        The \(parentLabel(summary)) stops reading it. Its old Home Assistant entities stay \
+                        until you delete the device there.
+                        """),
+                    confirmTitle: L10n.string("Unpair"),
                     run: { try await model.unpair(id: summary.id, session: session) }
                 )
             } label: {
-                SettingsRow(title: "Unpair accessory", isDestructive: true).padding(.horizontal, Theme.Space.pad)
+                SettingsRow(title: L10n.string("Unpair accessory"), isDestructive: true).padding(.horizontal, Theme.Space.pad)
             }
             .buttonStyle(.plain)
         }
@@ -160,10 +174,12 @@ struct BleAccessoryDetailView: View {
     private func confirm(_ change: BleEntityChange, summary: BleAccessorySummary) {
         let isAction = change.item.kind == .action
         confirmation = CommandConfirmation(
-            question: isAction ? "\(change.item.name)?" : "Change \(change.item.name)?",
-            detail: "\(change.description) It is sent now through the \(parentLabel(summary)) or refused; "
-                + "nothing is queued.",
-            confirmTitle: isAction ? "Run" : "Send",
+            question: isAction ? "\(change.item.name)?" : L10n.string("Change \(change.item.name)?"),
+            detail: L10n.string("""
+                \(change.description) It is sent now through the \(parentLabel(summary)) or refused; \
+                nothing is queued.
+                """),
+            confirmTitle: isAction ? L10n.string("Run") : L10n.string("Send"),
             run: {
                 try await model.send(entity: change.item.key, value: isAction ? nil : change.value,
                                      to: summary.id, session: session)
@@ -172,7 +188,7 @@ struct BleAccessoryDetailView: View {
     }
 
     private func parentLabel(_ summary: BleAccessorySummary) -> String {
-        summary.parentName.isEmpty ? "parent device" : summary.parentName
+        summary.parentName.isEmpty ? L10n.string("parent device") : summary.parentName
     }
 }
 
@@ -184,25 +200,25 @@ struct BlePairingFactsCard: View {
     var body: some View {
         Card(padding: 0) {
             VStack(alignment: .leading, spacing: 0) {
-                fact("MAC address", summary.mac, mono: true)
+                fact(L10n.string("MAC address"), summary.mac, mono: true)
                 RowRule()
-                fact("Serial number", summary.serialNumber.isEmpty ? nil : summary.serialNumber)
+                fact(L10n.string("Serial number"), summary.serialNumber.isEmpty ? nil : summary.serialNumber)
                 RowRule()
-                fact("Report interval", "\(summary.interval) s")
+                fact(L10n.string("Report interval"), "\(summary.interval) s")
                 RowRule()
                 HStack(spacing: 8) {
                     Text("Scan type").font(Theme.Font.body)
-                    if summary.scanTypeIsGuessed { Pill(text: "Guessed", tone: .warning) }
+                    if summary.scanTypeIsGuessed { Pill(text: L10n.string("Guessed"), tone: .warning) }
                     Spacer()
-                    Text("\(summary.wireScanType)").font(Theme.Font.mono).foregroundStyle(Theme.Color.muted)
+                    Text(verbatim: "\(summary.wireScanType)").font(Theme.Font.mono).foregroundStyle(Theme.Color.muted)
                 }
                 .frame(minHeight: Theme.Space.rowHeight)
                 .accessibilityElement(children: .combine)
                 RowRule()
-                fact("Accessory id", "\(summary.id)", mono: true)
+                fact(L10n.string("Accessory id"), "\(summary.id)", mono: true)
                 RowRule()
-                fact("Relayed by", summary.isLinked
-                     ? "\(summary.parentName.isEmpty ? "Device" : summary.parentName) · \(summary.parentID)" : nil)
+                fact(L10n.string("Relayed by"), summary.isLinked
+                     ? "\(summary.parentName.isEmpty ? L10n.string("Device") : summary.parentName) · \(summary.parentID)" : nil)
             }
             .padding(.horizontal, Theme.Space.pad)
         }

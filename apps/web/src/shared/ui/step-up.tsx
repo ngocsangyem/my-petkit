@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Icon } from './icons';
 import { Pill } from './pill';
 
@@ -9,8 +10,9 @@ export interface StepUpPillProps {
 }
 
 /** 22px negative pill placed beside a title or setting that needs step-up (R3). */
-export function StepUpPill({ children = 'Step-up required' }: StepUpPillProps) {
-  return <Pill tone="negative">{children}</Pill>;
+export function StepUpPill({ children }: StepUpPillProps) {
+  const { t } = useTranslation('ui');
+  return <Pill tone="negative">{children ?? t('stepUpRequired')}</Pill>;
 }
 
 /** Props for {@link RiskNotice}. */

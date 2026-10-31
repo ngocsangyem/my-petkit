@@ -1,0 +1,53 @@
+{
+  "title": "Trình vá",
+  "finding": "Thay đổi quyền root ngay trên thiết bị",
+  "findingApplied_one": "Thay đổi quyền root ngay trên thiết bị · đã áp dụng {{applied}}/{{count}} bản vá",
+  "findingApplied_other": "Thay đổi quyền root ngay trên thiết bị · đã áp dụng {{applied}}/{{count}} bản vá",
+  "device": "Thiết bị",
+  "devicesFailed": "Không tải được danh sách thiết bị. {{error}}",
+  "noDevices": "Chưa có thiết bị nào kết nối. Hãy kết nối một thiết bị trước, rồi quay lại để vá.",
+  "statusFailed": "Không đọc được trạng thái bản vá. {{error}}",
+  "unsupported": "Trình vá chỉ dùng được cho các mẫu chạy Linux (T5, T6, T7, D4H, D4SH, W7H). Thiết bị này dùng nền tảng khác.",
+  "patchesOfDevice": "Bản vá của thiết bị này",
+  "reachesAt": "Máy chủ kết nối tới thiết bị này tại <ip>{{ip}}</ip>.",
+  "ipUnknown": "Chưa biết IP thiết bị: hãy chờ báo cáo trạng thái trước khi vá.",
+  "pick": "Chọn một bản vá để xem nó thay đổi gì và cách hoàn tác, rồi áp dụng hoặc gỡ bỏ.",
+  "risk": "Mỗi bản vá chạy lệnh shell trên thiết bị với quyền root, bạn tự chịu rủi ro: thiết bị có thể bị hỏng hẳn và mất bảo hành. Bản vá chỉ nằm trên phân vùng /system ghi được; phân vùng /app chỉ đọc không bao giờ bị sửa.",
+  "status": {
+    "active": "Đang hoạt động · MQTT đã kết nối",
+    "applied": "Đã áp dụng",
+    "notApplied": "Chưa áp dụng",
+    "running": "Đang chạy…"
+  },
+  "blocker": {
+    "greyed": "Thiết bị đã có phiên MQTT, chứng tỏ bản vá này đã được áp dụng.",
+    "noIp": "Chưa biết IP thiết bị. Hãy chờ thiết bị gửi báo cáo trạng thái trước khi vá."
+  },
+  "list": {
+    "label": "Bản vá",
+    "apply": "Áp dụng {{name}}…",
+    "remove": "Gỡ bỏ {{name}}…"
+  },
+  "action": {
+    "starting": "Đang bắt đầu…",
+    "removing": "Đang gỡ bỏ…",
+    "applyTitle": "Áp dụng {{name}} cho {{device}}?",
+    "removeTitle": "Gỡ bỏ {{name}} khỏi {{device}}?",
+    "howToUndo": "Cách hoàn tác",
+    "undoApply": "Gỡ bỏ sẽ hoàn tác: các tệp bị xóa khỏi /system và thiết bị khởi động lại không có bản vá.",
+    "undoRemove": "Thiết bị khởi động lại không có bản vá này. Các bản vá khác vẫn hoạt động; nếu không còn bản vá nào, thiết bị chạy firmware gốc.",
+    "space": "Dung lượng trên máy",
+    "spaceBody": "Cần khoảng {{size}} trống. Dung lượng trống được kiểm tra trên thiết bị trước khi ghi; nhu cầu chính xác được đo lúc đó và thường nhỏ hơn.",
+    "sshKey": "Khóa công khai SSH",
+    "sshKeyHint": "SSH root trên cổng 22 chỉ chấp nhận khóa này: ssh-ed25519, ssh-rsa hoặc ecdsa-sha2.",
+    "progress": "Tiến trình",
+    "accepted": "Đã chấp nhận. Tiến trình được máy chủ gửi qua kết nối trực tiếp; mỗi lần chạy mất vài phút.",
+    "apply": "Áp dụng {{name}}",
+    "remove": "Gỡ bỏ {{name}}",
+    "removeInstead": "Gỡ bỏ thay vào đó",
+    "applyAgain": "Áp dụng lại",
+    "stepUp": "Sẽ hỏi mật khẩu của bạn, rồi hiển thị tiến trình từng bước tại đây.",
+    "notApplied": "Chưa áp dụng được: {{error}}",
+    "notRemoved": "Chưa gỡ bỏ được: {{error}}"
+  }
+}

@@ -10,9 +10,9 @@ struct PetDay: Equatable, Sendable {
 
     /// "3 visits · last 13:58", "0 visits".
     var summary: String {
-        let count = "\(visits) \(visits == 1 ? "visit" : "visits")"
+        let count = L10n.string("\(visits) visits")
         guard let last, let lastZone else { return count }
-        return "\(count) · last \(DayStripLayout.clock(last, in: lastZone))"
+        return L10n.string("\(count) · last \(DayStripLayout.clock(last, in: lastZone))")
     }
 }
 
@@ -71,7 +71,7 @@ struct HouseholdDay {
                          marks: .visits(minutes: minutesByPet[pet.id] ?? [], tintIndex: index))
         }
         if !unknownMinutes.isEmpty {
-            lanes.append(DayStripLane(id: "unknown", title: "Unknown",
+            lanes.append(DayStripLane(id: "unknown", title: L10n.string("Unknown"),
                                       marks: .visits(minutes: unknownMinutes, tintIndex: pets.count)))
         }
         let feeders = devices.filter { DeviceFamily(deviceType: $0.type) == .feeder }
@@ -83,7 +83,7 @@ struct HouseholdDay {
             meals += FeedPlan.todaysMeals(feeder.schedules, zone: zone, now: now)
                 .filter { $0.minute > nowMinute }
                 .map { DayStripLane.Meal(minute: $0.minute, fed: false) }
-            lanes.append(DayStripLane(id: "d\(feeder.id)", title: feeders.count == 1 ? "Meals" : feeder.name,
+            lanes.append(DayStripLane(id: "d\(feeder.id)", title: feeders.count == 1 ? L10n.string("Meals") : feeder.name,
                                       marks: .meals(meals)))
         }
         for device in devices where DeviceFamily(deviceType: device.type) == .fountain {

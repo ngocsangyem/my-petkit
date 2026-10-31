@@ -1,0 +1,37 @@
+---
+title: Trang tài liệu này
+description: Chạy, chỉnh sửa và build tài liệu trong apps/docs.
+---
+
+Trang này là một ứng dụng [Fumadocs](https://fumadocs.dev) trên Next.js, cấu hình để xuất tĩnh. Các trang là tệp MDX trong `apps/docs/content/docs/`, và `meta.json` của mỗi thư mục đặt thứ tự trong thanh bên.
+
+## Chạy
+
+Node 22 trở lên, và pnpm.
+
+```bash
+cd apps/docs
+pnpm install
+pnpm dev
+```
+
+Mở `http://localhost:3000`.
+
+## Build
+
+```bash
+pnpm build
+```
+
+Trang tĩnh được ghi vào `apps/docs/out/`. Bất kỳ static host nào cũng phục vụ được; `pnpm start` phục vụ nó cục bộ.
+
+## Viết trang
+
+- Mọi khẳng định cần một nguồn trong kho mã hoặc trong sách hướng dẫn PetKit. Nếu chưa biết một sự thật, hãy nói rõ thay vì đoán.
+- Các sự thật trong phần tham chiếu thiết bị trích dẫn sách hướng dẫn và số trang, như "T6 manual, p36".
+- Viết giản dị: câu ngắn, tiêu đề viết hoa chữ cái đầu câu, không dùng em dash.
+- Ảnh chụp màn hình nằm trong `apps/docs/public/screenshots/`, sao chép từ `docs/design/screenshots/`.
+
+## Giao diện
+
+Màu sắc và phông chữ trong `apps/docs/app/global.css` lấy từ `docs/design/DESIGN.md`: nền có sắc nhẹ, thẻ trắng, mực gần đen, IBM Plex Sans và Mono, và màu teal (`#0f6e66`, `#4fc2b6` ở chế độ tối) cho liên kết và mục đang chọn. Hãy đổi tệp thiết kế trước, rồi mới đổi tệp này.

@@ -61,9 +61,9 @@ struct SchedulesSaveFooter: View {
     private var confirmation: CommandConfirmation {
         let clock = zone.map { " (\($0.label))" } ?? ""
         return CommandConfirmation(
-            question: "Save \(target.name)?",
-            detail: "The device is sent this whole schedule as shown and runs it on its own clock\(clock).",
-            confirmTitle: "Save and send"
+            question: L10n.string("Save \(target.name)?"),
+            detail: L10n.string("The device is sent this whole schedule as shown and runs it on its own clock\(clock)."),
+            confirmTitle: L10n.string("Save and send")
         ) { [session, model, target] in
             guard let session else { throw APIError.notPaired }
             try await model.save(target, using: session)
@@ -116,7 +116,7 @@ struct SchedulesEditSheet: View {
     }
 
     private static func sectionName(_ type: Int) -> String {
-        ScheduleDraft.pointSections.first { $0.type == type }?.name ?? "Type \(type)"
+        ScheduleDraft.pointSections.first { $0.type == type }?.name ?? L10n.string("Type \(type)")
     }
 
     /// An hour from now on the minute: a moment the server will accept.

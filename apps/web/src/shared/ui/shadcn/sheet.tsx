@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { Dialog as SheetPrimitive } from '@base-ui/react/dialog';
+import { useTranslation } from 'react-i18next';
 import { cn } from 'cn';
 
 // Edited from the shadcn source for DESIGN.md (web v3): a side
@@ -52,6 +53,7 @@ function SheetContent({
   side?: 'top' | 'right' | 'bottom' | 'left';
   showCloseButton?: boolean;
 }) {
+  const { t } = useTranslation('common');
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -71,7 +73,7 @@ function SheetContent({
             render={<Button variant="ghost" className="absolute top-5 right-5" size="icon-sm" />}
           >
             <XIcon />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">{t('close')}</span>
           </SheetPrimitive.Close>
         )}
       </SheetPrimitive.Popup>

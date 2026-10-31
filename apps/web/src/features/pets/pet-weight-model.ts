@@ -2,6 +2,7 @@
 // per-device cat limit. The bounds mirror the server's validation
 // (features/pets/weight_and_device_limit.py), which has the last word.
 import type { components } from '@/api/schema';
+import { currentLocale, i18n } from '@/i18n';
 import { ApiError, errorMessage } from '@/shared/api/errors';
 import { parseIdList, type Pet } from './pet-model';
 
@@ -38,7 +39,10 @@ export function parseKgText(text: string): Parsed {
   ) {
     return {
       ok: false,
-      error: `Enter a weight from ${gramsToKgText(WEIGHT_G_MIN)} to ${gramsToKgText(WEIGHT_G_MAX)} kg.`,
+      error: i18n.t('pets:weight.invalidKg', {
+        min: gramsToKgText(WEIGHT_G_MIN),
+        max: gramsToKgText(WEIGHT_G_MAX),
+      }),
     };
   }
   return { ok: true, value: grams };
@@ -52,7 +56,7 @@ export function parseToleranceText(text: string): Parsed {
   if (!/^\d+$/.test(raw) || grams < TOLERANCE_G_MIN || grams > TOLERANCE_G_MAX) {
     return {
       ok: false,
-      error: `Enter whole grams from ${TOLERANCE_G_MIN} to ${TOLERANCE_G_MAX}.`,
+      error: i18n.t('pets:weight.invalidTolerance', { min: TOLERANCE_G_MIN, max: TOLERANCE_G_MAX }),
     };
   }
   return { ok: true, value: grams };
@@ -63,18 +67,23 @@ export function parseToleranceText(text: string): Parsed {
  * other cat sits within twice this cat's tolerance of the reading.
  */
 export function matchGuardSentence(toleranceG: number | null): string {
-  return `Only when no other cat is within ${2 * (toleranceG ?? DEFAULT_TOLERANCE_G)} g.`;
+  return i18n.t('pets:weight.guard', { grams: 2 * (toleranceG ?? DEFAULT_TOLERANCE_G) });
+}
+
+/** "13:58" the same day, "28 Oct" before it; null when never set. */
+export function weightUpdatedWhen(ts: number | null, now: Date = new Date()): string | null {
+  if (ts === null || !Number.isFinite(ts) || ts <= 0) return null;
+  const at = new Date(ts * 1000);
+  const sameDay = at.toDateString() === now.toDateString();
+  return sameDay
+    ? at.toLocaleTimeString(currentLocale(), { hour: '2-digit', minute: '2-digit' })
+    : at.toLocaleDateString(currentLocale(), { day: 'numeric', month: 'short' });
 }
 
 /** "updated 13:58" the same day, "updated 28 Oct" before it; null when never set. */
 export function weightUpdatedText(ts: number | null, now: Date = new Date()): string | null {
-  if (ts === null || !Number.isFinite(ts) || ts <= 0) return null;
-  const at = new Date(ts * 1000);
-  const sameDay = at.toDateString() === now.toDateString();
-  const when = sameDay
-    ? at.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-    : at.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
-  return `updated ${when}`;
+  const when = weightUpdatedWhen(ts, now);
+  return when === null ? null : i18n.t('pets:weight.updated', { when });
 }
 
 /** How many pets each device recognises, from every pet's device list. */
@@ -94,13 +103,13 @@ export function isDeviceFull(counts: ReadonlyMap<number, number>, deviceId: numb
 
 /** "2 of 15 cats on this box". */
 export function deviceLoadText(count: number): string {
-  return `${count} of ${MAX_PETS_PER_DEVICE} cats on this box`;
+  return i18n.t('pets:weight.load', { n: count, max: MAX_PETS_PER_DEVICE });
 }
 
 /** The sentence for a refused create or update; the per-box limit gets words of its own. */
 export function petSaveError(error: unknown): string {
   if (error instanceof ApiError && error.code === 'too_many_pets') {
-    return `That box already recognises ${MAX_PETS_PER_DEVICE} cats, the most it can hold. Remove one from it first.`;
+    return i18n.t('pets:weight.tooMany', { max: MAX_PETS_PER_DEVICE });
   }
   return errorMessage(error);
 }

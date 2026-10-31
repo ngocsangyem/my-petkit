@@ -3,23 +3,16 @@
 import Image from 'next/image';
 import { useRef, useState } from 'react';
 import { gsap, navOffset, NARROW, prefersReducedMotion, ScrollTrigger, useGSAP, WIDE } from './gsap-setup';
-import { buildPhoneDemoTimeline } from './phone-demo-timeline';
+import type { Dictionary } from '@/lib/i18n-dictionaries';
+import { buildPhoneDemoTimeline, PHONE_DEMO_STEPS } from './phone-demo-timeline';
 import { SectionHead } from './section-head';
-
-const STEPS = [
-  ['Open the app at home', 'The home screen says what needs you, in a sentence: the fountain has been silent since 06:10.'],
-  ['Tap the litter box', "Status, bags left, litter level and consumables, read from the box's own state report."],
-  ['Clean now, after a confirm', 'Every command asks before it runs. Confirm, and it reaches the box over MQTT straight away.'],
-  ['Watch it live', 'WebRTC through the bundled go2rtc, under a second behind. Also plays in Home Assistant.'],
-  ['Read the day back', 'Swipe back to the timeline: every visit, meal and clip, cut at local midnight.'],
-] as const;
 
 function Screenshot({ src }: { src: string }) {
   return <Image src={src} alt="" width={390} height={src.includes('live') ? 844 : 1120} style={{ height: 'auto' }} />;
 }
 
 /** A pinned iPhone that a simulated finger operates as the reader scrolls. */
-export function PhoneDemo() {
+export function PhoneDemo({ t }: { t: Dictionary['phone'] }) {
   const root = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
 
@@ -75,17 +68,16 @@ export function PhoneDemo() {
   return (
     <section className="lp-block" ref={root}>
       <div className="lp-wrap">
-        <SectionHead eyebrow="The iOS app" title="Keep scrolling. The phone does the tapping.">
-          Every screen below is the real app talking to a server on the same Wi-Fi. Commands go out over MQTT, so the
-          box moves the moment you confirm.
+        <SectionHead eyebrow={t.eyebrow} title={t.title}>
+          {t.lede}
         </SectionHead>
         <div className="lp-demo">
           <div>
             <ol className="lp-steps">
-              {STEPS.map(([title, body], i) => (
-                <li className="lp-step" key={title} data-active={i === active}>
-                  <b>{title}</b>
-                  <p>{body}</p>
+              {PHONE_DEMO_STEPS.map((step, i) => (
+                <li className="lp-step" key={step} data-active={i === active}>
+                  <b>{t.steps[step].title}</b>
+                  <p>{t.steps[step].body}</p>
                 </li>
               ))}
             </ol>
@@ -94,7 +86,7 @@ export function PhoneDemo() {
             </div>
           </div>
 
-          <div className="lp-phone" role="img" aria-label="iPhone running MyPetKit, operated by a simulated finger as you scroll">
+          <div className="lp-phone" role="img" aria-label={t.phoneLabel}>
             <div className="lp-glass">
               <div className="lp-island" />
               <div className="lp-screen">
@@ -113,16 +105,16 @@ export function PhoneDemo() {
                   <div className="lp-sheet-bg" data-sheet-bg="" />
                   <div className="lp-sheet" data-sheet="">
                     <span className="lp-grab" />
-                    <h4>Clean now?</h4>
-                    <p>The litter box runs a full cleaning cycle. Last clean: 14:05.</p>
+                    <h4>{t.sheetTitle}</h4>
+                    <p>{t.sheetBody}</p>
                     <span className="lp-sheet-btn" data-primary="">
-                      Clean
+                      {t.sheetConfirm}
                     </span>
-                    <span className="lp-sheet-btn">Cancel</span>
+                    <span className="lp-sheet-btn">{t.sheetCancel}</span>
                   </div>
                   <div className="lp-toast" data-toast="">
                     <i />
-                    Clean sent · MQTT · 0.2 s
+                    {t.toast}
                   </div>
                 </div>
                 <div className="lp-page lp-page-dark lp-page-offstage" data-page="live">

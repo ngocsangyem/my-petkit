@@ -49,7 +49,7 @@ final class DeviceLogFileModel {
         defer { downloading = false }
         do {
             let segments = ["api", "devicelogs"] + DeviceLogRules.segments(of: file.rel)
-            let data = try await session.call(purpose: "Downloading the raw log shows everything the device wrote.") {
+            let data = try await session.call(purpose: L10n.string("Downloading the raw log shows everything the device wrote.")) {
                 try await self.session.rawGET(segments: segments, query: [URLQueryItem(name: "download", value: "1")])
             }
             download = try SharedFile.write(data, named: file.name)
@@ -85,7 +85,7 @@ struct DeviceLogFileScreen: View {
         ScreenScroll {
             PushedScreenHeader(title: model.file.name, lede: lede) { downloadButton }
         } content: {
-            LogFilterField(prompt: "Grep, for example error", text: $model.query)
+            LogFilterField(prompt: L10n.string("Grep, for example error"), text: $model.query)
             if let error = model.downloadError {
                 Text(error).font(Theme.Font.small).foregroundStyle(Theme.Color.negative)
             }
@@ -106,7 +106,7 @@ struct DeviceLogFileScreen: View {
     }
 
     private var lede: String {
-        let device = model.file.device.map(String.init) ?? "Unknown device"
+        let device = model.file.device.map(String.init) ?? L10n.string("Unknown device")
         return "\(device) · \(ByteSize.format(model.file.size))"
     }
 
@@ -121,7 +121,7 @@ struct DeviceLogFileScreen: View {
         } else if model.downloading {
             ProgressView().frame(width: Theme.Space.control, height: Theme.Space.control)
         } else {
-            IconButton(systemImage: "arrow.down.to.line", label: "Download the raw log") {
+            IconButton(systemImage: "arrow.down.to.line", label: L10n.string("Download the raw log")) {
                 Task { await model.fetchRawFile() }
             }
         }
@@ -131,7 +131,7 @@ struct DeviceLogFileScreen: View {
         Text("\(window.matched) of \(window.total) lines match")
             .font(Theme.Font.small).monospacedDigit().foregroundStyle(Theme.Color.muted).padding(.horizontal, 4)
         if window.lines.isEmpty {
-            Card { EmptyBlock(title: "No line matches", message: "Every word typed must appear in a line.") }
+            Card { EmptyBlock(title: L10n.string("No line matches"), message: L10n.string("Every word typed must appear in a line.")) }
         } else {
             LazyVStack(alignment: .leading, spacing: 4) {
                 ForEach(window.lines) { line in

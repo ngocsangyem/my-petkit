@@ -1,0 +1,56 @@
+{
+  "title": "Capture",
+  "findingOn": "Recording is on. {{files}} on the server, {{size}}.",
+  "findingOff": "Recording is off. {{files}} on the server, {{size}}.",
+  "fileCount_one": "{{count}} file",
+  "fileCount_other": "{{count}} files",
+  "warning": "Every capture is sensitive. It is an exact recording of what your devices said and were told, with nothing filtered: expect the Wi-Fi name, LAN addresses, the device serial and its signing secret, and in proxy mode the exchanges with PetKit including your account credentials. Read one before you send it anywhere. A deleted file cannot be restored.",
+  "listFailed": "Could not list the capture files: {{error}}",
+  "record": {
+    "title": "Record traffic",
+    "on": "On. Every device request and broker frame is written as it happens.",
+    "off": "Off. It is a setting under Settings, and turning it on asks for your password.",
+    "settings": "Recording settings",
+    "start": "Start recording"
+  },
+  "downloadFailed": "Download failed: {{error}}",
+  "deleted": "Deleted {{name}}",
+  "deleteFailed": "Could not delete {{name}}: {{error}}",
+  "confirm": {
+    "title": "Delete {{name}}?",
+    "delete": "Delete",
+    "facts_one": "{{size}}, {{count}} line. ",
+    "facts_other": "{{size}}, {{count}} lines. ",
+    "body": "This cannot be undone: a capture is usually the only record of what it was recorded to investigate."
+  },
+  "files": {
+    "title": "Files",
+    "label": "Capture files",
+    "emptyOff": "Capture is off. Turn on Save traffic under Settings to start recording; it applies immediately, with no restart.",
+    "empty": "No files yet. Traffic will appear once a device talks to this app.",
+    "file": "File",
+    "lines": "Lines",
+    "size": "Size",
+    "stored": "Stored",
+    "storedBody": "On this server only, in <path>{{dir}}</path>. Nothing is uploaded.",
+    "kept": "Kept",
+    "keptBody": "Nothing prunes these: a capture is deliberate, so it is kept in full until you delete it. Total on disk: {{size}}.",
+    "delete": "Delete",
+    "deleteBody": "Removes the file for good. There is no bin.",
+    "sharing": "Sharing",
+    "sharingBody": "Read the tail first. Attach only the one file that answers the question."
+  },
+  "tail": {
+    "pick": "Pick a file to read its last records.",
+    "caption": "Tail of the file · secrets are masked in this view only",
+    "captionCount_one": "Last {{count}} of {{total}} lines · secrets are masked in this view only",
+    "captionCount_other": "Last {{count}} of {{total}} lines · secrets are masked in this view only",
+    "readFailed": "Could not read {{name}}: {{error}}",
+    "recordsLabel": "Last records of {{name}}",
+    "empty": "This file is empty.",
+    "title": "Last lines of <name>{{name}}</name>",
+    "downloading": "Downloading…",
+    "download": "Download",
+    "delete": "Delete"
+  }
+}

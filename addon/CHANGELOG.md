@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.0.3 — 2026-11-01
+
+- **The dashboard and the iOS app speak Vietnamese.** English stays the
+  default. Switch under Settings › Language in the dashboard (also on the
+  sign-in screen, before you sign in), or Server › This phone › Language in the
+  iOS app; the change applies at once. The dashboard remembers the choice per
+  browser, the app per phone. Dates and times follow the chosen language.
+- **Event names, device logs and server messages stay in English** in both
+  languages, so a log you paste into a bug report reads the same for everyone.
+- **The documentation site has a Vietnamese edition** at `/vi`, with the
+  landing page and every docs page translated. English keeps its addresses.
+  Nothing the server does changed.
+- **An unknown dashboard address goes to Home** instead of redirecting in a
+  loop until the tab froze (for example `#/settings`; the screen is `#/setup`).
+- Counts of one read in the singular in English too ("1 heartbeat", not
+  "1 heartbeats").
+
 ## 0.0.2 — 2026-10-31
 
 - **The iOS app is called MyPetKit on the home screen**, and in AltStore and

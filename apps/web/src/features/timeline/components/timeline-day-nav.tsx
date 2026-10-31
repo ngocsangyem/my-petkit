@@ -1,4 +1,6 @@
 import type { MouseEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+import { currentLocale, i18n } from '@/i18n';
 import { Button, buttonClassName, Icon } from '@/shared/ui';
 import { shiftDay, todayLocal } from '@/shared/format/local-day';
 import { isDateString } from '../timeline-model';
@@ -12,14 +14,15 @@ export interface TimelineDayNavProps {
 export function dayButtonLabel(date: string, today: string): string {
   const d = new Date(`${date}T00:00:00Z`);
   if (Number.isNaN(d.getTime())) return date;
-  const dayMonth = d.toLocaleDateString(undefined, {
+  const locale = currentLocale();
+  const dayMonth = d.toLocaleDateString(locale, {
     day: 'numeric',
     month: 'short',
     timeZone: 'UTC',
   });
-  if (date === today) return `Today, ${dayMonth}`;
-  const weekday = d.toLocaleDateString(undefined, { weekday: 'short', timeZone: 'UTC' });
-  return `${weekday}, ${dayMonth}`;
+  if (date === today) return i18n.t('timeline:dayNav.today', { date: dayMonth });
+  const weekday = d.toLocaleDateString(locale, { weekday: 'short', timeZone: 'UTC' });
+  return i18n.t('timeline:dayNav.weekday', { weekday, date: dayMonth });
 }
 
 /** Opens the native calendar where the browser can; typing into the field still works without. */
@@ -36,11 +39,12 @@ function openPicker(event: MouseEvent<HTMLInputElement>) {
  * itself, drawn transparent over the words, so it stays a real labelled input.
  */
 export function TimelineDayNav({ date, onDate }: TimelineDayNavProps) {
+  const { t } = useTranslation('timeline');
   const today = todayLocal();
   return (
     <div className="flex items-center gap-2">
       <Button
-        aria-label="Previous day"
+        aria-label={t('dayNav.previous')}
         onClick={() => {
           onDate(shiftDay(date, -1));
         }}
@@ -58,7 +62,7 @@ export function TimelineDayNav({ date, onDate }: TimelineDayNavProps) {
         <span aria-hidden="true">{dayButtonLabel(date, today)}</span>
         <input
           type="date"
-          aria-label="Date"
+          aria-label={t('dayNav.date')}
           className="absolute inset-0 cursor-pointer opacity-0"
           value={date}
           max={today}
@@ -69,7 +73,7 @@ export function TimelineDayNav({ date, onDate }: TimelineDayNavProps) {
         />
       </span>
       <Button
-        aria-label="Next day"
+        aria-label={t('dayNav.next')}
         disabled={date >= today}
         onClick={() => {
           onDate(shiftDay(date, 1));

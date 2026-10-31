@@ -1,0 +1,45 @@
+---
+title: Firmware và patcher
+description: Các bản vá trên thiết bị dùng để làm gì, mẫu nào áp dụng được, và điều gì có thể hỏng.
+---
+
+Các mẫu camera chạy Linux (T5, T6, T7, D4H, D4SH, W7H) làm việc được với MyPetKit qua HTTP mà không cần thay đổi gì. Một số tính năng cần thay đổi phần mềm của chính thiết bị: MQTT, tải media lên cục bộ, video trực tiếp cục bộ, đàm thoại, SSH và xoay camera của T6. Màn hình **Trình vá** áp dụng các thay đổi đó từ máy chủ, từng patcher một, và có thể gỡ từng cái ra trở lại.
+
+Các mẫu ESP32 và phụ kiện chỉ có Bluetooth không thể vá. Màn hình **Trình vá** báo chúng là không được hỗ trợ.
+
+<Callout type="error" title="Hãy đọc trước khi áp dụng bất cứ thứ gì">
+Thiết bị đã vá nằm ngoài bảo hành và ngoài đường cập nhật của PetKit, và một bản vá thất bại có thể khiến nó không khởi động được. Việc áp dụng một patcher yêu cầu nhập lại mật khẩu quản trị, và thẻ của mỗi patcher trong bảng điều khiển mô tả chính xác nó thay đổi những gì. Hãy đọc trước.
+</Callout>
+
+## Các patcher
+
+| Patcher | Dùng để làm gì | Ghi gì vào thiết bị |
+|---|---|---|
+| [MQTT TLS Bypass](/vi/docs/firmware/patchers#mqtt-tls-bypass) | Thiết bị tin broker của MyPetKit, nên lệnh đến ngay lập tức | Một bản sao `ctrl` đã vá |
+| [CA Certificate](/vi/docs/firmware/patchers#ca-certificate-bucket-tls) | Bộ tải lên tin chứng chỉ của bucket cục bộ | Một bản sao `ca.crt` có thêm chứng chỉ của máy chủ ở cuối |
+| [Local Storage](/vi/docs/firmware/patchers#local-storage-cloud-upload) | Bộ tải lên chấp nhận địa chỉ LAN cho media | Một bản sao `cloud` đã vá |
+| [Local Camera Streaming](/vi/docs/firmware/patchers#local-camera-streaming) | Video trực tiếp trong LAN thay vì qua Agora | Không gì cả; một dòng trong boot wrapper |
+| [Two-Way Talk](/vi/docs/firmware/patchers#two-way-talk-intercom) | Micrô của bạn tới loa của thiết bị | Một shell script nhỏ |
+| [Persistent SSH Access](/vi/docs/firmware/patchers#persistent-ssh-access) | SSH trên port 22 bằng khóa công khai của bạn | Một bản dropbear static, host key của nó và khóa của bạn |
+| [Camera Pan (T6)](/vi/docs/firmware/camera-pan-t6) | Các nút Pan Left, Pan Right và Pan Home | Không gì cả |
+
+Local Storage và CA Certificate hoạt động cùng nhau: hãy áp dụng cả hai để tải media lên cục bộ.
+
+## Hai họ CPU [#two-cpu-families]
+
+| Họ | Mẫu | Nơi lưu bản vá |
+|---|---|---|
+| Ingenic MIPS | T5, T6, T7, D4H, D4SH | `/system` |
+| Axera ARM | W7H, và một số chiếc D4SH | `/opt` |
+
+D4SH được bán với cả hai họ bo mạch dưới cùng một tên mẫu, nên máy chủ không bao giờ quyết định dựa trên tên mẫu. Trước mỗi bản vá, nó kiểm tra `/system/user.conf` hay `/opt/user.conf` tồn tại và dùng thư mục đó. Patcher SSH đọc ELF header của `ctrl` của chính thiết bị để chọn bản dropbear phù hợp. MQTT TLS Bypass và Local Storage chọn bản vá byte từ chính binary.
+
+<Callout type="info">
+Tài liệu riêng của add-on vẫn nói MQTT TLS Bypass, Local Storage và Persistent SSH Access chỉ dành cho MIPS. Mã patcher hiện tại không đồng ý: nó có bản vá ARM cho `ctrl` và `cloud` cùng bản dropbear ARM, và bộ kiểm thử firmware vá các binary W7H (ARM) ngoại tuyến. Cho đến khi hai bên khớp nhau, hãy xem thẻ của patcher trên thiết bị của bạn trước khi dựa vào nó cho một thiết bị ARM.
+</Callout>
+
+## Tiếp theo
+
+- [Cách vá hoạt động](/vi/docs/firmware/how-patching-works): các bước chính xác, boot wrapper, gỡ một bản vá, và tự đọc firmware image.
+- [Các patcher](/vi/docs/firmware/patchers): chi tiết từng patcher.
+- [Firmware theo mẫu](/vi/docs/firmware/by-model): CPU, nơi lưu, các bản build firmware đã kiểm thử và số đo cho từng mẫu.

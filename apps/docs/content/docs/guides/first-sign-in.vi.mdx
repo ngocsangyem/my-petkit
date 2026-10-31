@@ -1,0 +1,55 @@
+---
+title: Đăng nhập lần đầu
+description: Đặt mật khẩu quản trị bằng mã thiết lập dùng một lần, và kiểm tra chứng chỉ của máy chủ.
+---
+
+Máy chủ mới chưa có quản trị viên. Cho đến khi bạn tạo, mỗi lần khởi động nó in một mã thiết lập dùng một lần vào nhật ký.
+
+<Steps>
+<Step>
+
+### Tìm mã thiết lập
+
+- Add-on: mở tab **Log** của add-on.
+- Docker hoặc VPS: `docker compose logs my-petkit | grep -i "setup token"`
+
+Mã có hiệu lực trong 30 phút.
+
+</Step>
+<Step>
+
+### Mở bảng điều khiển
+
+- Add-on: bấm **My PetKit** trên thanh bên của Home Assistant, hoặc mở `https://<host>:8443/`.
+- Docker: `https://<host>:8443/`
+- VPS: `https://<your domain>/`
+
+Ở port 8443, trình duyệt cảnh báo về chứng chỉ, vì nó là tự ký. Trước khi chấp nhận, hãy so sánh vân tay SHA-256 của nó với vân tay in trong nhật ký (cũng được phục vụ tại `/api/info`).
+
+</Step>
+<Step>
+
+### Tạo mật khẩu quản trị
+
+Nhập mã thiết lập và mật khẩu mới hai lần. Bạn đã đăng nhập.
+
+![Màn hình chạy lần đầu yêu cầu mã thiết lập và mật khẩu mới](/screenshots/web-first-run.webp)
+
+</Step>
+</Steps>
+
+## Quên mật khẩu, hoặc mã đã hết hạn
+
+Chạy lệnh này bên trong container:
+
+```bash
+my-petkit admin set-password --data-dir /data
+```
+
+Với Docker đó là `docker exec -it my-petkit my-petkit admin set-password --data-dir /data`. Đặt mật khẩu theo cách này cũng đăng xuất mọi trình duyệt.
+
+## Xác nhận lại [#step-up]
+
+Một số hành động yêu cầu nhập lại mật khẩu dù bạn đã đăng nhập: patcher, lệnh thiết bị thô, cài đặt proxy và thu thập, tải bản thu thập và nhật ký thiết bị, hiện payload bị chặn, và ghép nối điện thoại mới. Sau khi bạn nhập, mật khẩu có hiệu lực 5 phút.
+
+![Hộp thoại xác nhận lại yêu cầu nhập lại mật khẩu quản trị](/screenshots/web-step-up.webp)

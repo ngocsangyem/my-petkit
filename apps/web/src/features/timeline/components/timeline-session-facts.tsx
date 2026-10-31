@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from 'cn';
 import { Missing, Panel } from '@/shared/ui';
 import {
@@ -42,6 +43,7 @@ export function SessionFigures({
   duration: string | null;
   weight: string | null;
 }) {
+  const { t } = useTranslation('timeline');
   const { entered, left } = visitSpan(s);
   const range = [clockTime(entered), left !== null ? clockTime(left) : null]
     .filter(Boolean)
@@ -49,10 +51,10 @@ export function SessionFigures({
   return (
     <Panel padding="none">
       <dl className="m-0 grid grid-cols-2 [&>*:nth-child(n+3)]:border-t [&>*:nth-child(odd)]:border-r [&>*]:border-segment">
-        <Figure label="Time">{range || <Missing />}</Figure>
-        <Figure label="Duration">{duration ?? <Missing />}</Figure>
-        <Figure label="Weight">{weight ?? <Missing />}</Figure>
-        <Figure label="Matched">
+        <Figure label={t('detail.time')}>{range || <Missing />}</Figure>
+        <Figure label={t('detail.duration')}>{duration ?? <Missing />}</Figure>
+        <Figure label={t('detail.weight')}>{weight ?? <Missing />}</Figure>
+        <Figure label={t('detail.matched')}>
           {s.pet_name ? (
             <span className="inline-flex flex-wrap items-center gap-2">
               {s.pet_name}
@@ -60,7 +62,7 @@ export function SessionFigures({
             </span>
           ) : (
             <span className="text-muted-foreground">
-              {s.passing ? 'No cat, just passing' : 'Nobody recognised'}
+              {s.passing ? t('detail.noCatPassing') : t('detail.nobody')}
             </span>
           )}
         </Figure>
@@ -105,12 +107,15 @@ export interface SessionFactsProps {
  * (a step with media can be shown in the viewer), what the box reported, and the device.
  */
 export function SessionFacts({ session: s, stepMedia, onStepMedia }: SessionFactsProps) {
+  const { t } = useTranslation('timeline');
   const isVisit = s.kind === 'visit';
   const { entered, left } = visitSpan(s);
   return (
     <dl className="m-0 flex flex-col">
-      <Row label={isVisit ? 'Entered' : 'At'}>{clockTime(entered, true) ?? <Missing />}</Row>
-      {left !== null && <Row label="Left">{clockTime(left, true) ?? <Missing />}</Row>}
+      <Row label={isVisit ? t('detail.entered') : t('detail.at')}>
+        {clockTime(entered, true) ?? <Missing />}
+      </Row>
+      {left !== null && <Row label={t('detail.left')}>{clockTime(left, true) ?? <Missing />}</Row>}
       {s.sub_events.map((e, i) => (
         <Row
           key={e.id ?? `s${String(i)}`}
@@ -127,7 +132,7 @@ export function SessionFacts({ session: s, stepMedia, onStepMedia }: SessionFact
                     if (e.id !== null) onStepMedia(e.id);
                   }}
                 >
-                  Show media
+                  {t('detail.showMedia')}
                 </button>
               )}
             </>
@@ -140,11 +145,11 @@ export function SessionFacts({ session: s, stepMedia, onStepMedia }: SessionFact
         const f = splitFact(b);
         return (
           <Row key={b} label={f.label.charAt(0).toUpperCase() + f.label.slice(1)}>
-            {f.value ?? 'yes'}
+            {f.value ?? t('detail.yes')}
           </Row>
         );
       })}
-      {s.device_name && <Row label="Device">{s.device_name}</Row>}
+      {s.device_name && <Row label={t('detail.device')}>{s.device_name}</Row>}
     </dl>
   );
 }

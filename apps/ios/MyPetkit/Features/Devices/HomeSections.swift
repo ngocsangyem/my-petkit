@@ -158,9 +158,9 @@ struct AccessoryCard: View {
     }
 
     private var line: String {
-        guard let parent = accessory.parentName else { return "No device relays it" }
-        let via = "Via the \(parent.lowercased())"
-        guard let seen = DeviceFacts.epochSeconds(accessory.lastSeen) else { return "\(via) · never reported" }
+        guard let parent = accessory.parentName else { return L10n.string("No device relays it") }
+        let via = L10n.string("Via the \(parent.lowercased())")
+        guard let seen = DeviceFacts.epochSeconds(accessory.lastSeen) else { return L10n.string("\(via) · never reported") }
         return "\(via) · \(DeviceFindings.duration(now.timeIntervalSince1970 - seen))"
     }
 }
@@ -187,9 +187,9 @@ struct NoDevicesCard: View {
 
     var body: some View {
         Card {
-            EmptyBlock(title: "Add your first device",
-                       message: "Put a litter box, feeder or fountain in pairing mode and send it your Wi-Fi from this phone.",
-                       actionTitle: "Add a device", action: add) {
+            EmptyBlock(title: L10n.string("Add your first device"),
+                       message: L10n.string("Put a litter box, feeder or fountain in pairing mode and send it your Wi-Fi from this phone."),
+                       actionTitle: L10n.string("Add a device"), action: add) {
                 HStack(spacing: 10) {
                     DeviceDrawing(kind: .litterBox, height: 72)
                     DeviceDrawing(kind: .feederDual, height: 72)

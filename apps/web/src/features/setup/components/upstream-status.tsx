@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from 'react-i18next';
 import { cn } from 'cn';
 import { Pill } from '@/shared/ui';
 import { summariseUpstream } from '../setup-model';
@@ -11,24 +12,26 @@ const FRAME = 'flex flex-col gap-1.5 border-t border-rule py-3';
  * else on screen would differ from the proxy being off. This line says it runs.
  */
 export function UpstreamStatus({ counts }: { counts: Record<string, number> }) {
+  const { t } = useTranslation('setup');
   const s = summariseUpstream(counts);
   if (!s.total) {
-    return (
-      <p className={cn(FRAME, 'text-sm text-muted-foreground')}>
-        No calls forwarded yet. A device polls about every 10 seconds.
-      </p>
-    );
+    return <p className={cn(FRAME, 'text-sm text-muted-foreground')}>{t('upstream.none')}</p>;
   }
   return (
     <div className={FRAME}>
       <p className="flex flex-wrap items-center gap-2">
         <span>
-          Forwarded <span className="tabular-nums">{s.total}</span> calls
+          <Trans
+            t={t}
+            i18nKey="upstream.forwarded"
+            count={s.total}
+            components={{ n: <span className="tabular-nums" /> }}
+          />
         </span>
-        <Pill tone={s.ok ? 'positive' : 'neutral'}>{s.ok} answered</Pill>
+        <Pill tone={s.ok ? 'positive' : 'neutral'}>{t('upstream.answered', { n: s.ok })}</Pill>
         {s.refused.map(r => (
           <Pill key={`e-${r.code}`} tone="warning">
-            {r.count} refused ({r.code})
+            {t('upstream.refused', { n: r.count, code: r.code })}
           </Pill>
         ))}
         {s.failed.map(f => (
@@ -38,11 +41,7 @@ export function UpstreamStatus({ counts }: { counts: Record<string, number> }) {
         ))}
       </p>
       {s.refused.length > 0 && !s.ok && (
-        <p className="text-sm text-muted-foreground">
-          The cloud refuses every session-bearing call. That is expected once this server has taken
-          the device over, since the session it presents is one we issued; the device is served our
-          own answers throughout.
-        </p>
+        <p className="text-sm text-muted-foreground">{t('upstream.refusedNote')}</p>
       )}
     </div>
   );

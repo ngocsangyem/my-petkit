@@ -1,3 +1,4 @@
+import Foundation
 import PetkitAPI
 
 typealias ServerLiveSettings = Components.Schemas.SetupLiveSettings
@@ -43,39 +44,45 @@ enum BoolSetting: CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .blockOTA: "Block firmware updates"
-        case .blockRunCmd: "Block shell commands"
-        case .blockLogUpload: "Block log upload"
-        case .proxyMode: "Forward to PetKit's cloud"
-        case .mqttBridge: "Bridge MQTT upstream"
-        case .mediaRealOSS: "Send media to PetKit"
-        case .localCVRWindow: "Keep recording locally"
-        case .capture: "Record traffic"
+        case .blockOTA: L10n.string("Block firmware updates")
+        case .blockRunCmd: L10n.string("Block shell commands")
+        case .blockLogUpload: L10n.string("Block log upload")
+        case .proxyMode: L10n.string("Forward to PetKit's cloud")
+        case .mqttBridge: L10n.string("Bridge MQTT upstream")
+        case .mediaRealOSS: L10n.string("Send media to PetKit")
+        case .localCVRWindow: L10n.string("Keep recording locally")
+        case .capture: L10n.string("Record traffic")
         }
     }
 
     var footnote: String {
         switch self {
-        case .blockOTA: "The cloud cannot push new firmware."
-        case .blockRunCmd: "Stops run_cmd, which runs as root on the box."
-        case .blockLogUpload: "Device logs never leave your network."
-        case .proxyMode: "For adding a model this server does not know yet."
-        case .mqttBridge: "Also bridges the device's MQTT session to PetKit's broker."
-        case .mediaRealOSS: "Recordings go to PetKit instead of this server; nothing lands here."
-        case .localCVRWindow: "Tells the camera its cloud storage is active, so a lapsed plan does not stop recording."
-        case .capture: "Turning on asks for your password."
+        case .blockOTA: L10n.string("The cloud cannot push new firmware.")
+        case .blockRunCmd: L10n.string("Stops run_cmd, which runs as root on the box.")
+        case .blockLogUpload: L10n.string("Device logs never leave your network.")
+        case .proxyMode: L10n.string("For adding a model this server does not know yet.")
+        case .mqttBridge: L10n.string("Also bridges the device's MQTT session to PetKit's broker.")
+        case .mediaRealOSS: L10n.string("Recordings go to PetKit instead of this server; nothing lands here.")
+        case .localCVRWindow:
+            L10n.string("Tells the camera its cloud storage is active, so a lapsed plan does not stop recording.")
+        case .capture: L10n.string("Turning on asks for your password.")
         }
     }
 
     /// What the step-up screen says the change will do.
     func purpose(turningOn: Bool) -> String {
         switch (self, turningOn) {
-        case (.blockOTA, false): "While proxy mode is on, PetKit's cloud could push firmware to your devices."
-        case (.blockRunCmd, false): "While proxy mode is on, PetKit's cloud could run shell commands as root."
-        case (.blockLogUpload, false): "While proxy mode is on, your devices could send their logs to PetKit."
-        case (.proxyMode, true): "Proxy mode forwards every device request to PetKit's cloud."
-        case (.capture, true): "Recording saves every request, secrets included, to files on the server."
-        default: "\(turningOn ? "Turning on" : "Turning off") \(title.lowercased()) changes how the server proxies."
+        case (.blockOTA, false): L10n.string("While proxy mode is on, PetKit's cloud could push firmware to your devices.")
+        case (.blockRunCmd, false): L10n.string("While proxy mode is on, PetKit's cloud could run shell commands as root.")
+        case (.blockLogUpload, false): L10n.string("While proxy mode is on, your devices could send their logs to PetKit.")
+        case (.proxyMode, true): L10n.string("Proxy mode forwards every device request to PetKit's cloud.")
+        case (.capture, true): L10n.string("Recording saves every request, secrets included, to files on the server.")
+        default:
+            if turningOn {
+                L10n.string("Turning on \(title.lowercased()) changes how the server proxies.")
+            } else {
+                L10n.string("Turning off \(title.lowercased()) changes how the server proxies.")
+            }
         }
     }
 
@@ -119,17 +126,17 @@ enum TextSetting: String, Identifiable {
 
     var title: String {
         switch self {
-        case .upstream: "Upstream URL"
-        case .dns: "Upstream resolver"
-        case .only: "Forward only these endpoints"
+        case .upstream: L10n.string("Upstream URL")
+        case .dns: L10n.string("Upstream resolver")
+        case .only: L10n.string("Forward only these endpoints")
         }
     }
 
     var footnote: String {
         switch self {
-        case .upstream: "A PetKit or Aliyun IoT address the server allows. Empty uses the default region."
-        case .dns: "An IPv4 address, optionally with a port. Empty uses the system resolver."
-        case .only: "Endpoint names separated by commas, such as dev_device_info. Empty forwards everything."
+        case .upstream: L10n.string("A PetKit or Aliyun IoT address the server allows. Empty uses the default region.")
+        case .dns: L10n.string("An IPv4 address, optionally with a port. Empty uses the system resolver.")
+        case .only: L10n.string("Endpoint names separated by commas, such as dev_device_info. Empty forwards everything.")
         }
     }
 

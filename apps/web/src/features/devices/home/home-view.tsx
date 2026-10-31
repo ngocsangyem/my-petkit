@@ -1,4 +1,6 @@
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
+import { i18n } from '@/i18n';
 import { buttonClassName, Icon, PageHeader, StatusWord } from '@/shared/ui';
 import type { PetWithFaces, TimelineSession } from '../api';
 import { NeedsYouCard } from '../components/needs-you-card';
@@ -26,45 +28,49 @@ interface HomeViewProps {
 /** The one finding sentence: the worst thing first, in its colour; or that all is well. */
 function finding(needs: readonly NeedsYouItem[]): ReactNode {
   const [first, ...rest] = needs;
-  if (!first) return <StatusWord tone="positive">Everything is fine.</StatusWord>;
-  const lead = `${first.title}${first.tone === 'negative' ? '' : ` (${first.detail})`}.`;
+  if (!first) return <StatusWord tone="positive">{i18n.t('devices:home.allFine')}</StatusWord>;
+  const lead =
+    first.tone === 'negative'
+      ? i18n.t('devices:home.lead', { title: first.title })
+      : i18n.t('devices:home.leadWithDetail', { title: first.title, detail: first.detail });
   return (
     <>
       <StatusWord tone={first.tone}>{lead}</StatusWord>{' '}
       {rest.length === 0
-        ? 'Everything else is fine.'
-        : `${rest.length} more ${rest.length === 1 ? 'thing needs' : 'things need'} you below.`}
+        ? i18n.t('devices:home.restFine')
+        : i18n.t('devices:home.more', { count: rest.length })}
     </>
   );
 }
 
 /** Home: cats and what needs you, the devices drawn at their levels, then today's strip. */
 export function HomeView(props: HomeViewProps) {
+  const { t } = useTranslation('devices');
   const { rows, needs, pets, sessions, zone, nowSeconds } = props;
   return (
     <>
       <PageHeader
-        title="Home"
+        title={t('home.title')}
         finding={finding(needs)}
         actions={
           <>
             <Link className={buttonClassName('secondary')} to="/timeline">
               <Icon name="timeline" size={16} />
-              Timeline
+              {t('home.timeline')}
             </Link>
             <Link className={buttonClassName('primary')} to="/provision">
               <Icon name="plus" size={16} />
-              Add a device
+              {t('home.addDevice')}
             </Link>
           </>
         }
       />
       <section
-        aria-label="Cats and attention"
+        aria-label={t('home.catsAndAttention')}
         className="grid grid-cols-2 gap-3 min-[901px]:grid-cols-4 min-[901px]:gap-4"
       >
         {pets.length > 0 && (
-          <ul aria-label="Cats" className="contents">
+          <ul aria-label={t('home.cats')} className="contents">
             {pets.map(p => (
               <PetCard key={p.id} pet={p} day={petDay(p, sessions, zone, nowSeconds)} />
             ))}
@@ -73,13 +79,13 @@ export function HomeView(props: HomeViewProps) {
         <NeedsYouCard items={needs} blocked={props.blocked} className="col-span-2" />
       </section>
       <div className="-mb-2 flex items-baseline justify-between gap-3 px-1">
-        <h2>Devices</h2>
+        <h2>{t('home.devices')}</h2>
         <span className="text-sm text-muted-foreground">
-          {props.deviceCount} · {props.reporting} reporting
+          {t('home.reporting', { total: props.deviceCount, reporting: props.reporting })}
         </span>
       </div>
       <ul
-        aria-label="Devices"
+        aria-label={t('home.devices')}
         className="m-0 grid list-none grid-cols-2 gap-3 p-0 min-[901px]:grid-cols-4 min-[901px]:gap-4"
       >
         {rows.map(r => (

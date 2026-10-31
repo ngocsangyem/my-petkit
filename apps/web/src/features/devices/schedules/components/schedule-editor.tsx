@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { errorMessage } from '@/shared/api/errors';
 import { Button, Card } from '@/shared/ui';
 import { useSaveSchedule } from '../api';
@@ -34,6 +35,7 @@ function wireValue(draft: ScheduleDraft, target: ScheduleTarget): unknown {
 
 /** One schedule: its editor, and Save / Discard once something has changed. */
 export function ScheduleEditor({ deviceId, target, draft, onDraft }: ScheduleEditorProps) {
+  const { t } = useTranslation('devices');
   const save = useSaveSchedule(deviceId);
   const [notice, setNotice] = useState<string | null>(null);
   const shown = draft ?? draftOf(target);
@@ -105,15 +107,15 @@ export function ScheduleEditor({ deviceId, target, draft, onDraft }: ScheduleEdi
                     onDraft(undefined);
                     setNotice(
                       res.delivered === 'mqtt'
-                        ? 'Saved and sent to the device.'
-                        : 'Saved. The device picks it up on its next poll.',
+                        ? t('scheduleEditor.savedSent')
+                        : t('scheduleEditor.savedQueued'),
                     );
                   },
                 },
               );
             }}
           >
-            {save.isPending ? 'Saving…' : `Save ${target.name}`}
+            {save.isPending ? t('scheduleEditor.saving') : t('raw.save', { name: target.name })}
           </Button>
           <Button
             variant="text"
@@ -123,14 +125,14 @@ export function ScheduleEditor({ deviceId, target, draft, onDraft }: ScheduleEdi
               onDraft(undefined);
             }}
           >
-            Discard
+            {t('scheduleEditor.discard')}
           </Button>
           {problem && <span className="text-sm text-negative">{problem}</span>}
         </div>
       )}
       {save.isError && (
         <p className="text-sm text-negative" role="alert">
-          Not saved: {errorMessage(save.error)}
+          {t('autoPack.notSaved', { error: errorMessage(save.error) })}
         </p>
       )}
       {notice && (

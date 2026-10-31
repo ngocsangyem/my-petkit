@@ -68,14 +68,17 @@ struct DayStripView: View {
         switch lane.marks {
         case .visits(let minutes, _):
             let times = minutes.map { DayStripLayout.clock(minute: $0) }.joined(separator: ", ")
-            return minutes.isEmpty ? "\(lane.title): no visits" : "\(lane.title): visits at \(times)"
+            return minutes.isEmpty ? L10n.string("\(lane.title): no visits") : L10n.string("\(lane.title): visits at \(times)")
         case .meals(let meals):
-            let text = meals.map { "\(DayStripLayout.clock(minute: $0.minute)) \($0.fed ? "fed" : "planned")" }
+            let text = meals.map {
+                let clock = DayStripLayout.clock(minute: $0.minute)
+                return $0.fed ? L10n.string("\(clock) fed") : L10n.string("\(clock) planned")
+            }
             return "\(lane.title): \(text.joined(separator: ", "))"
         case .fountain(let spans):
             let quiet = spans.first { !$0.reporting }
-            return quiet.map { "\(lane.title): no report since \(DayStripLayout.clock(minute: $0.start))" }
-                ?? "\(lane.title): reporting"
+            return quiet.map { L10n.string("\(lane.title): no report since \(DayStripLayout.clock(minute: $0.start))") }
+                ?? L10n.string("\(lane.title): reporting")
         }
     }
 }

@@ -7,7 +7,7 @@ struct ServerLogSection: View {
     @Bindable var model: LogsModel
 
     var body: some View {
-        LogFilterField(prompt: "Filter lines, for example a device id", text: $model.filter)
+        LogFilterField(prompt: L10n.string("Filter lines, for example a device id"), text: $model.filter)
         toolbar
         if let error = model.exportError {
             Text(error).font(Theme.Font.small).foregroundStyle(Theme.Color.negative)
@@ -46,7 +46,7 @@ struct ServerLogSection: View {
                 }
                 .accessibilityLabel("Share the exported log")
             } else {
-                IconButton(systemImage: "arrow.down.to.line", label: "Export the visible lines") {
+                IconButton(systemImage: "arrow.down.to.line", label: L10n.string("Export the visible lines")) {
                     model.exportVisible()
                 }
             }
@@ -60,10 +60,10 @@ struct ServerLogSection: View {
         let events = model.visibleEvents
         if events.isEmpty {
             Card {
-                EmptyBlock(title: model.filter.isEmpty ? "No lines yet" : "No line matches",
+                EmptyBlock(title: model.filter.isEmpty ? L10n.string("No lines yet") : L10n.string("No line matches"),
                            message: model.filter.isEmpty
-                               ? "Lines appear here as devices talk to the server."
-                               : "Nothing in the last \(ServerLogRules.limit) lines contains every word typed.")
+                               ? L10n.string("Lines appear here as devices talk to the server.")
+                               : L10n.string("Nothing in the last \(ServerLogRules.limit) lines contains every word typed."))
             }
         } else {
             LazyVStack(alignment: .leading, spacing: 6) {
@@ -86,10 +86,10 @@ struct ServerLogSection: View {
 
     /// The event's detail as indented JSON text; never rendered as markup.
     private func detailText(_ detail: JSONValue?) -> String {
-        guard let detail, detail != .null else { return "No detail." }
+        guard let detail, detail != .null else { return L10n.string("No detail.") }
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
-        guard let data = try? encoder.encode(detail) else { return "No detail." }
+        guard let data = try? encoder.encode(detail) else { return L10n.string("No detail.") }
         return String(bytes: data, encoding: .utf8) ?? ""
     }
 }

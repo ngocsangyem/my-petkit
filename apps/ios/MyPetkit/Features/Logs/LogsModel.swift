@@ -86,7 +86,7 @@ final class LogsModel {
             exported = try SharedFile.write(Data(ServerLogRules.exportText(visibleEvents).utf8),
                                             named: "my-petkit-log-\(stamp).txt")
         } catch {
-            exportError = "The log could not be saved for sharing."
+            exportError = L10n.string("The log could not be saved for sharing.")
         }
     }
 }

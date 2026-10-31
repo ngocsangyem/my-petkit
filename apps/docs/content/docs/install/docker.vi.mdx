@@ -1,0 +1,93 @@
+---
+title: Docker trong mạng LAN
+description: Chạy image bằng Docker Compose trên bất kỳ máy nào cùng mạng với các thiết bị.
+---
+
+Dùng cách này khi bạn không có hệ thống add-on của Home Assistant: HA Container, HA Core, hoặc hoàn toàn không có Home Assistant. Công thức nằm ở [`deploy/local/`](https://github.com/ngocsangyem/my-petkit/tree/main/deploy/local).
+
+<Steps>
+<Step>
+
+### Tạo tệp cài đặt của bạn
+
+```bash
+cd deploy/local
+cp .env.example .env
+```
+
+Chỉnh sửa `.env` mới tạo. Chỉ `MY_PETKIT_API_URL` là bắt buộc.
+
+| Biến | Ví dụ | Ý nghĩa |
+|---|---|---|
+| `MY_PETKIT_API_URL` | `http://192.168.1.20/6/` | Địa chỉ mà thiết bị gọi: IP LAN của máy này, port 80, và tiền tố API `/6/`. Không phải tên `.local`. |
+| `MY_PETKIT_HA_MQTT_HOST` | `192.168.1.10` | MQTT broker của Home Assistant. Để trống thì chạy không có Home Assistant. |
+| `MY_PETKIT_TIMEZONE` | `Asia/Ho_Chi_Minh` | Múi giờ IANA. Ngày, lịch cho ăn và giờ gửi cho thiết bị được tính theo nó. Mặc định `UTC`. |
+| `MY_PETKIT_USER_HOSTS` | `petkit.example.com` | Các tên host mà trình duyệt được dùng để vào bảng điều khiển, phân tách bằng dấu phẩy. Địa chỉ IP và `localhost` luôn được cho phép. |
+| `MY_PETKIT_WEBRTC_CANDIDATES` | `192.168.1.20:8555` | Nơi người xem truy cập port 8555 cho WebRTC. Để trống chỉ cung cấp MSE và HLS. |
+| `MY_PETKIT_TAG` | `latest` | Tag của image: `latest`, một bản phát hành như `0.0.2`, hoặc `dev`. |
+
+Compose từ chối khởi động cho đến khi giá trị bắt buộc được đặt. Git bỏ qua tệp này, nên `git pull` không bao giờ xung đột với nó.
+
+</Step>
+<Step>
+
+### Khởi động
+
+```bash
+docker compose up -d
+docker compose logs my-petkit | grep -i "setup token"
+```
+
+Setup token chỉ được in ở lần khởi động đầu tiên và có hiệu lực trong thời gian giới hạn. Mở `https://<this host>:8443/` và tiếp tục với [Đăng nhập lần đầu](/vi/docs/guides/first-sign-in).
+
+</Step>
+</Steps>
+
+Nếu token đã hết hạn, hãy đặt mật khẩu từ bên trong container:
+
+```bash
+docker exec -it my-petkit my-petkit admin set-password --data-dir /data
+```
+
+## Compose file publish những gì
+
+| Host port | Mục đích |
+|---|---|
+| 80 | Device HTTP API. Hãy giữ ở 80: các mẫu ESP32 không tới được máy chủ ở bất kỳ port nào khác. |
+| 443 | MQTT qua TLS cho thiết bị |
+| 9000 | Thiết bị tải media lên |
+| 8443 | Bảng điều khiển và ứng dụng iOS, qua TLS |
+| 8554 trên loopback | RTSP từ go2rtc. Bỏ tiền tố loopback trong ánh xạ nếu Home Assistant chạy trên máy khác. |
+| 8555 TCP và UDP | WebRTC, chỉ dùng khi `MY_PETKIT_WEBRTC_CANDIDATES` được đặt |
+
+Port 1883 (MQTT thuần) không được publish: đó là listener nội bộ mà cầu nối Home Assistant dùng. Port 8099 (Ingress) vô dụng nếu không có Supervisor.
+
+Nếu broker của bạn cần thông tin đăng nhập, hãy thêm các dòng `--ha-mqtt-user` và `--ha-mqtt-pass` vào danh sách `command:` trong `docker-compose.yml`.
+
+## Volume
+
+| Volume | Chứa |
+|---|---|
+| `data` (`/data`) | Danh tính thiết bị, cài đặt, cơ sở dữ liệu sự kiện, chứng chỉ và các khóa của user plane. Hãy sao lưu nó. |
+| `media` (`/media/petkit`) | Bản ghi và ảnh chụp nhanh |
+
+## Tự dựng image
+
+Comment dòng `image:` trong `docker-compose.yml`, bỏ comment `build: ../..`, rồi chạy `docker compose up -d --build`. Cách này cần BuildKit, mặc định từ Docker 23.
+
+## Quyền của container [#container-privileges]
+
+| | Add-on | Compose và VPS |
+|---|---|---|
+| Người dùng | root | `mypetkit` (uid 10001) |
+| Hệ thống tệp gốc | ghi được | chỉ đọc, `/tmp` trên tmpfs |
+| Capabilities | tập mặc định của Supervisor | không có (`cap_drop: ALL`) |
+| `no-new-privileges` | không | có |
+| Bind 80 và 443 | với quyền root | `net.ipv4.ip_unprivileged_port_start=0`, bên trong network namespace riêng của container |
+
+Sysctl đó không thể đặt trên network namespace của máy chủ, đó là lý do các compose file dùng mạng bridge. Để kiểm tra một container đang chạy:
+
+```bash
+docker inspect my-petkit --format 'user={{.Config.User}} ro={{.HostConfig.ReadonlyRootfs}} secopt={{.HostConfig.SecurityOpt}} capdrop={{.HostConfig.CapDrop}}'
+# user=10001:10001 ro=true secopt=[no-new-privileges:true] capdrop=[ALL]
+```

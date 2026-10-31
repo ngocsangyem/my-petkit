@@ -42,12 +42,14 @@ enum LiveMode: String, CaseIterable, Hashable, Sendable {
     func explanation(alternatives: [LiveMode]) -> String {
         switch self {
         case .webrtc where alternatives.contains(.hls):
-            "WebRTC is under a second behind. Switch to HLS if the picture stalls; "
-                + "it is about 4 seconds behind but works on any network."
+            L10n.string("""
+                WebRTC is under a second behind. Switch to HLS if the picture stalls; \
+                it is about 4 seconds behind but works on any network.
+                """)
         case .webrtc:
-            "WebRTC is under a second behind."
+            L10n.string("WebRTC is under a second behind.")
         case .hls:
-            "HLS is about 4 seconds behind but works on any network."
+            L10n.string("HLS is about 4 seconds behind but works on any network.")
         }
     }
 }
@@ -65,11 +67,11 @@ struct LiveAvailability: Equatable, Sendable {
 enum LiveUnavailable {
     static func sentence(for reason: String?) -> String {
         switch reason {
-        case "not_a_camera": "This device has no camera to watch."
-        case "device_unreachable": "The camera has not reported its address yet, so the server cannot reach it."
-        case "no_stream": "The server has no stream set up for this camera yet."
-        case "sidecar_down": "The server's video relay is not running right now."
-        default: "Live video is not available right now."
+        case "not_a_camera": L10n.string("This device has no camera to watch.")
+        case "device_unreachable": L10n.string("The camera has not reported its address yet, so the server cannot reach it.")
+        case "no_stream": L10n.string("The server has no stream set up for this camera yet.")
+        case "sidecar_down": L10n.string("The server's video relay is not running right now.")
+        default: L10n.string("Live video is not available right now.")
         }
     }
 
@@ -79,6 +81,11 @@ enum LiveUnavailable {
         reason != "not_a_camera" && reason != "device_unreachable"
     }
 
-    static let webRTCMissing = "WebRTC is not set up on this server, so this is HLS, about 4 seconds behind."
-    static let webRTCFailed = "WebRTC could not connect, so this is HLS, about 4 seconds behind."
+    static var webRTCMissing: String {
+        L10n.string("WebRTC is not set up on this server, so this is HLS, about 4 seconds behind.")
+    }
+
+    static var webRTCFailed: String {
+        L10n.string("WebRTC could not connect, so this is HLS, about 4 seconds behind.")
+    }
 }

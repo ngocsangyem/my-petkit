@@ -8,7 +8,7 @@ struct LiveEntryCard: View {
     var body: some View {
         Card(padding: 0) {
             NavigationLink { LiveView(deviceID: device.id, title: device.name) } label: {
-                SettingsRow(title: "Live", value: "Watch and talk")
+                SettingsRow(title: L10n.string("Live"), value: L10n.string("Watch and talk"))
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 16)

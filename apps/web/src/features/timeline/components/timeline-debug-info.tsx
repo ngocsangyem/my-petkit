@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { currentLocale } from '@/i18n';
 import { cn } from 'cn';
 import type { components } from '@/api/schema';
 import { errorMessage } from '@/shared/api/errors';
@@ -63,7 +65,7 @@ function RawBlock({ title, value }: { title: string; value: unknown }) {
 function fieldText(f: DecodedField): string {
   if (!f.epoch) return f.text;
   const n = Number(f.raw);
-  return Number.isFinite(n) && n > 0 ? new Date(n * 1000).toLocaleString() : f.text;
+  return Number.isFinite(n) && n > 0 ? new Date(n * 1000).toLocaleString(currentLocale()) : f.text;
 }
 
 function text(value: unknown): string {
@@ -73,32 +75,36 @@ function text(value: unknown): string {
 }
 
 function DetailBody({ d }: { d: EventDetail }) {
+  const { t } = useTranslation('timeline');
   const e = d.event;
   const c = d.code;
   const meta: [string, unknown][] = [
-    ['Event id', e.id],
-    ['Code', e.event_type],
-    ['Kind', e.event_kind],
-    ['Transport', e.source],
-    ['Device', [e.device_id, e.device_type].filter(v => v !== null && v !== '').join(' · ')],
-    ['Received', e.ts ? new Date(e.ts * 1000).toLocaleString() : null],
-    ['Episode', e.related_event],
-    ['Parent episode', e.parent_event],
-    ['Dedup key', e.event_uid],
+    [t('debug.eventId'), e.id],
+    [t('debug.code'), e.event_type],
+    [t('debug.kind'), e.event_kind],
+    [t('debug.transport'), e.source],
+    [
+      t('debug.device'),
+      [e.device_id, e.device_type].filter(v => v !== null && v !== '').join(' · '),
+    ],
+    [t('debug.received'), e.ts ? new Date(e.ts * 1000).toLocaleString(currentLocale()) : null],
+    [t('debug.episode'), e.related_event],
+    [t('debug.parentEpisode'), e.parent_event],
+    [t('debug.dedupKey'), e.event_uid],
     // Reported vs resolved: a ref with no pet means the box still matches against faces cached
     // from PetKit's cloud; bind it in the Pets tab.
-    ['Reported pet id', e.pet_ref],
-    ['Pet', e.pet_name ?? e.pet_id],
-    ['Match score', e.score],
+    [t('debug.reportedPetId'), e.pet_ref],
+    [t('debug.pet'), e.pet_name ?? e.pet_id],
+    [t('debug.matchScore'), e.score],
   ];
   return (
     <div className="flex flex-col gap-1.5 pt-2 text-foreground">
-      <h4 className={HEADING}>What this code means</h4>
+      <h4 className={HEADING}>{t('debug.whatMeans')}</h4>
       {c ? (
         <Table className={TABLE}>
           <TableBody>
             <TableRow className={ROW}>
-              <TableCell className={CELL}>Means</TableCell>
+              <TableCell className={CELL}>{t('debug.means')}</TableCell>
               <TableCell className={CELL} colSpan={2}>
                 <b className="font-semibold">{c.label}</b>
               </TableCell>
@@ -108,7 +114,7 @@ function DetailBody({ d }: { d: EventDetail }) {
             </TableRow>
             {c.firmware && (
               <TableRow className={ROW}>
-                <TableCell className={CELL}>Firmware</TableCell>
+                <TableCell className={CELL}>{t('debug.firmware')}</TableCell>
                 <TableCell className={CELL} colSpan={3}>
                   <code className="font-mono text-xs">{c.firmware}</code>
                 </TableCell>
@@ -125,11 +131,9 @@ function DetailBody({ d }: { d: EventDetail }) {
           </TableBody>
         </Table>
       ) : (
-        <p className="text-muted-foreground">
-          This code is in no table yet; it reads as a bare "Event N".
-        </p>
+        <p className="text-muted-foreground">{t('debug.noCode')}</p>
       )}
-      <h4 className={HEADING}>Decoded payload</h4>
+      <h4 className={HEADING}>{t('debug.decoded')}</h4>
       {d.decoded.length ? (
         <Table className={TABLE}>
           <TableBody>
@@ -158,9 +162,9 @@ function DetailBody({ d }: { d: EventDetail }) {
           </TableBody>
         </Table>
       ) : (
-        <p className="text-muted-foreground">The device sent no content.</p>
+        <p className="text-muted-foreground">{t('debug.noContent')}</p>
       )}
-      <h4 className={HEADING}>Event record</h4>
+      <h4 className={HEADING}>{t('debug.record')}</h4>
       <Table className={TABLE}>
         <TableBody>
           {meta
@@ -175,13 +179,14 @@ function DetailBody({ d }: { d: EventDetail }) {
             ))}
         </TableBody>
       </Table>
-      <RawBlock title="Raw content JSON" value={d.content} />
-      <RawBlock title="Raw state snapshot" value={d.state} />
+      <RawBlock title={t('debug.rawContent')} value={d.content} />
+      <RawBlock title={t('debug.rawState')} value={d.state} />
     </div>
   );
 }
 
 function EventDebug({ id, title }: { id: number; title: string }) {
+  const { t } = useTranslation(['timeline', 'common']);
   const [open, setOpen] = useState(false);
   const q = useTimelineEvent(id, open);
   return (
@@ -190,9 +195,9 @@ function EventDebug({ id, title }: { id: number; title: string }) {
       <CollapsibleContent>
         {q.error ? (
           <div className="flex flex-wrap items-center gap-2 pt-1.5 text-foreground" role="alert">
-            <span>Could not load this event. {errorMessage(q.error)}</span>
+            <span>{t('debug.loadFailed', { error: errorMessage(q.error) })}</span>
             <Button variant="text" onClick={() => void q.refetch()}>
-              Retry
+              {t('common:retry')}
             </Button>
           </div>
         ) : q.data ? (
@@ -212,6 +217,7 @@ export interface DebugEntry {
 
 /** What each device actually reported, per event, fetched only when opened. */
 export function TimelineDebugInfo({ entries }: { entries: readonly DebugEntry[] }) {
+  const { t } = useTranslation('timeline');
   if (!entries.length) return null;
   return (
     <Collapsible className="text-sm text-muted-foreground">
@@ -222,8 +228,8 @@ export function TimelineDebugInfo({ entries }: { entries: readonly DebugEntry[] 
         )}
       >
         <span className="min-w-0 flex-1">
-          <span>Debug info</span>
-          <span className="text-muted-foreground"> · event codes, raw payload</span>
+          <span>{t('debug.title')}</span>
+          <span className="text-muted-foreground"> · {t('debug.subtitle')}</span>
         </span>
         <Icon name="chevron" size={16} className="text-muted-foreground" />
       </CollapsibleTrigger>

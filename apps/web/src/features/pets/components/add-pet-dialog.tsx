@@ -1,4 +1,5 @@
 import { useId, useState, type SyntheticEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button, Select, StackedField, TextInput } from '@/shared/ui';
 import { useCreatePet } from '../api';
 import type { DeviceSummary } from '../pet-model';
@@ -17,6 +18,7 @@ interface AddPetDialogProps {
 
 /** Name a new pet and assign it to one recognising device. */
 export function AddPetDialog({ open, onClose, devices, load, notify }: AddPetDialogProps) {
+  const { t } = useTranslation(['pets', 'common']);
   const [name, setName] = useState('');
   const [deviceId, setDeviceId] = useState(() => {
     const room = devices.find(d => !isDeviceFull(load, d.id)) ?? devices[0];
@@ -31,7 +33,7 @@ export function AddPetDialog({ open, onClose, devices, load, notify }: AddPetDia
     event.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) {
-      setError('Give the pet a name.');
+      setError(t('add.needName'));
       document.getElementById(nameId)?.focus();
       return;
     }
@@ -40,7 +42,7 @@ export function AddPetDialog({ open, onClose, devices, load, notify }: AddPetDia
       { name: trimmed, device_ids: deviceId && Number.isFinite(id) ? [id] : [] },
       {
         onSuccess: () => {
-          notify(`Added ${trimmed}`);
+          notify(t('add.added', { name: trimmed }));
           setName('');
           setError(null);
           onClose();
@@ -53,13 +55,10 @@ export function AddPetDialog({ open, onClose, devices, load, notify }: AddPetDia
   };
 
   return (
-    <PetsModal open={open} title="Add a pet" onClose={onClose} busy={create.isPending}>
+    <PetsModal open={open} title={t('add.title')} onClose={onClose} busy={create.isPending}>
       <form className="flex flex-col gap-4" onSubmit={submit} noValidate>
-        <p className="text-muted-foreground">
-          Then give it a few face photos. Until then the device records visits without saying who
-          made them.
-        </p>
-        <StackedField label="Name">
+        <p className="text-muted-foreground">{t('add.intro')}</p>
+        <StackedField label={t('add.name')}>
           <TextInput
             id={nameId}
             value={name}
@@ -71,7 +70,7 @@ export function AddPetDialog({ open, onClose, devices, load, notify }: AddPetDia
           />
         </StackedField>
         {devices.length > 0 && (
-          <StackedField label="Recognised by">
+          <StackedField label={t('add.recognisedBy')}>
             <Select
               value={deviceId}
               onChange={e => {
@@ -92,10 +91,10 @@ export function AddPetDialog({ open, onClose, devices, load, notify }: AddPetDia
         )}
         <div className="flex flex-wrap justify-end gap-2">
           <Button onClick={onClose} disabled={create.isPending}>
-            Cancel
+            {t('common:cancel')}
           </Button>
           <Button type="submit" variant="primary" disabled={create.isPending}>
-            Add pet
+            {t('add.submit')}
           </Button>
         </div>
       </form>

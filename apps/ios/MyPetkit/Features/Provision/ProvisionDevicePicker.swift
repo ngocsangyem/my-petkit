@@ -13,7 +13,7 @@ struct ProvisionDevicePicker: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.Space.gap) {
                 HStack {
-                    IconButton(systemImage: "xmark", label: "Close") { dismiss() }
+                    IconButton(systemImage: "xmark", label: L10n.string("Close")) { dismiss() }
                     Spacer()
                     if scanner.isScanning { ProgressView().tint(Theme.Color.muted) }
                 }
@@ -41,8 +41,8 @@ struct ProvisionDevicePicker: View {
             WarningPanel(text: problem)
         } else if scanner.devices.isEmpty {
             Card {
-                EmptyBlock(title: "Looking for devices…",
-                           message: "Keep the phone within a few metres of the device.") { EmptyView() }
+                EmptyBlock(title: L10n.string("Looking for devices…"),
+                           message: L10n.string("Keep the phone within a few metres of the device.")) { EmptyView() }
             }
         } else {
             RowsCard {
@@ -82,9 +82,10 @@ struct ProvisionDevicePicker: View {
 
     private var radioProblem: String? {
         switch scanner.radio {
-        case .off: "Bluetooth is off. Turn it on in Control Center to find the device."
-        case .unauthorized: "My Petkit may not use Bluetooth. Allow it in Settings › Privacy & Security › Bluetooth."
-        case .unsupported: "This device has no Bluetooth Low Energy."
+        case .off: L10n.string("Bluetooth is off. Turn it on in Control Center to find the device.")
+        case .unauthorized:
+            L10n.string("My Petkit may not use Bluetooth. Allow it in Settings › Privacy & Security › Bluetooth.")
+        case .unsupported: L10n.string("This device has no Bluetooth Low Energy.")
         case .on, .unknown: nil
         }
     }

@@ -95,7 +95,7 @@ final class ServerSetupModel {
                                   edited: trimmed, defaultUpstream: current.defaultPreset)
         else { return }
         await write(setting.patch(trimmed), key: setting.wireKey,
-                    purpose: "Changing the \(setting.title.lowercased()) changes where device traffic goes.")
+                    purpose: L10n.string("Changing the \(setting.title.lowercased()) changes where device traffic goes."))
     }
 
     private func write(_ patch: ServerLiveSettingsPatch, key: String, purpose: String) async {

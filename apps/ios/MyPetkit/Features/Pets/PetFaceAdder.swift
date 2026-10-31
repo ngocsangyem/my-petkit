@@ -61,12 +61,12 @@ struct PetFaceAdder: ViewModifier {
     private func loadPicked(_ item: PhotosPickerItem) async {
         do {
             guard let data = try await item.loadTransferable(type: Data.self), let image = UIImage(data: data) else {
-                pickError = "That file is not a photo this phone can read."
+                pickError = L10n.string("That file is not a photo this phone can read.")
                 return
             }
             crop = PetFaceCropRequest(image: image)
         } catch {
-            pickError = "The photo could not be loaded from the library."
+            pickError = L10n.string("The photo could not be loaded from the library.")
         }
     }
 }

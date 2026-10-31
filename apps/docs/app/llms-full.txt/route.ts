@@ -1,7 +1,7 @@
-import { docsLlms } from '@/lib/source';
+import { llmsFullResponse } from '@/lib/docs-route-handlers';
 
 export const revalidate = false;
 
-export async function GET() {
-  return new Response(await docsLlms.full());
+export function GET() {
+  return llmsFullResponse('en');
 }

@@ -1,4 +1,5 @@
 import type Hls from 'hls.js';
+import { i18n } from '@/i18n';
 import { errorMessage } from '@/shared/api/errors';
 import { clearVideo, type LiveCallbacks, type LiveSession, playQuietly } from './live-session';
 
@@ -60,7 +61,7 @@ export function startHls(
     const { default: HlsCtor } = await import('hls.js');
     if (stopped) return;
     if (!HlsCtor.isSupported()) {
-      fail('This browser cannot play HLS.');
+      fail(i18n.t('devices:live.fail.hlsUnsupported'));
       return;
     }
     const player = new HlsCtor({ lowLatencyMode: true, liveSyncDurationCount: 2 });
@@ -76,7 +77,7 @@ export function startHls(
   async function reload(): Promise<void> {
     if (stopped) return;
     if (refreshes >= MAX_REFRESHES) {
-      fail('The HLS stream stopped and did not come back. Press Watch to try again.');
+      fail(i18n.t('devices:live.fail.hlsStopped'));
       return;
     }
     refreshes += 1;

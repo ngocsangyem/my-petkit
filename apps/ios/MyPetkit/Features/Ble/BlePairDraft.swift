@@ -52,7 +52,7 @@ enum BleAccessoryType: String, CaseIterable, Identifiable, Sendable {
     }
 
     /// What the accessory is, in a row or a confirmation.
-    var noun: String { self == .k3 ? "spray" : "fountain" }
+    var noun: String { self == .k3 ? L10n.string("spray") : L10n.string("fountain") }
 
     var isSpray: Bool { self == .k3 }
 
@@ -82,10 +82,10 @@ struct BlePairDraft: Equatable {
 
         var message: String {
             switch self {
-            case .mac: "Enter 12 hex digits, for example A4:C1:38:2F:7B:10."
-            case .interval: "The report interval is a whole number of seconds above 0."
-            case .accessoryID: "The accessory id is a whole number above 0, or empty to let the server choose."
-            case .scanType: "The scan type is a whole number, 0 or more, or empty for the default."
+            case .mac: L10n.string("Enter 12 hex digits, for example A4:C1:38:2F:7B:10.")
+            case .interval: L10n.string("The report interval is a whole number of seconds above 0.")
+            case .accessoryID: L10n.string("The accessory id is a whole number above 0, or empty to let the server choose.")
+            case .scanType: L10n.string("The scan type is a whole number, 0 or more, or empty for the default.")
             }
         }
     }

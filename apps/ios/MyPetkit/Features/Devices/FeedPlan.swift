@@ -9,8 +9,8 @@ struct PlannedMeal: Equatable, Sendable {
 
     /// "2 portions" / "2 + 1 portions".
     func portionsText(dual: Bool) -> String {
-        if dual { return "\(Int(first)) + \(Int(second)) portions" }
-        return "\(Int(first)) \(Int(first) == 1 ? "portion" : "portions")"
+        if dual { return L10n.string("\(Int(first)) + \(Int(second)) portions") }
+        return L10n.string("\(Int(first)) portions")
     }
 }
 

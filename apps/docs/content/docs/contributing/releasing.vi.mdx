@@ -1,0 +1,42 @@
+---
+title: Phát hành
+description: Cách cắt một phiên bản, workflow publish làm gì, và danh sách kiểm tra của người bảo trì.
+---
+
+## Cắt một bản phát hành
+
+<Steps>
+<Step>
+
+Tăng `version` trong `addon/config.yaml` và trong `services/api/pyproject.toml`.
+
+</Step>
+<Step>
+
+Thêm mục vào `addon/CHANGELOG.md`, rồi merge.
+
+</Step>
+<Step>
+
+Push tag `v<version>`. Workflow publish từ chối tag không khớp với `config.yaml`, nhờ đó add-on và image không bị lệch nhau. Supervisor kéo `image:version`, nên bản phát hành chưa dùng được cho đến khi tag của nó được publish.
+
+</Step>
+</Steps>
+
+Để thử bản build iOS trước khi gắn tag: Actions → `ios-release` → Run workflow. Nó build IPA và `apps.json` ở phiên bản trong `config.yaml` và giữ chúng làm workflow artifact trong một tuần, mà không đụng tới bản phát hành nào.
+
+## Việc publish làm gì
+
+- Build image cho amd64, arm64 và armv7.
+- Quét đúng digest vừa push bằng Grype trước khi gắn tag hoặc ký. Một lỗ hổng critical có bản sửa sẵn sẽ chặn bản phát hành. Hãy nâng digest của base image hoặc dependency; đừng thêm ignore nếu không có lý do bằng văn bản.
+- Ký bằng cosign keyless signing và đính kèm SBOM cùng provenance cho mỗi kiến trúc. Chữ ký được đẩy tới `ghcr.io/ngocsangyem/my-petkit-signatures`.
+- Dời `latest` cho bản phát hành ổn định. Bản prerelease hoặc tag backport không dời nó.
+- `prune-packages` xóa hằng tuần các phiên bản không có tag mà không thứ gì trỏ tới. Sau khi đổi cách build image, hãy chạy thủ công với `dry_run` trước.
+
+## Lần publish đầu của một package mới
+
+Một package GHCR mới ở chế độ riêng tư. Sau lần publish đầu, hãy đặt `ghcr.io/ngocsangyem/my-petkit` thành công khai, nếu không Supervisor và `docker pull` ẩn danh sẽ nhận 401. Làm tương tự với `my-petkit-signatures`, nếu không không ai khác chạy được `cosign verify`.
+
+## TestFlight
+
+Đã nối dây nhưng đang tắt. Nó cần tài khoản Apple Developer trả phí, một bản ghi App Store Connect cho `dev.mypetkit.app`, biểu tượng ứng dụng, và các secret được liệt kê ở đầu workflow. Sau đó đặt biến kho mã `TESTFLIGHT_ENABLED` thành `true`.

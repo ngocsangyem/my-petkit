@@ -2,11 +2,18 @@ import PetkitCore
 import SwiftUI
 
 /// Onboarding until a server is paired, then the tabs. The step-up screen is
-/// presented from here so any screen's R3 call can raise it.
+/// presented from here so any screen's R3 call can raise it. The app
+/// language's locale is set here, so every localized `Text` and formatter in
+/// the environment follows the Language screen at once.
 struct RootView: View {
     @Environment(AppModel.self) private var model
+    private let language = AppLanguageStore.shared
 
     var body: some View {
+        content.environment(\.locale, language.language.locale())
+    }
+
+    @ViewBuilder private var content: some View {
         switch model.phase {
         case .loading:
             Theme.Color.ground.ignoresSafeArea()

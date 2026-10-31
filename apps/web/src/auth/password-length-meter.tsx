@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { RatioBar } from '@/shared/ui';
 
 /** The server refuses a shorter admin password (`MIN_PASSWORD_LENGTH` in the auth feature). */
@@ -8,6 +9,7 @@ export const MIN_PASSWORD_LENGTH = 10;
  * says "long enough", never "strong"; the server has the final word when the form is sent.
  */
 export function PasswordLengthMeter({ password }: { password: string }) {
+  const { t } = useTranslation('auth');
   const enough = password.length >= MIN_PASSWORD_LENGTH;
   return (
     <div className="flex flex-col gap-1.5 pt-1">
@@ -15,10 +17,10 @@ export function PasswordLengthMeter({ password }: { password: string }) {
         value={password.length}
         max={MIN_PASSWORD_LENGTH}
         tone={enough ? 'accent' : 'warning'}
-        ariaLabel="Password length toward the minimum"
+        ariaLabel={t('meter.label')}
       />
       <span className={enough ? 'text-xs text-data' : 'text-xs text-muted-foreground'}>
-        {enough ? 'Long enough' : `At least ${MIN_PASSWORD_LENGTH} characters`}
+        {enough ? t('meter.longEnough') : t('meter.atLeast', { count: MIN_PASSWORD_LENGTH })}
       </span>
     </div>
   );

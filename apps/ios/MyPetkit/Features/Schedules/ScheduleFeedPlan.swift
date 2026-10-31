@@ -32,12 +32,14 @@ enum ScheduleFeedPlan {
 
     /// The lede: "Next meal at 18:00, in 3 h 13 m." / "Next meal tomorrow at 07:00."
     static func sentence(for next: NextMeal?) -> String {
-        guard let next else { return "No meals are set. The feeder dispenses only when you press Feed." }
+        guard let next else {
+            return L10n.string("No meals are set.") + " " + L10n.string("The feeder dispenses only when you press Feed.")
+        }
         let time = ScheduleClock.format(second: next.second)
         switch next.daysAhead {
-        case 0: return "Next meal at \(time), in \(ScheduleClock.format(durationMinutes: next.minutesUntil))."
-        case 1: return "Next meal tomorrow at \(time)."
-        default: return "Next meal on \(WeekdaySet.shortNames[next.weekday - 1]) at \(time)."
+        case 0: return L10n.string("Next meal at \(time), in \(ScheduleClock.format(durationMinutes: next.minutesUntil)).")
+        case 1: return L10n.string("Next meal tomorrow at \(time).")
+        default: return L10n.string("Next meal on \(WeekdaySet.shortNames[next.weekday - 1]) at \(time).")
         }
     }
 

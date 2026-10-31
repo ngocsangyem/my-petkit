@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Card, Icon, PageHeader } from '@/shared/ui';
 import { Button } from '@/shared/ui/shadcn/button';
@@ -6,7 +7,7 @@ import { sendAction } from '../api-calls';
 import { type Command, commandIcon, useCommands } from '../components/command-list';
 import { StreamUrls } from '../components/stream-urls';
 import { isPanCommand, panButtons } from '../device-page/camera-pan-row';
-import { FAMILY_NOUN, deviceFamily } from '../lib/device-family';
+import { deviceFamily, familyNoun } from '../lib/device-family';
 import { useDeviceLinks } from '../lib/device-view';
 import { groupDeviceEntities } from '../lib/entity-sections';
 import { ON_DARK } from './live-frame';
@@ -22,13 +23,12 @@ const onBar = (c: Command) =>
  * offers them.
  */
 export function LivePage({ device: d }: { device: DeviceDetail }) {
+  const { t } = useTranslation('devices');
   const links = useDeviceLinks();
-  const noun = FAMILY_NOUN[deviceFamily(d.type)].toLowerCase();
+  const noun = familyNoun(deviceFamily(d.type)).toLowerCase();
   const runner = useCommands({
     target: noun,
-    route: d.mqtt_connected
-      ? 'It has a live MQTT session, so it runs now.'
-      : 'It is not on MQTT, so it waits for its next HTTP heartbeat, about 10 seconds.',
+    route: d.mqtt_connected ? t('page.routeMqtt') : t('page.routeHeartbeat'),
     refresh: [deviceKeys.detail(d.id), deviceKeys.list],
   });
   const commands: Command[] = d.actions.map(a => ({
@@ -62,7 +62,7 @@ export function LivePage({ device: d }: { device: DeviceDetail }) {
       {pan.length > 0 && (
         <span
           role="group"
-          aria-label="Camera"
+          aria-label={t('pan.camera')}
           className="flex flex-wrap gap-2.5 min-[901px]:ml-auto"
         >
           {panButtons(pan).map(({ command, word }) => (
@@ -93,13 +93,18 @@ export function LivePage({ device: d }: { device: DeviceDetail }) {
       <StreamUrls streams={d.streams} hasIp={hasIp} />
       {lastClip && (
         <p className="text-sm text-muted-foreground">
-          Last clip <code className="font-mono text-sm wrap-anywhere">{lastClip}</code>
+          <Trans
+            t={t}
+            i18nKey="live.page.lastClip"
+            values={{ path: lastClip }}
+            components={{ code: <code className="font-mono text-sm wrap-anywhere" /> }}
+          />
         </p>
       )}
       {media.length > 0 && (
         <p className="text-sm text-muted-foreground">
-          Entities: {media.map(e => e.key).join(', ')}.{' '}
-          <Link to="/timeline">Clips are on the Timeline</Link>
+          {t('live.page.entities', { keys: media.map(e => e.key).join(', ') })}{' '}
+          <Link to="/timeline">{t('live.page.clipsOnTimeline')}</Link>
         </p>
       )}
     </div>
@@ -107,19 +112,14 @@ export function LivePage({ device: d }: { device: DeviceDetail }) {
 
   const side = (
     <>
-      <Card as="section" aria-label="Talk" className="flex flex-col gap-2">
-        <h2>Talk</h2>
-        <p className="text-sm text-muted-foreground">
-          Hold to talk is in the iPhone app. The web dashboard plays the picture and sound only.
-        </p>
+      <Card as="section" aria-label={t('live.page.talk')} className="flex flex-col gap-2">
+        <h2>{t('live.page.talk')}</h2>
+        <p className="text-sm text-muted-foreground">{t('live.page.talkNote')}</p>
       </Card>
       {pan.length > 0 && (
-        <Card as="section" aria-label="Camera" className="flex flex-col gap-2">
-          <h2>Camera</h2>
-          <p className="text-sm text-muted-foreground">
-            The box turns the camera with its own tool. Home returns it to the centre. Each move
-            asks before it runs.
-          </p>
+        <Card as="section" aria-label={t('pan.camera')} className="flex flex-col gap-2">
+          <h2>{t('pan.camera')}</h2>
+          <p className="text-sm text-muted-foreground">{t('live.page.panNote')}</p>
         </Card>
       )}
     </>
@@ -131,16 +131,16 @@ export function LivePage({ device: d }: { device: DeviceDetail }) {
         <LiveView
           deviceId={d.id}
           deviceName={d.name}
-          renderHeader={modes => <PageHeader title="Live view" back={back} actions={modes} />}
+          renderHeader={modes => <PageHeader title={t('liveView')} back={back} actions={modes} />}
           barExtra={barButtons}
           streamExtra={streamExtra}
           side={side}
         />
       ) : (
         <>
-          <PageHeader title="Live view" back={back} finding="This device has no camera to watch." />
-          <Card as="section" aria-label="Stream" className="flex flex-col gap-2.5">
-            <h2>Stream</h2>
+          <PageHeader title={t('liveView')} back={back} finding={t('live.page.noCamera')} />
+          <Card as="section" aria-label={t('live.stream')} className="flex flex-col gap-2.5">
+            <h2>{t('live.stream')}</h2>
             {streamExtra}
           </Card>
         </>

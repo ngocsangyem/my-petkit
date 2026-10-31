@@ -1,5 +1,7 @@
 import { Play, Square, Volume2, VolumeX } from 'lucide-react';
 import { type ReactNode, type RefObject, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { i18n } from '@/i18n';
 import { CaptionPill, Icon, Pill } from '@/shared/ui';
 import { Button } from '@/shared/ui/shadcn/button';
 import { Skeleton } from '@/shared/ui/shadcn/skeleton';
@@ -24,9 +26,11 @@ interface LiveFrameProps {
 }
 
 function statusText(phase: LivePhase, mode: LiveMode): string {
-  if (phase === 'playing') return `Live over ${MODE_LABEL[mode]}`;
-  if (phase === 'connecting') return `Connecting over ${MODE_LABEL[mode]}…`;
-  return 'Not playing';
+  if (phase === 'playing') return i18n.t('devices:live.frame.playing', { mode: MODE_LABEL[mode] });
+  if (phase === 'connecting') {
+    return i18n.t('devices:live.frame.connecting', { mode: MODE_LABEL[mode] });
+  }
+  return i18n.t('devices:live.frame.idle');
 }
 
 /**
@@ -42,6 +46,7 @@ export function LiveFrame({
   onStop,
   barExtra,
 }: LiveFrameProps) {
+  const { t } = useTranslation('devices');
   const [muted, setMuted] = useState(true);
   const watching = phase === 'connecting' || phase === 'playing';
 
@@ -58,7 +63,7 @@ export function LiveFrame({
           ref={videoRef}
           muted
           playsInline
-          aria-label={`Live video from ${deviceName}`}
+          aria-label={t('live.frame.videoLabel', { name: deviceName })}
           className="absolute inset-0 size-full object-contain"
         />
         {phase === 'connecting' && (
@@ -66,7 +71,7 @@ export function LiveFrame({
         )}
         {phase === 'playing' && (
           <span className="absolute top-4 left-4">
-            <Pill tone="negative">Live</Pill>
+            <Pill tone="negative">{t('live.frame.live')}</Pill>
           </span>
         )}
         <CaptionPill className="absolute top-4 right-4">{MODE_LABEL[mode]}</CaptionPill>
@@ -74,14 +79,14 @@ export function LiveFrame({
           <div className="absolute inset-0 flex items-center justify-center">
             <Button size="lg" className={ON_DARK} onClick={onWatch}>
               <Play aria-hidden="true" />
-              Watch
+              {t('live.watch')}
             </Button>
           </div>
         )}
         {phase === 'playing' && (
           <button
             type="button"
-            aria-label="Full screen"
+            aria-label={t('live.frame.fullScreen')}
             className="absolute right-4 bottom-4 flex size-10 items-center justify-center rounded-full border-0 bg-caption text-caption-ink"
             onClick={() => {
               void videoRef.current?.requestFullscreen().catch(() => undefined);
@@ -103,12 +108,12 @@ export function LiveFrame({
           }}
         >
           {muted ? <VolumeX aria-hidden="true" /> : <Volume2 aria-hidden="true" />}
-          Sound
+          {t('live.frame.sound')}
         </Button>
         {watching && (
           <Button className={ON_DARK} onClick={onStop}>
             <Square aria-hidden="true" />
-            Stop
+            {t('live.frame.stop')}
           </Button>
         )}
         {barExtra}

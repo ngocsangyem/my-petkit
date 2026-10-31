@@ -2,6 +2,7 @@
 // because the old panel rebuilt the whole view after each one and the user
 // expects the same: a saved change is a visible change.
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
+import { i18n } from '@/i18n';
 import { api, unwrap } from '@/shared/api/client';
 import { ApiError } from '@/shared/api/errors';
 import { todayLocal } from '@/shared/format/local-day';
@@ -173,7 +174,7 @@ export async function uploadFace(petId: number, jpeg: Blob) {
     // A 413 is answered in text/plain before the handler runs, so it carries
     // no message of its own.
     if (error instanceof ApiError && error.status === 413) {
-      throw new ApiError(413, error.code, 'That photo is too large.');
+      throw new ApiError(413, error.code, i18n.t('pets:crop.tooLarge'));
     }
     throw error;
   }

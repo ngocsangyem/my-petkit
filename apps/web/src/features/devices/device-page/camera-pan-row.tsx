@@ -1,4 +1,6 @@
 import { cn } from 'cn';
+import { useTranslation } from 'react-i18next';
+import { i18n } from '@/i18n';
 import { Button } from '@/shared/ui';
 import type { Command, CommandRunner } from '../components/command-list';
 
@@ -6,17 +8,26 @@ import type { Command, CommandRunner } from '../components/command-list';
 export const isPanCommand = (c: Command) => c.key.startsWith('pan_');
 
 const ORDER = ['pan_left', 'pan_home', 'pan_right'];
-const WORD: Readonly<Record<string, string>> = {
-  pan_left: 'Left',
-  pan_home: 'Home',
-  pan_right: 'Right',
-};
+
+/** The short word on a known pan button, in the active language. */
+function panWord(key: string): string | undefined {
+  switch (key) {
+    case 'pan_left':
+      return i18n.t('devices:pan.left');
+    case 'pan_home':
+      return i18n.t('devices:pan.home');
+    case 'pan_right':
+      return i18n.t('devices:pan.right');
+    default:
+      return undefined;
+  }
+}
 
 /** Pan commands left to right, each with its short word; unknown pan keys keep their name. */
 export function panButtons(commands: readonly Command[]) {
   return [...commands]
     .sort((a, b) => ORDER.indexOf(a.key) - ORDER.indexOf(b.key))
-    .map(c => ({ command: c, word: WORD[c.key] ?? c.name }));
+    .map(c => ({ command: c, word: panWord(c.key) ?? c.name }));
 }
 
 interface CameraPanRowProps {
@@ -29,16 +40,17 @@ interface CameraPanRowProps {
 
 /** "Camera: Left · Home · Right". Each move asks before it runs, as every command does. */
 export function CameraPanRow({ commands, runner, className, buttonClassName }: CameraPanRowProps) {
+  const { t } = useTranslation('devices');
   return (
     <div
       role="group"
-      aria-label="Camera"
+      aria-label={t('pan.camera')}
       className={cn(
         'flex min-h-13 flex-wrap items-center gap-3 border-t border-rule py-2',
         className,
       )}
     >
-      <span className="flex-1">Camera</span>
+      <span className="flex-1">{t('pan.camera')}</span>
       <span className="flex flex-wrap gap-2">
         {panButtons(commands).map(({ command, word }) => (
           <Button

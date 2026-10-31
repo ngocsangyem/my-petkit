@@ -12,13 +12,13 @@ enum SoundUploadPolicy {
     /// Why this upload would be refused, or nil when the server would take it.
     static func problem(existingCount: Int, byteCount: Int, fileName: String) -> String? {
         if existingCount >= maxSounds {
-            return "A device holds at most \(maxSounds) sounds. Delete one first."
+            return L10n.string("A device holds at most \(maxSounds) sounds. Delete one first.")
         }
         if byteCount > maxBytes {
-            return "\(fileName) is larger than 2 MB."
+            return L10n.string("\(fileName) is larger than 2 MB.")
         }
         if byteCount <= 0 {
-            return "\(fileName) is empty."
+            return L10n.string("\(fileName) is empty.")
         }
         return nil
     }
@@ -39,7 +39,7 @@ struct SoundVolumeSetting: Equatable, Sendable {
     let isSettable: Bool
 
     /// "6 of 9", or an em dash when the device never reported it.
-    var display: String { value.map { "\($0) of \(range.upperBound)" } ?? "—" }
+    var display: String { value.map { L10n.string("\($0) of \(range.upperBound)") } ?? "—" }
 }
 
 struct SoundLanguageSetting: Equatable, Sendable {
@@ -50,7 +50,7 @@ struct SoundLanguageSetting: Equatable, Sendable {
     let selectedIndex: Int?
     let isSettable: Bool
 
-    var display: String { selectedIndex.map { options[$0] } ?? "Not reported" }
+    var display: String { selectedIndex.map { options[$0] } ?? L10n.string("Not reported") }
 }
 
 enum SoundSettings {

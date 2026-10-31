@@ -1,7 +1,8 @@
 // The kind chips of the Timeline: the server's filter buckets plus "Not recognised", which the
 // server has no bucket for and is narrowed here from the unfiltered day. Pure, no network.
 import {
-  FILTERS,
+  filterLabel,
+  filters,
   type FilterKey,
   type TimelineCounts,
   type TimelineSession,
@@ -9,8 +10,6 @@ import {
 
 /** A chip of the kind row: a server bucket, or the visits nobody was recognised in. */
 export type ViewFilter = FilterKey | 'unrecognised';
-
-export const UNRECOGNISED_LABEL = 'Not recognised';
 
 /** What the server is asked for: "Not recognised" narrows the unfiltered day. */
 export function serverFilter(view: ViewFilter): FilterKey {
@@ -50,11 +49,17 @@ export function kindChips(
   unrecognised: number | undefined,
   selected: ViewFilter,
 ): KindChip[] {
-  const chips: KindChip[] = FILTERS.filter(f => f.key !== 'all').map(f => ({
-    key: f.key,
-    label: f.label,
-    count: counts ? counts[f.key] : null,
-  }));
-  chips.push({ key: 'unrecognised', label: UNRECOGNISED_LABEL, count: unrecognised ?? null });
+  const chips: KindChip[] = filters()
+    .filter(f => f.key !== 'all')
+    .map(f => ({
+      key: f.key,
+      label: f.label,
+      count: counts ? counts[f.key] : null,
+    }));
+  chips.push({
+    key: 'unrecognised',
+    label: filterLabel('unrecognised'),
+    count: unrecognised ?? null,
+  });
   return chips.filter(c => c.key === selected || (c.count ?? 0) > 0);
 }

@@ -40,6 +40,10 @@ public final class ProvisioningSession {
     let clock: SessionClock
     /// Called as each step is reached, in order.
     public var onStep: (ProvisioningStep) -> Void = { _ in }
+    /// The sentence a failed run carries for a transport failure; the app
+    /// swaps in its own wording in the user's language. The log keeps
+    /// `describe`, so a report reads the same in every language.
+    public var describeFailure: (ProvisioningTransportError) -> String = ProvisioningSession.describe
     /// The furthest step reached, so a link dropped after the credentials were
     /// taken reads as a device restarting onto Wi-Fi, not as a failure.
     private(set) var furthest: ProvisioningStep?
@@ -110,9 +114,8 @@ public final class ProvisioningSession {
                      + "onto Wi-Fi. watching for it to reach the server…")
             return .provisioned
         } catch let error as ProvisioningTransportError {
-            let reason = Self.describe(error)
-            log.note("ERROR \(reason)")
-            return .failed(reason)
+            log.note("ERROR \(Self.describe(error))")
+            return .failed(describeFailure(error))
         } catch {
             log.note("ERROR \(error.localizedDescription)")
             return .failed(error.localizedDescription)
@@ -120,7 +123,7 @@ public final class ProvisioningSession {
     }
 
     /// The sentence the screen shows for a transport failure.
-    public static func describe(_ error: ProvisioningTransportError) -> String {
+    public nonisolated static func describe(_ error: ProvisioningTransportError) -> String {
         switch error {
         case .bluetoothOff: "Bluetooth is off. Turn it on in Control Center and try again."
         case .bluetoothUnauthorized: "My Petkit may not use Bluetooth. Allow it in Settings › Privacy › Bluetooth."

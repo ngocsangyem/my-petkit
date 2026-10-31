@@ -14,7 +14,7 @@ struct ScheduleScreenHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                IconButton(systemImage: "chevron.left", label: "Back") { dismiss() }
+                IconButton(systemImage: "chevron.left", label: L10n.string("Back")) { dismiss() }
                 Spacer()
                 if let actionImage, let action {
                     IconButton(systemImage: actionImage, label: actionLabel, action: action)
@@ -53,10 +53,17 @@ struct WeekdayPicker: View {
                         .background(isOn ? Theme.Color.text : Theme.Color.raised, in: Capsule())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(Calendar(identifier: .gregorian).weekdaySymbols[day - 1])
+                .accessibilityLabel(weekdayNames[day - 1])
                 .accessibilityAddTraits(isOn ? .isSelected : [])
             }
         }
+    }
+
+    /// Full weekday names in the app language, Sunday first like the wire.
+    private var weekdayNames: [String] {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.locale = L10n.locale
+        return calendar.weekdaySymbols
     }
 }
 
@@ -91,7 +98,7 @@ struct PortionField: View {
     let max: Int
 
     var body: some View {
-        LabeledField(label: label, footnote: "0 to \(max)") {
+        LabeledField(label: label, footnote: L10n.string("0 to \(max)")) {
             TextField("0", text: $text)
                 .keyboardType(.numberPad)
                 .monospacedDigit()
@@ -108,7 +115,8 @@ struct ScheduleSheetFrame<Fields: View>: View {
     @Environment(\.dismiss) private var dismiss
     let title: String
     let problem: String?
-    var doneTitle = "Done"
+    /// Done unless the sheet names its own action.
+    var doneTitle: String?
     var dismissesOnDone = true
     var onRemove: (() -> Void)?
     let onDone: () -> Void
@@ -123,7 +131,7 @@ struct ScheduleSheetFrame<Fields: View>: View {
                     Text(problem).font(Theme.Font.small).foregroundStyle(Theme.Color.negative)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                Button(doneTitle) {
+                Button(doneTitle ?? L10n.string("Done")) {
                     onDone()
                     if dismissesOnDone { dismiss() }
                 }

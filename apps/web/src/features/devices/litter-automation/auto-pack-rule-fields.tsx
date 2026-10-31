@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Select, Switch, TimeInput } from '@/shared/ui';
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/shared/ui/shadcn/field';
 import {
@@ -8,7 +9,7 @@ import {
   InputGroupText,
 } from '@/shared/ui/shadcn/input-group';
 import type { AutoPackRule, AutoPackTrigger } from './litter-automation-api';
-import { TRIGGER_LABELS } from './litter-automation-text';
+import { TRIGGERS, triggerLabel } from './litter-automation-text';
 
 /** The rule as edited: the cleanings field may be empty while someone types. */
 export type AutoPackDraft = Omit<AutoPackRule, 'cleanings'> & { cleanings: number | null };
@@ -46,6 +47,7 @@ interface AutoPackRuleFieldsProps {
 
 /** When the rule packs: the trigger, its threshold (none for a full bin) and optional quiet hours. */
 export function AutoPackRuleFields({ draft, onChange, disabled }: AutoPackRuleFieldsProps) {
+  const { t } = useTranslation('devices');
   const triggerId = useId();
   const thresholdId = useId();
   const thresholdHintId = useId();
@@ -57,16 +59,13 @@ export function AutoPackRuleFields({ draft, onChange, disabled }: AutoPackRuleFi
   return (
     <FieldGroup className="gap-4">
       <Field className="gap-1.5">
-        <FieldLabel htmlFor={triggerId}>Pack</FieldLabel>
+        <FieldLabel htmlFor={triggerId}>{t('autoPack.fields.pack')}</FieldLabel>
         <Select
           id={triggerId}
           className="w-full max-w-80"
           disabled={disabled}
           value={draft.trigger}
-          options={(Object.keys(TRIGGER_LABELS) as AutoPackTrigger[]).map(value => ({
-            value,
-            label: TRIGGER_LABELS[value],
-          }))}
+          options={TRIGGERS.map(value => ({ value, label: triggerLabel(value) }))}
           onChange={e => {
             onChange({ trigger: e.target.value as AutoPackTrigger });
           }}
@@ -75,7 +74,7 @@ export function AutoPackRuleFields({ draft, onChange, disabled }: AutoPackRuleFi
 
       {draft.trigger === 'after_cleanings' && (
         <Field className="gap-1.5" data-invalid={cleaningsInvalid || undefined}>
-          <FieldLabel htmlFor={thresholdId}>After</FieldLabel>
+          <FieldLabel htmlFor={thresholdId}>{t('autoPack.fields.after')}</FieldLabel>
           <InputGroup className="max-w-44">
             <InputGroupInput
               id={thresholdId}
@@ -95,19 +94,18 @@ export function AutoPackRuleFields({ draft, onChange, disabled }: AutoPackRuleFi
               }}
             />
             <InputGroupAddon align="inline-end">
-              <InputGroupText>cleanings</InputGroupText>
+              <InputGroupText>{t('autoPack.fields.cleanings')}</InputGroupText>
             </InputGroupAddon>
           </InputGroup>
           <FieldDescription id={thresholdHintId}>
-            {MIN_CLEANINGS} to {MAX_CLEANINGS}, counted from the last pack or from turning the rule
-            on.
+            {t('autoPack.fields.cleaningsHint', { min: MIN_CLEANINGS, max: MAX_CLEANINGS })}
           </FieldDescription>
         </Field>
       )}
 
       {draft.trigger === 'daily_at' && (
         <Field className="gap-1.5">
-          <FieldLabel htmlFor={thresholdId}>At</FieldLabel>
+          <FieldLabel htmlFor={thresholdId}>{t('autoPack.fields.at')}</FieldLabel>
           <TimeInput
             id={thresholdId}
             disabled={disabled}
@@ -117,9 +115,7 @@ export function AutoPackRuleFields({ draft, onChange, disabled }: AutoPackRuleFi
               onChange({ at });
             }}
           />
-          <FieldDescription id={thresholdHintId}>
-            In the device&apos;s own time zone.
-          </FieldDescription>
+          <FieldDescription id={thresholdHintId}>{t('autoPack.fields.atHint')}</FieldDescription>
         </Field>
       )}
 
@@ -133,12 +129,12 @@ export function AutoPackRuleFields({ draft, onChange, disabled }: AutoPackRuleFi
               onChange({ quietHours: on ? { ...DEFAULT_QUIET } : null });
             }}
           />
-          <FieldLabel htmlFor={quietId}>Quiet hours</FieldLabel>
+          <FieldLabel htmlFor={quietId}>{t('autoPack.fields.quietHours')}</FieldLabel>
         </div>
         {draft.quietHours && (
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <label htmlFor={fromId} className="text-muted-foreground">
-              From
+              {t('autoPack.fields.from')}
             </label>
             <TimeInput
               id={fromId}
@@ -149,7 +145,7 @@ export function AutoPackRuleFields({ draft, onChange, disabled }: AutoPackRuleFi
               }}
             />
             <label htmlFor={toId} className="text-muted-foreground">
-              to
+              {t('autoPack.fields.to')}
             </label>
             <TimeInput
               id={toId}
@@ -161,9 +157,7 @@ export function AutoPackRuleFields({ draft, onChange, disabled }: AutoPackRuleFi
             />
           </div>
         )}
-        <FieldDescription>
-          No automatic pack inside this window. An end before the start runs past midnight.
-        </FieldDescription>
+        <FieldDescription>{t('autoPack.fields.quietHint')}</FieldDescription>
       </Field>
     </FieldGroup>
   );

@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { errorMessage } from '@/shared/api/errors';
 import { EmptyBlock, ErrorBlock, Skeleton, useToast } from '@/shared/ui';
 import { useHubEvents } from '@/shared/ws/use-event-stream';
@@ -27,21 +28,20 @@ const GRID =
   'grid grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] items-start gap-5 max-[900px]:grid-cols-1';
 
 function NoAiDevice({ names }: { names: readonly string[] }) {
+  const { t } = useTranslation('pets');
   // The product list comes from the server rather than being spelled out here,
   // which is what let the old copy go stale when a fountain joined it.
+  const head = names.length ? t('page.noAiNames', { names: names.join(', ') }) : t('page.noAi');
   return (
     <EmptyBlock>
-      None of your devices does on-device recognition
-      {names.length ? `; that is ${names.join(', ')}` : ''}. A device not on that list earns it by
-      asking: the first time one requests face data it is remembered, which is how the newer
-      YumShare models are recognised despite sharing a codename with older ones that have no camera
-      AI.
+      {head} {t('page.noAiBody')}
     </EmptyBlock>
   );
 }
 
 /** The AI and pets screen: recognition per device, the pets and their face photos, unbound ids. */
 export function PetsPage() {
+  const { t } = useTranslation('pets');
   const client = useQueryClient();
   const devicesQ = useAiDevices();
   const petsQ = usePets();
@@ -80,7 +80,7 @@ export function PetsPage() {
       { petId, jpeg },
       {
         onSuccess: () => {
-          notify('Photo added');
+          notify(t('page.photoAdded'));
         },
         onError: e => {
           notify(errorMessage(e), true);
@@ -94,7 +94,7 @@ export function PetsPage() {
   if (loadError) {
     body = (
       <ErrorBlock
-        message={`Could not load the pets. ${errorMessage(loadError)}`}
+        message={t('page.loadFailed', { error: errorMessage(loadError) })}
         retrying={devicesQ.isFetching || petsQ.isFetching}
         onRetry={() => {
           void devicesQ.refetch();
@@ -115,7 +115,7 @@ export function PetsPage() {
     // Every detail failed: without them "recognition is off" would be a guess.
     body = (
       <ErrorBlock
-        message="Could not read the recognition settings of your devices."
+        message={t('page.settingsFailed')}
         retrying={devicesQ.isFetching}
         onRetry={() => void devicesQ.refetch()}
       />
@@ -137,15 +137,9 @@ export function PetsPage() {
         {!recognising ? (
           // The pets are still stored; this only hides a section that would be
           // configuring a matcher nobody is running.
-          <EmptyBlock>
-            Pet recognition is off. Your face photos are kept, but nothing is matching against them.
-            Turn Recognise pets back on above to manage them.
-          </EmptyBlock>
+          <EmptyBlock>{t('page.recognitionOff')}</EmptyBlock>
         ) : !shown ? (
-          <EmptyBlock>
-            No pets yet. Add one, then give it a few face photos. Until then the device records
-            visits without saying who made them.
-          </EmptyBlock>
+          <EmptyBlock>{t('page.noPets')}</EmptyBlock>
         ) : (
           <>
             <PetChips pets={pets} selected={shown.id} onSelect={setChosen} />
@@ -185,11 +179,7 @@ export function PetsPage() {
         unboundCount={unbound.length}
         canImport={capable.length > 0}
         canAdd={recognising}
-        addBlocked={
-          allFull
-            ? `Every box already recognises ${MAX_PETS_PER_DEVICE} cats, the most it can hold.`
-            : null
-        }
+        addBlocked={allFull ? t('page.allFull', { max: MAX_PETS_PER_DEVICE }) : null}
         onImport={() => {
           setImporting(true);
         }}

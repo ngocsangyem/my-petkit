@@ -89,7 +89,7 @@ struct TimelineDetailSheet: View {
             || TimelineFormat.isTransportStreamOnly(entry.media) {
             Card {
                 if !playable.isEmpty {
-                    Button("Play \(playable[0].label.rawValue.lowercased())") {
+                    Button(playable[0].label.playTitle) {
                         open(.play(title: TimelineFormat.sentence(entry), sources: playable))
                     }
                     .buttonStyle(.primary)
@@ -107,7 +107,7 @@ struct TimelineDetailSheet: View {
             Text("Steps").font(Theme.Font.section).accessibilityAddTraits(.isHeader)
             ForEach(main) { step in stepRow(step) }
             if !lowLevel.isEmpty {
-                Button(showsLowLevel ? "Hide low-level steps" : "Show \(lowLevel.count) low-level steps") {
+                Button(showsLowLevel ? L10n.string("Hide low-level steps") : L10n.string("Show \(lowLevel.count) low-level steps")) {
                     showsLowLevel.toggle()
                 }
                 .font(Theme.Font.control)

@@ -70,7 +70,7 @@ struct DevicesAPI {
         let data = try await send("POST", "/api/devices/\(id)/timezone", json: JSONEncoder().encode(body))
         struct Result: Decodable { let delivered: String }
         let delivered = (try? JSONDecoder().decode(Result.self, from: data))?.delivered
-        return delivered == "mqtt" ? "Sent to the device." : "Saved. It applies on the device's next check-in."
+        return L10n.string(delivered == "mqtt" ? "Sent to the device." : "Saved. It applies on the device's next check-in.")
     }
 
     // MARK: Litter automation

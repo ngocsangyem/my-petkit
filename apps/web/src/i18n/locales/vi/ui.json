@@ -1,0 +1,63 @@
+{
+  "noValue": "Không có giá trị",
+  "dismiss": "Bỏ qua",
+  "spinner": "Đang tải",
+  "tableEmpty": "Chưa có gì để hiển thị.",
+  "stepUpRequired": "Cần xác nhận lại",
+  "stepper": {
+    "decrease": "Giảm {{label}}",
+    "increase": "Tăng {{label}}"
+  },
+  "deviceStatus": {
+    "online": "Trực tuyến · MQTT",
+    "polling": "Thăm dò · heartbeat",
+    "offline": "Ngoại tuyến",
+    "unknown": "Không rõ"
+  },
+  "live": {
+    "live": "Trực tiếp",
+    "connecting": "Đang kết nối",
+    "offline": "Ngoại tuyến"
+  },
+  "theme": {
+    "label": "Giao diện",
+    "system": "Theo hệ thống",
+    "light": "Sáng",
+    "dark": "Tối"
+  },
+  "dayStrip": {
+    "legend": "Chú giải",
+    "visit": "Lượt vào",
+    "mealFed": "Bữa đã cho ăn",
+    "mealPlanned": "Bữa theo lịch",
+    "reporting": "Có báo cáo",
+    "noReport": "Không báo cáo",
+    "visitAt": "Lượt vào lúc {{time}}",
+    "fedAt": "Đã cho ăn lúc {{time}}",
+    "plannedAt": "Theo lịch lúc {{time}}",
+    "reportingSpan": "Có báo cáo {{start}}–{{end}}"
+  },
+  "sidebar": {
+    "title": "Thanh bên",
+    "description": "Hiển thị thanh bên trên điện thoại.",
+    "toggle": "Bật/tắt thanh bên"
+  },
+  "error": {
+    "generic": "Đã xảy ra lỗi.",
+    "withReference": "{{message}} (mã tham chiếu {{reference}})"
+  },
+  "format": {
+    "never": "chưa bao giờ",
+    "justNow": "vừa xong",
+    "secondsAgo": "{{n}} giây trước",
+    "minutesAgo": "{{n}} phút trước",
+    "hoursAgo": "{{n}} giờ trước",
+    "daysAgo": "{{n}} ngày trước",
+    "daysHours": "{{d}} ngày {{h}} giờ",
+    "hoursMinutes": "{{h}} giờ {{m}} phút",
+    "minutes": "{{m}} phút",
+    "seconds": "{{s}} giây",
+    "on": "bật",
+    "off": "tắt"
+  }
+}

@@ -16,7 +16,7 @@ struct DeviceSound: Identifiable, Equatable, Sendable {
     var isBuiltIn: Bool { size == nil }
 
     /// The device's own sound: what `selectedSound` -1, the default, means.
-    static let builtIn = DeviceSound(id: builtInID, name: "Device sound", size: nil)
+    static var builtIn: DeviceSound { DeviceSound(id: builtInID, name: L10n.string("Device sound"), size: nil) }
 }
 
 /// What the screen shows about the device itself.
@@ -55,7 +55,7 @@ final class SoundsModel {
         var rows = [DeviceSound.builtIn]
         if let selected = device.value?.selectedSound, selected != Self.builtInID,
            !uploads.contains(where: { $0.id == selected }) {
-            rows.append(DeviceSound(id: selected, name: "Sound \(selected)", size: nil))
+            rows.append(DeviceSound(id: selected, name: L10n.string("Sound \(selected)"), size: nil))
         }
         return rows + uploads
     }
@@ -68,8 +68,8 @@ final class SoundsModel {
 
     func load(using session: ServerSession) async {
         guard let id = numericID else {
-            device = .failed("This device id is not one the server uses.")
-            sounds = .failed("This device id is not one the server uses.")
+            device = .failed(L10n.string("This device id is not one the server uses."))
+            sounds = .failed(L10n.string("This device id is not one the server uses."))
             return
         }
         async let first: Void = loadDevice(id: id, session: session)
@@ -107,7 +107,7 @@ final class SoundsModel {
         do {
             let list = try await session.client.listDeviceSounds(path: .init(id: id)).ok.body.json.sounds
             sounds = .loaded(list.map {
-                DeviceSound(id: $0.id, name: $0.name.isEmpty ? "Sound \($0.id)" : $0.name, size: $0.size)
+                DeviceSound(id: $0.id, name: $0.name.isEmpty ? L10n.string("Sound \($0.id)") : $0.name, size: $0.size)
             })
         } catch {
             sounds = .failed(Loadable<Void>.message(for: error))
@@ -118,14 +118,14 @@ final class SoundsModel {
 
     func play(_ sound: DeviceSound, using session: ServerSession) async throws {
         let id = try requireID()
-        _ = try await session.call(purpose: "Play \(sound.name) on the device.") {
+        _ = try await session.call(purpose: L10n.string("Play \(sound.name) on the device.")) {
             try await session.client.playDeviceSound(path: .init(id: id, soundId: sound.id)).ok.body.json.ok
         }
     }
 
     func select(_ sound: DeviceSound, using session: ServerSession) async throws {
         let id = try requireID()
-        _ = try await session.call(purpose: "Make \(sound.name) the device's sound.") {
+        _ = try await session.call(purpose: L10n.string("Make \(sound.name) the device's sound.")) {
             try await session.client.selectDeviceSound(path: .init(id: id, soundId: sound.id)).ok.body.json.ok
         }
         await loadDevice(id: id, session: session)
@@ -133,7 +133,7 @@ final class SoundsModel {
 
     func delete(_ sound: DeviceSound, using session: ServerSession) async throws {
         let id = try requireID()
-        _ = try await session.call(purpose: "Delete \(sound.name).") {
+        _ = try await session.call(purpose: L10n.string("Delete \(sound.name).")) {
             try await session.client.deleteDeviceSound(path: .init(id: id, soundId: sound.id)).ok.body.json.ok
         }
         await loadSounds(id: id, session: session)
@@ -145,7 +145,7 @@ final class SoundsModel {
                                                    byteCount: file.data.count, fileName: file.name) {
             throw APIError(status: 400, code: "sound_refused", message: problem)
         }
-        _ = try await session.call(purpose: "Upload \(file.name) to the device.") {
+        _ = try await session.call(purpose: L10n.string("Upload \(file.name) to the device.")) {
             let part = Operations.UploadDeviceSound.Input.Body.MultipartFormPayload.file(
                 .init(payload: .init(body: HTTPBody(file.data)), filename: file.name)
             )
@@ -160,7 +160,7 @@ final class SoundsModel {
     func setEntity(_ key: String, value: String, using session: ServerSession) async throws {
         let id = try requireID()
         let body = Components.Schemas.DeviceCommandRequest(entity: key, value: OpenAPIValueContainer(stringLiteral: value))
-        _ = try await session.call(purpose: "Change a device setting.") {
+        _ = try await session.call(purpose: L10n.string("Change a device setting.")) {
             try await session.client.sendDeviceCommand(path: .init(id: id), body: .json(body)).ok
         }
         await loadDevice(id: id, session: session)
@@ -168,7 +168,7 @@ final class SoundsModel {
 
     private func requireID() throws -> Int {
         guard let id = numericID else {
-            throw APIError(status: 404, code: "bad_device", message: "This device id is not one the server uses.")
+            throw APIError(status: 404, code: "bad_device", message: L10n.string("This device id is not one the server uses."))
         }
         return id
     }

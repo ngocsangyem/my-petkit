@@ -2,6 +2,9 @@ import type { gsap as Gsap } from 'gsap';
 
 type Selector = (selector: string) => Element[];
 
+/** Timeline labels in order; the step list beside the phone is keyed by the same names. */
+export const PHONE_DEMO_STEPS = ['home', 'device', 'clean', 'live', 'timeline'] as const;
+
 /**
  * Builds the scrubbed iOS walkthrough. Coordinates are in the screenshots' own
  * 390x844 points, so a re-taken screenshot means re-checking the tap targets:
@@ -87,5 +90,5 @@ export function buildPhoneDemoTimeline(gsap: typeof Gsap, q: Selector) {
   swipe(260, 720, 444, 'timeline', -276);
   tl.to(F, { opacity: 0, duration: 0.3 });
 
-  return { tl, labels: ['home', 'device', 'clean', 'live', 'timeline'] };
+  return { tl, labels: PHONE_DEMO_STEPS as readonly string[] };
 }

@@ -108,7 +108,7 @@ describe('LogPage live log', () => {
     const log = await screen.findByRole('log', { name: 'Live log' });
     expect(await within(log).findByText('POST /6/t6/dev_state_report -> 200')).toBeInTheDocument();
     expect(within(log).queryByText('POST /6/t6/dev_heartbeat -> 200')).toBeNull();
-    expect(screen.getByText(/Hiding 1 heartbeats/)).toBeInTheDocument();
+    expect(screen.getByText(/Hiding 1 heartbeat\./)).toBeInTheDocument();
 
     emit({ seq: 4, ts: ts + 3, kind: 'cmd', device_id: 100234567, summary: '-> mqtt: feed' });
     emit({ seq: 4, ts: ts + 3, kind: 'cmd', device_id: 100234567, summary: '-> mqtt: feed' });

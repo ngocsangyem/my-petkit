@@ -74,7 +74,7 @@ final class SchedulesModel {
     var tabs: [(id: String, title: String)] {
         guard let device = device.value else { return [] }
         var tabs = device.targets.map { ($0.target, drafts[$0.target] == nil ? $0.name : "\($0.name) •") }
-        if device.isFeeder { tabs.append((Self.oneOffTab, "One-off")) }
+        if device.isFeeder { tabs.append((Self.oneOffTab, L10n.string("One-off"))) }
         return tabs
     }
 
@@ -119,7 +119,7 @@ final class SchedulesModel {
 
     func load(using session: ServerSession) async {
         guard let id = numericID else {
-            let message = "This device id is not one the server uses."
+            let message = L10n.string("This device id is not one the server uses.")
             device = .failed(message)
             zone = .failed(message)
             deferred = .failed(message)
@@ -186,21 +186,21 @@ final class SchedulesModel {
         if let problem = draft.problem { throw APIError(status: 400, code: "invalid_schedule", message: problem) }
         let value = try OpenAPIValueContainer.fromSchedule(draft.wire(current: target.value))
         let name = target.target
-        let delivered = try await session.call(purpose: "Save \(target.name) and send it to the device.") {
+        let delivered = try await session.call(purpose: L10n.string("Save \(target.name) and send it to the device.")) {
             try await session.client.saveDeviceSchedule(
                 path: .init(id: id), body: .json(.init(target: name, value: value))
             ).ok.body.json.delivered.rawValue
         }
         drafts[target.target] = nil
         notice = delivered == "mqtt"
-            ? "Saved and sent to the device."
-            : "Saved. The device picks it up on its next check-in."
+            ? L10n.string("Saved and sent to the device.")
+            : L10n.string("Saved.") + " " + L10n.string("The device picks it up on its next check-in.")
         await loadDevice(id: id, session: session)
     }
 
     func addDeferred(_ feed: DeferredFeedDraft, using session: ServerSession) async throws {
         guard let id = numericID else { return }
-        _ = try await session.call(purpose: "Schedule a one-off feed.") {
+        _ = try await session.call(purpose: L10n.string("Schedule a one-off feed.")) {
             try await session.client.addDeferredFeed(
                 path: .init(id: id),
                 body: .json(.init(date: feed.date, time: feed.time, a1: feed.hopper1, a2: feed.hopper2))
@@ -212,7 +212,7 @@ final class SchedulesModel {
     func deleteDeferred(_ feed: DeferredFeedItem, using session: ServerSession) async throws {
         guard let id = numericID else { return }
         let feedID = feed.id
-        _ = try await session.call(purpose: "Delete a one-off feed.") {
+        _ = try await session.call(purpose: L10n.string("Delete a one-off feed.")) {
             try await session.client.deleteDeferredFeed(path: .init(id: id, feedId: feedID)).ok.body.json.ok
         }
         await loadDeferred(using: session)
@@ -222,7 +222,9 @@ final class SchedulesModel {
 extension APIError {
     /// Thrown inside a confirm sheet when there is no server to send to; an
     /// `APIError` so the sheet shows this sentence rather than a generic one.
-    static let notPaired = APIError(status: 0, code: "not_paired", message: "This phone is not paired with a server.")
+    static var notPaired: APIError {
+        APIError(status: 0, code: "not_paired", message: L10n.string("This phone is not paired with a server."))
+    }
 }
 
 extension OpenAPIValueContainer {

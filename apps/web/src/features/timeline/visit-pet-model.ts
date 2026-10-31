@@ -1,5 +1,6 @@
 // Pure rules of the "Change cat" sheet: who the candidates are, in which order, what the
 // sheet says about the visit, and the body the server takes. Nothing here touches the network.
+import { i18n } from '@/i18n';
 import type { TimelinePet, VisitPetRequest } from './api';
 import { clockTime, formatWeight, type TimelineSession } from './timeline-model';
 
@@ -31,7 +32,10 @@ export function rankCandidates(
     .sort((a, b) => a.d - b.d || a.index - b.index);
   return ranked.map(({ pet, d }, i) => ({
     pet,
-    registered: pet.weight_g === null ? null : `${formatWeight(pet.weight_g) ?? ''} registered`,
+    registered:
+      pet.weight_g === null
+        ? null
+        : i18n.t('timeline:changeCat.registered', { weight: formatWeight(pet.weight_g) ?? '' }),
     closest: i === 0 && Number.isFinite(d),
   }));
 }
@@ -45,32 +49,29 @@ export function initialChoice(s: TimelineSession): string {
 /** The question the sheet asks. */
 export function changeCatTitle(s: TimelineSession): string {
   const at = clockTime(s.display_ts ?? s.ts);
-  return at ? `Who used the box at ${at}?` : 'Who used the box?';
+  return at ? i18n.t('timeline:changeCat.titleAt', { at }) : i18n.t('timeline:changeCat.title');
 }
 
 /** One line on how the visit was attributed so far, and what the scale read. */
 export function changeCatContext(s: TimelineSession): string {
   const weight = formatWeight(s.weight);
-  const scale = weight ? `The scale read ${weight}.` : 'The scale reported no weight.';
+  const scale = weight
+    ? i18n.t('timeline:changeCat.scaleRead', { weight })
+    : i18n.t('timeline:changeCat.noWeight');
+  const manual = s.pet_source === 'manual';
   let who: string;
   if (s.passing) {
-    who =
-      s.pet_source === 'manual'
-        ? 'You marked this as no cat.'
-        : 'This looked too light to be any registered cat.';
+    who = i18n.t(manual ? 'timeline:changeCat.manualPassing' : 'timeline:changeCat.tooLight');
   } else if (!s.pet_name) {
-    who =
-      s.pet_source === 'manual'
-        ? 'You cleared the cat of this visit.'
-        : 'The camera did not recognise the cat.';
+    who = i18n.t(manual ? 'timeline:changeCat.manualCleared' : 'timeline:changeCat.notRecognised');
   } else if (s.pet_source === 'weight') {
-    who = `The camera did not recognise the cat; the weight matched ${s.pet_name}.`;
-  } else if (s.pet_source === 'manual') {
-    who = `You assigned this visit to ${s.pet_name}.`;
+    who = i18n.t('timeline:changeCat.byWeight', { name: s.pet_name });
+  } else if (manual) {
+    who = i18n.t('timeline:changeCat.manual', { name: s.pet_name });
   } else {
-    who = `The camera recognised ${s.pet_name}.`;
+    who = i18n.t('timeline:changeCat.recognised', { name: s.pet_name });
   }
-  return `${who} ${scale}`;
+  return i18n.t('timeline:changeCat.context', { who, scale });
 }
 
 /** The registered weights the server accepts, in grams; a reading outside them is refused. */
@@ -114,9 +115,10 @@ export function visitPetBody(
 /** How a visit's pet was decided, as the short tag beside it; null when nothing needs saying. */
 export function petSourceTag(s: TimelineSession): { kind: 'badge' | 'text'; label: string } | null {
   if (s.kind !== 'visit') return null;
-  if (s.passing) return { kind: 'text', label: 'just passing' };
-  if (s.pet_id === null) return { kind: 'text', label: 'not recognised' };
-  if (s.pet_source === 'weight') return { kind: 'badge', label: 'by weight' };
+  if (s.passing) return { kind: 'text', label: i18n.t('timeline:petSource.justPassing') };
+  if (s.pet_id === null) return { kind: 'text', label: i18n.t('timeline:petSource.notRecognised') };
+  if (s.pet_source === 'weight')
+    return { kind: 'badge', label: i18n.t('timeline:petSource.byWeight') };
   return null;
 }
 

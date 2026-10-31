@@ -50,8 +50,8 @@ struct ScreenHeader<Actions: View>: View {
     }
 
     private var serverLine: String {
-        let trust = session.isPinned ? "TLS pinned" : "TLS"
-        let live = session.connection == .live ? "" : " · reconnecting"
+        let trust = session.isPinned ? L10n.string("TLS pinned") : "TLS"
+        let live = session.connection == .live ? "" : " · " + L10n.string("reconnecting")
         return "\(session.serverName) · \(trust)\(live)"
     }
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { errorMessage } from '@/shared/api/errors';
 import { ConfirmDialog, ErrorBlock, petSlot } from '@/shared/ui';
 import { useDeleteFace, useDeletePet, usePetHistory, useRenamePet } from '../api';
@@ -35,6 +36,7 @@ export function PetProfile({
   onAddPhoto,
   notify,
 }: PetProfileProps) {
+  const { t } = useTranslation('pets');
   const [editing, setEditing] = useState(false);
   const [weighing, setWeighing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -51,7 +53,7 @@ export function PetProfile({
       { id: pet.id, name },
       {
         onSuccess: () => {
-          notify('Renamed');
+          notify(t('profile.renamed'));
         },
         onError: e => {
           notify(errorMessage(e), true);
@@ -90,7 +92,10 @@ export function PetProfile({
       <div className="flex min-w-0 flex-col gap-5">
         {history.error && (
           <ErrorBlock
-            message={`Some days of ${pet.name}'s history could not be loaded. ${errorMessage(history.error)}`}
+            message={t('profile.historyFailed', {
+              name: pet.name,
+              error: errorMessage(history.error),
+            })}
             retrying={history.isFetching}
             onRetry={history.refetch}
           />
@@ -124,8 +129,8 @@ export function PetProfile({
 
       <ConfirmDialog
         open={confirmDelete}
-        title={`Delete ${pet.name}?`}
-        confirmLabel="Delete pet"
+        title={t('profile.deleteTitle', { name: pet.name })}
+        confirmLabel={t('profile.deletePet')}
         busy={del.isPending}
         onCancel={() => {
           setConfirmDelete(false);
@@ -133,7 +138,7 @@ export function PetProfile({
         onConfirm={() => {
           del.mutate(pet.id, {
             onSuccess: () => {
-              notify(`Deleted ${pet.name}`);
+              notify(t('profile.deleted', { name: pet.name }));
             },
             onError: e => {
               notify(errorMessage(e), true);
@@ -144,13 +149,13 @@ export function PetProfile({
           });
         }}
       >
-        <p>This removes the pet and every face photo it has. Recorded events stay.</p>
+        <p>{t('profile.deleteBody')}</p>
       </ConfirmDialog>
 
       <ConfirmDialog
         open={removeFace !== null}
-        title="Remove this face photo?"
-        confirmLabel="Remove photo"
+        title={t('profile.removeFaceTitle')}
+        confirmLabel={t('profile.removePhoto')}
         busy={delFace.isPending}
         onCancel={() => {
           setRemoveFace(null);
@@ -161,7 +166,7 @@ export function PetProfile({
             { petId: pet.id, faceId: removeFace },
             {
               onSuccess: () => {
-                notify('Photo removed');
+                notify(t('profile.photoRemoved'));
               },
               onError: e => {
                 notify(errorMessage(e), true);
@@ -174,9 +179,7 @@ export function PetProfile({
         }}
       >
         {/* Confirmed because it unlinks a file the device keeps matching against until its next poll. */}
-        <p>
-          The device keeps matching against it until it next fetches photos, about once an hour.
-        </p>
+        <p>{t('profile.removeFaceBody')}</p>
       </ConfirmDialog>
     </article>
   );

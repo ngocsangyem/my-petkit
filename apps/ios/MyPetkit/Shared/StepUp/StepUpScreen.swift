@@ -19,9 +19,9 @@ struct StepUpScreen: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.gap) {
             HStack {
-                IconButton(systemImage: "chevron.left", label: "Cancel") { finish(false) }
+                IconButton(systemImage: "chevron.left", label: L10n.string("Cancel")) { finish(false) }
                 Spacer()
-                Pill(text: "Step-up required", tone: .negative)
+                Pill(text: L10n.string("Step-up required"), tone: .negative)
             }
             Text("Confirm it's you").font(Theme.Font.title).accessibilityAddTraits(.isHeader)
             Text(request.purpose).font(Theme.Font.body).foregroundStyle(Theme.Color.lede)
@@ -32,13 +32,13 @@ struct StepUpScreen: View {
                         .frame(width: 64, height: 64)
                         .background(Theme.Color.raised, in: Circle())
                         .accessibilityHidden(true)
-                    Text("admin").font(Theme.Font.section)
+                    Text(verbatim: "admin").font(Theme.Font.section)
                     Text(session.serverName).font(Theme.Font.small).foregroundStyle(Theme.Color.muted)
                 }
                 .frame(maxWidth: .infinity)
             }
             Card {
-                LabeledField(label: "Password", footnote: footnote) {
+                LabeledField(label: L10n.string("Password"), footnote: footnote) {
                     SecureField("", text: $password)
                         .textContentType(.password)
                         .focused($focused)
@@ -71,9 +71,9 @@ struct StepUpScreen: View {
     private var footnote: String {
         if let lockedUntil, lockedUntil > .now {
             let seconds = Int(lockedUntil.timeIntervalSinceNow.rounded(.up))
-            return "Too many tries. Wait \(seconds) seconds."
+            return L10n.string("Too many tries. Wait \(seconds) seconds.")
         }
-        return "Valid for 5 minutes, for this phone only."
+        return L10n.string("Valid for 5 minutes, for this phone only.")
     }
 
     private func confirm() {
@@ -92,7 +92,7 @@ struct StepUpScreen: View {
                     lockedUntil = .now.addingTimeInterval(TimeInterval(wait))
                     self.error = nil
                 } else {
-                    self.error = api?.status == 401 ? "That password is not right." : Loadable<Void>.message(for: error)
+                    self.error = api?.status == 401 ? L10n.string("That password is not right.") : Loadable<Void>.message(for: error)
                 }
             }
         }

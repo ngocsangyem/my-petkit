@@ -1,0 +1,36 @@
+---
+title: Xác minh image
+description: Kiểm tra chữ ký cosign, SBOM và provenance trước khi chạy phiên bản mới.
+---
+
+Mọi image được phát hành đều được ký bằng cosign keyless signing bởi workflow `publish` của kho mã. Mọi image theo từng kiến trúc cũng mang một SBOM và một attestation provenance.
+
+## Chữ ký
+
+```bash
+COSIGN_REPOSITORY=ghcr.io/ngocsangyem/my-petkit-signatures \
+cosign verify ghcr.io/ngocsangyem/my-petkit:0.0.2 \
+  --certificate-identity-regexp '^https://github.com/ngocsangyem/my-petkit/\.github/workflows/publish\.yml@refs/tags/v' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
+
+Các chữ ký nằm trong package riêng, `my-petkit-signatures`, nên package image chỉ liệt kê các phiên bản. Bạn cần cosign 3.1 trở lên để đọc chúng ở đó. Phiên bản `0.0.1` có trước thay đổi đó: hãy xác minh nó mà không có `COSIGN_REPOSITORY`.
+
+Với `dev`, danh tính kết thúc bằng `@refs/heads/main` thay vì một tag. Chữ ký tạo ở bất kỳ nơi nào khác (một fork, workflow khác, một laptop) sẽ không qua được kiểm tra này.
+
+## SBOM và provenance
+
+```bash
+docker buildx imagetools inspect ghcr.io/ngocsangyem/my-petkit:0.0.1 \
+  --format '{{ json (index .SBOM "linux/amd64").SPDX }}' | head
+docker buildx imagetools inspect ghcr.io/ngocsangyem/my-petkit:0.0.1 \
+  --format '{{ json (index .Provenance "linux/amd64").SLSA }}' | head
+```
+
+## Ứng dụng iOS
+
+Mỗi bản phát hành cũng kèm một IPA chưa ký. Hãy kiểm tra nó được dựng bởi workflow của kho mã:
+
+```bash
+gh attestation verify MyPetkit-<version>.ipa --repo ngocsangyem/my-petkit
+```

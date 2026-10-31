@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useId, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { errorMessage } from '@/shared/api/errors';
 import { Button, ConfirmDialog, Icon, Panel, Pill, Switch, useToast } from '@/shared/ui';
 import { Alert, AlertDescription } from '@/shared/ui/shadcn/alert';
@@ -13,9 +14,6 @@ import {
 } from './litter-automation-api';
 import { autoPackStatusLine, ruleSummary } from './litter-automation-text';
 
-const ADVICE =
-  'PetKit’s own advice for automatic packing: have someone nearby when the box packs, and take the bag out promptly.';
-
 interface AutoPackCardProps {
   deviceId: number;
   rule: AutoPackRule;
@@ -28,6 +26,7 @@ interface AutoPackCardProps {
  * turning the rule on asks first and says what the box will do.
  */
 export function AutoPackCard({ deviceId, rule: saved, status }: AutoPackCardProps) {
+  const { t } = useTranslation('devices');
   const queryClient = useQueryClient();
   const toast = useToast();
   const titleId = useId();
@@ -72,17 +71,14 @@ export function AutoPackCard({ deviceId, rule: saved, status }: AutoPackCardProp
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <div className="flex flex-wrap items-center gap-2">
             <h3 id={titleId} className="text-base font-normal">
-              Auto-pack
+              {t('autoPack.title')}
             </h3>
-            <Pill>Experimental</Pill>
+            <Pill>{t('autoPack.experimental')}</Pill>
           </div>
-          <p className="text-xs text-muted-foreground">
-            The box packs and seals the waste bag on its own when the rule says so. The server turns
-            the rule off after a pack error or two unanswered packs, and never turns it on.
-          </p>
+          <p className="text-xs text-muted-foreground">{t('autoPack.intro')}</p>
         </div>
         <label htmlFor={enabledId} className="sr-only">
-          Pack automatically
+          {t('autoPack.switchLabel')}
         </label>
         <Switch
           id={enabledId}
@@ -90,7 +86,7 @@ export function AutoPackCard({ deviceId, rule: saved, status }: AutoPackCardProp
           disabled={busy || !valid}
           onCheckedChange={on => {
             if (on) setAsking(true);
-            else if (valid) void save({ ...valid, enabled: false }, 'Auto-pack turned off');
+            else if (valid) void save({ ...valid, enabled: false }, t('autoPack.turnedOff'));
           }}
         />
       </div>
@@ -105,7 +101,7 @@ export function AutoPackCard({ deviceId, rule: saved, status }: AutoPackCardProp
 
       <Panel className="flex items-start gap-2.5 text-lede">
         <Icon name="warning" size={16} strokeWidth={2} className="mt-0.5 flex-none text-warning" />
-        <p>{ADVICE}</p>
+        <p>{t('autoPack.advice')}</p>
       </Panel>
 
       <p role="status" className="min-h-[18px] text-sm text-muted-foreground">
@@ -116,10 +112,10 @@ export function AutoPackCard({ deviceId, rule: saved, status }: AutoPackCardProp
         <Button
           disabled={busy || draft === null || !valid}
           onClick={() => {
-            if (valid) void save(valid, 'Auto-pack rule saved');
+            if (valid) void save(valid, t('autoPack.saved'));
           }}
         >
-          Save rule
+          {t('autoPack.save')}
         </Button>
         {draft !== null && (
           <Button
@@ -130,32 +126,32 @@ export function AutoPackCard({ deviceId, rule: saved, status }: AutoPackCardProp
               setError(null);
             }}
           >
-            Discard changes
+            {t('autoPack.discard')}
           </Button>
         )}
       </div>
       {error && (
         <Alert variant="destructive">
-          <AlertDescription>Not saved: {error}</AlertDescription>
+          <AlertDescription>{t('autoPack.notSaved', { error })}</AlertDescription>
         </Alert>
       )}
 
       <ConfirmDialog
         open={asking}
-        title="Turn on auto-pack?"
-        confirmLabel="Turn on"
+        title={t('autoPack.confirmTitle')}
+        confirmLabel={t('autoPack.turnOn')}
         busy={busy}
         confirmDisabled={!valid}
         onConfirm={() => {
-          if (valid) void save({ ...valid, enabled: true }, 'Auto-pack turned on');
+          if (valid) void save({ ...valid, enabled: true }, t('autoPack.turnedOn'));
         }}
         onCancel={() => {
           setAsking(false);
         }}
       >
         {valid && <p>{ruleSummary(valid)}</p>}
-        <p>{ADVICE}</p>
-        <p>Cleanings are counted from the moment it is turned on.</p>
+        <p>{t('autoPack.advice')}</p>
+        <p>{t('autoPack.countedFrom')}</p>
       </ConfirmDialog>
     </div>
   );

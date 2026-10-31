@@ -1,7 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import { Button, EmptyBlock, Icon, Switch } from '@/shared/ui';
 import { DAY_END, EVERY_DAY } from '../schedule-clock';
 import { edited, type WeeklyEntry } from '../schedule-model';
-import { RangeList, SCHED_EMPTY } from './range-list';
+import { RangeList, schedEmptyText } from './range-list';
 import { WeekdayBar } from './weekday-bar';
 
 interface WeeklyEditorProps {
@@ -11,6 +12,7 @@ interface WeeklyEditorProps {
 
 /** `[{enable, rpt, time}]`: periods that apply on chosen weekdays, each entry with its own switch. */
 export function WeeklyEditor({ value, onChange }: WeeklyEditorProps) {
+  const { t } = useTranslation('devices');
   const add = (
     <Button
       variant="text"
@@ -19,10 +21,10 @@ export function WeeklyEditor({ value, onChange }: WeeklyEditorProps) {
       }}
     >
       <Icon name="plus" size={14} />
-      Add entry
+      {t('weekly.add')}
     </Button>
   );
-  if (!value.length) return <EmptyBlock action={add}>{SCHED_EMPTY}</EmptyBlock>;
+  if (!value.length) return <EmptyBlock action={add}>{schedEmptyText()}</EmptyBlock>;
 
   const change = (i: number, fn: (entry: WeeklyEntry) => void) => {
     onChange(
@@ -44,7 +46,7 @@ export function WeeklyEditor({ value, onChange }: WeeklyEditorProps) {
             <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
               <Switch
                 small
-                label="Enabled"
+                label={t('weekly.enabled')}
                 checked={entry.enable === 1}
                 onCheckedChange={on => {
                   change(i, e => {
@@ -53,7 +55,7 @@ export function WeeklyEditor({ value, onChange }: WeeklyEditorProps) {
                 }}
               />
               <WeekdayBar
-                label={`Days of entry ${i + 1}`}
+                label={t('weekly.days', { n: i + 1 })}
                 days={entry.rpt}
                 onChange={days => {
                   change(i, e => {
@@ -66,7 +68,7 @@ export function WeeklyEditor({ value, onChange }: WeeklyEditorProps) {
               <Button
                 variant="destructive"
                 size="small"
-                aria-label={`Remove entry ${i + 1}`}
+                aria-label={t('weekly.remove', { n: i + 1 })}
                 onClick={() => {
                   onChange(value.filter((_, j) => j !== i));
                 }}
@@ -76,7 +78,7 @@ export function WeeklyEditor({ value, onChange }: WeeklyEditorProps) {
             </div>
           </div>
           <RangeList
-            context={`Entry ${i + 1}`}
+            context={t('weekly.entry', { n: i + 1 })}
             ranges={entry.time}
             onChange={time => {
               change(i, e => {

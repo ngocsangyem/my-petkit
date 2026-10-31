@@ -47,17 +47,18 @@ struct BleAccessorySummary: Identifiable, Equatable {
 
     /// "Never reported" or "Reported 5 minutes ago".
     func lastReport(now: Date = .now) -> String {
-        guard let lastSeen else { return "Never reported" }
+        guard let lastSeen else { return L10n.string("Never reported") }
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .full
-        return "Reported \(formatter.localizedString(for: lastSeen, relativeTo: now))"
+        formatter.locale = L10n.locale
+        return L10n.string("Reported \(formatter.localizedString(for: lastSeen, relativeTo: now))")
     }
 
     /// Who relays for it, in a row's second line.
     var relayLine: String {
-        guard isLinked else { return "\(typeCode) · not linked to a device" }
-        let parent = parentName.isEmpty ? "device \(parentID)" : parentName
-        return "\(typeCode) · relayed by \(parent)"
+        guard isLinked else { return L10n.string("\(typeCode) · not linked to a device") }
+        let parent = parentName.isEmpty ? L10n.string("device \(parentID)") : parentName
+        return L10n.string("\(typeCode) · relayed by \(parent)")
     }
 }
 
@@ -116,7 +117,7 @@ struct BleEntityItem: Identifiable, Equatable {
                 valueText = rawText
             }
         } else if kind == .toggle || entity.component == "binary_sensor" {
-            valueText = on.map { $0 ? "On" : "Off" }
+            valueText = on.map { $0 ? L10n.string("On") : L10n.string("Off") }
         } else {
             valueText = rawText
         }
@@ -159,10 +160,10 @@ enum BleRefusal {
         switch api.status {
         case 409:
             return APIError(status: api.status, code: api.code,
-                            message: "Not sent, and nothing is queued: \(api.message)")
+                            message: L10n.string("Not sent, and nothing is queued: \(api.message)"))
         case 502:
             return APIError(status: api.status, code: api.code,
-                            message: "The parent did not take the command. Nothing was sent. (\(api.message))")
+                            message: L10n.string("The parent did not take the command. Nothing was sent. (\(api.message))"))
         default:
             return api
         }

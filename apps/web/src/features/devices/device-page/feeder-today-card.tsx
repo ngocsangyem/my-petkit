@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { formatMinute, Pill, SectionCard } from '@/shared/ui';
 import type { DeviceDetail } from '../api';
@@ -23,6 +24,7 @@ interface FeederTodayCardProps {
  * Timeline's to say, so it is only marked as past here.
  */
 export function FeederTodayCard({ device, zone, nowSeconds }: FeederTodayCardProps) {
+  const { t } = useTranslation('devices');
   const links = useDeviceLinks();
   const dual = device.schedules.some(s => s.kind === 'feed' && s.dual);
   const meals = zone ? todaysMeals(device, zone, nowSeconds) : [];
@@ -30,21 +32,21 @@ export function FeederTodayCard({ device, zone, nowSeconds }: FeederTodayCardPro
   const next = meals.find(m => m.minute > now);
   return (
     <SectionCard
-      title="Today"
+      title={t('today.title')}
       end={
         hasSchedulesView(device) && (
           <Link to={links.device(`d${device.id}`, 'schedules')} className="font-medium">
-            Edit schedule
+            {t('feederToday.editSchedule')}
           </Link>
         )
       }
     >
       {!zone ? (
-        <p className="text-muted-foreground">The feeder has not said which time zone it is in.</p>
+        <p className="text-muted-foreground">{t('feederToday.noZone')}</p>
       ) : meals.length === 0 ? (
-        <p className="text-muted-foreground">No meals planned today.</p>
+        <p className="text-muted-foreground">{t('feederToday.none')}</p>
       ) : (
-        <ul className="m-0 flex list-none flex-col p-0" aria-label="Today's meals">
+        <ul className="m-0 flex list-none flex-col p-0" aria-label={t('feederToday.label')}>
           {meals.map(meal => (
             <li
               key={meal.minute}
@@ -56,12 +58,12 @@ export function FeederTodayCard({ device, zone, nowSeconds }: FeederTodayCardPro
               <span className="min-w-0 flex-1">{portionsText(meal, dual)}</span>
               {meal === next ? (
                 <span className="text-sm text-muted-foreground">
-                  In {untilText(meal.minute - now)}
+                  {t('feederToday.inSpan', { span: untilText(meal.minute - now) })}
                 </span>
               ) : meal.minute <= now ? (
-                <span className="text-sm text-muted-foreground">Past</span>
+                <span className="text-sm text-muted-foreground">{t('feederToday.past')}</span>
               ) : (
-                <Pill>Planned</Pill>
+                <Pill>{t('feederToday.planned')}</Pill>
               )}
             </li>
           ))}

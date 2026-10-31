@@ -1,0 +1,79 @@
+---
+title: Tùy chọn
+description: Mọi thiết lập, dưới dạng tùy chọn add-on và cờ dòng lệnh.
+---
+
+Add-on đọc các tùy chọn từ giao diện Home Assistant. Cách cài bằng Docker và VPS truyền cùng các thiết lập đó dưới dạng cờ dòng lệnh trong `docker-compose.yml`. Phần lớn bản cài không cần đổi gì trong số này.
+
+Chế độ proxy và thu thập payload cố ý không nằm ở đây. Bạn bật chúng khi đang theo dõi một thiết bị, nên chúng nằm trong bảng điều khiển ở mục **Cài đặt**, có hiệu lực ngay, và được lưu vào `/data/settings_overrides.json`.
+
+## Phía thiết bị
+
+| Tùy chọn add-on | Cờ | Mặc định | Tác dụng |
+|---|---|---|---|
+| `api_url` | `--api-url` | trống: tự phát hiện | URL mà thiết bị được bảo dùng cho HTTP API. Để trống sẽ dùng IP LAN của máy chủ và host port mà 80/tcp được publish. Chỉ đặt cho địa chỉ mà việc ánh xạ port không diễn đạt được, chẳng hạn reverse proxy. Giá trị đặt rõ ràng được dùng nguyên văn, nên hãy kèm port nếu không phải 80. Giá trị `.local` bị bỏ qua, vì thiết bị nhúng không phân giải được mDNS. |
+| `bucket_endpoint` | `--bucket-endpoint` | trống: tự suy ra | Nơi thiết bị tải ảnh và video lên. Để trống sẽ suy ra từ IP máy chủ và port mà 9000/tcp được publish. |
+| `offline_timeout` | `--offline-timeout` | `180` | Số giây không liên lạc trước khi thiết bị hiển thị là không khả dụng. Add-on chấp nhận từ 30 đến 3600. |
+| `mqtt_tls` | `--mqtt-tls` | bật | Thêm một listener TLS cho broker hướng tới thiết bị. Chứng chỉ tự ký và được tạo ở lần khởi động đầu. |
+| `mqtt_tls_port` | `--mqtt-tls-port` | `443` | Port cho listener đó. Hãy đổi cùng lúc với ánh xạ port nếu thiết bị của bạn gọi port khác. |
+| `mqtt_strict_auth` | `--mqtt-strict-auth` | tắt | Bắt buộc chữ ký Aliyun HMAC khi kết nối MQTT. Mặc định tắt để một chi tiết chữ ký không khóa thiết bị ra ngoài. |
+| `mqtt_plain_expose` | `--mqtt-plain-expose` | tắt | Phục vụ listener MQTT thuần (1883) trên mọi interface thay vì chỉ loopback. Chỉ dành cho thiết bị kết nối dạng plaintext; nhớ ánh xạ cả port. |
+| `timezone` | `--timezone` | trống | Múi giờ IANA cho giờ địa phương, chẳng hạn `Europe/Amsterdam`. Xem [Múi giờ](#time-zones). |
+
+## Home Assistant
+
+| Tùy chọn add-on | Cờ | Mặc định | Tác dụng |
+|---|---|---|---|
+| `ha_mqtt_host` | `--ha-mqtt-host` | trống | MQTT broker của Home Assistant. Add-on tự phát hiện từ Supervisor nếu bạn chạy add-on Mosquitto. Để trống sẽ bỏ qua việc công bố lên Home Assistant; phía thiết bị vẫn hoạt động. |
+| `ha_mqtt_port` | `--ha-mqtt-port` | `1883` | Port của broker |
+| `ha_mqtt_user`, `ha_mqtt_pass` | `--ha-mqtt-user`, `--ha-mqtt-pass` | trống | Thông tin đăng nhập broker. Để trống nghĩa là ẩn danh. |
+
+## Bảng điều khiển và ứng dụng iOS
+
+| Tùy chọn add-on | Cờ | Mặc định | Tác dụng |
+|---|---|---|---|
+| `user_port` | `--user-port` | `8443` | Port TLS cho bảng điều khiển và ứng dụng iOS. Hãy đổi cùng lúc với ánh xạ port. |
+| `user_hosts` | `--user-hosts` | trống | Các tên host, phân tách bằng dấu phẩy, mà trình duyệt được phép dùng để vào bảng điều khiển, chẳng hạn tên của reverse proxy. Địa chỉ IP và `localhost` luôn được cho phép. |
+| `user_url` | `--user-url` | trống | Địa chỉ `https://` mà mã QR ghép nối iOS gửi điện thoại tới. Chỉ đặt khi điện thoại vào bảng điều khiển qua proxy có chứng chỉ được tin cậy. |
+| `webrtc_candidates` | `--webrtc-candidates` | trống | Các địa chỉ `host:port`, phân tách bằng dấu phẩy, nơi người xem truy cập port 8555. Để trống chỉ cung cấp MSE và HLS. Xem [Video trực tiếp](/vi/docs/guides/live-video-and-talk). |
+
+## Địa chỉ listener
+
+Mỗi listener bind địa chỉ riêng, và mỗi giá trị phải là một IP literal. Các tùy chọn này mặc định không đặt và add-on liệt kê chúng ở mục "unused optional options".
+
+| Tùy chọn add-on | Cờ | Mặc định | Listener |
+|---|---|---|---|
+| `device_bind_host` | `--device-bind-host` | `0.0.0.0` | Device HTTP API, media bucket, MQTT TLS |
+| `mqtt_plain_bind` | `--mqtt-plain-bind` | `127.0.0.1` | MQTT thuần. Phải gồm loopback, vì cầu nối nội bộ gọi tới `localhost`. |
+| `user_bind_host` | `--user-bind-host` | `0.0.0.0` | Bảng điều khiển trên 8099 và 8443 |
+| `rtsp_bind` | `--rtsp-bind` | `:8554` | go2rtc RTSP, dạng `host:port` hoặc `:port` |
+
+API riêng của go2rtc trên 1984 luôn bind `127.0.0.1`.
+
+## Cờ không có tùy chọn add-on
+
+| Cờ | Tác dụng |
+|---|---|
+| `--data-dir` | Nơi lưu danh tính, cài đặt, cơ sở dữ liệu và khóa. Các container dùng `/data`. |
+| `--no-ha` | Tắt việc công bố lên Home Assistant |
+| `--no-mqtt` | Tắt broker thiết bị nhúng |
+| `--webrtc-port` | Port media WebRTC của go2rtc, TCP và UDP. Mặc định 8555. |
+| `--wireguard-subnets` | Các mạng CIDR, ngoài dải riêng, nơi thiết bị tới máy chủ qua WireGuard |
+| `--port`, `--web-port`, `--bucket-port` | Ghi đè port HTTP của thiết bị, port của panel Ingress (8099) và port của bucket (9000) |
+| `--mqtt-cert`, `--mqtt-key` | Dùng chứng chỉ broker của riêng bạn thay cho chứng chỉ được tạo sẵn |
+| `--debug` | Ghi nhật ký debug. Add-on thay vào đó có tùy chọn `log_level`: `DEBUG`, `INFO` (mặc định), `WARNING` hoặc `ERROR`. |
+| `--ha-addon` | Đọc `/data/options.json` và Supervisor, như add-on làm |
+
+## Múi giờ [#time-zones]
+
+Các ngày trong lịch cho ăn, bản ghi hằng ngày của máy cho ăn, tên tệp media và số đếm hằng ngày được tính theo tùy chọn `timezone` nếu đã đặt. Nếu không, máy chủ dùng locale của chính thiết bị, và nếu thiết bị không báo locale nào thì dùng UTC kèm cảnh báo trong nhật ký. Múi giờ của máy chủ hay container không bao giờ được dùng, vì nó cho biết máy chủ chạy ở đâu chứ không phải thiết bị ở đâu. Hãy đặt `timezone` nếu thiết bị của bạn không báo locale.
+
+Thiết bị giữ một độ lệch UTC cố định, không có giờ mùa hè. Nó nhận độ lệch đó khi được cấp phát qua Bluetooth, nên thiết bị được cấp phát mà không có độ lệch sẽ đóng dấu UTC lên video cho đến khi được cấp phát lại.
+
+## Mật khẩu quản trị
+
+```bash
+my-petkit admin set-password --data-dir /data
+```
+
+Chạy lệnh này bên trong container. Nó đặt mật khẩu đầu tiên, đặt lại mật khẩu đã quên, và đăng xuất mọi trình duyệt.

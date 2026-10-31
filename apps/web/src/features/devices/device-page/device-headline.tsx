@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { i18n } from '@/i18n';
 import { relativeTime } from '@/shared/format/format';
 import { StatusWord } from '@/shared/ui';
 import type { DeviceDetail } from '../api';
@@ -13,18 +14,18 @@ import { lastReport } from '../lib/timestamps';
 export function deviceStatusWord(d: DeviceDetail, zone: DeviceZone | null, nowSeconds: number) {
   const s = deviceStatus(d);
   const last = lastReport(d);
-  const ago = last === null ? 'never' : relativeTime(last);
+  const ago = last === null ? i18n.t('devices:never') : relativeTime(last);
   switch (s.status) {
     case 'online':
       return (
         <StatusWord tone="positive" dot>
-          Online · MQTT · {ago}
+          {i18n.t('devices:headline.online', { ago })}
         </StatusWord>
       );
     case 'polling':
       return (
         <StatusWord tone="info" dot>
-          Polling · heartbeat {ago}
+          {i18n.t('devices:headline.polling', { ago })}
         </StatusWord>
       );
     case 'offline': {
@@ -34,14 +35,14 @@ export function deviceStatusWord(d: DeviceDetail, zone: DeviceZone | null, nowSe
           : ago;
       return (
         <StatusWord tone="negative" dot>
-          Offline · no report since {since}
+          {i18n.t('devices:headline.offline', { since })}
         </StatusWord>
       );
     }
     default:
       return (
         <StatusWord tone="muted" dot>
-          Never reported
+          {i18n.t('devices:status.neverReported')}
         </StatusWord>
       );
   }
@@ -68,8 +69,8 @@ export function deviceFinding(
   if (paused) {
     return (
       <>
-        <StatusWord tone="warning">Paused while cleaning.</StatusWord> The box saw a cat near the
-        entrance.
+        <StatusWord tone="warning">{i18n.t('devices:headline.paused')}</StatusWord>{' '}
+        {i18n.t('devices:headline.pausedWhy')}
       </>
     );
   }
@@ -77,26 +78,34 @@ export function deviceFinding(
   if (!d.online && last !== null) {
     return (
       <>
-        <StatusWord tone="negative">Silent for {spanText(nowSeconds - last)}.</StatusWord> Check
-        that it has power and is on Wi-Fi.
+        <StatusWord tone="negative">
+          {i18n.t('devices:headline.silent', { span: spanText(nowSeconds - last) })}
+        </StatusWord>{' '}
+        {i18n.t('devices:headline.silentHint')}
       </>
     );
   }
   const problem = problemFor(d, d, zone, nowSeconds);
-  const lead = problem ? <StatusWord tone={problem.tone}>{problem.text}.</StatusWord> : null;
+  const lead = problem ? (
+    <StatusWord tone={problem.tone}>
+      {i18n.t('devices:headline.sentence', { text: problem.text })}
+    </StatusWord>
+  ) : null;
   let rest: string | null;
   if (family === 'feeder' && zone) {
     const next = nextMealClock(todaysMeals(d, zone, nowSeconds), minuteOfDay(nowSeconds, zone));
     const fed = numericValue(findEntity(d.entities, 'total_dispensed'));
     rest = [
-      next ? `Next meal at ${next}.` : 'No more meals today.',
-      fed !== null && `Fed ${fed} g today.`,
+      next
+        ? i18n.t('devices:headline.nextMeal', { clock: next })
+        : i18n.t('devices:headline.noMoreMeals'),
+      fed !== null && i18n.t('devices:headline.fedToday', { grams: fed }),
     ]
       .filter(Boolean)
       .join(' ');
   } else {
     const now = nowText(d, zone, null);
-    rest = now ? `${now}.` : null;
+    rest = now ? i18n.t('devices:headline.sentence', { text: now }) : null;
   }
   if (!lead && !rest) return undefined;
   return (

@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { i18n } from '@/i18n';
 import { formatEntityValue, MISSING } from '@/shared/format/format';
 import { Missing, Switch, Table, type TableColumn } from '@/shared/ui';
 import { type AnyEntity, entityLike } from '../lib/entity-sections';
@@ -15,31 +17,35 @@ export function EntityValue({ entity }: { entity: AnyEntity }) {
   );
 }
 
-const NAME: TableColumn<AnyEntity> = {
-  key: 'name',
-  header: 'Entity',
-  cell: e => e.name,
-  width: '34%',
-};
-const VALUE: TableColumn<AnyEntity> = {
-  key: 'value',
-  header: 'Value',
-  cell: e => <EntityValue entity={e} />,
-};
-const COMPONENT: TableColumn<AnyEntity> = {
-  key: 'component',
-  header: 'Component',
-  cell: e => e.component,
-  muted: true,
-  nowrap: true,
-};
-const PATH: TableColumn<AnyEntity> = {
-  key: 'path',
-  header: 'Reads from',
-  cell: e => e.value_path || e.key,
-  mono: true,
-  muted: true,
-};
+/** The table's columns, headed in the active language; the component one only with every entity. */
+function entityColumns(showAll: boolean): TableColumn<AnyEntity>[] {
+  const name: TableColumn<AnyEntity> = {
+    key: 'name',
+    header: i18n.t('devices:entityTable.entity'),
+    cell: e => e.name,
+    width: '34%',
+  };
+  const value: TableColumn<AnyEntity> = {
+    key: 'value',
+    header: i18n.t('devices:entityTable.value'),
+    cell: e => <EntityValue entity={e} />,
+  };
+  const component: TableColumn<AnyEntity> = {
+    key: 'component',
+    header: i18n.t('devices:entityTable.component'),
+    cell: e => e.component,
+    muted: true,
+    nowrap: true,
+  };
+  const path: TableColumn<AnyEntity> = {
+    key: 'path',
+    header: i18n.t('devices:entityTable.readsFrom'),
+    cell: e => e.value_path || e.key,
+    mono: true,
+    muted: true,
+  };
+  return showAll ? [name, value, component, path] : [name, value, path];
+}
 
 interface EntityTableProps {
   label: string;
@@ -55,6 +61,7 @@ interface EntityTableProps {
  * back to a wall of 67 rows is not what anyone meant by it.
  */
 export function EntityTable({ label, sensors, all }: EntityTableProps) {
+  const { t } = useTranslation('devices');
   const [showAll, setShowAll] = useState(false);
   const rows = showAll ? all : sensors;
   return (
@@ -62,16 +69,20 @@ export function EntityTable({ label, sensors, all }: EntityTableProps) {
       <Table
         label={label}
         variant="compact"
-        columns={showAll ? [NAME, VALUE, COMPONENT, PATH] : [NAME, VALUE, PATH]}
+        columns={entityColumns(showAll)}
         rows={rows}
         rowKey={e => `${e.component}:${e.key}`}
-        emptyText="Nothing reported yet."
+        emptyText={t('entityTable.empty')}
       />
       <Switch
         small
         checked={showAll}
         onCheckedChange={setShowAll}
-        label={<span className="text-muted-foreground">Show every entity ({all.length})</span>}
+        label={
+          <span className="text-muted-foreground">
+            {t('entityTable.showAll', { count: all.length })}
+          </span>
+        }
       />
     </div>
   );
