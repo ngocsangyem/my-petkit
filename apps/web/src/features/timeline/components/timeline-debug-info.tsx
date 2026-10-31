@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { cn } from 'cn';
 import type { components } from '@/api/schema';
 import { errorMessage } from '@/shared/api/errors';
-import { Button, Skeleton } from '@/shared/ui';
+import { Button, Icon, Skeleton } from '@/shared/ui';
 import {
   Collapsible,
   CollapsibleContent,
@@ -215,7 +215,18 @@ export function TimelineDebugInfo({ entries }: { entries: readonly DebugEntry[] 
   if (!entries.length) return null;
   return (
     <Collapsible className="text-sm text-muted-foreground">
-      <CollapsibleTrigger className={TRIGGER}>Debug info</CollapsibleTrigger>
+      <CollapsibleTrigger
+        className={cn(
+          TRIGGER,
+          'flex min-h-11 w-full items-center gap-3 text-foreground data-panel-open:[&_svg]:rotate-180',
+        )}
+      >
+        <span className="min-w-0 flex-1">
+          <span>Debug info</span>
+          <span className="text-muted-foreground"> · event codes, raw payload</span>
+        </span>
+        <Icon name="chevron" size={16} className="text-muted-foreground" />
+      </CollapsibleTrigger>
       <CollapsibleContent className="flex flex-col gap-1.5 pt-1.5">
         {entries.map(e => (
           <EventDebug key={e.id} id={e.id} title={e.title} />

@@ -1,12 +1,23 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import { describe, expect, it } from 'vitest';
 import { mockApi } from '@/test/mock-api';
 import { renderWithProviders } from '@/test/render';
-import { DeviceSchedules } from './index';
+import { PendingEditsProvider } from '../hooks/pending-edits';
+import { DeviceSchedules as SchedulesUnderTest, type DeviceSchedulesProps } from './index';
 import { clockToMin, formatOffset, minToClock, secToClock } from './schedule-clock';
 import type { DeviceDetail, ScheduleTarget } from './schedule-model';
 import { validateDraft } from './schedule-model';
+
+/** On the page the drafts live in the devices-level store; so do they here. */
+function DeviceSchedules(props: DeviceSchedulesProps) {
+  return (
+    <PendingEditsProvider>
+      <SchedulesUnderTest {...props} />
+    </PendingEditsProvider>
+  );
+}
 
 function device(schedules: ScheduleTarget[], extra: Partial<DeviceDetail> = {}): DeviceDetail {
   return {
@@ -130,6 +141,43 @@ describe('DeviceSchedules', () => {
     });
   });
 
+  it('keeps an unsaved edit after leaving the page and coming back', async () => {
+    mockApi({});
+    const dnd = device([
+      {
+        target: 'distrubMultiRange',
+        name: 'Cleaning Do Not Disturb',
+        kind: 'ranges',
+        value: [[1320, 420]],
+      },
+    ]);
+    function Page() {
+      const [shown, setShown] = useState(true);
+      return (
+        <PendingEditsProvider>
+          <button
+            type="button"
+            onClick={() => {
+              setShown(v => !v);
+            }}
+          >
+            Toggle page
+          </button>
+          {shown ? <SchedulesUnderTest device={dnd} /> : null}
+        </PendingEditsProvider>
+      );
+    }
+    renderWithProviders(<Page />);
+    fireEvent.change(screen.getByLabelText('period 1 start'), { target: { value: '21:30' } });
+    await userEvent.click(screen.getByRole('button', { name: 'Toggle page' }));
+    expect(screen.queryByLabelText('period 1 start')).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Toggle page' }));
+    expect(screen.getByLabelText('period 1 start')).toHaveValue('21:30');
+    expect(
+      screen.getByRole('button', { name: 'Save Cleaning Do Not Disturb' }),
+    ).toBeInTheDocument();
+  });
+
   it('blocks a weekly entry with no days and discards back to the server value', async () => {
     mockApi({});
     renderWithProviders(
@@ -204,12 +252,20 @@ describe('DeviceSchedules', () => {
         )}
       />,
     );
-    const time = screen.getByLabelText('Meal 1 of set 1 time');
+    expect(screen.getByRole('region', { name: 'Meal set 1' })).toHaveTextContent('12:56');
+    await userEvent.click(screen.getByRole('button', { name: 'Edit meal 1 of set 1' }));
+    const sheet = await screen.findByRole('dialog', { name: 'Edit meal' });
+    const time = within(sheet).getByLabelText('Meal 1 of set 1 time');
     expect(time).toHaveValue('12:56');
     fireEvent.change(time, { target: { value: '13:00' } });
-    const hopper2 = screen.getByLabelText('Hopper 2');
+    const hopper2 = within(sheet).getByLabelText('Hopper 2');
     await userEvent.clear(hopper2);
     await userEvent.type(hopper2, '3');
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Done' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Edit meal' })).toBeNull();
+    });
+    expect(screen.getByRole('region', { name: 'Meal set 1' })).toHaveTextContent('13:00');
     await userEvent.click(screen.getByRole('button', { name: 'Save Feeding Schedule' }));
 
     expect(await screen.findByRole('status')).toHaveTextContent('next poll');

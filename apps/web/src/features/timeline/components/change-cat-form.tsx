@@ -1,5 +1,5 @@
 import { useId, useState, type ReactNode, type SyntheticEvent } from 'react';
-import { Button, Switch } from '@/shared/ui';
+import { Button, Panel, PetAvatar, Switch } from '@/shared/ui';
 import { Checkbox } from '@/shared/ui/shadcn/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/shared/ui/shadcn/radio-group';
 import type { TimelinePet, VisitPetRequest } from '../api';
@@ -12,20 +12,19 @@ import {
   rankCandidates,
   visitPetBody,
 } from '../visit-pet-model';
-import { PetAvatar } from './pet-avatar';
 
-/** A choice row: the chosen one gets the accent edge, the one selected state the design allows. */
+/** A choice row of the raised panel, its radio first; rows are split by a 1px rule. */
 const ROW =
-  'flex min-h-14 cursor-pointer items-center gap-3 rounded-lg border border-border bg-raised px-3.5 py-2 has-data-checked:border-data';
+  'flex min-h-13 cursor-pointer items-center gap-3 border-t border-rule py-2 first:border-t-0';
 
 function ChoiceRow({ value, children }: { value: string; children: ReactNode }) {
   const labelId = useId();
   return (
     <label className={ROW}>
+      <RadioGroupItem value={value} aria-labelledby={labelId} className="size-4.5" />
       <span id={labelId} className="flex min-w-0 flex-1 items-center gap-3">
         {children}
       </span>
-      <RadioGroupItem value={value} aria-labelledby={labelId} />
     </label>
   );
 }
@@ -40,7 +39,10 @@ export interface ChangeCatFormProps {
   onCancel: () => void;
 }
 
-/** Who used the box: the household's cats nearest weight first, "just passing", and the options. */
+/**
+ * Who used the box: the household's cats nearest weight first and "just passing" in one raised
+ * panel, then the options that apply to the chosen cat, the actions and what saving changes.
+ */
 export function ChangeCatForm({
   session: s,
   pets,
@@ -68,38 +70,42 @@ export function ChangeCatForm({
 
   return (
     <form className="flex flex-col gap-4" onSubmit={submit} noValidate>
-      <p className="text-muted-foreground">{changeCatContext(s)}</p>
-      <RadioGroup
-        aria-label="Cat"
-        value={choice}
-        onValueChange={value => {
-          setChoice(String(value));
-        }}
-        disabled={busy}
-      >
-        {candidates.map(c => (
-          <ChoiceRow key={c.pet.id} value={String(c.pet.id)}>
-            <PetAvatar photoUrl={c.pet.faces[0]?.url} />
-            <span className="flex min-w-0 flex-col">
-              <span className="font-medium [overflow-wrap:anywhere]">{c.pet.name}</span>
-              <span className="text-sm text-muted-foreground tabular-nums">
-                {[c.registered ?? 'No registered weight', c.closest ? 'closest weight' : null]
-                  .filter(Boolean)
-                  .join(' · ')}
+      <p className="-mt-2 text-md text-lede">{changeCatContext(s)}</p>
+      <Panel padding="none" className="px-4 py-1">
+        <RadioGroup
+          aria-label="Cat"
+          className="gap-0"
+          value={choice}
+          onValueChange={value => {
+            setChoice(String(value));
+          }}
+          disabled={busy}
+        >
+          {candidates.map(c => (
+            <ChoiceRow key={c.pet.id} value={String(c.pet.id)}>
+              <PetAvatar photoUrl={c.pet.faces[0]?.url} size={36} />
+              <span className="flex min-w-0 flex-col">
+                <span className="font-medium [overflow-wrap:anywhere]">{c.pet.name}</span>
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {[c.registered ?? 'No registered weight', c.closest ? 'closest weight' : null]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </span>
               </span>
-            </span>
+            </ChoiceRow>
+          ))}
+          <ChoiceRow value={PASSING}>
+            <PetAvatar photoUrl={null} size={36} />
+            No cat, just passing
           </ChoiceRow>
-        ))}
-        <ChoiceRow value={PASSING}>No cat, just passing</ChoiceRow>
-      </RadioGroup>
+        </RadioGroup>
+      </Panel>
 
       {picked && hasVisitWeight(s) && (
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 flex-col">
-            <label htmlFor={weightId} className="font-medium">
-              Use this for {picked.name}&apos;s weight
-            </label>
-            <span id={weightHintId} className="text-sm text-muted-foreground tabular-nums">
+            <label htmlFor={weightId}>Use this for {picked.name}&apos;s weight</label>
+            <span id={weightHintId} className="text-xs text-muted-foreground tabular-nums">
               Updates the registered weight to {visitWeight}.
             </span>
           </div>
@@ -114,9 +120,9 @@ export function ChangeCatForm({
       )}
 
       {picked && s.unbound_pet_ref !== null && (
-        <label className="flex cursor-pointer items-start gap-2.5">
+        <label className="flex cursor-pointer items-start gap-3">
           <Checkbox
-            className="mt-0.5"
+            className="mt-0.5 size-4.5"
             aria-labelledby={refId}
             aria-describedby={refHintId}
             checked={applyToRef}
@@ -124,8 +130,10 @@ export function ChangeCatForm({
             disabled={busy}
           />
           <span className="flex min-w-0 flex-col">
-            <span id={refId}>Also use for later visits with this identity</span>
-            <span id={refHintId} className="text-sm text-muted-foreground">
+            <span id={refId} className="text-sm">
+              Also use for later visits with this identity
+            </span>
+            <span id={refHintId} className="text-xs text-muted-foreground">
               The box reported an identity no cat holds yet; it will name {picked.name} from now on.
             </span>
           </span>
@@ -138,14 +146,14 @@ export function ChangeCatForm({
         </p>
       )}
       <div className="flex flex-wrap justify-end gap-2">
-        <Button size="large" onClick={onCancel} disabled={busy}>
+        <Button onClick={onCancel} disabled={busy}>
           Cancel
         </Button>
-        <Button type="submit" variant="primary" size="large" disabled={busy || choice === ''}>
+        <Button type="submit" variant="primary" disabled={busy || choice === ''}>
           Save
         </Button>
       </div>
-      <p className="text-center text-xs text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         Changes this record only. Nothing is sent to the litter box.
       </p>
     </form>

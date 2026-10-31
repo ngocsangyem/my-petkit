@@ -22,9 +22,10 @@ export const litterAutomationKey = (id: number) =>
 const path = (id: number) => ({ params: { path: { id } } });
 
 /** `GET /api/devices/{id}/litter-automation`: what force continue and auto-pack can do now. */
-export function useLitterAutomation(id: number) {
+export function useLitterAutomation(id: number, enabled = true) {
   return useQuery({
     queryKey: litterAutomationKey(id),
+    enabled,
     queryFn: () => unwrap(api.GET('/api/devices/{id}/litter-automation', path(id))),
   });
 }

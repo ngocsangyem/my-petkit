@@ -21,11 +21,14 @@ export interface ConfirmDialogProps {
   confirmDisabled?: boolean;
   /** `danger-final` (red fill) only when the confirm is the last step of a step-up (R3) flow. */
   confirmVariant?: 'primary' | 'danger-final';
+  /** A 12px muted line under the buttons: what happens when it is confirmed. */
+  footnote?: ReactNode;
 }
 
 /**
- * Confirm sheet for device commands (R2): a question title, a body saying what moves, and a
- * near-black confirm button. Modal: focus is trapped, Escape or a backdrop click cancels, focus
+ * Confirm dialog for device commands (R2): a centred radius-24 dialog with a question title, a body
+ * saying what moves, a ground-tinted Cancel and a near-black confirm pill (red only for the final
+ * step-up action). Modal: focus is trapped, Escape or a backdrop click cancels, focus
  * returns on close. A Base UI dialog with the alertdialog role rather than its AlertDialog, which
  * ignores backdrop clicks.
  */
@@ -40,6 +43,7 @@ export function ConfirmDialog({
   busy = false,
   confirmDisabled = false,
   confirmVariant = 'primary',
+  footnote,
 }: ConfirmDialogProps) {
   const cancelRef = useRef<HTMLButtonElement>(null);
   return (
@@ -54,36 +58,23 @@ export function ConfirmDialog({
         showCloseButton={false}
         initialFocus={cancelRef}
         aria-busy={busy || undefined}
-        className="max-h-[calc(100vh-32px)] w-[calc(100%-32px)] max-w-[440px] gap-4 overflow-y-auto sm:max-w-[440px]"
+        className="max-h-[calc(100vh-32px)] w-[calc(100%-32px)] max-w-[480px] gap-4 overflow-y-auto sm:max-w-[480px]"
       >
-        <div className="grid gap-1.5">
-          <DialogTitle className="text-[18px] leading-snug font-semibold">{title}</DialogTitle>
-          <DialogDescription
-            render={<div />}
-            className="flex flex-col gap-2 text-base text-muted-foreground"
-          >
+        <div className="grid gap-2">
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription render={<div />} className="flex flex-col gap-2">
             {children}
           </DialogDescription>
         </div>
         <div className="flex flex-wrap justify-end gap-2">
-          <Button
-            ref={cancelRef}
-            variant="secondary"
-            size="large"
-            onClick={onCancel}
-            disabled={busy}
-          >
+          <Button ref={cancelRef} variant="secondary" onClick={onCancel} disabled={busy}>
             {cancelLabel}
           </Button>
-          <Button
-            variant={confirmVariant}
-            size="large"
-            onClick={onConfirm}
-            disabled={busy || confirmDisabled}
-          >
+          <Button variant={confirmVariant} onClick={onConfirm} disabled={busy || confirmDisabled}>
             {confirmLabel}
           </Button>
         </div>
+        {footnote && <p className="text-xs text-muted-foreground">{footnote}</p>}
       </DialogContent>
     </Dialog>
   );

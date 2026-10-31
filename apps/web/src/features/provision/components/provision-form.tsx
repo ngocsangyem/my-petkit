@@ -25,13 +25,12 @@ interface ProvisionFormProps {
   blockedReason: string | undefined;
   busy: boolean;
   status: string;
-  onFind: () => void;
   onSend: () => void;
 }
 
 /** A fieldset laid out as a column, with the browser's frame and padding removed. */
 export const FIELDSET = 'm-0 flex min-w-0 flex-col gap-3 border-0 p-0';
-/** Step heading: 16/600, as an h2. */
+/** Step heading: 17/600, as an h2. */
 export const LEGEND = 'mb-3 p-0 text-lg font-semibold';
 
 /** "UTC+07:00", with the browser's zone named on the detected entry. */
@@ -40,7 +39,7 @@ function timezoneLabel(o: TimezoneOption, detectedHours: number, zoneName: strin
   return zoneName ? `${o.label} · ${zoneName}, detected` : `${o.label}, detected`;
 }
 
-/** The three steps: Wi-Fi, server and time zone, then send. */
+/** The Network and Server card: Wi-Fi, server and time zone, then Send to device. */
 export function ProvisionForm(props: ProvisionFormProps) {
   const { values, onChange, blocked, busy } = props;
   const off = blocked || busy;
@@ -53,9 +52,9 @@ export function ProvisionForm(props: ProvisionFormProps) {
     label: timezoneLabel(o, props.detectedHours, props.zoneName),
   }));
   return (
-    <form className="flex min-w-0 flex-col gap-6" onSubmit={submit} noValidate>
+    <form className="flex min-w-0 flex-col gap-5" onSubmit={submit} noValidate>
       <fieldset className={FIELDSET} disabled={blocked}>
-        <legend className={LEGEND}>Wi-Fi network</legend>
+        <legend className={LEGEND}>Network</legend>
         <StackedField
           quiet
           label="Wi-Fi name"
@@ -87,7 +86,7 @@ export function ProvisionForm(props: ProvisionFormProps) {
       </fieldset>
 
       <fieldset className={FIELDSET} disabled={blocked}>
-        <legend className={LEGEND}>Server and time</legend>
+        <legend className={LEGEND}>Server</legend>
         <StackedField
           quiet
           label="Server devices will use"
@@ -131,25 +130,22 @@ export function ProvisionForm(props: ProvisionFormProps) {
       </fieldset>
 
       <div className="flex flex-col gap-3">
-        <h2>Send</h2>
-        <span className="text-muted-foreground">
-          Hold the device’s button until it beeps, then choose it from the browser’s list.
-        </span>
-        <div className="flex flex-wrap gap-2">
-          <Button disabled={off} title={props.blockedReason} onClick={props.onFind}>
-            Find device
-          </Button>
-          <Button type="submit" variant="primary" disabled={off} title={props.blockedReason}>
-            Send to device
-          </Button>
-        </div>
+        <p className="text-xs text-muted-foreground">
+          The address comes from your server, not from this browser. Hold the device’s button until
+          it beeps, then choose it from the browser’s list.
+        </p>
+        <Button
+          type="submit"
+          variant="primary"
+          size="large"
+          disabled={off}
+          title={props.blockedReason}
+        >
+          Send to device
+        </Button>
         <p role="status" className="min-h-[1.45em] text-sm">
           {props.status}
         </p>
-        <span className="text-xs text-muted-foreground">
-          Web Bluetooth needs Chrome or Edge on desktop or Android, and a secure context: a page
-          with a trusted certificate. On an iPhone, use the my-petkit app.
-        </span>
       </div>
     </form>
   );

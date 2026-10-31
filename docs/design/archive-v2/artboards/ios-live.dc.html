@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Live view</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#131416;text-decoration:none}a:hover{color:#0f6e66}
+button:focus-visible,a:focus-visible{outline:2px solid #0f6e66;outline-offset:2px}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; box-sizing: border-box; background: #ffffff; color: #131416; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 15px; line-height: 1.4; display: flex; flex-direction: column">
+
+  <header style="background: #f2f6f5; padding: 54px 16px 12px; display: flex; flex-direction: column; gap: 4px">
+    <a href="ios-device-t6.dc.html" aria-label="Back to litter box" style="width: 44px; height: 44px; margin-left: -10px; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#131416" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <h1 style="margin: 0; font-size: 24px; font-weight: 600">Litter box, live</h1>
+    <p style="margin: 0; font-size: 14px">Streaming over <span style="color: #0f6e66; font-weight: 500">{{modeLabel}}</span>, about <span style="font-variant-numeric: tabular-nums">{{latency}}</span> behind.</p>
+  </header>
+
+  <main style="flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 16px; padding: 16px 16px 34px">
+    <div style="position: relative; height: 220px; border-radius: 8px; background: #1b1e20; display: flex; align-items: center; justify-content: center">
+      <span style="color: #cdd3d2; font-size: 13px">Camera feed</span>
+      <span style="position: absolute; left: 12px; bottom: 10px; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #ffffff; font-weight: 500"><span style="width: 7px; height: 7px; border-radius: 50%; background: #ffffff"></span>Live</span>
+    </div>
+
+    <section aria-labelledby="stream-h" style="display: flex; flex-direction: column; gap: 8px">
+      <h2 id="stream-h" style="margin: 0; font-size: 16px; font-weight: 600">Stream type</h2>
+      <div role="radiogroup" aria-label="Stream type" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+        <button type="button" role="radio" aria-checked="{{isRtc}}" onClick="{{pickRtc}}" style="height: 48px; border-radius: 6px; background: #ffffff; border: 1px solid {{rtcLine}}; color: {{rtcInk}}; font: 500 14px 'IBM Plex Sans', sans-serif">Low latency</button>
+        <button type="button" role="radio" aria-checked="{{isHls}}" onClick="{{pickHls}}" style="height: 48px; border-radius: 6px; background: #ffffff; border: 1px solid {{hlsLine}}; color: {{hlsInk}}; font: 500 14px 'IBM Plex Sans', sans-serif">Stable</button>
+      </div>
+      <p style="margin: 0; font-size: 12px; color: #5d6262">{{modeNote}} One viewer connection to the camera, shared by everyone watching. The box refuses a second one for a few seconds.</p>
+    </section>
+
+    <div style="flex: 1"></div>
+
+    <section aria-labelledby="talk-h" style="display: flex; flex-direction: column; gap: 8px">
+      <h2 id="talk-h" style="margin: 0; font-size: 16px; font-weight: 600">Talk to the cats</h2>
+      <button type="button" aria-pressed="{{talking}}" onClick="{{toggleTalk}}" style="height: 56px; border: 0; border-radius: 6px; background: {{talkBg}}; color: #ffffff; font: 600 15px 'IBM Plex Sans', sans-serif; display: flex; align-items: center; justify-content: center; gap: 10px">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>
+        {{talkLabel}}
+      </button>
+      <p style="margin: 0; font-size: 12px; color: #5d6262">Plays through the box speaker. Each command asks before it runs.</p>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mode: 'rtc', talking: false };
+  }
+  renderVals() {
+    const rtc = this.state.mode === 'rtc';
+    const talking = this.state.talking;
+    const sel = { line: '#0f6e66', ink: '#0f6e66' };
+    const idle = { line: '#cdd3d2', ink: '#131416' };
+    return {
+      isRtc: rtc ? 'true' : 'false', isHls: rtc ? 'false' : 'true',
+      rtcLine: rtc ? sel.line : idle.line, rtcInk: rtc ? sel.ink : idle.ink,
+      hlsLine: rtc ? idle.line : sel.line, hlsInk: rtc ? idle.ink : sel.ink,
+      pickRtc: () => this.setState({ mode: 'rtc' }),
+      pickHls: () => this.setState({ mode: 'hls' }),
+      modeLabel: rtc ? 'WebRTC' : 'HLS',
+      latency: rtc ? '0.4 s' : '4 s',
+      modeNote: rtc ? 'WebRTC reacts fastest but can drop on weak Wi-Fi.' : 'HLS buffers a few seconds and rarely drops.',
+      talking: talking ? 'true' : 'false',
+      toggleTalk: () => this.setState({ talking: !this.state.talking }),
+      talkBg: talking ? '#353736' : '#131416',
+      talkLabel: talking ? 'Talking… release to stop' : 'Hold to talk'
+    };
+  }
+}
+</script>
+</body>
+</html>

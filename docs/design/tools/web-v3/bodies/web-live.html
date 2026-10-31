@@ -1,0 +1,43 @@
+<!-- Live view · Web | 1440 | 740 -->
+<div class="app" style="min-height:740px">
+[[NAV:Home]]
+<main class="main"><div class="wrap">
+  <div class="ph">
+    <div class="tt"><a class="crumb" href="web-device-t6.dc.html">[[I:back:14]] Litter box</a><h1>Live view</h1></div>
+    <div class="seg" style="width:300px" role="tablist" aria-label="Stream"><span class="on" role="tab" aria-selected="true">WebRTC</span><span role="tab">MSE</span><span role="tab">HLS</span></div>
+  </div>
+  <div class="cols" style="grid-template-columns:minmax(0,2.2fr) minmax(0,1fr)">
+    <section class="card" style="padding:0;overflow:hidden;background:#0e0f10">
+      <div class="vid" style="aspect-ratio:16/9;border-radius:0">
+        <img src="[[MISO]]" alt="Live picture from the litter box camera">
+        <span class="pill p-neg" style="position:absolute;left:16px;top:16px">Live</span>
+        <span class="cap" style="right:16px;top:16px">WebRTC · 0.4 s</span>
+        <button class="iconbtn" style="position:absolute;right:16px;bottom:16px;background:rgba(0,0,0,.55);color:#ffffff" aria-label="Full screen">[[I:full:18]]</button>
+      </div>
+      <div style="display:flex;gap:10px;padding:16px;flex-wrap:wrap;background:#0e0f10">
+        <button class="b" style="background:#202325;color:#f2f4f4">[[I:speaker:16]] Sound on</button>
+        <button class="b" style="background:#202325;color:#f2f4f4">[[I:camera:16]] Snapshot</button>
+        <button class="b" style="background:#202325;color:#f2f4f4">[[I:light:16]] Light</button>
+        <button class="b" style="background:#202325;color:#f2f4f4">[[I:broom:16]] Clean</button>
+        <span class="row-acts" style="margin-left:auto"><button class="b" style="background:#202325;color:#f2f4f4">[[I:back:16]] Left</button><button class="b" style="background:#202325;color:#f2f4f4">Home</button><button class="b" style="background:#202325;color:#f2f4f4">Right [[I:chev:16]]</button></span>
+      </div>
+    </section>
+    <div class="col">
+      <section class="card">
+        <h2 style="margin-bottom:8px">Stream</h2>
+        <p class="small" style="margin:0 0 10px">WebRTC is under a second behind. If the picture stalls, MSE and HLS go through this server instead and work on any network; HLS is about 4 seconds behind.</p>
+        <div class="panel small"><div class="kv" style="grid-template-columns:96px minmax(0,1fr)"><span class="muted">Source</span><span>go2rtc · one connection to the box</span><span class="muted">Viewers</span><span>1 (you)</span><span class="muted">Resolution</span><span>1280 × 720</span></div></div>
+      </section>
+      <section class="card">
+        <h2 style="margin-bottom:8px">Talk</h2>
+        <p class="small muted" style="margin:0">Hold to talk is in the iPhone app. The web dashboard plays the picture and sound only.</p>
+      </section>
+      <section class="card">
+        <h2 style="margin-bottom:8px">Camera</h2>
+        <p class="small muted" style="margin:0 0 10px">The box turns the camera with its own tool. Home returns to the centre.</p>
+        <span class="xs muted">Last move: Left, 14:44</span>
+      </section>
+    </div>
+  </div>
+</div></main>
+</div>

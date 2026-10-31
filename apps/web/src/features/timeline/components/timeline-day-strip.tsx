@@ -2,6 +2,7 @@ import {
   DayStripLegend,
   ErrorBlock,
   HouseholdDayStrip,
+  PetAvatar,
   SectionCard,
   Skeleton,
   formatMinute,
@@ -19,7 +20,6 @@ import {
   type TimelineSession,
 } from '../timeline-model';
 import { useClock } from '../hooks/use-clock';
-import { PetAvatar } from './pet-avatar';
 
 function visitTitle(minute: number, s: TimelineSession): string {
   return [formatMinute(minute), formatVisitDuration(s.duration_sec), formatWeight(s.weight)]

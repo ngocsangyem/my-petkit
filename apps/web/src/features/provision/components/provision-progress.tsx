@@ -1,4 +1,5 @@
-const COUNT = ['None', 'One', 'Two', 'Three'] as const;
+import { cn } from 'cn';
+import { Icon } from '@/shared/ui';
 
 interface ProvisionProgressProps {
   wifiDone: boolean;
@@ -6,50 +7,67 @@ interface ProvisionProgressProps {
   sent: boolean;
 }
 
-/** The finding line, a 6px bar and the three steps, with the next one marked. */
-export function ProvisionProgress({ wifiDone, serverDone, sent }: ProvisionProgressProps) {
+function stepsOf({ wifiDone, serverDone, sent }: ProvisionProgressProps) {
   const steps = [
-    { label: 'Wi-Fi network', done: wifiDone, next: 'fill in the Wi-Fi network' },
-    { label: 'Server and time zone', done: serverDone, next: 'fill in the server address' },
-    { label: 'Send to the device', done: sent, next: 'send them to the device' },
+    { label: 'Wi-Fi network', done: wifiDone },
+    { label: 'Server and time zone', done: serverDone },
+    { label: 'Send to the device', done: sent },
   ];
-  const done = steps.filter(s => s.done).length;
-  const next = steps.find(s => !s.done);
+  return { steps, done: steps.filter(s => s.done).length, next: steps.find(s => !s.done) };
+}
+
+/** "1 of 3 done" as a pill beside the title; it is the page's progress bar for assistive tech. */
+export function ProvisionProgressPill(props: ProvisionProgressProps) {
+  const { steps, done } = stepsOf(props);
   return (
-    <div className="flex flex-col gap-1.5">
-      <p>
-        {next ? (
-          <>
-            <span className="font-medium">
-              {COUNT[done]} of three steps {done === 1 ? 'is' : 'are'} done.
-            </span>{' '}
-            Next: {next.next}.
-          </>
-        ) : (
-          <span className="font-medium">All three steps are done.</span>
-        )}
-      </p>
-      <div
-        role="progressbar"
-        aria-label="Provisioning progress"
-        aria-valuemin={0}
-        aria-valuemax={3}
-        aria-valuenow={done}
-        className="h-1.5 overflow-hidden rounded-[3px] bg-rule"
-      >
-        <span className="block h-1.5 bg-data" style={{ width: `${(done / 3) * 100}%` }} />
-      </div>
-      <ol className="m-0 flex list-none flex-wrap gap-x-5 gap-y-1 p-0 text-sm text-muted-foreground">
-        {steps.map(s => (
+    <span
+      role="progressbar"
+      aria-label="Provisioning progress"
+      aria-valuemin={0}
+      aria-valuemax={steps.length}
+      aria-valuenow={done}
+      className="inline-flex h-5.5 items-center rounded-full bg-pill-neutral px-2.5 text-xs font-medium text-pill-neutral-ink"
+    >
+      {done} of {steps.length} done
+    </span>
+  );
+}
+
+/** The three steps with a disc each: a check when done, the number in ink when it is next. */
+export function ProvisionSteps(props: ProvisionProgressProps) {
+  const { steps, next } = stepsOf(props);
+  return (
+    <ol className="m-0 flex list-none flex-col p-0">
+      {steps.map((s, i) => {
+        const current = s === next;
+        return (
           <li
             key={s.label}
-            aria-current={s === next ? 'step' : undefined}
-            className="aria-[current=step]:font-medium aria-[current=step]:text-foreground"
+            aria-current={current ? 'step' : undefined}
+            className={cn(
+              'flex min-h-10 items-center gap-3',
+              current && 'font-semibold',
+              !s.done && !current && 'text-muted-foreground',
+            )}
           >
-            {s.label}, {s.done ? 'done' : s === next ? 'next' : 'to do'}
+            <span
+              aria-hidden="true"
+              className={cn(
+                'flex size-6 flex-none items-center justify-center rounded-full text-sm font-normal',
+                s.done && 'bg-pill-positive text-pill-positive-ink',
+                current && 'bg-primary text-primary-foreground',
+                !s.done && !current && 'bg-pill-neutral text-muted-foreground',
+              )}
+            >
+              {s.done ? <Icon name="check" size={14} strokeWidth={2} /> : i + 1}
+            </span>
+            <span>
+              {s.label}
+              <span className="sr-only">, {s.done ? 'done' : current ? 'next' : 'to do'}</span>
+            </span>
           </li>
-        ))}
-      </ol>
-    </div>
+        );
+      })}
+    </ol>
   );
 }

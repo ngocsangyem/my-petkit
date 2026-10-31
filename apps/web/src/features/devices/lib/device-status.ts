@@ -70,9 +70,12 @@ export function consumableText(label: string, days: number): string {
   return `${label} in ${days} ${days === 1 ? 'day' : 'days'}`;
 }
 
-/** The first thing a person needs to act on for this device, or null. */
-export function attentionFor(
-  d: Summary,
+/**
+ * What is wrong with a device beyond running low: silent, an error, a problem flag. Null when
+ * nothing is; consumables are left to {@link lowConsumables}.
+ */
+export function problemFor(
+  d: Pick<Summary, 'online' | 'last_heartbeat' | 'last_state_report' | 'last_seen' | 'last_mqtt'>,
   detail: Detail | undefined,
   zone: DeviceZone | null,
   nowSeconds: number,
@@ -90,6 +93,18 @@ export function attentionFor(
     if (binaryOn(findEntity(detail.entities, flag.key)))
       return { text: flag.text, tone: 'warning' };
   }
+  return null;
+}
+
+/** The first thing a person needs to act on for this device, or null. */
+export function attentionFor(
+  d: Summary,
+  detail: Detail | undefined,
+  zone: DeviceZone | null,
+  nowSeconds: number,
+): Attention | null {
+  const problem = problemFor(d, detail, zone, nowSeconds);
+  if (problem || !detail) return problem;
   const low = lowConsumables(detail)[0];
   return low ? { text: consumableText(low.label, low.days), tone: 'warning' } : null;
 }

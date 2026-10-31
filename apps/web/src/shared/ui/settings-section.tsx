@@ -1,38 +1,45 @@
 import { useId, type ReactNode } from 'react';
 import { cn } from 'cn';
-import { Card } from './shadcn/card';
+import { Card } from './card-and-panel';
 import { Field, FieldContent, FieldLabel } from './shadcn/field';
 
 /** Props for {@link SettingsSection}. */
 export interface SettingsSectionProps {
-  /** Section heading (16/500). */
+  /** Section heading (17/600). */
   title: string;
   /** One or two sentences in muted under the title. */
   description?: ReactNode;
-  /** Rows ({@link SettingsRow}) or any content; sits on a `raised` panel. */
+  /** Right side of the title row: a pill ("All on", "Step-up") or a muted total. */
+  end?: ReactNode;
+  /** Rows ({@link SettingsRow}) or any content, inside the card. */
   children: ReactNode;
 }
 
 /**
- * A settings group: a 360px label column, then a `raised` panel (radius 16, no border). A section
- * that follows another is split from it by a `rule` with 32px on each side. The `ui-settings-section`
- * class is the sibling hook for that rule (and for screens that place a bar before a section).
+ * A settings group (web-server, the device pages): a white card (radius 20, padded 16/20/8 so the
+ * last row's own padding closes it) with the 17/600 title, an optional pill or total on its right
+ * and an optional muted sentence, then its rows split by 1px `rule` lines. Sections stack with the
+ * page's 20px gap; the `ui-settings-section` class stays as a hook for screens that place a bar
+ * before a section.
  */
-export function SettingsSection({ title, description, children }: SettingsSectionProps) {
+export function SettingsSection({ title, description, end, children }: SettingsSectionProps) {
   const headingId = useId();
   return (
-    <section
-      className="ui-settings-section grid grid-cols-[minmax(0,1fr)] items-start gap-4 min-[901px]:grid-cols-[var(--pk-settings-label-width)_minmax(0,1fr)] min-[901px]:gap-8 [.ui-settings-section+&]:mt-2 [.ui-settings-section+&]:border-t [.ui-settings-section+&]:border-rule [.ui-settings-section+&]:pt-8"
+    <Card
+      as="section"
+      padding="none"
+      className="ui-settings-section flex flex-col px-5 pt-4 pb-2"
       aria-labelledby={headingId}
     >
-      <div className="flex max-w-(--pk-settings-label-width) flex-col gap-1">
-        <h2 id={headingId} className="text-lg font-medium">
-          {title}
-        </h2>
+      <div className="flex flex-col gap-1 pb-1">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+          <h2 id={headingId}>{title}</h2>
+          {end}
+        </div>
         {description && <p className="text-muted-foreground">{description}</p>}
       </div>
-      <Card className="min-w-0 gap-0 rounded-2xl border-0 bg-raised p-4">{children}</Card>
-    </section>
+      {children}
+    </Card>
   );
 }
 
@@ -65,8 +72,8 @@ const ROW_LAYOUT = {
 } as const;
 
 /**
- * One setting inside a {@link SettingsSection} panel; a row that follows another gets a 1px
- * `border` line above it (the `ui-settings-row` class is that sibling hook).
+ * One setting inside a {@link SettingsSection} card; a row that follows another gets a 1px
+ * `rule` line above it (the `ui-settings-row` class is that sibling hook).
  */
 export function SettingsRow({
   label,
@@ -83,7 +90,7 @@ export function SettingsRow({
     <Field
       orientation="horizontal"
       className={cn(
-        'ui-settings-row py-3 [.ui-settings-row+&]:border-t [.ui-settings-row+&]:border-border',
+        'ui-settings-row min-h-13 py-2.5 [.ui-settings-row+&]:border-t [.ui-settings-row+&]:border-rule',
         ROW_LAYOUT[kind],
       )}
     >

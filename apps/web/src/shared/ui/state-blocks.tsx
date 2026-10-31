@@ -1,5 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { Button } from './button';
+import { Card } from './card-and-panel';
+import { Icon } from './icons';
 import { Alert } from './shadcn/alert';
 import { Empty } from './shadcn/empty';
 import { Skeleton as ShadcnSkeleton } from './shadcn/skeleton';
@@ -35,13 +37,69 @@ export interface EmptyBlockProps {
   action?: ReactNode;
 }
 
-/** Empty section body: one sentence in a 1px dashed box; the section keeps its header. */
+/** Empty section body: one muted sentence on a `raised` panel; the section keeps its header. */
 export function EmptyBlock({ children, action }: EmptyBlockProps) {
   return (
-    <Empty className="col-span-full min-h-[38px] flex-none flex-row flex-wrap items-center justify-start gap-x-3 gap-y-1 rounded-lg border border-dashed border-control px-3 py-2 text-left text-sm text-muted-foreground">
+    <Empty className="col-span-full min-h-11 flex-none flex-row flex-wrap items-center justify-start gap-x-3 gap-y-1 rounded-md bg-raised px-4 py-3 text-left text-base text-muted-foreground [--pk-fill-secondary:var(--pk-surface)]">
       <span>{children}</span>
       {action}
     </Empty>
+  );
+}
+
+/** Props for {@link EmptyState}. */
+export interface EmptyStateProps {
+  /** 20/600 heading, e.g. "Add your first device". */
+  title: string;
+  /** One or two sentences under the heading. */
+  children: ReactNode;
+  /** A device drawing (or other line art) shown on a `raised` panel at the left. */
+  art?: ReactNode;
+  /** The single next step, normally a primary button or a link styled as one. */
+  action?: ReactNode;
+}
+
+/**
+ * A whole-screen empty state (web-states): a card with the drawing on a `raised` panel, a heading,
+ * a sentence and one action. Stacks on a phone.
+ */
+export function EmptyState({ title, children, art, action }: EmptyStateProps) {
+  return (
+    <Card className="flex flex-col items-start gap-6 p-8 min-[901px]:flex-row min-[901px]:items-center">
+      {art && (
+        <div className="flex flex-none items-center justify-center rounded-lg bg-raised p-[18px]">
+          {art}
+        </div>
+      )}
+      <div className="flex min-w-0 flex-col items-start gap-2">
+        <h2 className="text-[20px]">{title}</h2>
+        <p className="max-w-[760px] text-md text-lede">{children}</p>
+        {action}
+      </div>
+    </Card>
+  );
+}
+
+/** Props for {@link NoticeCard}. */
+export interface NoticeCardProps {
+  /** Section heading, e.g. "Can't reach your server" or "This page is out of date". */
+  title: string;
+  /** One or two sentences: what happened and what the page does meanwhile. */
+  children: ReactNode;
+  /** The one action, e.g. Retry now (secondary) or Reload (primary). */
+  action?: ReactNode;
+  /** `status` (default) is announced politely; `alert` interrupts. */
+  role?: 'status' | 'alert';
+}
+
+/** A card-level notice (web-states): heading, sentence and one action, e.g. the server is unreachable. */
+export function NoticeCard({ title, children, action, role = 'status' }: NoticeCardProps) {
+  return (
+    <Card role={role} className="flex flex-col items-start gap-2.5">
+      <h2>{title}</h2>
+      <p className="text-md text-lede">{children}</p>
+      {action && <div className="pt-0.5">{action}</div>}
+    </Card>
   );
 }
 
@@ -55,7 +113,10 @@ export interface ErrorBlockProps {
   retrying?: boolean;
 }
 
-/** An error kept inside the block that failed: one sentence plus a Retry text button. */
+/**
+ * An error kept inside the block that failed (web-states): a `raised` panel with one red warning
+ * icon, the sentence, and a white Retry button.
+ */
 export function ErrorBlock({
   message,
   onRetry,
@@ -63,10 +124,13 @@ export function ErrorBlock({
   retrying = false,
 }: ErrorBlockProps) {
   return (
-    <Alert className="col-span-full flex min-h-[38px] flex-wrap items-center gap-x-2 gap-y-1 border-0 bg-transparent p-0 text-sm text-foreground">
-      <span>{message}</span>
+    <Alert className="col-span-full flex min-h-11 flex-wrap items-center gap-x-3 gap-y-2 rounded-md border-0 bg-raised px-4 py-3 text-base text-foreground [--pk-fill-secondary:var(--pk-surface)]">
+      <span className="flex flex-none text-negative">
+        <Icon name="warning" size={18} />
+      </span>
+      <span className="min-w-0 flex-1">{message}</span>
       {onRetry && (
-        <Button variant="text" onClick={onRetry} disabled={retrying}>
+        <Button variant="secondary" onClick={onRetry} disabled={retrying}>
           {retryLabel}
         </Button>
       )}
@@ -83,7 +147,7 @@ export interface SkeletonProps {
   className?: string;
 }
 
-/** Flat grey loading bar at the value's final size; no shimmer, hidden from assistive tech. */
+/** Flat `raised` loading bar at the value's final size; no shimmer, hidden from assistive tech. */
 export function Skeleton({ width = '100%', height = 14, className }: SkeletonProps) {
   const style: CSSProperties = { width, height };
   return (

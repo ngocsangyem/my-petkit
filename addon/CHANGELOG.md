@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **A redesigned web dashboard that matches the iOS app.** A sidebar replaces
+  the tabs; devices are drawn with their real litter, food and water levels;
+  cards, pill buttons and dialogs follow the iOS look, in light and dark.
+  Home lists what needs you (devices gone quiet, consumables running out,
+  blocked cloud requests this week). Each device has its own page, and the
+  Pets page charts a cat's weight and visits. Light or dark is now chosen
+  under Settings › Appearance. Nothing the server does changed.
 - **Change the cat on a visit, and weight-based recognition.** A litter-box
   visit can be given to another cat (or marked "no cat, just passing") from the
   web or iOS timeline; only the server's record changes, and nothing the box

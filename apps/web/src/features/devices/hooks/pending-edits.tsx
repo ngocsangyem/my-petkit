@@ -10,14 +10,14 @@ import { createContext, type ReactNode, useContext, useState, useSyncExternalSto
  * Cleared once the value is accepted, or when it matches the device again.
  */
 class PendingEdits {
-  private readonly values = new Map<string, string>();
+  private readonly values = new Map<string, unknown>();
   private readonly listeners = new Set<() => void>();
 
-  get(key: string): string | undefined {
+  get(key: string): unknown {
     return this.values.get(key);
   }
 
-  set(key: string, value: string | undefined): void {
+  set(key: string, value: unknown): void {
     if (value === undefined) this.values.delete(key);
     else this.values.set(key, value);
     for (const l of this.listeners) l();
@@ -47,10 +47,27 @@ export function usePendingEdit(
 ): [string | undefined, (value: string | undefined) => void] {
   const store = useContext(Context);
   if (!store) throw new Error('usePendingEdit needs a PendingEditsProvider');
-  const value = useSyncExternalStore(store.subscribe, () => store.get(key));
+  const value = useSyncExternalStore(store.subscribe, () => store.get(key) as string | undefined);
   const set = (next: string | undefined) => {
     store.set(key, next === deviceValue ? undefined : next);
   };
   // An edit the device has since caught up with is no longer unsaved.
   return [value === deviceValue ? undefined : value, set];
+}
+
+/**
+ * A structured working copy held the same way, e.g. a schedule being edited:
+ * it outlives leaving the page and coming back, until it is saved or dropped.
+ * Replace the value rather than mutating it, so the store notices the change.
+ */
+export function usePendingDraft<T>(key: string): [T | undefined, (value: T | undefined) => void] {
+  const store = useContext(Context);
+  if (!store) throw new Error('usePendingDraft needs a PendingEditsProvider');
+  const value = useSyncExternalStore(store.subscribe, () => store.get(key) as T | undefined);
+  return [
+    value,
+    next => {
+      store.set(key, next);
+    },
+  ];
 }

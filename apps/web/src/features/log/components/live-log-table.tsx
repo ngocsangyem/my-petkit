@@ -132,7 +132,7 @@ export function LiveLogTable({ rows, autoscroll, loading, emptyText, onCopy }: L
   if (loading && rows.length === 0) {
     return (
       <div
-        className="flex max-h-[480px] flex-col gap-4 overflow-y-auto rounded-lg border border-border p-3"
+        className="flex max-h-[480px] flex-col gap-4 overflow-y-auto py-3"
         aria-busy="true"
         aria-label="Loading the log"
       >
@@ -146,7 +146,8 @@ export function LiveLogTable({ rows, autoscroll, loading, emptyText, onCopy }: L
   return (
     <div
       ref={scroller}
-      className="max-h-[480px] overflow-y-auto rounded-lg [&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-1 [&_thead_th]:bg-background"
+      // Inside the card the log needs no frame of its own: the card is its edge.
+      className="max-h-[480px] overflow-y-auto [&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-1 [&_thead_th]:bg-card [&>[data-variant=log]]:rounded-none [&>[data-variant=log]]:border-0"
       onScroll={e => {
         const el = e.currentTarget;
         nearBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < NEAR_BOTTOM_PX;

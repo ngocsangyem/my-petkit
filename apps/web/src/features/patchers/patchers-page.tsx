@@ -2,8 +2,7 @@ import { errorMessage } from '@/shared/api/errors';
 import {
   EmptyBlock,
   ErrorBlock,
-  PageHeading,
-  RiskNotice,
+  PageHeader,
   Select,
   Skeleton,
   StepUpPill,
@@ -53,18 +52,12 @@ export function PatchersPage() {
 
   return (
     <>
-      <PageHeading
+      <PageHeader
         title="Patchers"
         badge={<StepUpPill />}
-        finding={<span className="text-muted-foreground">{finding(status.data)}</span>}
+        finding={finding(status.data)}
         actions={picker}
       />
-      <RiskNotice>
-        Each patch runs shell commands on the device as root, at your own risk: it can brick the
-        device and leaves it outside its warranty. Patches live only on the writable /system
-        partition; the read-only /app partition is never modified. Removing a patch deletes its
-        files from /system and reboots, and with none left the device is back on stock firmware.
-      </RiskNotice>
       {devices.isPending ? (
         <Skeleton height={280} />
       ) : devices.isError ? (

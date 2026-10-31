@@ -1,8 +1,10 @@
 import * as React from 'react';
 import { cn } from 'cn';
 
-// Edited from the shadcn source: the accent focus outline instead of a ring
-// (design-reference §2), and form controls at radius 6 on the surface colour.
+// Edited from the shadcn source for design-reference §8 (web v3): borderless
+// 44px fields at radius 14 on `--pk-fill-field` (white on the ground, raised
+// inside a card or dialog, white inside a raised panel), 15px text, the accent
+// focus outline instead of a ring, and a 1px red outline when invalid.
 import { ChevronDownIcon } from 'lucide-react';
 
 type NativeSelectProps = Omit<React.ComponentProps<'select'>, 'size'> & {
@@ -22,11 +24,11 @@ function NativeSelect({ className, size = 'default', ...props }: NativeSelectPro
       <select
         data-slot="native-select"
         data-size={size}
-        className="h-8 w-full min-w-0 appearance-none rounded-md border border-input bg-background dark:bg-raised py-1 pr-8 pl-2.5 text-base transition-colors outline-none select-none selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground aria-invalid:border-destructive data-[size=sm]:h-7 data-[size=sm]:rounded-[min(var(--radius-md),10px)] data-[size=sm]:py-0.5 dark:hover:bg-input/50"
+        className="h-(--pk-field-height) w-full min-w-0 appearance-none rounded-md border-0 bg-fill-field py-1 pr-9 pl-3.5 text-md transition-colors outline-none select-none selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:text-muted-foreground aria-invalid:outline aria-invalid:outline-destructive data-[size=sm]:h-(--pk-control-height-small) data-[size=sm]:text-sm"
         {...props}
       />
       <ChevronDownIcon
-        className="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 text-muted-foreground select-none"
+        className="pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 text-muted-foreground select-none"
         aria-hidden="true"
         data-slot="native-select-icon"
       />

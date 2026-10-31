@@ -1,6 +1,6 @@
 # Design reference for implementation
 
-This is the visual contract for phase 07 (web), 08 (iOS), 09 (provisioning) and 10 (live). Code must match it. Read it together with the art direction in `research/design-261028-1447-my-petkit-taste-art-direction.md`, which holds the reasoning, the Mobbin references and the banned list.
+This is the visual contract for phase 07 (web), 08 (iOS), 09 (provisioning) and 10 (live). Code must match it. Read it together with the art direction in `../../reports/design-261028-1447-my-petkit-taste-art-direction.md`, which holds the reasoning, the Mobbin references and the banned list.
 
 ## 1. Sources of truth, in order
 
@@ -15,7 +15,7 @@ This is the visual contract for phase 07 (web), 08 (iOS), 09 (provisioning) and 
 
 **Binding:** tokens, the shell, type scale, component shapes, layout per screen, copy tone, and the state rules (empty, zero, error, risk).
 
-**Not binding, and never to be hard-coded:** the sample data. That covers Miso and Mochi, 14:47, 192.168.1.20, the device IDs, the weights and the log lines. Screens render real API data. The sample data becomes test fixtures only, kept in the same shape as `research/design-261028-1447-my-petkit-taste-art-direction.md` §7.
+**Not binding, and never to be hard-coded:** the sample data. That covers Miso and Mochi, 14:47, 192.168.1.20, the device IDs, the weights and the log lines. Screens render real API data. The sample data becomes test fixtures only, kept in the same shape as `../../reports/design-261028-1447-my-petkit-taste-art-direction.md` §7.
 
 The cat photos in `assets/` are for mockups and fixtures only. Credits are in `assets/credits.json`. Mochi's photo is CC BY-SA 4.0, so ship neither photo in the app bundle.
 
@@ -66,15 +66,15 @@ Type is IBM Plex Sans 400, 500 and 600. IBM Plex Mono 400 and 500 is used only f
 
 | Role | Web | iOS |
 |---|---|---|
-| Title | 22/600 | 24/600 |
+| Title | 28/600 (24 under 900px; §8) | 24/600 |
 | Section | 16/600 | 16/600 |
-| Figure | 28/400 | 28/400 |
+| Figure | 30/500 (§8) | 28/400 |
 | Body | 14 | 15 |
 | Small | 12–13 | 12–13 |
 
 Nothing is smaller than 11px. Every number uses `font-variant-numeric: tabular-nums` on the web and `.monospacedDigit()` on iOS.
 
-On the web, `tokens.css` holds every token twice: light under `:root` and dark under `.dark` (§7.5 and §8.4). `theme.css` maps shadcn's theme variables onto them; the type scale uses Tailwind's size names (`text-xs` caption 12, `text-sm` small 13, `text-base` body 14, `text-lg` section 16, `text-xl` title 22, `text-3xl` figure 28).
+On the web, `tokens.css` holds every token twice: light under `:root` and dark under `.dark` (§7.5 and §8.4). `theme.css` maps shadcn's theme variables onto them; the type scale uses Tailwind's size names (`text-xs` caption 12, `text-sm` small 13, `text-base` body 14, `text-md` lede and fields 15, `text-lg` section 17, `text-xl` dialog title 22, `text-2xl` page title 28, `text-3xl` figure 30), per §8.
 
 ## 3. Shared components
 
@@ -169,7 +169,7 @@ These rules are review-blocking:
 
 ## 7. iOS v3 (2026-10-29): supersedes the iOS rows above
 
-The user asked for a mobile app that looks better than PetKit's and Catlink's own apps. v3 replaces the iOS visual layer only; the web keeps §2–§6. All 24 iOS artboards are drawn in v3: the first 14, plus 10 added on 2026-10-29 (§7.4, marked *new*). Research and reasoning: `research/design-261029-0135-ios-v3-mobbin-research.md`. The previous iOS artboards and screenshots are kept in `archive-v2/`.
+The user asked for a mobile app that looks better than PetKit's and Catlink's own apps. v3 replaces the iOS visual layer only; the web keeps §2–§6. All 24 iOS artboards are drawn in v3: the first 14, plus 10 added on 2026-10-29 (§7.4, marked *new*). Research and reasoning: `../../reports/design-261029-0135-ios-v3-mobbin-research.md`. The previous iOS artboards and screenshots are kept in `archive-v2/`.
 
 **Source for the 10 new screens is `tools/ios-v3/bodies/` here, not the live canvas.** The canvas (https://claude.ai/artifact/Dk4xYHQmxdev8Vj22uLQbE) still holds the first 14 iOS boards, checked 2026-10-29. `artboards/` was rebuilt from the bodies and `screenshots/` re-rendered for all 10 on 2026-10-29 (headless Chromium at 390 × the height in each body's first line, then `cwebp -q 85`).
 
@@ -260,4 +260,60 @@ Drawn only on `ios-devices-dark`. The other screens take their dark colours from
 | `positive` / `negative` | `#5fd39b` / `#ff7a72` | status words |
 | `pill.positive`, `pill.negative`, `pill.neutral` | `#123824/#bdf2d3`, `#43191a/#ffc9c4`, `#2c3032/#d5dbda` | pills |
 
-`Theme.Color` declares each token once with its light and dark value (asset catalog colour sets or `UIColor(dynamicProvider:)`). The app follows the system setting; there is no in-app switch. The web has dark mode too (System, Light, Dark in the sidebar), from the same table plus §8.4.
+`Theme.Color` declares each token once with its light and dark value (asset catalog colour sets or `UIColor(dynamicProvider:)`). The app follows the system setting; there is no in-app switch. The web has its own dark mode: see §8.4.
+
+## 8. Web v3 (2026-10-30): supersedes the web rows above
+
+The web dashboard now uses the iOS v3 language, so the two clients look like one product. v3 replaces the web visual layer: §2's colour values stay, §3's web components and §6's rules change as listed below. The web v2 artboards and screenshots are kept in `archive-v2/`. Source: `tools/web-v3/` (`web.css` on top of `tools/ios-v3/head.css`, one body per screen, `build_artboards.py` wraps them). Rebuild with `python3 tools/web-v3/build_artboards.py artboards`.
+
+Synced into the repository on 2026-10-31: `apps/web` implements every board in §8.3, checked at 1440 and 390 in light and dark (the per-screen ticks and deliberate deviations are in `apps/web/PARITY.md`).
+
+### 8.1 What changed from web v2
+
+- **Frame.** A 248px sidebar on `ground` (`#edf2f1`) with the mark, pill nav items (Home, Timeline, Pets · Server: Logs, Add a device, Settings · Advanced, needs step-up: Capture, Patchers) and a foot panel with the live dot, address and "TLS pinned". The active item is a white pill. Under 900px the sidebar becomes a top bar with a menu button.
+- **Content.** White cards, radius 20, on `ground`; inner panels on `raised` (`#f4f7f6`), radius 14. No sheet with an L-frame, no 1px card borders.
+- **Page header.** Back link (when pushed), 28/600 title with a status word beside it, one finding sentence, and the actions on the right.
+- **Devices are drawn**, not listed: the iOS v3 line drawings (drum, feeder, fountain, spray) on Home and at the top of each device page, with the figures in a split panel beside them.
+- **Controls are pills**: buttons 40px high (48 for the main action of a form), chips 36, segmented controls, iOS-style switches. Primary is near-black, secondary is white on `ground` and `ground`-tinted inside a card, the R3 final action is red.
+- **Overlays**: dialogs (radius 24, centred) for confirmations, step-up, sounds and change-cat; a right sheet (radius 24 on the left edge) for editors (meal, Bluetooth pairing).
+- **Photos** of the cats appear on Home, Timeline and Pets; video thumbnails carry the dark caption pill (§7.3).
+
+### 8.2 Rules
+
+§7.3 applies to the web too: kept rules unchanged, the same relaxations (radius 20 cards, pill controls, icons above quick-action labels, the dark caption pill over photos, shadows on dialogs and sheets only). Web-only:
+- The sidebar is the only navigation; there are no tabs at the bottom on the web.
+- Tables stay for lists of records (capture files, phones and tokens, logs); rows are 1px `rule`, no zebra.
+- Mono only for IDs, firmware, addresses, file names, keys and log lines.
+
+### 8.3 Screen map (web)
+
+| Artboard | Web feature | Phase |
+|---|---|---|
+| `web-home` | `devices` overview: cats, needs-you, device drawings, today strip | 15 |
+| `web-home-phone` | the same at 390px | 15 |
+| `web-home-dark` | dark mode (§8.4) | 15 |
+| `web-states` | empty, loading, error, zero, unreachable, out of date, toast | 15 |
+| `web-device-t6` | `devices` litter box: commands, figures, live link, consumables, automation incl. auto-pack, settings incl. camera pan, Bluetooth accessories, patches, raw entities | 15 (13, 10) |
+| `web-device-t6-paused` | force continue dialog | 15 (13) |
+| `web-live` | `live`: WebRTC/MSE/HLS, controls, camera pan; no talk on the web | 15 (10) |
+| `web-sounds` | `devices` sounds dialog | 15 |
+| `web-device-feeder` | `devices` feeder: feed now, today's meals, settings | 15 |
+| `web-schedules` | `schedules`: list, deferred feed, meal editor sheet | 15 |
+| `web-device-fountain` | `devices` fountain, offline state | 15 |
+| `web-ble-pair` | `devices` Bluetooth accessory sheet | 15 |
+| `web-timeline` | `timeline`: filters incl. light visits and not recognised, list, selected visit with media and debug | 15 (14) |
+| `web-change-cat` | change-cat dialog | 15 (14) |
+| `web-pets` | `pets`: profile and recognition, weight, visits, face photos, unbound faces | 15 (14) |
+| `web-logs` | `log`: live server log, device logs | 15 |
+| `web-capture` | `capture` (R3) | 15 |
+| `web-patchers` | `patchers` (R3), seven patchers | 15 |
+| `web-step-up` | step-up dialog | 15 |
+| `web-provision` | `provision` over Web Bluetooth | 15 |
+| `web-server` | `setup` and `tokens`: server, guards, proxy, retention, phones and tokens, appearance, connection, account | 15 |
+| `web-sign-in`, `web-first-run` | `auth` | 15 |
+
+### 8.4 Dark mode (web)
+
+Drawn on `web-home-dark`. Same mapping as §7.5, extended to the frame: the active nav pill, secondary buttons and chips use `#1a1c1e`; panels, lanes, inputs and the sidebar foot use `#232628`; primary buttons and selected chips invert to `#f2f4f4` on `#0e0f10`; the day-strip pet ticks lighten to `#8fb4e6` (Miso) and `#e0b26a` (Mochi); the fountain band becomes `#1f3a37`; `warning` text becomes `#f0b35a`. Approved by the user on 2026-10-30. Phase 09.5 uses these values for the tokens §7.5 does not cover, instead of proposing its own.
+
+The web video frame (`live-ground`) is `#1b1d1e` in both modes, as the artboards' video block draws it, instead of iOS's `#0e0f10`, which equals the dark ground (set 2026-10-31).

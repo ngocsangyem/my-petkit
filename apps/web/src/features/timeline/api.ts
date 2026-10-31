@@ -86,6 +86,7 @@ export function useTimelinePets() {
 
 /** The Pets screen's cache root; spelled out because features do not import each other. */
 const PETS_SCREEN_KEY = ['pets'] as const;
+const PET_HISTORY_KEY = ['pet-history'] as const;
 
 /**
  * Change which pet a visit belongs to (or mark it as nobody). Only the server's record moves;
@@ -98,7 +99,11 @@ export function useSetVisitPet() {
     mutationFn: ({ id, body }: { id: number; body: VisitPetRequest }) =>
       unwrap(api.PUT('/api/timeline/{id}/pet', { params: { path: { id } }, body })),
     onSettled: async (_data, _error, { body }) => {
-      const pending = [client.invalidateQueries({ queryKey: timelineKeys.all })];
+      const pending = [
+        client.invalidateQueries({ queryKey: timelineKeys.all }),
+        // The Pets charts count this visit under whichever cat it belongs to.
+        client.invalidateQueries({ queryKey: PET_HISTORY_KEY }),
+      ];
       if (body.use_weight || body.apply_to_ref) {
         pending.push(client.invalidateQueries({ queryKey: PETS_SCREEN_KEY }));
       }

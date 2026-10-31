@@ -4,10 +4,11 @@ import { errorMessage } from '@/shared/api/errors';
 import { formatBytes } from '@/shared/format/format';
 import {
   buttonClassName,
+  Card,
   ConfirmDialog,
   ErrorBlock,
-  PageHeading,
-  RiskNotice,
+  Icon,
+  PageHeader,
   Skeleton,
   StepUpPill,
   useToast,
@@ -60,41 +61,26 @@ export function CapturePage() {
 
   const data = listing.data;
   const finding = data ? (
-    <span className="text-muted-foreground">
-      {`Raw traffic between devices and this server · ${data.enabled ? 'recording' : 'not recording'} · ` +
-        `${data.files.length} ${data.files.length === 1 ? 'file' : 'files'}, ${formatBytes(totalBytes(data))}`}
-    </span>
+    `Recording is ${data.enabled ? 'on' : 'off'}. ` +
+    `${data.files.length} ${data.files.length === 1 ? 'file' : 'files'} on the server, ${formatBytes(totalBytes(data))}.`
   ) : (
     <Skeleton width={420} height={14} />
   );
 
   return (
-    <>
-      <PageHeading
-        title="Capture"
-        badge={<StepUpPill />}
-        finding={finding}
-        actions={
-          data && (
-            <Link to="/setup" className={buttonClassName(data.enabled ? 'secondary' : 'primary')}>
-              {data.enabled ? 'Recording settings' : 'Start recording'}
-            </Link>
-          )
-        }
-      />
-      <RiskNotice>
-        Every capture is sensitive. It is an exact recording of what your devices said and were
-        told, with nothing filtered: expect the Wi-Fi name, LAN addresses, the device serial and its
-        signing secret, and in proxy mode the exchanges with PetKit including your account
-        credentials. Read one before you send it anywhere. A deleted file cannot be restored.
-      </RiskNotice>
+    <div className="flex w-full max-w-[980px] flex-col gap-5">
+      <PageHeader title="Capture" badge={<StepUpPill />} finding={finding} />
+      <Card className="flex items-start gap-2.5 text-lede">
+        <Icon name="warning" size={18} strokeWidth={2} className="mt-0.5 flex-none text-negative" />
+        <p>
+          Every capture is sensitive. It is an exact recording of what your devices said and were
+          told, with nothing filtered: expect the Wi-Fi name, LAN addresses, the device serial and
+          its signing secret, and in proxy mode the exchanges with PetKit including your account
+          credentials. Read one before you send it anywhere. A deleted file cannot be restored.
+        </p>
+      </Card>
 
-      {listing.isPending && (
-        <div className="grid grid-cols-1 items-start gap-6 min-[901px]:grid-cols-2">
-          <Skeleton height={240} />
-          <Skeleton height={420} />
-        </div>
-      )}
+      {listing.isPending && <Skeleton height={240} />}
       {listing.isError && (
         <ErrorBlock
           message={`Could not list the capture files: ${errorMessage(listing.error)}`}
@@ -103,7 +89,27 @@ export function CapturePage() {
         />
       )}
       {data && (
-        <div className="grid grid-cols-1 items-start gap-6 min-[901px]:grid-cols-2">
+        <>
+          <Card
+            as="section"
+            aria-label="Record traffic"
+            className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3"
+          >
+            <div className="flex min-w-0 flex-[1_1_240px] flex-col">
+              <span className="font-medium">Record traffic</span>
+              <span className="text-xs text-muted-foreground">
+                {data.enabled
+                  ? 'On. Every device request and broker frame is written as it happens.'
+                  : 'Off. It is a setting under Settings, and turning it on asks for your password.'}
+              </span>
+            </div>
+            <Link
+              to="/setup"
+              className={buttonClassName(data.enabled ? 'secondary' : 'primary', 'small')}
+            >
+              {data.enabled ? 'Recording settings' : 'Start recording'}
+            </Link>
+          </Card>
           <CaptureFiles listing={data} selected={current} onSelect={setSelected} />
           <CaptureTail
             name={current}
@@ -112,7 +118,7 @@ export function CapturePage() {
             onDownload={name => void download(name)}
             onDelete={setConfirming}
           />
-        </div>
+        </>
       )}
 
       <ConfirmDialog
@@ -129,6 +135,6 @@ export function CapturePage() {
         This cannot be undone: a capture is usually the only record of what it was recorded to
         investigate.
       </ConfirmDialog>
-    </>
+    </div>
   );
 }

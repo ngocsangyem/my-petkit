@@ -1,33 +1,37 @@
 import { useState } from 'react';
 import { errorMessage } from '@/shared/api/errors';
-import { EmptyBlock, ErrorBlock, FigureContainer, PageHeading, Skeleton } from '@/shared/ui';
+import { todayLocal } from '@/shared/format/local-day';
+import { Card, EmptyBlock, ErrorBlock, PageHeader, Skeleton } from '@/shared/ui';
 import { useTimelineDay, useTimelineDevices, useTimelinePets, type TimelineQuery } from './api';
+import { ChangeCatDialog } from './components/change-cat-dialog';
+import { TimelineDayNav } from './components/timeline-day-nav';
 import { TimelineDayStrip } from './components/timeline-day-strip';
 import { TimelineEventList } from './components/timeline-event-list';
 import { TimelineFilterChips } from './components/timeline-filter-chips';
 import { TimelineSessionDetail } from './components/timeline-session-detail';
-import { TimelineToolbar } from './components/timeline-toolbar';
 import { useTimelineLiveRefresh } from './hooks/use-timeline-live-refresh';
-import { sessionKey, todayLocal, type FilterKey, type TimelineDay } from './timeline-model';
+import { sessionKey, type TimelineSession } from './timeline-model';
 import { visitSummary } from './timeline-summary';
+import {
+  applyViewFilter,
+  isUnrecognisedVisit,
+  serverFilter,
+  type ViewFilter,
+} from './timeline-view-filter';
 
-function figures(day: TimelineDay | undefined) {
-  const c = day?.counts;
-  return [
-    { id: 'visits', label: 'Litter-box visits', value: c?.toileting },
-    { id: 'pet', label: 'Pet sightings', value: c?.pet },
-    { id: 'feeding', label: 'Feedings', value: c?.feeding },
-    { id: 'cleaning', label: 'Cleanings', value: c?.cleaning },
-  ];
-}
+type ChangeTarget = TimelineSession & { id: number };
 
-/** One local day: the household strip, the day's figures, and every session with its media. */
+/**
+ * One local day: the finding line and the day picker, one row of chips, the sessions beside the
+ * selected one with its media, and the household strip under them.
+ */
 export function TimelinePage() {
   const [date, setDate] = useState(todayLocal);
-  const [filter, setFilter] = useState<FilterKey>('all');
+  const [view, setView] = useState<ViewFilter>('all');
   const [device, setDevice] = useState('');
   const [petChoice, setPet] = useState('');
   const [selected, setSelected] = useState<string | null>(null);
+  const [changing, setChanging] = useState<ChangeTarget | null>(null);
   useTimelineLiveRefresh();
 
   const devices = useTimelineDevices();
@@ -37,23 +41,30 @@ export function TimelinePage() {
   const pet =
     petChoice && pets.data && !petList.some(p => String(p.id) === petChoice) ? '' : petChoice;
 
-  const query: TimelineQuery = { date, filter, device, pet };
+  const query: TimelineQuery = { date, filter: serverFilter(view), device, pet };
   const list = useTimelineDay(query);
+  // The unfiltered day for the same cat and device; the "Not recognised" chip counts from it.
+  // It is the list query itself while no kind chip narrows the day.
+  const unfiltered = useTimelineDay({ ...query, filter: 'all' });
   // The strip is the whole household's day; when no filter is set this is the same query.
   const household = useTimelineDay({ date, filter: 'all', device: '', pet: '' });
 
   const isToday = date === todayLocal();
-  const sessions = list.data?.sessions ?? [];
+  const sessions = applyViewFilter(list.data?.sessions ?? [], view);
   const keys = sessions.map((s, i) => sessionKey(s, i));
   const selectedIndex = Math.max(0, selected === null ? 0 : keys.indexOf(selected));
   const current = sessions.at(selectedIndex);
   const currentKey = keys.at(selectedIndex) ?? null;
   const deviceList = devices.data ?? [];
+  const unrecognised = unfiltered.data?.sessions.filter(isUnrecognisedVisit).length;
 
-  const changeDay = (next: string) => {
-    setDate(next);
-    setSelected(null);
-  };
+  // Every filter change starts the list again from its newest session.
+  const narrow =
+    <T,>(set: (value: T) => void) =>
+    (value: T) => {
+      set(value);
+      setSelected(null);
+    };
 
   let events;
   if (list.error) {
@@ -75,29 +86,45 @@ export function TimelinePage() {
         selectedKey={currentKey}
         onSelect={setSelected}
         showDevice={deviceList.length > 1}
+        onAskWho={(s, key) => {
+          setSelected(key);
+          setChanging(s);
+        }}
       />
     );
   }
 
   return (
-    <div className="flex min-w-0 flex-col gap-(--pk-gap)">
-      <PageHeading title="Timeline" aside={visitSummary(household.data, isToday) ?? undefined} />
-      <TimelineToolbar
-        date={date}
-        onDate={changeDay}
-        pet={pet}
-        onPet={v => {
-          setPet(v);
-          setSelected(null);
-        }}
-        device={device}
-        onDevice={v => {
-          setDevice(v);
-          setSelected(null);
-        }}
-        pets={petList}
-        devices={deviceList}
+    <div className="flex min-w-0 flex-col gap-5">
+      <PageHeader
+        title="Timeline"
+        finding={visitSummary(household.data, isToday) ?? undefined}
+        actions={<TimelineDayNav date={date} onDate={narrow(setDate)} />}
       />
+      <TimelineFilterChips
+        counts={list.data?.counts}
+        unrecognised={unrecognised}
+        view={view}
+        onView={narrow(setView)}
+        pets={petList}
+        pet={pet}
+        onPet={narrow(setPet)}
+        devices={deviceList}
+        device={device}
+        onDevice={narrow(setDevice)}
+      />
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] items-start gap-5 max-[900px]:grid-cols-1">
+        <Card as="section" padding="none" className="px-4 py-2" aria-label="Events">
+          {events}
+        </Card>
+        {current && (
+          <TimelineSessionDetail
+            key={currentKey ?? undefined}
+            session={current}
+            onChangeCat={setChanging}
+          />
+        )}
+      </div>
       <TimelineDayStrip
         date={date}
         isToday={isToday}
@@ -108,32 +135,16 @@ export function TimelinePage() {
         pets={petList}
         devices={deviceList}
       />
-      {list.isPending ? (
-        <Skeleton height={84} />
-      ) : (
-        <FigureContainer label="The day in figures" cells={figures(list.data)} />
+      {changing && (
+        <ChangeCatDialog
+          key={String(changing.id)}
+          session={changing}
+          pets={petList}
+          onClose={() => {
+            setChanging(null);
+          }}
+        />
       )}
-      <div className="grid grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-start gap-(--pk-gap) max-[900px]:grid-cols-1">
-        <section className="flex min-w-0 flex-col gap-2" aria-labelledby="tl-events-h">
-          <div className="flex flex-col gap-2">
-            <h2 id="tl-events-h" className="m-0 text-lg font-semibold">
-              Events
-            </h2>
-            <TimelineFilterChips
-              counts={list.data?.counts}
-              value={filter}
-              onChange={k => {
-                setFilter(k);
-                setSelected(null);
-              }}
-            />
-          </div>
-          {events}
-        </section>
-        {current && (
-          <TimelineSessionDetail key={currentKey ?? undefined} session={current} pets={petList} />
-        )}
-      </div>
     </div>
   );
 }

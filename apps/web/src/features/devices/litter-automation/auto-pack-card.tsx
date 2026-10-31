@@ -1,10 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useId, useState } from 'react';
 import { errorMessage } from '@/shared/api/errors';
-import { Button, ConfirmDialog, Icon, Pill, Switch, useToast } from '@/shared/ui';
+import { Button, ConfirmDialog, Icon, Panel, Pill, Switch, useToast } from '@/shared/ui';
 import { Alert, AlertDescription } from '@/shared/ui/shadcn/alert';
-import { Card } from '@/shared/ui/shadcn/card';
-import { Field, FieldLabel } from '@/shared/ui/shadcn/field';
 import { type AutoPackDraft, AutoPackRuleFields, draftToRule } from './auto-pack-rule-fields';
 import {
   type AutoPackRule,
@@ -65,19 +63,27 @@ export function AutoPackCard({ deviceId, rule: saved, status }: AutoPackCardProp
   };
 
   return (
-    <Card role="region" aria-labelledby={titleId} className="max-w-160 gap-4 px-5">
-      <div className="flex flex-wrap items-center gap-2">
-        <h3 id={titleId} className="text-lg font-semibold">
-          Auto-pack
-        </h3>
-        <Pill>Experimental</Pill>
-      </div>
-      <p className="text-sm text-muted-foreground">
-        The box packs and seals the waste bag on its own when the rule says so. The server turns the
-        rule off after a pack error or two unanswered packs, and never turns it on.
-      </p>
-
-      <Field orientation="horizontal" className="gap-2.5">
+    <div
+      role="region"
+      aria-labelledby={titleId}
+      className="flex min-w-0 flex-col gap-4 border-t border-rule pt-3 pb-3 first:border-t-0 first:pt-0"
+    >
+      <div className="flex items-start gap-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 id={titleId} className="text-base font-normal">
+              Auto-pack
+            </h3>
+            <Pill>Experimental</Pill>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            The box packs and seals the waste bag on its own when the rule says so. The server turns
+            the rule off after a pack error or two unanswered packs, and never turns it on.
+          </p>
+        </div>
+        <label htmlFor={enabledId} className="sr-only">
+          Pack automatically
+        </label>
         <Switch
           id={enabledId}
           checked={saved.enabled}
@@ -87,8 +93,7 @@ export function AutoPackCard({ deviceId, rule: saved, status }: AutoPackCardProp
             else if (valid) void save({ ...valid, enabled: false }, 'Auto-pack turned off');
           }}
         />
-        <FieldLabel htmlFor={enabledId}>Pack automatically</FieldLabel>
-      </Field>
+      </div>
 
       <AutoPackRuleFields
         draft={shown}
@@ -98,10 +103,10 @@ export function AutoPackCard({ deviceId, rule: saved, status }: AutoPackCardProp
         }}
       />
 
-      <Alert>
-        <Icon name="warning" size={16} strokeWidth={2} className="text-warning" />
-        <AlertDescription className="text-foreground">{ADVICE}</AlertDescription>
-      </Alert>
+      <Panel className="flex items-start gap-2.5 text-lede">
+        <Icon name="warning" size={16} strokeWidth={2} className="mt-0.5 flex-none text-warning" />
+        <p>{ADVICE}</p>
+      </Panel>
 
       <p role="status" className="min-h-[18px] text-sm text-muted-foreground">
         {autoPackStatusLine(saved, status)}
@@ -152,6 +157,6 @@ export function AutoPackCard({ deviceId, rule: saved, status }: AutoPackCardProp
         <p>{ADVICE}</p>
         <p>Cleanings are counted from the moment it is turned on.</p>
       </ConfirmDialog>
-    </Card>
+    </div>
   );
 }

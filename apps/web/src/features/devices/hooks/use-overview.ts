@@ -1,5 +1,6 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import { type ReactNode, useMemo } from 'react';
+import type { DeviceStatus } from '@/shared/ui';
 import type {
   BleAccessory,
   DeviceDetail,
@@ -7,13 +8,41 @@ import type {
   PetWithFaces,
   TimelineSession,
 } from '../api';
-import type { DeviceRow } from '../components/device-table';
 import { buildStrip, type StripModel } from '../lib/day-strip-lanes';
 import { deviceFamily } from '../lib/device-family';
-import { accessoryStatus, attentionFor, deviceStatus, nowText } from '../lib/device-status';
+import {
+  accessoryStatus,
+  type Attention,
+  attentionFor,
+  deviceStatus,
+  nowText,
+} from '../lib/device-status';
 import { type DeviceZone, deviceZone, localDateKey, minuteOfDay } from '../lib/device-zone';
 import { nextMealClock, todaysMeals } from '../lib/feed-plan';
+import type { AnyEntity } from '../lib/entity-sections';
 import { epochSeconds, lastReport } from '../lib/timestamps';
+
+/** One device or accessory of Home, already worked out. */
+export interface DeviceRow {
+  /** `d<id>` or `a<id>`: the device page's key. */
+  key: string;
+  kind: 'device' | 'accessory';
+  name: string;
+  /** Codename, for the drawing. */
+  type: string;
+  model: string;
+  id: string;
+  status: { status: DeviceStatus; label: string };
+  now: string | null;
+  attention: Attention | null;
+  lastReport: number | null;
+  /** True while the device reports over MQTT (false on the heartbeat or for an accessory). */
+  mqtt: boolean;
+  /** The relay of an accessory, by name. */
+  parentName: string | null;
+  /** Entities whose values the drawing reads; empty until the detail has loaded. */
+  entities: readonly AnyEntity[];
+}
 
 interface OverviewInput {
   devices: readonly DeviceSummary[];
@@ -76,7 +105,12 @@ export function useOverview(input: OverviewInput): Overview {
           : null;
       rows.push({
         key: `d${d.id}`,
+        kind: 'device',
         name: d.name,
+        type: d.type,
+        mqtt: d.online && d.mqtt_connected,
+        parentName: null,
+        entities: detail?.entities ?? [],
         model: d.type.toUpperCase(),
         id: String(d.id),
         status: deviceStatus(d),
@@ -110,7 +144,12 @@ export function useOverview(input: OverviewInput): Overview {
 function accessoryRow(a: BleAccessory): DeviceRow {
   return {
     key: `a${a.petkit_id}`,
+    kind: 'accessory',
     name: a.name,
+    type: a.ble_type,
+    mqtt: false,
+    parentName: a.parent_name || null,
+    entities: a.entities,
     model: a.parent_name
       ? `${a.ble_type.toUpperCase()} · relayed by ${a.parent_name}`
       : a.ble_type.toUpperCase(),

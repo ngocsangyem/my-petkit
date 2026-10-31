@@ -1,5 +1,5 @@
 import { errorMessage } from '@/shared/api/errors';
-import { Button, EmptyBlock, ErrorBlock, Skeleton } from '@/shared/ui';
+import { Button, EmptyBlock, ErrorBlock, Pill, SectionCard, Skeleton } from '@/shared/ui';
 import { useDeferredFeeds, useDeleteDeferredFeed } from '../api';
 import { formatDeviceMoment, formatOffset } from '../schedule-clock';
 import { DeferredFeedForm } from './deferred-feed-form';
@@ -43,33 +43,36 @@ export function DeferredFeedPanel({ deviceId, dual, offset }: DeferredFeedPanelP
 
   const zone = formatOffset(offset);
   return (
-    <div className="flex min-w-0 flex-col gap-2">
+    <SectionCard title="Deferred feed" aside="Sent when the feeder next polls">
       {feeds.data.length ? (
-        feeds.data.map(feed => (
-          <div
-            className="flex min-h-(--pk-row-height-compact) flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg bg-raised px-3 py-2"
-            key={feed.id}
-          >
-            <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
-              <span className="font-semibold">{formatDeviceMoment(feed.fire_at, offset)}</span>
-              <span className="text-sm text-muted-foreground">
-                {dual ? `Hopper 1: ${feed.a1}, Hopper 2: ${feed.a2}` : `Portions: ${feed.a1}`}
-              </span>
+        <div className="flex flex-col">
+          {feeds.data.map(feed => (
+            <div
+              className="flex min-h-13 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-rule py-2 first:border-t-0"
+              key={feed.id}
+            >
+              <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+                <span className="font-semibold">{formatDeviceMoment(feed.fire_at, offset)}</span>
+                <span className="text-sm text-muted-foreground">
+                  {dual ? `Hopper 1: ${feed.a1}, Hopper 2: ${feed.a2}` : `Portions: ${feed.a1}`}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Pill>Waiting</Pill>
+                <Button
+                  variant="ghost"
+                  size="small"
+                  disabled={remove.isPending}
+                  onClick={() => {
+                    remove.mutate(feed.id);
+                  }}
+                >
+                  Delete
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="destructive"
-                size="small"
-                disabled={remove.isPending}
-                onClick={() => {
-                  remove.mutate(feed.id);
-                }}
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
-        ))
+          ))}
+        </div>
       ) : (
         <EmptyBlock>No one-off feeds scheduled.</EmptyBlock>
       )}
@@ -79,10 +82,10 @@ export function DeferredFeedPanel({ deviceId, dual, offset }: DeferredFeedPanelP
         </p>
       )}
       <DeferredFeedForm deviceId={deviceId} dual={dual} offset={offset} />
-      <p className="text-sm text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         Date and time are on the feeder's own clock ({zone}). The feeder picks the meal up on its
         next check-in.
       </p>
-    </div>
+    </SectionCard>
   );
 }

@@ -96,14 +96,6 @@ export const BLOCKING_GUARDS: readonly BoolSettingKey[] = [
   'proxy_block_log_upload',
 ];
 
-/**
- * Every `proxy_*` key and `capture` need a fresh step-up to write (the server's
- * `setting_key_tier`); every key this screen edits is one of them.
- */
-export function needsStepUp(key: keyof LiveSettings): boolean {
-  return key.startsWith('proxy_') || key === 'capture';
-}
-
 /** The preset an empty `proxy_upstream` resolves to, as the server flags it. */
 export function defaultUpstream(presets: readonly UpstreamChoice[]): string {
   return (presets.find(u => u.default) ?? presets[0])?.key ?? '';

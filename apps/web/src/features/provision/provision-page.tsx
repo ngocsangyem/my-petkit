@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 import { detectedOffsetHours, timezoneOptions } from '@/ble/provisioning-payload';
 import { errorMessage } from '@/shared/api/errors';
-import { PageHeading } from '@/shared/ui';
+import { Button, Card, Icon, PageHeader } from '@/shared/ui';
 import { useServerInfo } from './api';
 import { DevicesFound } from './components/devices-found';
 import { EnvironmentNotice, environmentTooltip } from './components/environment-notice';
 import { ProvisionForm, type ProvisionFormValues } from './components/provision-form';
-import { ProvisionProgress } from './components/provision-progress';
+import { ProvisionProgressPill, ProvisionSteps } from './components/provision-progress';
 import { SessionLog } from './components/session-log';
 import { useBluetoothEnvironment } from './hooks/use-bluetooth-environment';
 import { useProvisionSession } from './hooks/use-provision-session';
@@ -39,44 +39,37 @@ export function ProvisionPage() {
     });
   };
 
+  const progress = {
+    wifiDone: values.ssid.trim() !== '' && values.pwd !== '',
+    serverDone: values.server.trim() !== '' && values.tz !== '',
+    sent: session.outcome === 'provisioned',
+  };
+  const chosen = session.found.find(d => d.id === session.selectedId);
+
   return (
-    <div className="flex min-w-0 flex-col gap-6">
-      <div className="flex max-w-[760px] flex-col gap-1.5">
-        <PageHeading
-          title="Provision a device"
-          aside="Sends Wi-Fi, this server’s address and the time zone over Bluetooth. No PetKit app involved."
-        />
-        <ProvisionProgress
-          wifiDone={values.ssid.trim() !== '' && values.pwd !== ''}
-          serverDone={values.server.trim() !== '' && values.tz !== ''}
-          sent={session.outcome === 'provisioned'}
-        />
-      </div>
-      <EnvironmentNotice block={block} />
-      <div className="grid grid-cols-1 items-start gap-8 min-[901px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <ProvisionForm
-          values={values}
-          onChange={patch => {
-            setForm(prev => ({ ...prev, ...patch }));
-          }}
-          timezones={timezones}
-          detectedHours={detectedHours}
-          zoneName={zoneName}
-          serverLoading={info.isPending && form.server === null}
-          serverError={info.isError ? errorMessage(info.error) : null}
-          onRetryServer={() => {
-            void info.refetch();
-          }}
-          blocked={block !== null}
-          blockedReason={environmentTooltip(block)}
-          busy={session.busy}
-          status={session.status}
-          onFind={() => {
-            void session.findDevice();
-          }}
-          onSend={send}
-        />
-        <div className="flex min-w-0 flex-col gap-6">
+    <>
+      <PageHeader
+        title="Add a device"
+        finding="Sends Wi-Fi, this server’s address and the time zone over Bluetooth. Your browser talks to the device; the server never sees the Wi-Fi password, and no PetKit app is involved."
+        actions={<ProvisionProgressPill {...progress} />}
+      />
+      {block && (
+        <Card padding="none">
+          <EnvironmentNotice block={block} />
+        </Card>
+      )}
+      <div className="grid grid-cols-1 items-start gap-5 min-[901px]:grid-cols-2">
+        <Card as="section" aria-labelledby="provision-device" className="flex flex-col gap-3.5">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm text-muted-foreground">New device</span>
+            <h2
+              id="provision-device"
+              className={chosen ? 'font-mono text-base wrap-anywhere' : undefined}
+            >
+              {chosen ? chosen.name : 'None chosen yet'}
+            </h2>
+          </div>
+          <ProvisionSteps {...progress} />
           <DevicesFound
             devices={session.found}
             selectedId={session.selectedId}
@@ -84,8 +77,47 @@ export function ProvisionPage() {
             disabled={session.busy}
           />
           <SessionLog lines={session.lines} />
-        </div>
+          <div>
+            <Button
+              disabled={block !== null || session.busy}
+              title={environmentTooltip(block)}
+              onClick={() => {
+                void session.findDevice();
+              }}
+            >
+              Find device
+            </Button>
+          </div>
+        </Card>
+        <Card as="section" aria-label="Network and server">
+          <ProvisionForm
+            values={values}
+            onChange={patch => {
+              setForm(prev => ({ ...prev, ...patch }));
+            }}
+            timezones={timezones}
+            detectedHours={detectedHours}
+            zoneName={zoneName}
+            serverLoading={info.isPending && form.server === null}
+            serverError={info.isError ? errorMessage(info.error) : null}
+            onRetryServer={() => {
+              void info.refetch();
+            }}
+            blocked={block !== null}
+            blockedReason={environmentTooltip(block)}
+            busy={session.busy}
+            status={session.status}
+            onSend={send}
+          />
+        </Card>
       </div>
-    </div>
+      <Card className="flex items-start gap-2.5 py-3.5 text-lede">
+        <Icon name="provision" size={18} className="mt-0.5 flex-none text-muted-foreground" />
+        <p>
+          Web Bluetooth needs Chrome or Edge on desktop or Android, and a secure context: a page
+          with a trusted certificate. On an iPhone, use the my-petkit app.
+        </p>
+      </Card>
+    </>
   );
 }

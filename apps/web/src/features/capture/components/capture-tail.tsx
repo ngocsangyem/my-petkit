@@ -1,5 +1,5 @@
 import { errorMessage } from '@/shared/api/errors';
-import { Button, EmptyBlock, ErrorBlock, Skeleton } from '@/shared/ui';
+import { Button, Card, EmptyBlock, ErrorBlock, Icon, Skeleton } from '@/shared/ui';
 import { useCaptureTail } from '../api';
 
 export interface CaptureTailProps {
@@ -27,9 +27,9 @@ export function CaptureTail({
 
   if (name === null) {
     return (
-      <div className="flex min-w-0 flex-col gap-3">
+      <Card>
         <EmptyBlock>Pick a file to read its last records.</EmptyBlock>
-      </div>
+      </Card>
     );
   }
 
@@ -50,7 +50,7 @@ export function CaptureTail({
     caption = `Last ${records.length} of ${total} lines · secrets are masked in this view only`;
     body = records.length ? (
       <pre
-        className="min-h-[560px] max-h-[600px] overflow-auto rounded-lg border border-border bg-background px-4 py-3.5 font-mono text-xs leading-[1.7] whitespace-pre"
+        className="max-h-[600px] min-h-[240px] overflow-auto rounded-md bg-raised px-4 py-3.5 font-mono text-xs leading-[1.7] whitespace-pre"
         aria-label={`Last records of ${name}`}
       >
         {records.map(recordLine).join('\n')}
@@ -61,33 +61,37 @@ export function CaptureTail({
   }
 
   return (
-    <section className="flex min-w-0 flex-col gap-3" aria-labelledby="capture-tail-title">
+    <Card as="section" className="flex flex-col gap-3" aria-labelledby="capture-tail-title">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="capture-tail-title" className="font-mono text-base font-medium wrap-anywhere">
-          {name}
+        <h2 id="capture-tail-title" className="wrap-anywhere">
+          Last lines of <span className="font-mono text-base font-medium">{name}</span>
         </h2>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <Button
+            size="small"
             disabled={downloading}
             onClick={() => {
               onDownload(name);
             }}
           >
+            <Icon name="download" size={14} />
             {downloading ? 'Downloading…' : 'Download'}
           </Button>
           <Button
             variant="destructive"
+            size="small"
             disabled={deleting}
             onClick={() => {
               onDelete(name);
             }}
           >
+            <Icon name="trash" size={14} />
             Delete
           </Button>
         </div>
       </div>
       <p className="text-xs text-muted-foreground">{caption}</p>
       {body}
-    </section>
+    </Card>
   );
 }

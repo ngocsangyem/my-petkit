@@ -2,20 +2,25 @@ import type { ComponentPropsWithRef } from 'react';
 import { Button as ShadcnButton, buttonVariants } from './shadcn/button';
 
 /**
- * - `primary`: ink fill, white text; at most one per screen.
- * - `secondary`: white with a control border; device commands use this.
- * - `destructive`: red text, no fill.
+ * Every button is a full pill.
+ * - `primary`: near-black fill, white text (inverted in dark mode); at most one per screen.
+ * - `secondary`: white on the ground, ground-tinted inside a card or dialog, white again inside a
+ *   raised `Panel`; device commands use this.
+ * - `ghost`: no fill until hovered, e.g. a toast or toolbar action.
+ * - `destructive`: red text, no fill (Revoke, Sign out).
  * - `danger-final`: red fill; only the last action of a step-up (R3) flow.
- * - `text`: an accent text button, for Retry and in-line actions.
+ * - `text`: an accent text link-button, for in-line actions.
  */
-export type ButtonVariant = 'primary' | 'secondary' | 'destructive' | 'danger-final' | 'text';
+export type ButtonVariant =
+  'primary' | 'secondary' | 'ghost' | 'destructive' | 'danger-final' | 'text';
 
-/** 32px by default; 28px inside table rows; 36px in dialogs and sign-in forms. */
+/** 40px by default; 32px inside table rows and toolbars; 48px for the main action of a form. */
 export type ButtonSize = 'regular' | 'small' | 'large';
 
 const VARIANT = {
   primary: 'default',
   secondary: 'outline',
+  ghost: 'ghost',
   destructive: 'destructive-text',
   'danger-final': 'destructive',
   text: 'link',

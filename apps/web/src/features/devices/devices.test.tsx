@@ -5,6 +5,7 @@ import { mockApi, type MockReply } from '@/test/mock-api';
 import { renderWithProviders } from '@/test/render';
 import {
   accessory,
+  entity,
   feederDetail,
   feederSummary,
   litterDetail,
@@ -85,9 +86,12 @@ function routes(extra: Record<string, MockReply> = {}): Record<string, MockReply
   };
 }
 
-async function openLitterPanel() {
-  renderWithProviders(<DevicesPage />);
-  return screen.findByRole('region', { name: 'Purobot Ultra T6' });
+const litterPage = `/?device=d${litterSummary.id}`;
+const feederPage = `/?device=d${feederSummary.id}`;
+
+async function openLitterPage(route = litterPage) {
+  renderWithProviders(<DevicesPage />, { route });
+  return screen.findByRole('region', { name: 'Purobot Ultra T6 at a glance' });
 }
 
 beforeEach(() => {
@@ -103,18 +107,21 @@ describe('DevicesPage', () => {
   it('lists devices with status, now and needs-you, accessories after their parent', async () => {
     mockApi(routes());
     renderWithProviders(<DevicesPage />);
-    const table = await screen.findByRole('table', { name: 'All devices' });
-    const rows = within(table).getAllByRole('row');
-    expect(rows.map(r => r.textContent)).toEqual([
-      expect.stringContaining('Device'),
-      expect.stringContaining('Online · MQTT'),
+    const list = await screen.findByRole('list', { name: 'Devices' });
+    const cards = within(list).getAllByRole('listitem');
+    expect(cards.map(c => c.textContent)).toEqual([
+      expect.stringContaining('MQTT'),
       expect.stringContaining('EverSweet Max Cordless'),
-      expect.stringContaining('Polling · heartbeat'),
+      expect.stringContaining('Heartbeat'),
     ]);
+    expect(cards[0]).toHaveTextContent('Purobot Ultra T6');
+    expect(cards[0]).toHaveTextContent('Online');
+    expect(cards[2]).toHaveTextContent('Polling');
+    expect(cards[0]).toHaveTextContent('Idle');
+    const needs = screen.getByRole('region', { name: /Needs you/ });
     await waitFor(() => {
-      expect(within(table).getByText('N60 deodorizer in 3 days')).toBeInTheDocument();
+      expect(within(needs).getByText('N60 deodorizer runs out in 3 days')).toBeInTheDocument();
     });
-    expect(within(table).getByText('Idle')).toBeInTheDocument();
   });
 
   it('places a visit on the strip in the device zone, not the browser zone', async () => {
@@ -133,7 +140,7 @@ describe('DevicesPage', () => {
       }),
     );
     const user = userEvent.setup();
-    const panel = await openLitterPanel();
+    const panel = await openLitterPage();
     const commands = await within(panel).findByRole('region', { name: 'Commands' });
     const names = within(commands)
       .getAllByRole('button')
@@ -152,25 +159,30 @@ describe('DevicesPage', () => {
     expect(await post?.json()).toEqual({ action: 'clean', transport: 'auto' });
   });
 
-  it('keeps an unsent number edit across a collapse and refuses out-of-range values', async () => {
+  it('keeps an unsent number edit across navigation and refuses out-of-range values', async () => {
     const calls = mockApi(routes());
     const user = userEvent.setup();
-    const panel = await openLitterPanel();
-    const input = await within(panel).findByRole('spinbutton', { name: 'Clean Delay' });
+    await openLitterPage();
+    const input = await screen.findByRole('spinbutton', { name: 'Clean Delay' });
     await user.clear(input);
     await user.type(input, '90');
-    await user.click(within(panel).getByRole('button', { name: 'Set Clean Delay' }));
-    expect(within(panel).getByText(/Must be between 1 and 60/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Set Clean Delay' }));
+    expect(screen.getByText(/Must be between 1 and 60/)).toBeInTheDocument();
     expect(calls.some(c => c.method === 'POST')).toBe(false);
 
-    const toggle = within(panel).getAllByRole('button', { expanded: true })[0]!;
-    await user.click(toggle);
-    expect(within(panel).queryByRole('spinbutton', { name: 'Clean Delay' })).toBeNull();
-    await user.click(toggle);
-    expect(within(panel).getByRole('spinbutton', { name: 'Clean Delay' })).toHaveValue(90);
-    expect(within(panel).getByText(/Not sent yet/)).toBeInTheDocument();
+    await user.click(screen.getByRole('link', { name: 'Home' }));
+    expect(screen.queryByRole('spinbutton', { name: 'Clean Delay' })).toBeNull();
+    const list = await screen.findByRole('list', { name: 'Devices' });
+    await user.click(within(list).getByRole('link', { name: 'Purobot Ultra T6' }));
+    expect(await screen.findByRole('spinbutton', { name: 'Clean Delay' })).toHaveValue(90);
+    expect(screen.getByText(/Not sent yet/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Entities and raw command/ }));
+    expect(
+      await screen.findByRole('region', { name: 'Entities and raw command' }),
+    ).toBeInTheDocument();
     expect(JSON.parse(localStorage.getItem('mp.devices.open') ?? '{}')).toMatchObject({
-      [`d${litterSummary.id}:panel`]: true,
+      [`d${litterSummary.id}:raw`]: true,
     });
   });
 
@@ -179,10 +191,11 @@ describe('DevicesPage', () => {
     const exec = vi.fn(() => true);
     Object.defineProperty(document, 'execCommand', { value: exec, configurable: true });
     const user = userEvent.setup();
-    const panel = await openLitterPanel();
-    await user.click(await within(panel).findByRole('button', { name: 'Copy Camera stream URL' }));
+    renderWithProviders(<DevicesPage />, { route: `${litterPage}&view=live` });
+    const stream = await screen.findByRole('region', { name: 'Stream' });
+    await user.click(await within(stream).findByRole('button', { name: 'Copy Camera stream URL' }));
     expect(exec).toHaveBeenCalledWith('copy');
-    expect(within(panel).getByText('Copied')).toBeInTheDocument();
+    expect(within(stream).getByText('Copied')).toBeInTheDocument();
   });
 
   it('clears the timezone override when the box is emptied', async () => {
@@ -202,8 +215,8 @@ describe('DevicesPage', () => {
       }),
     );
     const user = userEvent.setup();
-    renderWithProviders(<DevicesPage />);
-    const panel = await screen.findByRole('region', { name: 'YumShare Dual-Hopper' });
+    renderWithProviders(<DevicesPage />, { route: feederPage });
+    const panel = await screen.findByRole('region', { name: 'Timezone' });
     const box = await within(panel).findByRole('spinbutton', { name: 'Offset from UTC' });
     expect(box).toHaveValue(2);
     await user.clear(box);
@@ -215,14 +228,35 @@ describe('DevicesPage', () => {
     expect(await post?.json()).toEqual({ timezone: null });
   });
 
+  it("shows a feeder's figures beside Feed now", async () => {
+    mockApi(
+      routes({
+        [`GET /api/devices/${feederSummary.id}`]: {
+          body: {
+            ...feederDetail,
+            entities: [
+              entity({ key: 'food_in_bowl', component: 'sensor', unit: 'g', value: 12 }),
+              entity({ key: 'amount_eaten', component: 'sensor', unit: 'g', value: 23 }),
+            ],
+          },
+        },
+      }),
+    );
+    renderWithProviders(<DevicesPage />, { route: feederPage });
+    const list = await screen.findByLabelText(`${feederSummary.name} figures`);
+    expect(within(list).getByText('In the bowl')).toBeInTheDocument();
+    expect(within(list).getByText('12')).toBeInTheDocument();
+    expect(within(list).getByText('Eaten today')).toBeInTheDocument();
+  });
+
   it('refuses a sound over 2 MB before sending it', async () => {
     const calls = mockApi(
       routes({ [`GET /api/devices/${feederSummary.id}/sounds`]: { body: { sounds: [] } } }),
     );
     const user = userEvent.setup({ applyAccept: false });
-    renderWithProviders(<DevicesPage />);
-    const panel = await screen.findByRole('region', { name: 'YumShare Dual-Hopper' });
-    await user.click(await within(panel).findByText('Custom sounds'));
+    renderWithProviders(<DevicesPage />, { route: feederPage });
+    await user.click(await screen.findByRole('button', { name: /^Sounds/ }));
+    const panel = await screen.findByRole('dialog', { name: 'Sounds' });
     const input = await within(panel).findByLabelText(/Upload a sound/);
     const big = new File([new Uint8Array(2 * 1024 * 1024 + 1)], 'big.mp3', { type: 'audio/mpeg' });
     await user.upload(input, big);
@@ -235,9 +269,9 @@ describe('DevicesPage', () => {
       routes({ [`POST /api/ble/${accessory.petkit_id}/poll`]: { body: { ok: true, via: 1 } } }),
     );
     const user = userEvent.setup();
-    renderWithProviders(<DevicesPage />);
-    const panel = await screen.findByRole('region', { name: 'EverSweet Max Cordless' });
-    expect(within(panel).getByText(/scan type for this model is a guess/)).toBeInTheDocument();
+    renderWithProviders(<DevicesPage />, { route: `/?device=a${accessory.petkit_id}` });
+    const panel = await screen.findByRole('region', { name: 'EverSweet Max Cordless at a glance' });
+    expect(screen.getByText(/scan type for this model is a guess/)).toBeInTheDocument();
     await user.click(within(panel).getByRole('button', { name: 'Read now' }));
     expect(await within(panel).findByText('Asked the relay for a reading')).toBeInTheDocument();
     expect(

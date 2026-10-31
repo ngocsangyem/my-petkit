@@ -8,6 +8,10 @@ import { cn } from 'cn';
 
 import { toggleVariants } from '@/shared/ui/shadcn/toggle';
 
+// Edited from the shadcn source: a `segment` group draws the segmented-control
+// track (a pill on `--pk-segment` with 3px padding, design-reference §7.1);
+// other groups are a row of separate chips.
+
 const ToggleGroupContext = React.createContext<
   VariantProps<typeof toggleVariants> & {
     spacing?: number;
@@ -42,7 +46,7 @@ function ToggleGroup({
       data-orientation={orientation}
       style={{ '--gap': spacing } as React.CSSProperties}
       className={cn(
-        'group/toggle-group flex w-fit flex-row items-center gap-[--spacing(var(--gap))] rounded-lg data-[size=sm]:rounded-[min(var(--radius-md),10px)] data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch',
+        'group/toggle-group flex w-fit flex-row items-center gap-[--spacing(var(--gap))] rounded-full data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch data-[variant=segment]:gap-0 data-[variant=segment]:bg-segment data-[variant=segment]:p-[3px]',
         className,
       )}
       {...props}

@@ -1,7 +1,8 @@
-import { Button, EmptyBlock, Icon, TimeInput } from '@/shared/ui';
-import { clockToSec, EVERY_DAY, secToClock } from '../schedule-clock';
+import { useState } from 'react';
+import { Button, Card, EmptyBlock, Icon, IconButton } from '@/shared/ui';
+import { EVERY_DAY, parseDays, secToClock, WEEKDAYS } from '../schedule-clock';
 import { edited, type FeedGroup, type FeedValue, nextId } from '../schedule-model';
-import { PortionInput } from './portion-input';
+import { MealSheet } from './meal-sheet';
 import { WeekdayBar } from './weekday-bar';
 
 interface FeedEditorProps {
@@ -11,9 +12,28 @@ interface FeedEditorProps {
   dual: boolean;
 }
 
-/** A feeder's meals: groups share weekdays (`re`) and hold meals (`it`), each `{id, t, a1, a2}` with `t` in seconds. */
+/** "Every day", "Weekdays", or the day names, for a set's `re`. */
+export function daysText(re: string): string {
+  const on = parseDays(re);
+  if (on.size === 7) return 'Every day';
+  if (on.size === 5 && [2, 3, 4, 5, 6].every(d => on.has(d))) return 'Weekdays';
+  if (on.size === 0) return 'No days';
+  return WEEKDAYS.filter((_, i) => on.has(i + 1)).join(', ');
+}
+
+function portions(a1: number, a2: number, dual: boolean): string {
+  if (dual) return `Hopper 1 × ${a1} · Hopper 2 × ${a2}`;
+  return `${a1} ${a1 === 1 ? 'portion' : 'portions'}`;
+}
+
+/**
+ * A feeder's meals: sets that share weekdays (`re`), each a card of meals (`it`, `{id, t, a1, a2}`
+ * with `t` in seconds). A meal opens in the right sheet; edits go into the working copy, saved
+ * with the schedule.
+ */
 export function FeedEditor({ value, onChange, dual }: FeedEditorProps) {
   const groups = value.schedule;
+  const [editing, setEditing] = useState<{ gi: number; mi: number } | null>(null);
   const change = (gi: number, fn: (group: FeedGroup) => void) => {
     onChange(
       edited(value, v => {
@@ -22,7 +42,7 @@ export function FeedEditor({ value, onChange, dual }: FeedEditorProps) {
       }),
     );
   };
-  const add = (
+  const addSet = (
     <Button
       variant="text"
       onClick={() => {
@@ -35,103 +55,73 @@ export function FeedEditor({ value, onChange, dual }: FeedEditorProps) {
   );
   if (!groups.length)
     return (
-      <EmptyBlock action={add}>
+      <EmptyBlock action={addSet}>
         No meals set. The feeder dispenses only when you press Feed.
       </EmptyBlock>
     );
 
+  const open = editing ? groups[editing.gi]?.it[editing.mi] : undefined;
+
   return (
-    <div className="flex min-w-0 flex-col gap-2">
+    <div className="flex min-w-0 flex-col gap-4">
       {groups.map((group, gi) => (
-        <div className="flex flex-col gap-2 rounded-lg border border-border p-3" key={gi}>
-          <div className="flex min-h-(--pk-row-height-compact) flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg bg-raised px-3 py-2">
-            <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
-              <WeekdayBar
-                label={`Days of meal set ${gi + 1}`}
-                days={group.re}
-                onChange={days => {
-                  change(gi, g => {
-                    g.re = days;
-                  });
-                }}
-              />
-            </div>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="destructive"
-                size="small"
+        <Card
+          as="section"
+          key={gi}
+          aria-label={`Meal set ${gi + 1}`}
+          className="flex flex-col gap-1 py-3"
+        >
+          <div className="flex flex-col gap-1.5 pb-2">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm text-muted-foreground">{daysText(group.re)}</span>
+              <IconButton
+                icon="close"
+                variant="ghost"
                 aria-label={`Remove meal set ${gi + 1}`}
+                className="-my-2"
                 onClick={() => {
                   onChange({ ...value, schedule: groups.filter((_, j) => j !== gi) });
                 }}
-              >
-                <Icon name="close" size={14} />
-              </Button>
+              />
             </div>
+            <WeekdayBar
+              label={`Days of meal set ${gi + 1}`}
+              days={group.re}
+              onChange={days => {
+                change(gi, g => {
+                  g.re = days;
+                });
+              }}
+            />
           </div>
           {group.it.length ? (
-            group.it.map((meal, mi) => {
-              const name = `Meal ${mi + 1} of set ${gi + 1}`;
-              const setMeal = (field: 't' | 'a1' | 'a2', n: number) => {
-                change(gi, g => {
-                  const m = g.it[mi];
-                  if (m) m[field] = n;
-                });
-              };
-              return (
-                <div
-                  className="flex min-h-(--pk-row-height-compact) flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg bg-raised px-3 py-2"
-                  key={mi}
-                >
-                  <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
-                    <TimeInput
-                      aria-label={`${name} time`}
-                      value={secToClock(meal.t)}
-                      onValueChange={v => {
-                        const s = clockToSec(v);
-                        if (s !== null) setMeal('t', s);
-                      }}
-                    />
-                    <PortionInput
-                      label={dual ? 'Hopper 1' : 'Portions'}
-                      max={255}
-                      value={meal.a1}
-                      onChange={n => {
-                        setMeal('a1', n);
-                      }}
-                    />
-                    {dual && (
-                      <PortionInput
-                        label="Hopper 2"
-                        max={255}
-                        value={meal.a2}
-                        onChange={n => {
-                          setMeal('a2', n);
-                        }}
-                      />
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="destructive"
-                      size="small"
-                      aria-label={`Remove ${name.toLowerCase()}`}
-                      onClick={() => {
-                        change(gi, g => {
-                          g.it.splice(mi, 1);
-                        });
-                      }}
-                    >
-                      <Icon name="close" size={14} />
-                    </Button>
-                  </div>
-                </div>
-              );
-            })
+            <ul className="m-0 flex list-none flex-col p-0">
+              {group.it.map((meal, mi) => (
+                <li key={mi} className="flex min-h-16 items-center gap-3 border-t border-rule">
+                  <span className="w-24 text-2xl font-medium tabular-nums">
+                    {secToClock(meal.t)}
+                  </span>
+                  <span className="min-w-0 flex-1 text-sm text-muted-foreground">
+                    {portions(meal.a1, meal.a2, dual)}
+                  </span>
+                  <Button
+                    size="small"
+                    aria-label={`Edit meal ${mi + 1} of set ${gi + 1}`}
+                    onClick={() => {
+                      setEditing({ gi, mi });
+                    }}
+                  >
+                    Edit
+                  </Button>
+                </li>
+              ))}
+            </ul>
           ) : (
-            <p className="text-sm text-muted-foreground">No meals on these days.</p>
+            <p className="border-t border-rule py-3 text-sm text-muted-foreground">
+              No meals on these days.
+            </p>
           )}
-          <div>
+          <div className="border-t border-rule pt-2">
             <Button
               variant="text"
               aria-label={`Add a meal to set ${gi + 1}`}
@@ -142,15 +132,39 @@ export function FeedEditor({ value, onChange, dual }: FeedEditorProps) {
                 change(gi, g => {
                   g.it.push({ id, t: 0, a1: 1, a2: 0 });
                 });
+                setEditing({ gi, mi: group.it.length });
               }}
             >
               <Icon name="plus" size={14} />
-              Add meal
+              Add a meal
             </Button>
           </div>
-        </div>
+        </Card>
       ))}
-      <div>{add}</div>
+      <div>{addSet}</div>
+      {editing && open && (
+        <MealSheet
+          name={`Meal ${editing.mi + 1} of set ${editing.gi + 1}`}
+          days={daysText(groups[editing.gi]?.re ?? '')}
+          meal={open}
+          dual={dual}
+          onClose={() => {
+            setEditing(null);
+          }}
+          onChange={(field, n) => {
+            change(editing.gi, g => {
+              const m = g.it[editing.mi];
+              if (m) m[field] = n;
+            });
+          }}
+          onDelete={() => {
+            change(editing.gi, g => {
+              g.it.splice(editing.mi, 1);
+            });
+            setEditing(null);
+          }}
+        />
+      )}
     </div>
   );
 }

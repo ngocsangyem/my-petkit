@@ -1,6 +1,9 @@
 import { Progress as ProgressPrimitive } from '@base-ui/react/progress';
 import { cn } from 'cn';
 
+// Edited from the shadcn source: a 6px pill track on `--pk-track` with an
+// accent fill (design-reference §7, consumables and hopper levels).
+
 function Progress({ className, children, value, ...props }: ProgressPrimitive.Root.Props) {
   return (
     <ProgressPrimitive.Root
@@ -21,7 +24,7 @@ function ProgressTrack({ className, ...props }: ProgressPrimitive.Track.Props) {
   return (
     <ProgressPrimitive.Track
       className={cn(
-        'relative flex h-1 w-full items-center overflow-x-hidden rounded-full bg-muted',
+        'relative flex h-1.5 w-full items-center overflow-x-hidden rounded-full bg-track',
         className,
       )}
       data-slot="progress-track"
@@ -34,7 +37,7 @@ function ProgressIndicator({ className, ...props }: ProgressPrimitive.Indicator.
   return (
     <ProgressPrimitive.Indicator
       data-slot="progress-indicator"
-      className={cn('h-full bg-primary transition-[width]', className)}
+      className={cn('h-full rounded-full bg-data transition-[width]', className)}
       {...props}
     />
   );

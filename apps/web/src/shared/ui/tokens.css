@@ -1,13 +1,15 @@
 /*
  * Design tokens: the only file in src/ allowed to hold a hex colour
- * (scripts/check-no-hex.mjs). Values come from docs/design/design-reference.md §2
- * and the artboards; components read them as CSS custom properties.
+ * (scripts/check-no-hex.mjs). Values come from docs/design/design-reference.md
+ * §2, §7.2 and §8 (web v3: soft white cards on a tinted ground, pill controls),
+ * and from the artboard CSS in docs/design/tools/web-v3/web.css; components
+ * read them as CSS custom properties.
  */
 :root {
   /* Surfaces and ink */
-  --pk-ground: #f2f6f5;
+  --pk-ground: #edf2f1;
   --pk-surface: #ffffff;
-  --pk-raised: #f5f7f7;
+  --pk-raised: #f4f7f6;
   --pk-active: #e8eded;
   --pk-border: #e3e8e7;
   --pk-rule: #eef1f1;
@@ -15,7 +17,24 @@
   --pk-text: #131416;
   --pk-text-hover: #2a2c2f;
   --pk-muted: #5d6262;
+  --pk-lede: #3b4040; /* the finding sentence under a page title */
   --pk-on-dark: #ffffff;
+  --pk-segment: #e3e8e7; /* segmented-control track */
+  --pk-track: #e8eded; /* progress-bar track */
+  --pk-switch-off: #d5dbda;
+  --pk-switch-thumb: #ffffff;
+
+  /* Device line drawings: strokes, the white body, the base, and the three contents. */
+  --pk-drawing-stroke: #131416;
+  --pk-drawing-fill: #ffffff;
+  --pk-drawing-base: #e3e8e7;
+  --pk-litter: #cfe5e2;
+  --pk-food: #e9d9b8;
+  --pk-water: #cfe0f2;
+
+  /* The one overlay allowed on a photo: a dark caption pill (§7.3). Same in dark mode. */
+  --pk-caption-bg: rgba(0, 0, 0, 0.55);
+  --pk-caption-ink: #ffffff;
 
   /* Data and status */
   --pk-accent: #0f6e66;
@@ -44,44 +63,59 @@
   --pk-pet-1-tint: #f8eedb;
   --pk-pet-1-ink: #7a4f08;
 
-  /* Live video (design-reference §7.2): the same dark frame in light and dark mode,
-     so these are not redefined under .dark. */
-  --pk-live-ground: #0e0f10;
+  /* Live video (design-reference §7.2, frame per the web v3 artboards' video block): the same
+     dark frame in light and dark mode, so these are not redefined under .dark. The frame is a
+     step above the dark ground, so it still reads as a block in dark mode. */
+  --pk-live-ground: #1b1d1e;
   --pk-live-control: #202325;
   --pk-live-text: #f2f4f4;
 
-  /* Overlays: only sheets, menus and dialogs carry a shadow */
-  --pk-overlay-shadow: 0 8px 24px rgba(19, 20, 22, 0.12);
-  --pk-overlay-backdrop: rgba(19, 20, 22, 0.32);
+  /* Overlays: only dialogs, sheets, menus and toasts carry a shadow */
+  --pk-overlay-shadow: 0 8px 30px rgba(0, 0, 0, 0.14);
+  --pk-sheet-shadow: -8px 0 30px rgba(0, 0, 0, 0.12);
+  --pk-overlay-backdrop: rgba(19, 20, 22, 0.35);
   --pk-swatch-edge: rgba(19, 20, 22, 0.08);
 
-  /* Radius */
-  --pk-radius-sheet: 16px;
-  --pk-radius-dialog: 12px;
-  --pk-radius-card: 8px;
-  --pk-radius-control: 6px;
-  --pk-radius-lane: 4px;
-  --pk-radius-pill: 999px;
+  /*
+   * Context fills. A secondary button is white on the ground and ground-tinted
+   * inside a card or dialog; a field is raised inside a card and white inside a
+   * raised panel. Card, Panel, Dialog and Sheet re-point these two, so a control
+   * picks the right fill from the nearest container without a prop.
+   */
+  --pk-tint: var(--pk-ground);
+  --pk-fill-secondary: var(--pk-surface);
+  --pk-fill-field: var(--pk-surface);
+
+  /* Radius: cards 20, inner panels and fields 14, dialogs and sheets 24; controls are full pills (rounded-full) */
+  --pk-radius-card: 20px;
+  --pk-radius-panel: 14px;
+  --pk-radius-tile: 16px; /* quick actions, warning boxes, the sidebar foot, toasts, video */
+  --pk-radius-dialog: 24px; /* dialogs and the inner edge of side sheets */
+  --pk-radius-lane: 8px;
 
   /* Spacing */
   --pk-gap: 24px;
   --pk-pad: 24px;
-  --pk-sheet-inset: 8px;
   --pk-row-height: 56px;
   --pk-row-height-compact: 48px;
-  --pk-control-height: 32px;
-  --pk-control-height-small: 28px;
-  --pk-control-height-large: 36px;
-  --pk-sidebar-width: 228px;
-  --pk-topbar-height: 48px;
+  --pk-control-height: 40px; /* buttons */
+  --pk-control-height-small: 32px; /* small chips and in-row buttons */
+  --pk-control-height-large: 48px; /* the main action of a form */
+  --pk-chip-height: 36px;
+  --pk-field-height: 44px;
+  --pk-sidebar-width: 248px;
+  --pk-content-max: 1180px;
   --pk-settings-label-width: 360px;
 
   /* Type */
   --pk-font-sans: 'IBM Plex Sans', system-ui, sans-serif;
   --pk-font-mono: 'IBM Plex Mono', ui-monospace, monospace;
-  --pk-text-title: 22px;
-  --pk-text-section: 16px;
-  --pk-text-figure: 28px;
+  --pk-text-title: 28px;
+  --pk-text-title-phone: 24px;
+  --pk-text-dialog: 22px;
+  --pk-text-section: 17px;
+  --pk-text-figure: 30px;
+  --pk-text-lede: 15px;
   --pk-text-body: 14px;
   --pk-text-small: 13px;
   --pk-text-caption: 12px;
@@ -91,8 +125,9 @@
 /*
  * Dark mode: `.dark` on <html>, set before the first paint by public/theme-init.js.
  * Values come from design-reference §7.5 (shared with iOS) and §8.4 (the web
- * frame, approved 2026-10-30). Tokens neither table covers are marked "derived":
- * picked to keep the light theme's contrast steps.
+ * frame, approved 2026-10-30), and from the `.dark` rules of the artboard CSS.
+ * Tokens none of them covers are marked "derived": picked to keep the light
+ * theme's contrast steps.
  */
 :root {
   color-scheme: light;
@@ -106,13 +141,25 @@
   --pk-raised: #232628;
   --pk-active: #1a1c1e; /* active nav pill (§8.4) */
   --pk-border: #3a3e41; /* same light value as the drawing base (§7.5) */
-  --pk-rule: #25282a; /* derived */
+  --pk-rule: #2c3032; /* table and list rules (web.css) */
   --pk-control: #3a3e41; /* the dark drawing-base fill */
   --pk-text: #f2f4f4;
   --pk-text-hover: #ffffff; /* derived */
   --pk-muted: #a1a8a8;
+  --pk-lede: #c9cfcf;
   /* Primary buttons and selected chips invert to light ink on near-black (§8.4). */
   --pk-on-dark: #0e0f10;
+  --pk-segment: #3a3e41; /* the dark drawing-base fill */
+  --pk-track: #2c3032;
+  --pk-switch-off: #3a3e41; /* derived */
+  --pk-switch-thumb: #f2f4f4; /* derived */
+
+  /* Drawings: strokes lighten, the white body and base take the dark surfaces;
+     litter, food and water keep their light tints, as on ios-devices-dark. */
+  --pk-tint: var(--pk-raised); /* secondary buttons inside a card (§8.4) */
+  --pk-drawing-stroke: #e9eded;
+  --pk-drawing-fill: #1a1c1e;
+  --pk-drawing-base: #3a3e41;
 
   --pk-accent: #4fc2b6;
   --pk-accent-hover: #7fd6cc; /* derived */
@@ -138,7 +185,8 @@
   --pk-pet-1-tint: #3a2c12; /* derived */
   --pk-pet-1-ink: #e0b26a; /* day-strip tick (§8.4) */
 
-  --pk-overlay-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); /* derived */
+  --pk-overlay-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); /* derived */
+  --pk-sheet-shadow: -8px 0 30px rgba(0, 0, 0, 0.5); /* derived */
   --pk-overlay-backdrop: rgba(0, 0, 0, 0.55); /* derived */
   --pk-swatch-edge: rgba(255, 255, 255, 0.12); /* derived */
 }

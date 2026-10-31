@@ -82,6 +82,8 @@ function liveLabel(state: LiveState): string {
 export interface LiveIndicatorProps {
   state: LiveState;
   label?: string;
+  /** Overrides the muted label colour and size, e.g. ink in the sidebar foot. */
+  className?: string;
 }
 
 const LIVE_DOT: Record<LiveState, string> = {
@@ -91,13 +93,16 @@ const LIVE_DOT: Record<LiveState, string> = {
 };
 
 /**
- * The top bar's Live dot: green when live, hollow while connecting, red when offline. The label
+ * The Live dot of the sidebar foot: green when live, hollow while connecting, red when offline. The label
  * stays muted; only the dot carries the state.
  */
-export function LiveIndicator({ state, label }: LiveIndicatorProps) {
+export function LiveIndicator({ state, label, className }: LiveIndicatorProps) {
   return (
     <span
-      className="inline-flex items-center gap-1.5 whitespace-nowrap text-muted-foreground"
+      className={cn(
+        'inline-flex items-center gap-1.5 whitespace-nowrap text-muted-foreground',
+        className,
+      )}
       data-state={state}
       role="status"
     >

@@ -2,35 +2,39 @@ import { Button as ButtonPrimitive } from '@base-ui/react/button';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from 'cn';
 
-// Edited from the shadcn source for design-reference §3 and §6: the primary
-// fill is ink, never the accent; secondary is white with a control border;
-// red is either text or, for the final step-up action only, a fill. No
-// resting shadow, no press translate, and the focus ring is the accent outline.
+// Edited from the shadcn source for design-reference §8 (web v3): every
+// button is a full pill. The primary fill is ink, never the accent; secondary
+// takes `--pk-fill-secondary` (white on the ground, ground-tinted inside a card
+// or dialog, set by those containers); red is either text or, for the final
+// step-up action only, a fill. No resting shadow, no press translate, and the
+// focus ring is the accent outline. Heights: 40 regular, 32 small, 48 for the
+// main action of a form.
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center gap-2 rounded-md border border-transparent font-sans font-medium leading-none whitespace-nowrap no-underline select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 items-center justify-center gap-2 rounded-full border-0 font-sans font-semibold leading-none whitespace-nowrap no-underline select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:outline-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default:
           'bg-primary text-primary-foreground hover:not-disabled:bg-ink-hover hover:not-disabled:text-primary-foreground',
         outline:
-          'border-input bg-secondary text-secondary-foreground hover:not-disabled:bg-muted hover:not-disabled:text-secondary-foreground aria-expanded:bg-muted',
-        ghost: 'text-foreground hover:not-disabled:bg-accent aria-expanded:bg-accent',
-        'destructive-text': 'text-destructive',
+          'bg-fill-secondary text-foreground hover:not-disabled:bg-active hover:not-disabled:text-foreground aria-expanded:bg-active',
+        ghost:
+          'bg-transparent text-foreground hover:not-disabled:bg-active aria-expanded:bg-active',
+        'destructive-text': 'bg-transparent text-destructive hover:not-disabled:bg-active',
         destructive:
           'bg-destructive text-primary-foreground hover:not-disabled:text-primary-foreground',
-        link: 'text-data hover:not-disabled:text-data-hover',
+        link: 'bg-transparent font-medium text-data hover:not-disabled:text-data-hover',
       },
       size: {
-        default: 'h-8 px-3 text-base',
-        sm: 'h-7 px-2.5 text-sm',
-        lg: 'h-9 px-3.5 text-base',
-        icon: 'size-8',
-        'icon-sm': 'size-7',
+        default: 'h-(--pk-control-height) px-[18px] text-base',
+        sm: 'h-(--pk-control-height-small) px-3.5 text-sm',
+        lg: 'h-(--pk-control-height-large) px-6 text-md',
+        icon: 'size-(--pk-control-height)',
+        'icon-sm': 'size-(--pk-control-height-small)',
       },
     },
     compoundVariants: [
-      { variant: ['destructive-text', 'link'], size: ['default', 'sm', 'lg'], className: 'px-1' },
+      { variant: 'link', size: ['default', 'sm', 'lg'], className: 'h-auto min-h-6 px-1' },
     ],
     defaultVariants: {
       variant: 'default',

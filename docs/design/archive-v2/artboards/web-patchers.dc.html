@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Patchers · my-petkit</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2f6f5}
+a{color:#131416;text-decoration:none}a:hover{color:#0f6e66}
+.nav a:hover{background:#e8eded}
+.row:hover{background:#f5f7f7}
+.btn2:hover{background:#f5f7f7}
+.btn1:hover{background:#2a2c2f}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #0f6e66;outline-offset:2px}
+.phonebar{display:none !important}
+@media (max-width: 900px){
+  .shell{grid-template-columns:minmax(0,1fr) !important;grid-template-rows:auto 1fr !important}
+  .side,.topbar{display:none !important}
+  .phonebar{display:flex !important}
+  .sheet{margin:0 !important;overflow-wrap:anywhere;min-width:0 !important;border-radius:0 !important;border-left:0 !important;border-right:0 !important;padding:16px !important}
+  .two{grid-template-columns:1fr !important}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+  .hide-sm{display:none !important}
+}
+</style>
+</helmet>
+<div class="shell" style="min-height: 1000px; display: grid; grid-template-columns: 228px minmax(0, 1fr); grid-template-rows: 48px minmax(0, 1fr); background: #f2f6f5; color: #131416; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 14px; line-height: 1.45">
+
+  <aside class="side" style="grid-row: 1 / 3; display: flex; flex-direction: column; gap: 20px; padding: 14px 12px 16px">
+    <div style="display: flex; align-items: center; gap: 10px; height: 20px; padding: 0 8px">
+      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="none" stroke="#0f6e66" stroke-width="2"></circle><path d="M3.2 13.2 A8 8 0 0 0 16.8 13.2 Z" fill="#0f6e66"></path></svg>
+      <span style="font-size: 15px; font-weight: 600">my-petkit</span>
+    </div>
+    <div style="padding: 0 8px; font-size: 12px; color: #5d6262">Home server · v2.1.0</div>
+    <nav class="nav" aria-label="Sections" style="display: flex; flex-direction: column; gap: 2px">
+      <a href="web-devices.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M5 15h14"></path></svg>Devices</a>
+      <a href="web-timeline.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12h16M8 8v8M14 6v12"></path></svg>Timeline</a>
+      <a href="web-pets.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="13" r="6"></circle><path d="M7 8 6 3l4 3M17 8l1-5-4 3"></path></svg>Pets</a>
+    </nav>
+    <nav class="nav" aria-label="Tools" style="display: flex; flex-direction: column; gap: 2px">
+      <span style="padding: 0 8px 4px; font-size: 12px; color: #5d6262">Tools</span>
+      <a href="web-provision.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m7 7 10 10-5 5V2l5 5L7 17"></path></svg>Provision</a>
+      <a href="web-log.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13"></path></svg>Log</a>
+      <a href="web-setup.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 3v3M12 18v3M3 12h3M18 12h3"></path></svg>Setup</a>
+    </nav>
+    <nav class="nav" aria-label="Advanced" style="display: flex; flex-direction: column; gap: 2px">
+      <span style="padding: 0 8px 4px; font-size: 12px; color: #5d6262">Advanced · needs step-up</span>
+      <a href="web-capture.dc.html" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; color: #5d6262"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M8 10h8M8 14h5"></path></svg>Capture</a>
+      <a href="web-patchers.dc.html" aria-current="page" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: 6px; background: #e8eded; font-weight: 500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#131416" stroke-width="1.8" aria-hidden="true"><path d="M14 4l6 6-10 10H4v-6z"></path></svg>Patchers</a>
+    </nav>
+    <div style="flex: 1"></div>
+    <a href="web-login.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 0 8px; font-size: 13px; color: #5d6262">Signed in as admin</a>
+  </aside>
+
+  <header class="topbar" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 16px 0 0">
+    <label style="display: flex; align-items: center; gap: 8px; width: 420px; height: 32px; padding: 0 10px; box-sizing: border-box; background: #ffffff; border: 1px solid #e3e8e7; border-radius: 6px; color: #5d6262">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+      <input type="search" aria-label="Search devices, cats and events" placeholder="Search devices, cats, events" style="flex: 1; border: 0; outline: 0; background: transparent; font: 14px 'IBM Plex Sans', sans-serif; color: #131416">
+    </label>
+    <div style="display: flex; align-items: center; gap: 16px; font-size: 13px; color: #5d6262">
+      <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 8px; height: 8px; border-radius: 50%; background: #1e7b4f"></span>Live</span>
+      <span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px">192.168.1.20:8443</span> · TLS pinned</span>
+    </div>
+  </header>
+
+  <main class="sheet" style="margin: 0 8px 8px 0; min-width: 0; background: #ffffff; border: 1px solid #e3e8e7; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 24px">
+
+    <div class="phonebar" style="align-items: center; justify-content: space-between; height: 48px; margin: -16px -16px 0; padding: 0 16px; background: #f2f6f5">
+      <button type="button" aria-label="Open menu" style="width: 44px; height: 44px; border: 0; background: transparent; padding: 0; display: flex; align-items: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#131416" stroke-width="2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></button>
+      <span style="font-weight: 600">Patchers</span>
+      <span style="width: 44px"></span>
+    </div>
+
+
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap">
+      <div style="display: flex; flex-direction: column; gap: 6px; min-width: 0">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+          <h1 style="margin: 0; font-size: 22px; font-weight: 600">Patchers</h1>
+          <span style="display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; background: #ffedea; color: #831c1e; font-size: 12px; font-weight: 500">Step-up required</span>
+        </div>
+        <p style="margin: 0; font-size: 14px; color: #5d6262">Root changes on the device itself · 2 of 6 patches applied</p>
+      </div>
+      <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #5d6262">Device<select style="height: 32px; padding: 0 8px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 14px 'IBM Plex Sans', sans-serif; color: #131416"><option>Litter box · T6 · MIPS</option><option>Water fountain · W7H · ARM</option></select></label>
+    </div>
+
+    <div style="display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; background: #f5f7f7; border-radius: 8px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c4242a" stroke-width="2" style="flex: none; margin-top: 2px" aria-hidden="true"><path d="M12 3 2 20h20z"></path><path d="M12 10v5M12 18v.5"></path></svg>
+      <p style="margin: 0; max-width: 72ch">Each patch runs shell commands on the box as root. Firmware files are never overwritten: a boot script bind-mounts patched copies, and undo removes it and reboots. A patched device is outside its warranty.</p>
+    </div>
+
+    <section aria-labelledby="list-h" style="display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap">
+        <h2 id="list-h" style="margin: 0; font-size: 16px; font-weight: 600">Patches</h2>
+        <span style="font-size: 12px; color: #5d6262">The server can reach this device on the home network. In cloud mode without the WireGuard tunnel it is unreachable.</span>
+      </div>
+      <div style="overflow-x: auto">
+        <table style="width: 100%; min-width: 820px; border-collapse: collapse; font-variant-numeric: tabular-nums">
+          <thead>
+            <tr style="text-align: left; font-size: 12px; color: #5d6262">
+              <th scope="col" style="padding: 0 12px 8px 10px; font-weight: 500; width: 38%">Patch</th>
+              <th scope="col" style="padding: 0 12px 8px 0; font-weight: 500">Target model</th>
+              <th scope="col" style="padding: 0 12px 8px 0; font-weight: 500; text-align: right">Space</th>
+              <th scope="col" style="padding: 0 12px 8px 0; font-weight: 500">Status</th>
+              <th scope="col" style="padding: 0 12px 8px 0; font-weight: 500">Last applied</th>
+              <th scope="col" style="padding: 0 0 8px; font-weight: 500; text-align: right"><span style="position: absolute; left: -9999px">Action</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <sc-for list="{{rows}}" as="p" hint-placeholder-count="6">
+              <tr class="row" style="border-top: 1px solid #eef1f1; height: 56px; box-shadow: inset 2px 0 0 {{p.edge}}">
+                <td style="padding: 8px 12px 8px 10px"><div style="display: flex; flex-direction: column"><span style="font-weight: 500">{{p.name}}</span><span style="font-size: 12px; color: #5d6262">{{p.what}}</span></div></td>
+                <td style="padding: 8px 12px 8px 0; color: #5d6262">{{p.models}}</td>
+                <td style="padding: 8px 12px 8px 0; text-align: right">{{p.space}}</td>
+                <td style="padding: 8px 12px 8px 0; color: {{p.ink}}">{{p.status}}</td>
+                <td style="padding: 8px 12px 8px 0; color: #5d6262">{{p.last}}</td>
+                <td style="padding: 8px 0; text-align: right"><button type="button" class="btn2" onClick="{{p.pick}}" style="height: 28px; padding: 0 10px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 500 13px 'IBM Plex Sans', sans-serif; color: #131416; white-space: nowrap">{{p.action}}</button></td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="go-h" style="display: flex; flex-direction: column; gap: 14px; max-width: 640px; padding: 20px; border: 1px solid #e3e8e7; border-radius: 8px">
+      <h2 id="go-h" style="margin: 0; font-size: 16px; font-weight: 600">Apply {{selName}} to the litter box?</h2>
+      <sc-if value="{{needsKey}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <label for="pubkey" style="font-size: 13px; font-weight: 500">SSH public key</label>
+          <textarea id="pubkey" rows="3" placeholder="ssh-ed25519 AAAA… you@laptop" style="box-sizing: border-box; width: 100%; padding: 8px 10px; border: 1px solid #cdd3d2; border-radius: 6px; resize: vertical; font: 12px/1.5 'IBM Plex Mono', monospace; color: #131416"></textarea>
+          <span style="font-size: 12px; color: #5d6262">Root SSH on port 22 accepts this key only.</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{applying}}" hint-placeholder-val="{{false}}">
+        <div role="status" style="display: flex; flex-direction: column; gap: 6px">
+          <span>Applying · sending the patch, 250 of 410 KB</span>
+          <span style="height: 6px; background: #eef1f1; border-radius: 3px; overflow: hidden"><span style="display: block; height: 6px; width: 61%; background: #0f6e66"></span></span>
+          <span style="font-size: 12px; color: #5d6262">Progress comes from the server over a live connection.</span>
+        </div>
+      </sc-if>
+      <p style="margin: 0; font-size: 13px; color: #5d6262">Undo removes the boot script and reboots the device.</p>
+      <div style="display: flex; gap: 8px; align-items: center">
+        <sc-if value="{{ready}}" hint-placeholder-val="{{true}}">
+          <button type="button" onClick="{{startApply}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: #c4242a; font: 500 14px 'IBM Plex Sans', sans-serif; color: #ffffff">Apply {{selName}}</button>
+        </sc-if>
+        <sc-if value="{{applying}}" hint-placeholder-val="{{false}}">
+          <button type="button" class="btn2" onClick="{{cancelApply}}" style="height: 32px; padding: 0 12px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; font: 500 14px 'IBM Plex Sans', sans-serif; color: #131416">Cancel</button>
+        </sc-if>
+      </div>
+    </section>
+
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sel: 'ssh', applying: false };
+  }
+  renderVals() {
+    const patches = [
+      { id: 'ca', name: 'CA certificate', what: 'Adds this server’s CA to the trust store', models: 'T6, W7H', space: '4 KB', applied: true, last: '12 Oct 19:20' },
+      { id: 'mqtt', name: 'MQTT TLS bypass', what: 'Accepts this server’s broker certificate', models: 'T6, W7H', space: '2.1 MB', applied: true, last: '12 Oct 19:21' },
+      { id: 'storage', name: 'Local storage', what: 'Lets uploads go to a LAN address', models: 'T6', space: '1.8 MB', applied: false },
+      { id: 'cam', name: 'Local camera streaming', what: 'Starts the local video server instead of the cloud relay', models: 'T6', space: '1.1 MB', applied: false },
+      { id: 'talk', name: 'Two-way talk', what: 'Adds an audio sink on port 9010 (no auth on the device)', models: 'T6', space: '320 KB', applied: false },
+      { id: 'ssh', name: 'Persistent SSH', what: 'Root SSH on port 22, public key only', models: 'T6, W7H', space: '410 KB', applied: false }
+    ];
+    const sel = patches.find((p) => p.id === this.state.sel);
+    return {
+      rows: patches.map((p) => ({
+        name: p.name, what: p.what, models: p.models, space: p.space,
+        status: p.applied ? 'Applied' : 'Not applied',
+        ink: p.applied ? '#1e7b4f' : '#5d6262',
+        last: p.applied ? p.last : '—',
+        action: p.applied ? 'Undo' : 'Apply…',
+        edge: !p.applied && p.id === this.state.sel ? '#0f6e66' : 'transparent',
+        pick: () => { if (!p.applied) this.setState({ sel: p.id, applying: false }); }
+      })),
+      selName: sel.name,
+      needsKey: sel.id === 'ssh',
+      applying: this.state.applying,
+      ready: !this.state.applying,
+      startApply: () => this.setState({ applying: true }),
+      cancelApply: () => this.setState({ applying: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

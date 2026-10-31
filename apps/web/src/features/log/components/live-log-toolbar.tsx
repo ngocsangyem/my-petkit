@@ -1,22 +1,28 @@
-import { InlineField, LiveIndicator, SearchField, Select, Switch } from '@/shared/ui';
+import { Chip, InlineField, LiveIndicator, SearchField, Select } from '@/shared/ui';
 import { useStreamStatus } from '@/shared/ws/use-event-stream';
 import { ALL, type LiveLogFilters } from '../hooks/use-live-log-filters';
 
-/** Grep, kind and device filters, the two switches, and the stream's state. */
+/** Grep, the heartbeat and auto-scroll chips, kind and device filters, and the stream's state. */
 export function LiveLogToolbar({ filters }: { filters: LiveLogFilters }) {
   const status = useStreamStatus();
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+    <div className="flex flex-wrap items-center gap-2.5">
       <SearchField
-        className="max-w-[300px] flex-[1_1_220px]"
+        className="min-w-[220px] flex-[1_1_240px]"
         aria-label="Filter the live log"
-        placeholder="grep"
+        placeholder="Filter lines, for example 100155021"
         mono
         autoComplete="off"
         spellCheck={false}
         value={filters.grep}
         onValueChange={filters.setGrep}
       />
+      <Chip pressed={filters.hideHeartbeats} onPressedChange={filters.setHideHeartbeats}>
+        Hide heartbeats
+      </Chip>
+      <Chip pressed={filters.autoscroll} onPressedChange={filters.setAutoscroll}>
+        Auto-scroll
+      </Chip>
       <InlineField label="Kind">
         <Select
           value={filters.kind}
@@ -41,18 +47,6 @@ export function LiveLogToolbar({ filters }: { filters: LiveLogFilters }) {
           ]}
         />
       </InlineField>
-      <Switch
-        small
-        label="Hide heartbeats"
-        checked={filters.hideHeartbeats}
-        onCheckedChange={filters.setHideHeartbeats}
-      />
-      <Switch
-        small
-        label="Auto-scroll"
-        checked={filters.autoscroll}
-        onCheckedChange={filters.setAutoscroll}
-      />
       <span className="ml-auto text-sm">
         <LiveIndicator state={status} />
       </span>

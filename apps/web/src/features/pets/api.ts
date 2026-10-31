@@ -1,9 +1,11 @@
 // Server state of the Pets screen. Every mutation refetches what it changed,
 // because the old panel rebuilt the whole view after each one and the user
 // expects the same: a saved change is a visible change.
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, unwrap } from '@/shared/api/client';
 import { ApiError } from '@/shared/api/errors';
+import { todayLocal } from '@/shared/format/local-day';
+import { historyDates, petDay, type PetDay } from './pet-history-model';
 import { withAlias, type DeviceDetail, type DeviceSummary } from './pet-model';
 import type { PetUpdateRequest } from './pet-weight-model';
 
@@ -14,6 +16,39 @@ export const petsKeys = {
   aiDevices: ['pets', 'ai-devices'] as const,
   info: ['pets', 'info'] as const,
 };
+
+/**
+ * A pet's last days, read from the timeline's day route narrowed to the pet. Kept apart from the
+ * pets cache root, so saving a pet does not refetch two weeks of days; a minute old is fresh.
+ */
+export function usePetHistory(petId: number) {
+  const today = todayLocal();
+  const dates = historyDates(today);
+  const results = useQueries({
+    // A past day only changes when a visit is reassigned, and that invalidates
+    // `pet-history`; only today keeps arriving. So focus never refetches all 14.
+    queries: dates.map(date => ({
+      queryKey: ['pet-history', petId, date] as const,
+      queryFn: () =>
+        unwrap(
+          api.GET('/api/timeline', {
+            params: { query: { date, pet: petId, filter: 'toileting' } },
+          }),
+        ),
+      staleTime: date === today ? 60_000 : Infinity,
+    })),
+  });
+  const days: PetDay[] = dates.map((date, i) => petDay(date, results.at(i)?.data, petId));
+  return {
+    days,
+    isPending: results.some(r => r.isPending),
+    error: results.find(r => r.error)?.error ?? null,
+    isFetching: results.some(r => r.isFetching),
+    refetch: () => {
+      for (const r of results) if (r.error) void r.refetch();
+    },
+  };
+}
 
 export function usePets() {
   return useQuery({

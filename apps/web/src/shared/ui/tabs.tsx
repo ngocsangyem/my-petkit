@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { Tabs as TabsRoot, TabsContent, TabsList, TabsTrigger } from './shadcn/tabs';
-import { ToggleGroup, ToggleGroupItem } from './shadcn/toggle-group';
 
 /** One tab or chip choice. */
 export interface TabItem<Id extends string = string> {
@@ -64,42 +63,5 @@ export function Tabs<Id extends string>({
         {children}
       </TabsContent>
     </TabsRoot>
-  );
-}
-
-/** Props for {@link SegmentedChips}. */
-export interface SegmentedChipsProps<Id extends string> {
-  /** Accessible name of the group, e.g. "Cat shown in colour". */
-  label: string;
-  options: readonly TabItem<Id>[];
-  value: Id;
-  onChange: (id: Id) => void;
-}
-
-/** A row of 28px toggle chips (`aria-pressed`); the chosen chip gets an accent border, never a fill. */
-export function SegmentedChips<Id extends string>({
-  label,
-  options,
-  value,
-  onChange,
-}: SegmentedChipsProps<Id>) {
-  return (
-    <ToggleGroup
-      aria-label={label}
-      variant="outline"
-      size="sm"
-      value={[value]}
-      onValueChange={values => {
-        const next = values[0] as Id | undefined;
-        if (next) onChange(next);
-      }}
-      className="flex-wrap"
-    >
-      {options.map(o => (
-        <ToggleGroupItem key={o.id} value={o.id} disabled={o.disabled}>
-          {o.label}
-        </ToggleGroupItem>
-      ))}
-    </ToggleGroup>
   );
 }

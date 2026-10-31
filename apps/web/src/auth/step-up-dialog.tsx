@@ -2,7 +2,7 @@ import { type SyntheticEvent, useEffect, useId, useRef, useState } from 'react';
 import { api } from '@/shared/api/client';
 import { setCredentialHandler } from '@/shared/api/credential-prompt';
 import { errorMessage, toApiError } from '@/shared/api/errors';
-import { Button } from '@/shared/ui';
+import { Button, Panel, StepUpPill } from '@/shared/ui';
 import {
   Dialog,
   DialogContent,
@@ -83,23 +83,27 @@ export function StepUpDialog() {
         aria-busy={busy || undefined}
         className="max-h-[calc(100vh-32px)] w-[calc(100%-32px)] max-w-[440px] gap-4 overflow-y-auto sm:max-w-[440px]"
       >
-        <DialogHeader className="gap-1.5">
-          <DialogTitle className="text-[18px] leading-snug font-semibold">
-            Confirm it&apos;s you to continue?
-          </DialogTitle>
-          <DialogDescription className="text-base">
+        <DialogHeader className="items-start gap-2">
+          <StepUpPill />
+          <DialogTitle>Confirm it&apos;s you to continue?</DialogTitle>
+          <DialogDescription>
             This action can expose secrets or change devices. Enter your password again to continue.
           </DialogDescription>
         </DialogHeader>
+        <Panel className="text-sm">Home server · {window.location.host}</Panel>
         <form className="grid gap-4" onSubmit={e => void confirm(e)} noValidate>
           <Field className="gap-1.5" data-invalid={error ? true : undefined}>
-            <FieldLabel htmlFor={passwordId}>Password</FieldLabel>
+            <FieldLabel
+              htmlFor={passwordId}
+              className="ml-1 text-sm font-normal text-muted-foreground"
+            >
+              Password
+            </FieldLabel>
             <Input
               ref={passwordRef}
               id={passwordId}
               type="password"
               autoComplete="current-password"
-              className="h-9"
               value={password}
               aria-invalid={error ? true : undefined}
               onChange={e => {
@@ -108,10 +112,12 @@ export function StepUpDialog() {
             />
             {error && <FieldError className="text-sm text-negative">{error}</FieldError>}
           </Field>
+          <p className="text-xs text-muted-foreground">
+            Valid for 5 minutes, in this browser only.
+          </p>
           <DialogFooter className="m-0 flex-row flex-wrap justify-end gap-2 rounded-none border-0 bg-transparent p-0">
             <Button
               variant="secondary"
-              size="large"
               disabled={busy}
               onClick={() => {
                 finish(false);
@@ -119,7 +125,7 @@ export function StepUpDialog() {
             >
               Cancel
             </Button>
-            <Button type="submit" variant="primary" size="large" disabled={busy || !password}>
+            <Button type="submit" variant="primary" disabled={busy || !password}>
               Continue
             </Button>
           </DialogFooter>

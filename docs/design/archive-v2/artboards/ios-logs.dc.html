@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Live log</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#131416;text-decoration:none}a:hover{color:#0f6e66}
+button{font-family:inherit}
+.row:active{background:#f5f7f7}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #0f6e66;outline-offset:2px}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; box-sizing: border-box; background: #ffffff; color: #131416; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 15px; line-height: 1.4; display: flex; flex-direction: column">
+  <header style="background: #f2f6f5; padding: 54px 16px 12px; display: flex; flex-direction: column; gap: 8px">
+    <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #5d6262"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="none" stroke="#0f6e66" stroke-width="2"></circle><path d="M3.2 13.2 A8 8 0 0 0 16.8 13.2 Z" fill="#0f6e66"></path></svg>my-petkit</span>
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+      <h1 style="margin: 0; font-size: 24px; font-weight: 600">Log</h1>
+      <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #1e7b4f; font-weight: 500"><span style="width: 8px; height: 8px; border-radius: 50%; background: #1e7b4f"></span>Live</span>
+    </div>
+  </header>
+
+  <main style="flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 6px; padding: 12px 16px 12px">
+    <div role="tablist" aria-label="Log source" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; padding: 2px; background: #e8eded; border-radius: 6px; flex-shrink: 0">
+      <button type="button" role="tab" aria-selected="true" style="height: 40px; border: 0; border-radius: 4px; background: #ffffff; color: #131416; font: 600 14px 'IBM Plex Sans', sans-serif">Server</button>
+      <button type="button" role="tab" aria-selected="false" style="height: 40px; border: 0; border-radius: 4px; background: transparent; color: #5d6262; font: 500 14px 'IBM Plex Sans', sans-serif">Device logs</button>
+    </div>
+    <label for="grep" class="sr">Filter log lines</label>
+    <input id="grep" type="text" placeholder="Filter lines, for example 100155021" onInput="{{onQuery}}" style="height: 44px; flex-shrink: 0; box-sizing: border-box; padding: 0 12px; border: 1px solid #cdd3d2; border-radius: 6px; background: #ffffff; color: #131416; font: 15px 'IBM Plex Sans', sans-serif">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0">
+      <label style="display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 14px"><input type="checkbox" checked="{{hide}}" onChange="{{toggleHide}}" style="width: 20px; height: 20px; margin: 0; accent-color: #131416">Hide heartbeats<span style="font-size: 12px; color: #5d6262; font-variant-numeric: tabular-nums">{{hiddenNote}}</span></label>
+      <span style="display: flex; align-items: center">
+        <button type="button" style="min-height: 44px; padding: 0 10px; border: 0; background: transparent; color: #131416; font: 500 14px 'IBM Plex Sans', sans-serif">Copy</button>
+        <button type="button" aria-label="Download log" style="width: 44px; height: 44px; margin-right: -10px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#131416" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg></button>
+      </span>
+    </div>
+    <div role="log" aria-label="Server log" style="flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; background: #f5f7f7; border-radius: 8px; padding: 12px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; line-height: 1.5; color: #131416">
+      <sc-for list="{{lines}}" as="l" hint-placeholder-count="10">
+        <div style="flex-shrink: 0; display: flex; gap: 8px; border-left: 2px solid {{l.edge}}; padding-left: 8px"><span style="color: #5d6262; flex-shrink: 0">{{l.t}}</span><span style="min-width: 0; overflow-wrap: anywhere">{{l.m}}</span></div>
+      </sc-for>
+    </div>
+  </main>
+
+  <nav aria-label="Main" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); height: 83px; flex-shrink: 0; box-sizing: border-box; padding: 8px 4px 0; background: #f2f6f5; font-size: 11px; font-weight: 500">
+    <a href="ios-devices.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 3px; color: #5d6262"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M5 15h14"></path></svg>Devices</a>
+    <a href="ios-timeline.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 3px; color: #5d6262"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12h16M8 8v8M14 6v12"></path></svg>Timeline</a>
+    <a href="ios-pets.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 3px; color: #5d6262"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="13" r="6"></circle><path d="M7 8 6 3l4 3M17 8l1-5-4 3"></path></svg>Pets</a>
+    <a href="ios-logs.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; gap: 3px; color: #131416"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13"></path></svg>Logs</a>
+    <a href="ios-settings.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 3px; color: #5d6262"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"></path></svg>Settings</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { hide: true, q: '' };
+  }
+  renderVals() {
+    const grey = '#cdd3d2', amber = '#a86f0c', red = '#c4242a';
+    const all = [
+      { t: '13:56:08', edge: grey, m: 'mqtt 100234567 event pet_in' },
+      { t: '13:57:44', edge: grey, m: 'media 100234567 upload EVENT_VIDEO chunks=4' },
+      { t: '13:58:03', edge: grey, m: 'mqtt 100234567 event pet_out cat=Miso weight=5.43' },
+      { t: '14:05:02', edge: grey, m: 'cmd 100234567 start_action clean via mqtt' },
+      { t: '14:05:11', edge: grey, m: 'mqtt 100234567 event clean_over result=ok' },
+      { t: '14:31:07', edge: grey, m: 'mqtt connect from 100234567 keepalive=60s' },
+      { t: '14:31:07', edge: grey, m: 'mqtt 100234567 subscribed 4 topics' },
+      { t: '14:44:19', edge: amber, m: 'ble K3 no relay frame for 2 d' },
+      { t: '14:44:52', edge: grey, m: 'http D4SH 100198342 heartbeat 200', hb: true },
+      { t: '14:45:33', edge: grey, m: 'http D4SH 100198342 heartbeat 200', hb: true },
+      { t: '14:46:14', edge: grey, m: 'http D4SH 100198342 heartbeat 200', hb: true },
+      { t: '14:46:50', edge: amber, m: 'fountain 100155021 no report since 06:10 (8 h 36 m)' },
+      { t: '14:47:01', edge: red, m: 'cmd 100155021 water_mode timed out after 10 s' }
+    ];
+    const q = this.state.q.trim().toLowerCase();
+    const hiddenCount = all.filter((l) => l.hb).length;
+    const lines = all
+      .filter((l) => !(this.state.hide && l.hb))
+      .filter((l) => !q || l.m.toLowerCase().indexOf(q) >= 0);
+    return {
+      lines,
+      hide: this.state.hide,
+      hiddenNote: this.state.hide ? hiddenCount + ' hidden' : 'shown',
+      toggleHide: () => this.setState({ hide: !this.state.hide }),
+      onQuery: (e) => this.setState({ q: e.target.value })
+    };
+  }
+}
+</script>
+</body>
+</html>

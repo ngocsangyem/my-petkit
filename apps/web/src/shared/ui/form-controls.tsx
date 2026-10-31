@@ -17,12 +17,12 @@ export interface TextInputProps extends NativeInput {
   mono?: boolean;
   /** Right-aligned value, as in settings rows. */
   alignEnd?: boolean;
-  /** 36px height, for sign-in forms and dialogs. */
+  /** 48px height, level with a large button (the main action of a form). Default is 44px. */
   large?: boolean;
   type?: 'text' | 'password' | 'url' | 'email' | 'search';
 }
 
-/** 32px text input with a `control` border. */
+/** Borderless 44px text field on the container's field fill (48px with `large`). */
 export function TextInput({
   mono,
   alignEnd,
@@ -34,7 +34,12 @@ export function TextInput({
   return (
     <Input
       type={type}
-      className={cn(mono && MONO, alignEnd && 'text-right', large && 'h-9', className)}
+      className={cn(
+        mono && MONO,
+        alignEnd && 'text-right',
+        large && 'h-(--pk-control-height-large)',
+        className,
+      )}
       {...rest}
     />
   );

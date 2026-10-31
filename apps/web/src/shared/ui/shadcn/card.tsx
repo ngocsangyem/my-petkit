@@ -1,8 +1,10 @@
 import * as React from 'react';
 import { cn } from 'cn';
 
-// Edited from the shadcn source: a 1px `border` edge and radius 8 instead of
-// a ring and radius 12, 20px padding, section-title type (design-reference §3).
+// Edited from the shadcn source for design-reference §8 (web v3): a white card,
+// radius 20, no border, ring or shadow (the tone step from the ground is the
+// edge), 20px padding. Inside it a secondary button is ground-tinted and a
+// field is raised (the two context fills in tokens.css).
 
 function Card({
   className,
@@ -14,7 +16,7 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        'group/card flex min-w-0 flex-col gap-(--card-spacing) rounded-lg border border-border bg-card py-(--card-spacing) text-base text-card-foreground [--card-spacing:--spacing(5)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-lg *:[img:last-child]:rounded-b-lg',
+        'group/card flex min-w-0 flex-col gap-(--card-spacing) rounded-xl bg-card py-(--card-spacing) [--pk-fill-field:var(--pk-raised)] [--pk-fill-secondary:var(--pk-tint)] text-base text-card-foreground [--card-spacing:--spacing(5)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl',
         className,
       )}
       {...props}
@@ -27,7 +29,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot="card-header"
       className={cn(
-        'group/card-header @container/card-header grid auto-rows-min items-start gap-1 rounded-t-lg px-(--card-spacing) has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-(--card-spacing)',
+        'group/card-header @container/card-header grid auto-rows-min items-start gap-1 rounded-t-xl px-(--card-spacing) has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-(--card-spacing)',
         className,
       )}
       {...props}
@@ -76,7 +78,7 @@ function CardFooter({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot="card-footer"
       className={cn(
-        'flex items-center rounded-b-lg border-t bg-muted/50 p-(--card-spacing)',
+        'flex items-center rounded-b-xl border-t border-rule p-(--card-spacing)',
         className,
       )}
       {...props}
